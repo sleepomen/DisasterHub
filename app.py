@@ -6,6 +6,8 @@ from services.map_server import MapService
 from services.sync_service import DataSyncService
 from services.chat_service import ChatService
 from services.vector_store import VectorStore
+from services.disaster_feed_service import DisasterFeedService
+from services.opendata_search import format_search_results_for_prompt, search_open_data_packages
 import uvicorn
 
 app = FastAPI()
@@ -15,6 +17,11 @@ repo = ShelterRepository()
 map_service = MapService()
 vector_store = VectorStore()
 chat_service = ChatService(vector_store=vector_store, repo=repo)
+
+# 【擴充】即時公開災害摘要：氣象署 E-A0015-001（環境變數 CWA_AUTHORIZATION）與 RSS／Atom 清單
+# （DISASTER_FEED_URLS）。供 GET /api/disaster_feed、前端輪詢顯示於聊天框，並在 POST /api/chat
+# 注入 LLM；邏輯集中在 services/disaster_feed_service，與 mcp_server 共用。
+disaster_feeds = DisasterFeedService()
 
 # 儲存最新模擬結果（記憶體暫存）
 latest_simulation: dict = {}
@@ -42,6 +49,12 @@ class NearestRequest(BaseModel):
     lat: float = Field(..., ge=-90, le=90, description="緯度")
     lon: float = Field(..., ge=-180, le=180, description="經度")
     limit: int = Field(default=5, ge=1, le=20, description="回傳筆數")
+
+# 【擴充】開放資料搜尋請求本體：對應 POST /api/opendata/search，後端呼叫 CKAN package_search
+# （預設節點 https://data.taipei，可改 OPENDATA_CKAN_BASE）。
+class OpenDataSearchRequest(BaseModel):
+    q: str = Field(..., min_length=1, max_length=120, description="關鍵字")
+    limit: int = Field(default=12, ge=1, le=30)
 
 # 跟/api/sync一起進行資料同步和重建索引
 @app.on_event("startup")
@@ -92,7 +105,7 @@ async def simulate(request: SimulateRequest):
         "impacted_shelters": impacted
     }
 
-# 注入模擬結果到 chat_service 讓llm讀取結果
+    # 【修正】以下兩行須在此函式內執行，否則模擬後無法更新 ChatService 狀態亦無法正確回傳。
     chat_service.set_simulation(latest_simulation)
 
     return {
@@ -130,8 +143,29 @@ async def chat(request: ChatRequest):
             f"受影響避難所數量：{latest_simulation['impacted_count']} 個。"
         )
 
-    reply = chat_service.chat(request.message, simulation_context=sim_context)
+    # 【擴充】將與前端 /api/disaster_feed 同源之摘要併入 prompt，使 AI 與聊天框通報語境一致。
+    feed_text = disaster_feeds.get_summary_for_chat()
+    reply = chat_service.chat(
+        request.message,
+        simulation_context=sim_context,
+        live_feed_context=feed_text,
+    )
     return {"status": "success", "reply": reply}
+
+# 【擴充】災害通報 JSON（含項目 id 供前端去重）；資料來源見 disaster_feed_service。
+@app.get("/api/disaster_feed")
+async def disaster_feed():
+    return disaster_feeds.get_payload()
+
+# 【擴充】線上開放資料關鍵字搜尋（CKAN）；與 MCP 工具 search_taiwan_open_data 同一實作。
+@app.post("/api/opendata/search")
+async def opendata_search(req: OpenDataSearchRequest):
+    raw = search_open_data_packages(req.q, limit=req.limit)
+    return {
+        "status": "success" if raw.get("ok") else "error",
+        "formatted": format_search_results_for_prompt(raw),
+        "raw": raw,
+    }
 
 # 渲染首頁
 @app.get("/", response_class=HTMLResponse)

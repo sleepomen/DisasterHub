@@ -2,6 +2,11 @@ import json
 import os
 import glob
 from models.shelter import Shelter
+from services.shelter_remote_fetch import (
+    load_shelters_from_csv_url,
+    merge_shelter_lists,
+    remote_shelter_url_from_env,
+)
 
 class DataFetcher:
     def __init__(self):
@@ -42,5 +47,11 @@ class DataFetcher:
                 print(f"讀取 {filename}，total {len(data)} datas")
             except Exception as e:
                 print(f"解析 {filename} error: {e}")
+
+        # 在既有 mock JSON 之外，可經 OPENDATA_SHELTER_CSV_URL 併入政府開放 CSV（欄位別名見shelter_remote_fetch）；合併規則為同名保留先出現者；可搭配 OPENDATA_SHELTER_COUNTY_FILTER 限縣市。
+        url = remote_shelter_url_from_env()
+        if url:
+            remote = load_shelters_from_csv_url(url)
+            all_shelters = merge_shelter_lists(all_shelters, remote)
 
         return all_shelters

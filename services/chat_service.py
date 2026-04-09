@@ -37,7 +37,7 @@ class ChatService:
         self.latest_simulation: dict = {}
 
     def set_simulation(self, simulation: dict):
-        """由 app.py 在每次模擬後呼叫，更新最新模擬結果"""
+        #由 app.py 在每次模擬後呼叫，更新最新模擬結果
         self.latest_simulation = simulation
 
     def _is_geo_query(self, message: str) -> bool:
@@ -50,10 +50,9 @@ class ChatService:
         return any(kw in message for kw in SIMULATION_KEYWORDS)
 
     def _get_simulation_context(self) -> str:
-        """
-        直接從 latest_simulation 取得受影響避難所清單
-        不走 RAG，確保答案精確
-        """
+        
+        #直接從 latest_simulation 取得受影響避難所清單不走 RAG 確保答案精確
+        
         if not self.latest_simulation:
             return "目前尚未執行任何災害模擬。"
 
@@ -152,13 +151,21 @@ class ChatService:
         except Exception as e:
             return f"地理查詢失敗：{e}"
 
-    def chat(self, user_message: str, simulation_context: str = "") -> str:
+    def chat(
+        self,
+        user_message: str,
+        simulation_context: str = "",
+        live_feed_context: str = "",
+    ) -> str:
         """
         接收使用者問題，根據問題類型選擇對應查詢方式：
         - 模擬結果查詢 → 直接讀 latest_simulation（最精確）
         - 容量排序查詢 → 直接排序資料庫
         - 地理距離查詢 → PostGIS ST_Distance
         - 一般語意查詢 → ChromaDB RAG
+
+        live_feed_context：由 app 傳入之即時公開災害摘要（氣象署／RSS），附加於
+        「即時公開災害資訊摘要」區塊，與 /api/disaster_feed 及前端輪詢通報對齊。
         """
         # 優先判斷模擬結果查詢
         if self._is_simulation_query(user_message):
@@ -184,6 +191,9 @@ class ChatService:
         full_context = f"【避難所資料】\n{shelter_context}"
         if simulation_context:
             full_context += f"\n\n【目前災害模擬結果】\n{simulation_context}"
+        # 【擴充】與 disaster_feed_service 摘要銜接，供 Ollama 在回答時參考（非官方推播保證）。
+        if live_feed_context:
+            full_context += f"\n\n【即時公開災害資訊摘要】\n{live_feed_context}"
 
         prompt = f"""{full_context}
 
