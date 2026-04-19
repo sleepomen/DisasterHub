@@ -45,7 +45,7 @@ class VectorStore:
             metadatas.append({
                 "name": s.name,
                 "lat": s.lat,
-                "lon": s.lon,
+                "lon": s.lon,   
                 "total_vessel": s.total_vessel,
                 "total_people": s.total_people,
                 "remaining": remaining,
