@@ -36,9 +36,6 @@ services:
       - disaster_db
       - ollama
 
-  # 【專案改動】選用 profile「mcp」啟動之 MCP 容器；實務上 Cursor 多以宿主 python -m mcp_server
-  # stdio 連線。Cursor / MCP 客戶端以 stdio 連線時請在宿主机執行：python -m mcp_server
-  # 若在容器內除錯可：docker compose --profile mcp run --rm disaster_mcp
   disaster_mcp:
     profiles:
       - mcp

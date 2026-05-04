@@ -152,21 +152,6 @@ async def chat(request: ChatRequest):
     )
     return {"status": "success", "reply": reply}
 
-# 【擴充】災害通報 JSON（含項目 id 供前端去重）；資料來源見 disaster_feed_service。
-@app.get("/api/disaster_feed")
-async def disaster_feed():
-    return disaster_feeds.get_payload()
-
-# 【擴充】線上開放資料關鍵字搜尋（CKAN）；與 MCP 工具 search_taiwan_open_data 同一實作。
-@app.post("/api/opendata/search")
-async def opendata_search(req: OpenDataSearchRequest):
-    raw = search_open_data_packages(req.q, limit=req.limit)
-    return {
-        "status": "success" if raw.get("ok") else "error",
-        "formatted": format_search_results_for_prompt(raw),
-        "raw": raw,
-    }
-
 # 渲染首頁
 @app.get("/", response_class=HTMLResponse)
 async def read_index():

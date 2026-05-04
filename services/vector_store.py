@@ -5,7 +5,7 @@ class VectorStore:
     def __init__(self):
         self.client = chromadb.Client()
 
-        # 明確指定輕量 embedding model，速度較快
+        # 指定輕量 embedding model
         self.ef = embedding_functions.ONNXMiniLM_L6_V2()
 
         self.collection = self.client.get_or_create_collection(

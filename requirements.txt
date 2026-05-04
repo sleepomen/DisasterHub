@@ -7,5 +7,4 @@ requests
 pytest
 ollama
 chromadb
-# 【專案改動】MCP Python SDK，供 mcp_server（Cursor stdio）與業務層 services 共用邏輯
 mcp>=1.2.0
