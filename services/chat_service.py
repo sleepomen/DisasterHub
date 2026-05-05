@@ -163,9 +163,6 @@ class ChatService:
         - 容量排序查詢 → 直接排序資料庫
         - 地理距離查詢 → PostGIS ST_Distance
         - 一般語意查詢 → ChromaDB RAG
-
-        live_feed_context：由 app 傳入之即時公開災害摘要（氣象署／RSS），附加於
-        「即時公開災害資訊摘要」區塊，與 /api/disaster_feed 及前端輪詢通報對齊。
         """
         # 優先判斷模擬結果查詢
         if self._is_simulation_query(user_message):

@@ -17,10 +17,6 @@ repo = ShelterRepository()
 map_service = MapService()
 vector_store = VectorStore()
 chat_service = ChatService(vector_store=vector_store, repo=repo)
-
-# 【擴充】即時公開災害摘要：氣象署 E-A0015-001（環境變數 CWA_AUTHORIZATION）與 RSS／Atom 清單
-# （DISASTER_FEED_URLS）。供 GET /api/disaster_feed、前端輪詢顯示於聊天框，並在 POST /api/chat
-# 注入 LLM；邏輯集中在 services/disaster_feed_service，與 mcp_server 共用。
 disaster_feeds = DisasterFeedService()
 
 # 儲存最新模擬結果（記憶體暫存）
@@ -105,7 +101,6 @@ async def simulate(request: SimulateRequest):
         "impacted_shelters": impacted
     }
 
-    # 【修正】以下兩行須在此函式內執行，否則模擬後無法更新 ChatService 狀態亦無法正確回傳。
     chat_service.set_simulation(latest_simulation)
 
     return {
@@ -143,7 +138,6 @@ async def chat(request: ChatRequest):
             f"受影響避難所數量：{latest_simulation['impacted_count']} 個。"
         )
 
-    # 【擴充】將與前端 /api/disaster_feed 同源之摘要併入 prompt，使 AI 與聊天框通報語境一致。
     feed_text = disaster_feeds.get_summary_for_chat()
     reply = chat_service.chat(
         request.message,
