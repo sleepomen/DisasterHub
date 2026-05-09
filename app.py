@@ -6,8 +6,8 @@ from services.map_server import MapService
 from services.sync_service import DataSyncService
 from services.chat_service import ChatService
 from services.vector_store import VectorStore
-from services.disaster_feed_service import DisasterFeedService
-from services.opendata_search import format_search_results_for_prompt, search_open_data_packages
+#from services.disaster_feed_service import DisasterFeedService
+#from services.opendata_search import format_search_results_for_prompt, search_open_data_packages
 import uvicorn
 
 app = FastAPI()
@@ -17,7 +17,7 @@ repo = ShelterRepository()
 map_service = MapService()
 vector_store = VectorStore()
 chat_service = ChatService(vector_store=vector_store, repo=repo)
-disaster_feeds = DisasterFeedService()
+#disaster_feeds = DisasterFeedService()
 
 # 儲存最新模擬結果（記憶體暫存）
 latest_simulation: dict = {}
@@ -138,11 +138,11 @@ async def chat(request: ChatRequest):
             f"受影響避難所數量：{latest_simulation['impacted_count']} 個。"
         )
 
-    feed_text = disaster_feeds.get_summary_for_chat()
+    #feed_text = disaster_feeds.get_summary_for_chat()
     reply = chat_service.chat(
         request.message,
         simulation_context=sim_context,
-        live_feed_context=feed_text,
+        #live_feed_context=feed_text,
     )
     return {"status": "success", "reply": reply}
 

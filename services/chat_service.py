@@ -203,7 +203,7 @@ class ChatService:
             response = requests.post(
                 f"{OLLAMA_HOST}/api/generate",
                 json={
-                    "model": "llama3.2:3b",
+                    "model": "llama3.2:latest",
                     "system": SYSTEM_PROMPT,
                     "prompt": prompt,
                     "stream": False,
@@ -212,7 +212,7 @@ class ChatService:
                         "num_predict": 300
                     }
                 },
-                timeout=120
+                timeout=300
             )
             result = response.json()
             return result.get("response", "無法取得回應").strip()

@@ -16,6 +16,10 @@ services:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
+    devices:
+      - /dev/dri:/dev/dri
+    environment:
+      - OLLAMA_INTEL_GPU=1
 
   disaster_app:
     build:
