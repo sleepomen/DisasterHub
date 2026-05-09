@@ -16,7 +16,7 @@ SYSTEM_PROMPT = """你是台灣東部災害避難所管理系統的 AI 決策助
 GEO_KEYWORDS = ["最近", "附近", "離我最近", "最靠近", "距離最近", "哪裡最近", "近的"]
 
 # 觸發容量排序查詢的關鍵字
-CAPACITY_KEYWORDS = ["容量最大", "最多人", "容納最多", "最大容量", "哪個最大", "最大的避難所", "容量最高"]
+CAPACITY_KEYWORDS = ["容量最大", "最多人", "容納最多", "最大容量", "哪個最大", "最大的避難所", "容量最高", "哪間最大", "哪間避難所", "排序", "大小", "由大", "由小"]
 
 # 觸發模擬結果查詢的關鍵字
 SIMULATION_KEYWORDS = ["哪些受影響", "受影響的避難所", "哪些避難所受", "模擬結果", "影響範圍", "受災避難所", "哪些被影響"]
@@ -203,7 +203,7 @@ class ChatService:
             response = requests.post(
                 f"{OLLAMA_HOST}/api/generate",
                 json={
-                    "model": "llama3.2:latest",
+                    "model": "llama3.2:1b",
                     "system": SYSTEM_PROMPT,
                     "prompt": prompt,
                     "stream": False,
