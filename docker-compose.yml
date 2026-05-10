@@ -9,14 +9,6 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
 
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-
   disaster_app:
     build:
       context: .
@@ -31,10 +23,9 @@ services:
       - .env
     environment:
       - PYTHONPATH=/app
-      - OLLAMA_HOST=http://ollama:11434
+      - OLLAMA_HOST=http://host.docker.internal:11434
     depends_on:
       - disaster_db
-      - ollama
 
   disaster_mcp:
     profiles:

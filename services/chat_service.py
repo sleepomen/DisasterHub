@@ -195,15 +195,14 @@ class ChatService:
 {user_message}
 
 注意：
-1. 請直接根據上方【避難所資料】回答，資料已經提供，不需要說「目前沒有相關資料」。
-2. 請用繁體中文回答，不得使用任何英文。
-3. 直接列出資料內容，不要加任何額外說明。"""
+1. 如果沒有相關資料或語意不符就說 沒有相關資料。
+2. 請用繁體中文回答，不得使用任何英文。"""
 
         try:
             response = requests.post(
                 f"{OLLAMA_HOST}/api/generate",
                 json={
-                    "model": "llama3.2:1b",
+                    "model": "llama3.2:3b",
                     "system": SYSTEM_PROMPT,
                     "prompt": prompt,
                     "stream": False,
