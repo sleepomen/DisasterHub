@@ -12,11 +12,6 @@ services:
   ollama:
     image: ollama/ollama:latest
     container_name: ollama
-    privileged: true
-    deploy:
-      resources:
-        reservations:
-          cpus: '12'
     ports:
       - "11434:11434"
     volumes:
