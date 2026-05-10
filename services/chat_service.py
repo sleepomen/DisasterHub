@@ -188,9 +188,6 @@ class ChatService:
         full_context = f"【避難所資料】\n{shelter_context}"
         if simulation_context:
             full_context += f"\n\n【目前災害模擬結果】\n{simulation_context}"
-        # 【擴充】與 disaster_feed_service 摘要銜接，供 Ollama 在回答時參考（非官方推播保證）。
-        if live_feed_context:
-            full_context += f"\n\n【即時公開災害資訊摘要】\n{live_feed_context}"
 
         prompt = f"""{full_context}
 
