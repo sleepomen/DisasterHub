@@ -1,10 +1,8 @@
-import os
 import re
 import logging
 import requests
 from services.vector_store import VectorStore
-
-OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://ollama:11434")
+import config
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +30,8 @@ REGION_MAP = {
     "臺東": "TAITUNG",
 }
 
-# 以下是新增的
+DISASTER_TYPE_LABELS = {"earthquake": "強震", "flood": "淹水", "fire": "火災"}
+
 REGION_TAG_PATTERN = re.compile(r"^\[[A-Z]+\]\s*")
 COORD_PATTERNS = [
     re.compile(r"緯度[：:＝=\s]*(\d{2}\.\d+)[,，/\s]*經度[：:＝=\s]*(\d{3}\.\d+)"),
@@ -51,12 +50,13 @@ class ChatService:
     def __init__(self, vector_store: VectorStore, repo=None):
         self.vector_store = vector_store
         self.repo = repo
-        # 儲存最新模擬結果，由 app.py 注入
         self.latest_simulation: dict = {}
 
     def set_simulation(self, simulation: dict):
-        #由 app.py 在每次模擬後呼叫，更新最新模擬結果
         self.latest_simulation = simulation
+
+    def clear_simulation(self):
+        self.latest_simulation = {}
 
     def _is_geo_query(self, message: str) -> bool:
         return any(kw in message for kw in GEO_KEYWORDS)
@@ -67,10 +67,19 @@ class ChatService:
     def _is_simulation_query(self, message: str) -> bool:
         return any(kw in message for kw in SIMULATION_KEYWORDS)
 
+    def _simulation_summary(self) -> str:
+        sim = self.latest_simulation
+        if not sim:
+            return ""
+        sim_type = DISASTER_TYPE_LABELS.get(sim.get("type", ""), sim.get("type", ""))
+        return (
+            f"災害類型：{sim_type}，"
+            f"中心座標：({sim.get('lat')}, {sim.get('lon')})，"
+            f"影響半徑：{sim.get('radius_km')} 公里，"
+            f"受影響避難所數量：{sim.get('impacted_count', 0)} 個。"
+        )
+
     def _get_simulation_context(self) -> str:
-
-        #直接從 latest_simulation 取得受影響避難所清單不走 RAG 確保答案精確
-
         if not self.latest_simulation:
             return "目前尚未執行任何災害模擬。"
 
@@ -80,8 +89,7 @@ class ChatService:
         if not impacted:
             return "目前模擬範圍內沒有受影響的避難所。"
 
-        type_map = {"earthquake": "強震", "flood": "淹水", "fire": "火災"}
-        sim_type = type_map.get(sim.get("type", ""), sim.get("type", ""))
+        sim_type = DISASTER_TYPE_LABELS.get(sim.get("type", ""), sim.get("type", ""))
 
         lines = [
             f"災害類型：{sim_type}",
@@ -120,7 +128,7 @@ class ChatService:
             if not shelters:
                 return "該地區沒有找到避難所資料。"
 
-            shelters.sort(key=lambda s: s.total_vessel, reverse=True)
+            shelters.sort(key=lambda s: s.capacity, reverse=True)
             top = shelters[:5]
 
             region_label = ""
@@ -131,10 +139,9 @@ class ChatService:
 
             lines = [f"{'全東部區域' if not region_label else region_label}容量排名（由大到小）："]
             for i, s in enumerate(top, 1):
-                remaining = s.total_vessel - s.total_people
                 lines.append(
-                    f"{i}. {display_name(s.name)}：容量 {s.total_vessel} 人，"
-                    f"剩餘空間 {remaining} 人"
+                    f"{i}. {display_name(s.name)}：容量 {s.capacity} 人，"
+                    f"剩餘空間 {s.remaining} 人"
                 )
             return "\n".join(lines)
         except Exception:
@@ -142,7 +149,6 @@ class ChatService:
             return GENERIC_ERROR
 
     def _extract_coords(self, message: str):
-        # 以下是新增的
         for i, pat in enumerate(COORD_PATTERNS):
             m = pat.search(message)
             if not m:
@@ -176,45 +182,36 @@ class ChatService:
             logger.exception("地理查詢失敗")
             return GENERIC_ERROR
 
-    def chat(
-        self,
-        user_message: str,
-        simulation_context: str = "",
-        live_feed_context: str = "",
-    ) -> str:
+    def build_context(self, user_message: str):
         """
-        接收使用者問題，根據問題類型選擇對應查詢方式：
+        根據問題類型選擇對應查詢方式，回傳 (context, early_reply)：
         - 模擬結果查詢 → 直接讀 latest_simulation（最精確）
         - 地理距離查詢 → PostGIS ST_Distance
         - 容量排序查詢 → 直接排序資料庫
         - 一般語意查詢 → ChromaDB RAG
         """
-        # 優先判斷模擬結果查詢
         if self._is_simulation_query(user_message):
-            shelter_context = self._get_simulation_context()
+            return self._get_simulation_context(), None
 
-        # 地理距離查詢
-        elif self._is_geo_query(user_message):
+        if self._is_geo_query(user_message):
             coords = self._extract_coords(user_message)
             if coords is None:
-                return "請提供您的座標以便查詢最近的避難所。例如：緯度 23.99 經度 121.60"
+                return None, "請提供您的座標以便查詢最近的避難所。例如：緯度 23.99 經度 121.60"
             lat, lon = coords
-            shelter_context = self._get_nearest_context(lat, lon)
+            return self._get_nearest_context(lat, lon), None
 
-        # 容量排序查詢
-        elif self._is_capacity_query(user_message):
-            shelter_context = self._get_capacity_context(user_message)
+        if self._is_capacity_query(user_message):
+            return self._get_capacity_context(user_message), None
 
-        # 一般語意查詢
-        else:
-            shelter_context = self.vector_store.search(user_message)
+        return self.vector_store.search(user_message), None
 
-        # 組合完整 prompt context
+    def build_prompt(self, user_message: str, shelter_context: str) -> str:
         full_context = f"【避難所資料】\n{shelter_context}"
-        if simulation_context:
-            full_context += f"\n\n【目前災害模擬結果】\n{simulation_context}"
+        summary = self._simulation_summary()
+        if summary:
+            full_context += f"\n\n【目前災害模擬結果】\n{summary}"
 
-        prompt = f"""{full_context}
+        return f"""{full_context}
 
 【使用者問題】
 {user_message}
@@ -223,20 +220,27 @@ class ChatService:
 1. 如果沒有相關資料或語意不符就說 沒有相關資料。
 2. 請用繁體中文回答，不得使用任何英文。"""
 
+    def chat(self, user_message: str) -> str:
+        shelter_context, early_reply = self.build_context(user_message)
+        if early_reply:
+            return early_reply
+
+        prompt = self.build_prompt(user_message, shelter_context)
+
         try:
             response = requests.post(
-                f"{OLLAMA_HOST}/api/generate",
+                f"{config.OLLAMA_HOST}/api/generate",
                 json={
-                    "model": "llama3.2:3b",
+                    "model": config.OLLAMA_MODEL,
                     "system": SYSTEM_PROMPT,
                     "prompt": prompt,
                     "stream": False,
                     "options": {
-                        "temperature": 0.3,
-                        "num_predict": 300
+                        "temperature": config.OLLAMA_TEMPERATURE,
+                        "num_predict": config.OLLAMA_NUM_PREDICT
                     }
                 },
-                timeout=300
+                timeout=config.OLLAMA_TIMEOUT
             )
             response.raise_for_status()
             result = response.json()
