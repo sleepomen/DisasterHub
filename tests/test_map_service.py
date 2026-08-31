@@ -6,8 +6,8 @@ class TestMapService(unittest.TestCase):
     def test_transform_shelters_to_3d_data(self):
         # Arrange
         mock_shelters = [
-            Shelter(name="花蓮體育館", total_vessel=100, lat=23.9, lon=121.6, total_people=10),
-            Shelter(name="宜蘭國小", total_vessel=200, lat=24.7, lon=121.7, total_people=50)
+            Shelter(name="花蓮體育館", capacity=100, lat=23.9, lon=121.6, current_people=10),
+            Shelter(name="宜蘭國小", capacity=200, lat=24.7, lon=121.7, current_people=50)
         ]
         service = MapService()
 
@@ -18,12 +18,13 @@ class TestMapService(unittest.TestCase):
         self.assertEqual(len(result), 2)
         self.assertEqual(result[0]['name'], "花蓮體育館")
         self.assertEqual(result[0]['z'], 100)
+        self.assertEqual(result[0]['ppl'], 10)
         self.assertEqual(result[1]['lat'], 24.7)
 
     def test_output_keys(self):
         # 驗證輸出格式包含所有前端需要的欄位
         mock_shelters = [
-            Shelter(name="測試", total_vessel=500, lat=23.9, lon=121.6, total_people=0)
+            Shelter(name="測試", capacity=500, lat=23.9, lon=121.6, current_people=0)
         ]
         service = MapService()
         result = service.prepare_3d_data(mock_shelters)
@@ -33,6 +34,9 @@ class TestMapService(unittest.TestCase):
         self.assertIn('lon', result[0])
         self.assertIn('z', result[0])
         self.assertIn('ppl', result[0])
+
+    def test_empty_input(self):
+        self.assertEqual(MapService().prepare_3d_data([]), [])
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,0 +1,147 @@
+# 以下是新增的
+from unittest.mock import MagicMock, patch
+import pytest
+from models.shelter import Shelter
+from services.chat_service import ChatService, display_name, GENERIC_ERROR, AI_UNAVAILABLE
+
+
+class FakeRepo:
+    def get_nearest_shelters(self, lat, lon, limit=5):
+        return [{"name": "[HUALIEN] 花蓮縣立體育館", "distance_km": 1.2, "capacity": 1500, "current_ppl": 0, "remaining": 1500}]
+
+    def get_all_shelters(self):
+        return [
+            Shelter("[HUALIEN] 甲", 100, 23.9, 121.6, 20),
+            Shelter("[YILAN] 乙", 300, 24.7, 121.7, 0),
+            Shelter("[TAITUNG] 丙", 200, 22.7, 121.1, 50),
+        ]
+
+
+class BrokenRepo:
+    def get_all_shelters(self):
+        raise RuntimeError("password=secret host=disaster_db")
+
+    def get_nearest_shelters(self, *a, **k):
+        raise RuntimeError("password=secret host=disaster_db")
+
+
+@pytest.fixture
+def svc():
+    vs = MagicMock()
+    vs.search.return_value = "RAG 結果"
+    return ChatService(vs, FakeRepo())
+
+
+def route(svc, msg):
+    if svc._is_simulation_query(msg):
+        return "simulation"
+    if svc._is_geo_query(msg):
+        return "geo"
+    if svc._is_capacity_query(msg):
+        return "capacity"
+    return "rag"
+
+
+@pytest.mark.parametrize("msg,expected", [
+    ("哪間避難所離我最近？緯度 23.99 經度 121.60", "geo"),
+    ("影響範圍大小如何？", "simulation"),
+    ("花蓮哪間避難所容量最大？", "capacity"),
+    ("哪些避難所受到影響？", "simulation"),
+    ("目前受影響的避難所還有空間嗎？", "simulation"),
+    ("避難所有提供飲水嗎", "rag"),
+])
+def test_intent_routing(svc, msg, expected):
+    assert route(svc, msg) == expected
+
+
+@pytest.mark.parametrize("msg,expected", [
+    ("緯度 23.99 經度 121.60", (23.99, 121.60)),
+    ("緯度：23.99，經度：121.60", (23.99, 121.60)),
+    ("經度 121.60 緯度 23.99", (23.99, 121.60)),
+    ("23.99, 121.60 附近", (23.99, 121.60)),
+    ("半徑 5 公里內 10 人", None),
+    ("23.5 121", None),
+    ("最近的避難所在哪", None),
+    ("緯度 40.5 經度 121.6", None),
+])
+def test_extract_coords(svc, msg, expected):
+    assert svc._extract_coords(msg) == expected
+
+
+def test_display_name_strips_region_tag():
+    assert display_name("[HUALIEN] 花蓮縣立體育館") == "花蓮縣立體育館"
+    assert display_name("花蓮縣立體育館") == "花蓮縣立體育館"
+    assert display_name(None) == ""
+
+
+def test_geo_query_without_coords_returns_prompt(svc):
+    context, early = svc.build_context("離我最近的避難所")
+    assert context is None
+    assert "座標" in early
+
+
+def test_nearest_context_has_no_region_tag(svc):
+    ctx = svc._get_nearest_context(23.99, 121.6)
+    assert "花蓮縣立體育館" in ctx
+    assert "HUALIEN" not in ctx
+    assert "1.2 公里" in ctx
+
+
+def test_capacity_context_filters_region(svc):
+    ctx = svc._get_capacity_context("宜蘭哪間避難所容量最大")
+    assert "宜蘭地區" in ctx
+    assert "乙" in ctx
+    assert "甲" not in ctx
+
+
+def test_capacity_context_sorted_desc(svc):
+    ctx = svc._get_capacity_context("容量最大")
+    lines = [l for l in ctx.splitlines() if l[:1].isdigit()]
+    assert lines[0].startswith("1. 乙")
+    assert lines[1].startswith("2. 丙")
+    assert lines[2].startswith("3. 甲")
+
+
+def test_simulation_context_includes_remaining(svc):
+    svc.set_simulation({"type": "flood", "radius_km": 10, "impacted_count": 1, "impacted_shelters": [
+        {"name": "[TAITUNG] 丙", "capacity": 200, "current_ppl": 50, "remaining": 150}]})
+    ctx = svc._get_simulation_context()
+    assert "淹水" in ctx
+    assert "剩餘空間 150 人" in ctx
+    assert "TAITUNG" not in ctx
+
+
+def test_simulation_context_when_none(svc):
+    assert "尚未執行" in svc._get_simulation_context()
+    svc.set_simulation({"type": "fire", "impacted_shelters": []})
+    assert "沒有受影響" in svc._get_simulation_context()
+
+
+def test_prompt_includes_simulation_summary(svc):
+    svc.set_simulation({"type": "earthquake", "lat": 23.9, "lon": 121.6, "radius_km": 5, "impacted_count": 3, "impacted_shelters": []})
+    prompt = svc.build_prompt("有什麼建議", "資料")
+    assert "【目前災害模擬結果】" in prompt
+    assert "強震" in prompt
+    svc.clear_simulation()
+    assert "【目前災害模擬結果】" not in svc.build_prompt("有什麼建議", "資料")
+
+
+def test_errors_do_not_leak_details():
+    svc = ChatService(MagicMock(), BrokenRepo())
+    assert svc._get_capacity_context("容量最大") == GENERIC_ERROR
+    assert svc._get_nearest_context(23.9, 121.6) == GENERIC_ERROR
+
+
+def test_chat_calls_ollama_and_returns_response(svc):
+    with patch("services.chat_service.requests.post") as post:
+        post.return_value.json.return_value = {"response": " 建議前往乙 "}
+        post.return_value.raise_for_status.return_value = None
+        assert svc.chat("避難所有提供飲水嗎") == "建議前往乙"
+        body = post.call_args.kwargs["json"]
+        assert "RAG 結果" in body["prompt"]
+        assert body["stream"] is False
+
+
+def test_chat_handles_ollama_failure(svc):
+    with patch("services.chat_service.requests.post", side_effect=ConnectionError("down")):
+        assert svc.chat("避難所有提供飲水嗎") == AI_UNAVAILABLE
