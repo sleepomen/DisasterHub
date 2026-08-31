@@ -1,9 +1,7 @@
-fastapi
-uvicorn
-psycopg2-binary
-pandas
-plotly
-requests
-pytest
-ollama
-chromadb
+fastapi~=0.115.0
+uvicorn[standard]~=0.30.0
+psycopg2-binary~=2.9.9
+requests~=2.32.0
+chromadb~=0.5.20
+httpx~=0.27.0
+pytest~=8.3.0
