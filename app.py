@@ -1,3 +1,6 @@
+import asyncio
+import logging
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field, field_validator
@@ -10,7 +13,9 @@ from services.vector_store import VectorStore
 #from services.opendata_search import format_search_results_for_prompt, search_open_data_packages
 import uvicorn
 
-app = FastAPI()
+# 以下是新增的
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+logger = logging.getLogger(__name__)
 
 # 1. 初始化 server / repo / services
 repo = ShelterRepository()
@@ -18,6 +23,28 @@ map_service = MapService()
 vector_store = VectorStore()
 chat_service = ChatService(vector_store=vector_store, repo=repo)
 #disaster_feeds = DisasterFeedService()
+
+
+# 以下是新增的
+def sync_and_reindex() -> int:
+    DataSyncService().sync()
+    shelters = repo.get_all_shelters()
+    vector_store.build_index(shelters)
+    return len(shelters)
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    logger.info("啟動時執行資料同步與向量索引建立...")
+    try:
+        count = await asyncio.to_thread(sync_and_reindex)
+        logger.info("啟動完成，共載入 %d 筆避難所", count)
+    except Exception:
+        logger.exception("啟動同步失敗，服務仍會啟動，可稍後呼叫 /api/sync 重試")
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 # 儲存最新模擬結果（記憶體暫存）
 latest_simulation: dict = {}
@@ -52,33 +79,19 @@ class OpenDataSearchRequest(BaseModel):
     q: str = Field(..., min_length=1, max_length=120, description="關鍵字")
     limit: int = Field(default=12, ge=1, le=30)
 
-# 跟/api/sync一起進行資料同步和重建索引
-@app.on_event("startup")
-async def startup_sync():
-    print("啟動時執行資料同步...")
-    sync_service = DataSyncService()
-    sync_service.sync()
-
-    print("建立向量索引...")
-    shelters = repo.get_all_shelters()
-    vector_store.build_index(shelters)
-
 #sync_service.sync() 讀取json檔案寫入pgSQL
 #vector_store.build_index()重建chromadb向量索引
 @app.post("/api/sync")
 async def manual_sync():
-    sync_service = DataSyncService()
-    sync_service.sync()
-    shelters = repo.get_all_shelters()
-    vector_store.build_index(shelters)
-    return {"status": "success", "message": "資料同步與索引重建完成"}
+    count = await asyncio.to_thread(sync_and_reindex)
+    return {"status": "success", "message": "資料同步與索引重建完成", "count": count}
 
 # 地圖載入時呼叫
 #去pgSQL拿所有避難所資料
 #shelter 物件轉成前端需要的 json 格式
 @app.get("/api/3d_data")
 async def get_3d_data():
-    shelters = repo.get_all_shelters()
+    shelters = await asyncio.to_thread(repo.get_all_shelters)
     data = map_service.prepare_3d_data(shelters)
     return data
 
@@ -90,7 +103,9 @@ async def get_3d_data():
 async def simulate(request: SimulateRequest):
     global latest_simulation
 
-    impacted = repo.get_shelters_in_radius(request.lat, request.lon, request.radius)
+    impacted = await asyncio.to_thread(
+        repo.get_shelters_in_radius, request.lat, request.lon, request.radius
+    )
 
     latest_simulation = {
         "type": request.type,
@@ -114,7 +129,9 @@ async def simulate(request: SimulateRequest):
 # 解決 RAG 語意搜尋無法處理「最近/附近」等地理問題
 @app.post("/api/nearest_shelter")
 async def nearest_shelter(request: NearestRequest):
-    results = repo.get_nearest_shelters(request.lat, request.lon, request.limit)
+    results = await asyncio.to_thread(
+        repo.get_nearest_shelters, request.lat, request.lon, request.limit
+    )
     return {
         "status": "success",
         "count": len(results),
@@ -139,10 +156,10 @@ async def chat(request: ChatRequest):
         )
 
     #feed_text = disaster_feeds.get_summary_for_chat()
-    reply = chat_service.chat(
+    reply = await asyncio.to_thread(
+        chat_service.chat,
         request.message,
-        simulation_context=sim_context,
-        #live_feed_context=feed_text,
+        sim_context,
     )
     return {"status": "success", "reply": reply}
 
