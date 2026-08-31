@@ -1,7 +1,9 @@
 import asyncio
 import logging
+import os
+import secrets
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field, field_validator
 from repositories.shelter_repository import ShelterRepository
@@ -9,20 +11,18 @@ from services.map_server import MapService
 from services.sync_service import DataSyncService
 from services.chat_service import ChatService
 from services.vector_store import VectorStore
-#from services.disaster_feed_service import DisasterFeedService
-#from services.opendata_search import format_search_results_for_prompt, search_open_data_packages
 import uvicorn
 
 # 以下是新增的
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
+SYNC_API_KEY = os.environ.get("SYNC_API_KEY", "")
 
 # 1. 初始化 server / repo / services
 repo = ShelterRepository()
 map_service = MapService()
 vector_store = VectorStore()
 chat_service = ChatService(vector_store=vector_store, repo=repo)
-#disaster_feeds = DisasterFeedService()
 
 
 # 以下是新增的
@@ -73,16 +73,15 @@ class NearestRequest(BaseModel):
     lon: float = Field(..., ge=-180, le=180, description="經度")
     limit: int = Field(default=5, ge=1, le=20, description="回傳筆數")
 
-# 【擴充】開放資料搜尋請求本體：對應 POST /api/opendata/search，後端呼叫 CKAN package_search
-# （預設節點 https://data.taipei，可改 OPENDATA_CKAN_BASE）。
-class OpenDataSearchRequest(BaseModel):
-    q: str = Field(..., min_length=1, max_length=120, description="關鍵字")
-    limit: int = Field(default=12, ge=1, le=30)
-
 #sync_service.sync() 讀取json檔案寫入pgSQL
 #vector_store.build_index()重建chromadb向量索引
 @app.post("/api/sync")
-async def manual_sync():
+async def manual_sync(x_api_key: str = Header(default="")):
+    # 以下是新增的
+    if not SYNC_API_KEY:
+        raise HTTPException(status_code=503, detail="伺服器未設定 SYNC_API_KEY，手動同步已停用")
+    if not secrets.compare_digest(x_api_key, SYNC_API_KEY):
+        raise HTTPException(status_code=401, detail="API key 無效")
     count = await asyncio.to_thread(sync_and_reindex)
     return {"status": "success", "message": "資料同步與索引重建完成", "count": count}
 
@@ -155,7 +154,6 @@ async def chat(request: ChatRequest):
             f"受影響避難所數量：{latest_simulation['impacted_count']} 個。"
         )
 
-    #feed_text = disaster_feeds.get_summary_for_chat()
     reply = await asyncio.to_thread(
         chat_service.chat,
         request.message,
