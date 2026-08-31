@@ -1,4 +1,3 @@
-import os
 import time
 import logging
 import threading
@@ -6,6 +5,7 @@ from contextlib import contextmanager
 from psycopg2 import OperationalError
 from psycopg2.pool import ThreadedConnectionPool
 from models.shelter import Shelter
+import config
 
 MAX_RETRIES = 3
 RETRY_DELAY = 2  # 秒
@@ -22,7 +22,7 @@ def _get_pool(conn_params):
         if _pool is None:
             for attempt in range(1, MAX_RETRIES + 1):
                 try:
-                    _pool = ThreadedConnectionPool(1, 5, **conn_params)
+                    _pool = ThreadedConnectionPool(config.DB_POOL_MIN, config.DB_POOL_MAX, **conn_params)
                     break
                 except OperationalError as e:
                     logger.warning("DB 連線失敗（第 %d 次）：%s", attempt, e)
@@ -36,11 +36,11 @@ def _get_pool(conn_params):
 class ShelterRepository:
     def __init__(self):
         self.conn_params = {
-            "dbname": os.environ.get("POSTGRES_DB", "disaster_db"),
-            "user": os.environ.get("POSTGRES_USER", "ian"),
-            "password": os.environ.get("POSTGRES_PASSWORD"),
-            "host": os.environ.get("POSTGRES_HOST", "disaster_db"),
-            "port": os.environ.get("POSTGRES_PORT", "5432")
+            "dbname": config.POSTGRES_DB,
+            "user": config.POSTGRES_USER,
+            "password": config.POSTGRES_PASSWORD,
+            "host": config.POSTGRES_HOST,
+            "port": config.POSTGRES_PORT
         }
 
     # 以下是新增的
@@ -73,8 +73,8 @@ class ShelterRepository:
             with self._cursor() as cursor:
                 cursor.execute(self.UPSERT_SQL, (
                     shelter.name,
-                    shelter.total_vessel,
-                    shelter.total_people,
+                    shelter.capacity,
+                    shelter.current_people,
                     shelter.lon,
                     shelter.lat
                 ))
@@ -86,7 +86,7 @@ class ShelterRepository:
         if not shelters:
             return 0
         params = [
-            (s.name, s.total_vessel, s.total_people, s.lon, s.lat)
+            (s.name, s.capacity, s.current_people, s.lon, s.lat)
             for s in shelters
         ]
         try:
@@ -107,8 +107,8 @@ class ShelterRepository:
                 for row in rows:
                     shelters.append(Shelter(
                         name=row[0],
-                        total_vessel=row[1],
-                        total_people=row[2],
+                        capacity=row[1],
+                        current_people=row[2],
                         lat=row[3],
                         lon=row[4]
                     ))
