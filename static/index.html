@@ -634,49 +634,70 @@
         return best;
     }
 
-    function startCrowdAnimation(impactedShelters, disasterLat, disasterLon, radiusKm, dotColor) {
+    // 以下是新增的
+    const EVAC_DENSITY_PER_KM2 = { earthquake: 45, flood: 30, fire: 12 };
+    const PEOPLE_PER_DOT = 25;
+
+    function pickShelterFor(lat, lon, candidates, planned) {
+        let best = null, bestScore = Infinity;
+        candidates.forEach(s => {
+            const used = planned[s.name] || 0;
+            if (s.remaining - used <= 0) return;
+            const score = distKm(lat, lon, s.lat, s.lon) * (1 + used / s.remaining);
+            if (score < bestScore) { bestScore = score; best = s; }
+        });
+        return best;
+    }
+
+    function startCrowdAnimation(impactedShelters, disasterLat, disasterLon, radiusKm, dotColor, disasterType) {
         if (animationId) cancelAnimationFrame(animationId);
         particles = [];
 
-        // 重置負載率
-        impactedShelters.forEach(s => { shelterOccupancy[s.name] = 0; });
-        markers.forEach(m => updateMarkerColor(m));
+        const candidates = impactedShelters.map(s => ({
+            ...s,
+            remaining: Math.max(0, s.capacity - (shelterOccupancy[s.name] || 0)),
+        }));
+        const totalRoom = candidates.reduce((sum, s) => sum + s.remaining, 0);
+        const density = EVAC_DENSITY_PER_KM2[disasterType] || 30;
+        const evacuees = Math.min(totalRoom, Math.round(Math.PI * radiusKm * radiusKm * density));
+        const totalDots = Math.min(300, Math.max(20, Math.round(evacuees / PEOPLE_PER_DOT)));
+        const peoplePerDot = Math.max(1, Math.round(evacuees / totalDots));
+        const planned = {};
 
-        // 每個受影響避難所依容量比例分配人群點數
-        const totalCapacity = impactedShelters.reduce((s, x) => s + x.capacity, 0);
-        const totalDots = Math.min(200, Math.max(30, Math.round(totalCapacity / 20)));
+        for (let i = 0; i < totalDots; i++) {
+            const angle = Math.random() * 2 * Math.PI;
+            const r = Math.sqrt(Math.random()) * radiusKm;
+            const startLat = disasterLat + (r / 111) * Math.cos(angle);
+            const startLon = disasterLon + (r / (111 * Math.cos(disasterLat * Math.PI / 180))) * Math.sin(angle);
+            const shelter = pickShelterFor(startLat, startLon, candidates, planned);
+            if (!shelter) break;
+            planned[shelter.name] = (planned[shelter.name] || 0) + peoplePerDot;
 
-        impactedShelters.forEach(shelter => {
-            const count = Math.round((shelter.capacity / totalCapacity) * totalDots);
+            const delay = Math.random() * 8000;
+            const duration = 6000 + distKm(startLat, startLon, shelter.lat, shelter.lon) * 400 + Math.random() * 3000;
 
-            for (let i = 0; i < count; i++) {
-                // 在災害圓圈範圍內隨機產生起始點
-                const angle = Math.random() * 2 * Math.PI;
-                const r = Math.random() * radiusKm;
-                const startLat = disasterLat + (r / 111) * Math.cos(angle);
-                const startLon = disasterLon + (r / (111 * Math.cos(disasterLat * Math.PI / 180))) * Math.sin(angle);
+            particles.push({
+                startLat, startLon,
+                targetLat: shelter.lat,
+                targetLon: shelter.lon,
+                targetName: shelter.name,
+                people: peoplePerDot,
+                startTime: null,
+                delay,
+                duration,
+                done: false,
+                color: dotColor,
+                arrived: false,
+            });
+        }
 
-                // 隨機延遲出發（0~8秒），讓動畫更自然
-                const delay = Math.random() * 8000;
-                const duration = 8000 + Math.random() * 6000;
+        if (particles.length === 0) {
+            document.getElementById('sim-progress-wrap').classList.remove('visible');
+            document.getElementById('btn-simulate').disabled = false;
+            addChat('範圍內的避難所皆已滿載，無法再安置人群。', 'ai');
+            return;
+        }
 
-                particles.push({
-                    startLat, startLon,
-                    targetLat: shelter.lat,
-                    targetLon: shelter.lon,
-                    targetName: shelter.name,
-                    startTime: null,
-                    delay,
-                    duration,
-                    done: false,
-                    color: dotColor,
-                    arrived: false,
-                });
-            }
-        });
-
-        const ANIM_DURATION = 18000; // 整體動畫 18 秒
-        const startTime = performance.now();
         let totalArrived = 0;
         const total = particles.length;
 
@@ -706,11 +727,9 @@
                         totalArrived++;
                         const shelter = allShelterData.find(s => s.name === p.targetName);
                         if (shelter) {
-                            const dotsForThisShelter = particles.filter(x => x.targetName === p.targetName).length;
-                            const peoplePerDot = Math.ceil(shelter.z / dotsForThisShelter);
                             shelterOccupancy[p.targetName] = Math.min(
                                 shelter.z,
-                                (shelterOccupancy[p.targetName] || 0) + peoplePerDot
+                                (shelterOccupancy[p.targetName] || 0) + p.people
                             );
                             const m = markers.find(mk => mk.userData.name === p.targetName);
                             if (m) updateMarkerColor(m);
@@ -743,7 +762,8 @@
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 document.getElementById('sim-progress-wrap').classList.remove('visible');
                 document.getElementById('btn-simulate').disabled = false;
-                addChat(`疏散模擬完成！共 ${total} 批次人群已移入避難所，請查看各避難所目前負載率。`, 'ai');
+                const movedPeople = particles.reduce((sum, p) => sum + (p.people || 0), 0);
+                addChat(`疏散模擬完成！共約 ${movedPeople} 人（${total} 批次）已移入避難所，請查看各避難所目前負載率。`, 'ai');
             }
         }
 
@@ -802,7 +822,7 @@
 
             // 重置負載率並開始動畫
             resizeCanvas();
-            startCrowdAnimation(result.impacted_shelters, lat, lon, radius, dotColor);
+            startCrowdAnimation(result.impacted_shelters, lat, lon, radius, dotColor, type);
 
         } catch {
             addChat(`模擬失敗，請確認後端服務正常運行。`, 'ai');
@@ -821,6 +841,7 @@
         document.getElementById('btn-simulate').disabled = false;
         document.getElementById('sim-progress-bar').style.width = '0%';
         document.getElementById('progress-pct').textContent = '0%';
+        fetch('/api/reset_simulation', { method: 'POST' }).catch(() => {});
         addChat("已清除模擬圖層與疏散動畫。", "ai");
     });
 
