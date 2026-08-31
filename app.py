@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import os
 import secrets
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Header, HTTPException
@@ -11,12 +10,11 @@ from services.map_server import MapService
 from services.sync_service import DataSyncService
 from services.chat_service import ChatService
 from services.vector_store import VectorStore
+import config
 import uvicorn
 
-# 以下是新增的
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
-SYNC_API_KEY = os.environ.get("SYNC_API_KEY", "")
 
 # 1. 初始化 server / repo / services
 repo = ShelterRepository()
@@ -25,7 +23,6 @@ vector_store = VectorStore()
 chat_service = ChatService(vector_store=vector_store, repo=repo)
 
 
-# 以下是新增的
 def sync_and_reindex() -> int:
     DataSyncService().sync()
     shelters = repo.get_all_shelters()
@@ -45,9 +42,6 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-
-# 儲存最新模擬結果（記憶體暫存）
-latest_simulation: dict = {}
 
 # Pydantic Models
 #規範輸入範圍
@@ -77,10 +71,9 @@ class NearestRequest(BaseModel):
 #vector_store.build_index()重建chromadb向量索引
 @app.post("/api/sync")
 async def manual_sync(x_api_key: str = Header(default="")):
-    # 以下是新增的
-    if not SYNC_API_KEY:
+    if not config.SYNC_API_KEY:
         raise HTTPException(status_code=503, detail="伺服器未設定 SYNC_API_KEY，手動同步已停用")
-    if not secrets.compare_digest(x_api_key, SYNC_API_KEY):
+    if not secrets.compare_digest(x_api_key, config.SYNC_API_KEY):
         raise HTTPException(status_code=401, detail="API key 無效")
     count = await asyncio.to_thread(sync_and_reindex)
     return {"status": "success", "message": "資料同步與索引重建完成", "count": count}
@@ -97,31 +90,33 @@ async def get_3d_data():
 #執行空間模擬時呼叫
 #repository 對 postGIS 執行 ST_DWithin 空間查詢
 #回傳影響範圍清單給前端
-#同時將模擬結果存入記憶體供 AI 聊天使用
+#同時將模擬結果交給 chat_service 供 AI 聊天使用
 @app.post("/api/simulate_disaster")
 async def simulate(request: SimulateRequest):
-    global latest_simulation
-
     impacted = await asyncio.to_thread(
         repo.get_shelters_in_radius, request.lat, request.lon, request.radius
     )
 
-    latest_simulation = {
+    chat_service.set_simulation({
         "type": request.type,
         "lat": request.lat,
         "lon": request.lon,
         "radius_km": request.radius,
         "impacted_count": len(impacted),
         "impacted_shelters": impacted
-    }
-
-    chat_service.set_simulation(latest_simulation)
+    })
 
     return {
         "status": "success",
         "impacted_count": len(impacted),
         "impacted_shelters": impacted
     }
+
+# 以下是新增的
+@app.post("/api/reset_simulation")
+async def reset_simulation():
+    chat_service.clear_simulation()
+    return {"status": "success"}
 
 # 最近避難所查詢
 # 使用 PostGIS ST_Distance 真實地理距離排序
@@ -137,28 +132,12 @@ async def nearest_shelter(request: NearestRequest):
         "shelters": results
     }
 
-#讀取latest_simulation
-#呼叫 chat_service.chat() 傳入問題/模擬context
-#chatservice對chromadb進行語意搜尋
-#資料/模擬結果/用戶問題組合成prompt給llm
-#透過http呼叫ollama
+#呼叫 chat_service.chat() 傳入問題
+#chatservice依問題類型查 DB / chromadb，組合 prompt 後透過 http 呼叫 ollama
 #llm回答回傳前端
 @app.post("/api/chat")
 async def chat(request: ChatRequest):
-    sim_context = ""
-    if latest_simulation:
-        sim_context = (
-            f"災害類型：{latest_simulation['type']}，"
-            f"中心座標：({latest_simulation['lat']}, {latest_simulation['lon']})，"
-            f"影響半徑：{latest_simulation['radius_km']} 公里，"
-            f"受影響避難所數量：{latest_simulation['impacted_count']} 個。"
-        )
-
-    reply = await asyncio.to_thread(
-        chat_service.chat,
-        request.message,
-        sim_context,
-    )
+    reply = await asyncio.to_thread(chat_service.chat, request.message)
     return {"status": "success", "reply": reply}
 
 # 渲染首頁
