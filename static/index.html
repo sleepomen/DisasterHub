@@ -315,17 +315,6 @@
         .msg-ai { background: white; color: var(--label-primary); align-self: flex-start; border-bottom-left-radius: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
         .msg-user { background: var(--ios-blue); color: white; align-self: flex-end; border-bottom-right-radius: 5px; }
         .msg-loading { background: white; color: var(--label-tertiary); align-self: flex-start; border-bottom-left-radius: 5px; font-style: italic; font-size: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
-        /* 【專案改動】即時通報氣泡：與 AI 一般回覆區隔 */
-        .msg-broadcast {
-            background: rgba(255, 149, 0, 0.12);
-            color: #8b4513;
-            align-self: flex-start;
-            border-bottom-left-radius: 5px;
-            border-left: 3px solid var(--ios-orange);
-            font-size: 13px;
-            line-height: 1.45;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-        }
 
         .input-bar { padding: 8px 10px; border-top: 0.5px solid var(--separator); display: flex; align-items: center; gap: 7px; }
 
@@ -442,8 +431,7 @@
     <div class="chat-card">
         <div class="chat-header">
             <div class="chat-title">AI 決策助手</div>
-            <!-- 【專案改動】副標：反映開放資料搜尋與 disaster_feed 摘要能力 -->
-            <div class="chat-subtitle">RAG · 開放資料 · 即時公開災訊摘要</div>
+            <div class="chat-subtitle">RAG · PostGIS 空間查詢 · 本地 LLM</div>
         </div>
         <div id="chat-container">
             <div class="msg msg-ai">系統就緒。請設定模擬參數以分析潛在風險。</div>
@@ -870,47 +858,6 @@
             addChat('連線失敗，請稍後再試', 'ai');
         }
     };
-
-    /*
-     * 【專案改動】輪詢 GET /api/disaster_feed；首次僅記錄 id 不刷訊息，之後新 id 以「即時通報」
-     * 進聊天框（與後端 disaster_feed_service /api/chat 摘要同源公開資料）。
-     */
-    const FEED_SEEN_KEY = 'disaster_hub_seen_feed_ids';
-    function startDisasterFeedPoller() {
-        let bootstrapped = sessionStorage.getItem('disaster_feed_bootstrap') === '1';
-        const trimSeen = (s) => {
-            const arr = [...s];
-            if (arr.length > 240) return new Set(arr.slice(-240));
-            return s;
-        };
-        const poll = async () => {
-            try {
-                const res = await fetch('/api/disaster_feed');
-                const data = await res.json();
-                if (data.status !== 'success' || !data.items?.length) return;
-                let seen = new Set(JSON.parse(localStorage.getItem(FEED_SEEN_KEY) || '[]'));
-                if (!bootstrapped) {
-                    data.items.forEach((it) => { if (it.id) seen.add(it.id); });
-                    bootstrapped = true;
-                    sessionStorage.setItem('disaster_feed_bootstrap', '1');
-                    seen = trimSeen(seen);
-                    localStorage.setItem(FEED_SEEN_KEY, JSON.stringify([...seen]));
-                    return;
-                }
-                for (const it of data.items) {
-                    if (!it.id || seen.has(it.id)) continue;
-                    seen.add(it.id);
-                    const src = it.source ? `[${it.source}] ` : '';
-                    addChat(`即時通報：${src}${it.title || ''}`, 'broadcast');
-                }
-                seen = trimSeen(seen);
-                localStorage.setItem(FEED_SEEN_KEY, JSON.stringify([...seen]));
-            } catch (_) { /* 離線時略過 */ }
-        };
-        poll();
-        setInterval(poll, 120000);
-    }
-    startDisasterFeedPoller();
 
     loadShelters();
 </script>
