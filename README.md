@@ -1,9 +1,8 @@
-# Disaster Hub 
+# Disaster Hub
 
 **AI 驅動的台灣東部災害避難所決策系統**
 
 以 2025 年花蓮光復鄉堰塞湖災害為出發點，針對現有避難所管理系統資訊不透明、無法模擬、決策緩慢三大痛點所開發的災害模擬決策系統。
-
 
 ---
 
@@ -11,8 +10,8 @@
 
 - **真實地圖視覺化** — Leaflet.js + OpenStreetMap，宜花東 50 處避難所標記於真實座標，marker 大小依容量縮放，點擊顯示即時資訊
 - **PostGIS 空間模擬** — 設定災害中心點與影響半徑，後端透過 `ST_DWithin` 計算受影響避難所清單，支援強震、淹水、火災三種類型
-- **人群疏散動畫** — 模擬災害發生後人群往避難所移動的過程，負載率即時變化
-- **AI 決策助手** — 整合 RAG + 本地 LLM，根據避難所真實資料回答問題，支援語意查詢、地理距離查詢、容量排序查詢
+- **人群疏散動畫** — 依災害類型與影響面積估算疏散人數，人群點就近前往仍有空位的避難所，負載率即時變化
+- **AI 決策助手** — 整合 RAG + 本地 LLM，根據避難所真實資料回答問題，支援語意查詢、地理距離查詢、容量排序查詢、模擬結果查詢
 
 ---
 
@@ -23,8 +22,8 @@
               ChromaDB（語意向量索引）
 
 後端層        FastAPI + Uvicorn
-              ShelterRepository（資料庫操作）
-              ChatService（RAG + LLM）
+              ShelterRepository（資料庫操作，連線池）
+              ChatService（意圖判斷 + RAG + LLM）
               VectorStore（ChromaDB 管理）
 
 前端層        Leaflet.js + OpenStreetMap
@@ -32,7 +31,7 @@
               iOS 風格 UI
 
 容器化        Docker + Docker Compose
-LLM           Ollama + llama3.2:3b（本地部署）
+LLM           Ollama + llama3.2:3b（宿主機本地部署）
 ```
 
 ---
@@ -42,7 +41,8 @@ LLM           Ollama + llama3.2:3b（本地部署）
 ### 環境需求
 
 - Docker Desktop
-- 16GB RAM 以上（Ollama 本地跑模型需要）
+- 宿主機安裝 [Ollama](https://ollama.com)（容器透過 `host.docker.internal` 連線）
+- 16GB RAM 以上
 
 ### 1. 複製專案
 
@@ -54,28 +54,33 @@ cd disaster-hub
 ### 2. 設定環境變數
 
 ```bash
-# 編輯 .env 填入資料庫密碼
-cp  .env
-POSTGRES_DB=YOURDBNAME
-POSTGRES_USER=YOURNAME
-POSTGRES_PASSWORD=YOURPASSWORD
-POSTGRES_HOST=YOURHOST
-POSTGRES_PORT=YOURHOST
+cp .env.example .env
 ```
 
-### 3. 啟動服務
+編輯 `.env`：
+
+| 變數 | 說明 |
+|---|---|
+| `POSTGRES_DB` / `POSTGRES_USER` / `POSTGRES_PASSWORD` | 資料庫帳密，首次啟動時自動建立 |
+| `POSTGRES_HOST` / `POSTGRES_PORT` | 容器內請保持 `disaster_db` / `5432` |
+| `OLLAMA_HOST` | Ollama 位址，預設 `http://host.docker.internal:11434` |
+| `SYNC_API_KEY` | 手動呼叫 `/api/sync` 所需的金鑰，請換成隨機長字串 |
+
+可選變數：`OLLAMA_MODEL`（預設 `llama3.2:3b`）、`OLLAMA_TEMPERATURE`、`OLLAMA_NUM_PREDICT`、`OLLAMA_TIMEOUT`、`RAG_TOP_K`、`DB_POOL_MIN` / `DB_POOL_MAX`。
+
+### 3. 下載 LLM 模型（第一次需要，在宿主機執行）
 
 ```bash
-docker-compose up --build
+ollama pull llama3.2:3b
 ```
 
-### 4. 下載 LLM 模型（第一次需要）
+### 4. 啟動服務
 
 ```bash
-docker exec -it ollama ollama pull llama3.2:3b
+docker compose up --build
 ```
 
-
+首次啟動會自動執行 `init.sql` 建表、同步 `data_for_refuge/` 的 JSON 到 PostGIS，並建立向量索引。開啟 <http://localhost:8501>。
 
 ---
 
@@ -84,23 +89,24 @@ docker exec -it ollama ollama pull llama3.2:3b
 ```
 Disaster_Hub/
 ├── app.py                      # FastAPI 主程式
+├── config.py                   # 所有環境變數集中處
 ├── Dockerfile
 ├── docker-compose.yml
 ├── requirements.txt
-├── init.sql                    # 資料庫初始化
+├── init.sql                    # 資料庫初始化（首次啟動自動執行）
 ├── .env.example
 │
 ├── models/
 │   └── shelter.py              # Shelter 資料模型
 │
 ├── repositories/
-│   └── shelter_repository.py   # 資料庫操作（含重試機制）
+│   └── shelter_repository.py   # PostGIS 查詢（連線池、批次 upsert）
 │
 ├── services/
 │   ├── data_fetcher.py         # 讀取 JSON 資料
 │   ├── map_server.py           # 地圖資料格式化
 │   ├── sync_service.py         # 資料同步
-│   ├── chat_service.py         # RAG + LLM 聊天
+│   ├── chat_service.py         # 意圖判斷 + RAG + LLM
 │   └── vector_store.py         # ChromaDB 向量索引
 │
 ├── data_for_refuge/
@@ -115,8 +121,9 @@ Disaster_Hub/
     ├── test_shelter_model.py
     ├── test_map_service.py
     ├── test_data_fetcher2.py
-    ├── test_api_data.py
-    └── test_sync_service.py
+    ├── test_chat_service.py
+    ├── test_sync_service.py
+    └── test_api_data.py
 ```
 
 ---
@@ -127,13 +134,22 @@ Disaster_Hub/
 |---|---|---|
 | GET | `/api/3d_data` | 取得所有避難所資料 |
 | POST | `/api/simulate_disaster` | 執行災害空間模擬 |
+| POST | `/api/reset_simulation` | 清除模擬狀態 |
 | POST | `/api/nearest_shelter` | 查詢最近避難所（PostGIS 距離排序）|
 | POST | `/api/chat` | AI 決策助手 |
-| POST | `/api/sync` | 手動觸發資料同步 |
+| POST | `/api/sync` | 手動觸發資料同步（需 `X-API-Key` header）|
+
+手動同步範例：
+
+```bash
+curl -X POST http://localhost:8501/api/sync -H "X-API-Key: $SYNC_API_KEY"
+```
 
 ---
 
 ## 執行測試
+
+測試全部使用 mock，不需要資料庫或 Ollama：
 
 ```bash
 docker exec -it disaster_app pytest tests/ -v
@@ -162,4 +178,3 @@ docker exec -it disaster_app pytest tests/ -v
 ## 開發者
 
 **Vessel**
-
