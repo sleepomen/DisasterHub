@@ -1,6 +1,7 @@
 import re
 import chromadb
 from chromadb.utils import embedding_functions
+import config
 
 # 以下是新增的
 REGION_TAG_PATTERN = re.compile(r"^\[[A-Z]+\]\s*")
@@ -41,14 +42,14 @@ class VectorStore:
 
         for i, s in enumerate(shelters):
             occupancy_rate = s.occupancy_rate if hasattr(s, 'occupancy_rate') else 0.0
-            remaining = s.total_vessel - s.total_people
+            remaining = s.remaining
 
             clean_name = REGION_TAG_PATTERN.sub("", s.name)
             region = _region_of(s.name)
             doc = (
                 f"{region}的{clean_name} 位於緯度 {s.lat}、經度 {s.lon}。"
-                f"總容量為 {s.total_vessel} 人，"
-                f"目前收容 {s.total_people} 人，"
+                f"總容量為 {s.capacity} 人，"
+                f"目前收容 {s.current_people} 人，"
                 f"剩餘空間 {remaining} 人，"
                 f"負載率 {occupancy_rate:.1f}%。"
             )
@@ -59,8 +60,8 @@ class VectorStore:
                 "region": region,
                 "lat": s.lat,
                 "lon": s.lon,   
-                "total_vessel": s.total_vessel,
-                "total_people": s.total_people,
+                "capacity": s.capacity,
+                "current_people": s.current_people,
                 "remaining": remaining,
                 "occupancy_rate": round(occupancy_rate, 1)
             })
@@ -73,7 +74,7 @@ class VectorStore:
         )
         print(f"VectorStore: 成功建立 {len(shelters)} 筆避難所索引")
 
-    def search(self, query: str, n_results: int = 10) -> str:
+    def search(self, query: str, n_results: int | None = None) -> str:
         """
         語意搜尋：找出與 query 最相關的避難所資料
         """
@@ -81,7 +82,7 @@ class VectorStore:
         if total == 0:
             return "目前沒有避難所資料。"
 
-        n = min(n_results, total)
+        n = min(n_results or config.RAG_TOP_K, total)
 
         results = self.collection.query(
             query_texts=[query],

@@ -1,13 +1,21 @@
+# 以下是新增的
+from dataclasses import dataclass
+
+
+@dataclass
 class Shelter:
-    def __init__(self, name: str, total_vessel: int, lat: float, lon: float, total_people: int = 0):
-        self.name = name
-        self.total_vessel = total_vessel
-        self.total_people = total_people
-        self.lat = lat
-        self.lon = lon
+    name: str
+    capacity: int
+    lat: float
+    lon: float
+    current_people: int = 0
+
+    @property
+    def remaining(self) -> int:
+        return max(0, self.capacity - self.current_people)
 
     @property
     def occupancy_rate(self) -> float:
-        if self.total_vessel == 0:
+        if self.capacity == 0:
             return 0.0
-        return (self.total_people / self.total_vessel) * 100
+        return (self.current_people / self.capacity) * 100
