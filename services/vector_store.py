@@ -1,5 +1,15 @@
+import re
 import chromadb
 from chromadb.utils import embedding_functions
+
+# 以下是新增的
+REGION_TAG_PATTERN = re.compile(r"^\[[A-Z]+\]\s*")
+REGION_LABELS = {"YILAN": "宜蘭", "HUALIEN": "花蓮", "TAITUNG": "台東"}
+
+
+def _region_of(name: str) -> str:
+    m = re.match(r"^\[([A-Z]+)\]", name or "")
+    return REGION_LABELS.get(m.group(1), "") if m else ""
 
 class VectorStore:
     def __init__(self):
@@ -33,8 +43,10 @@ class VectorStore:
             occupancy_rate = s.occupancy_rate if hasattr(s, 'occupancy_rate') else 0.0
             remaining = s.total_vessel - s.total_people
 
+            clean_name = REGION_TAG_PATTERN.sub("", s.name)
+            region = _region_of(s.name)
             doc = (
-                f"{s.name} 位於緯度 {s.lat}、經度 {s.lon}。"
+                f"{region}的{clean_name} 位於緯度 {s.lat}、經度 {s.lon}。"
                 f"總容量為 {s.total_vessel} 人，"
                 f"目前收容 {s.total_people} 人，"
                 f"剩餘空間 {remaining} 人，"
@@ -44,6 +56,7 @@ class VectorStore:
             documents.append(doc)
             metadatas.append({
                 "name": s.name,
+                "region": region,
                 "lat": s.lat,
                 "lon": s.lon,   
                 "total_vessel": s.total_vessel,
