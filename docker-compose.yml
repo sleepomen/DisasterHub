@@ -31,6 +31,7 @@ services:
     environment:
       - PYTHONPATH=/app
       - OLLAMA_HOST=http://host.docker.internal:11434
+      - ANONYMIZED_TELEMETRY=False
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
