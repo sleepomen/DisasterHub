@@ -123,7 +123,7 @@ Disaster_Hub/
     ├── test_data_fetcher2.py
     ├── test_chat_service.py
     ├── test_sync_service.py
-    └── test_api_data.py
+    └── test_aSpi_data.py
 ```
 
 ---
@@ -153,6 +153,28 @@ curl -X POST http://localhost:8501/api/sync -H "X-API-Key: $SYNC_API_KEY"
 
 ```bash
 docker exec -it disaster_app pytest tests/ -v
+```
+
+## RAG 召回率評測
+
+評測集 `evals/rag_eval.jsonl`（130 題，9 個類別）由 `evals/build_eval_set.py` 從 `data_for_refuge/` 產生，結構化類別（名稱、地區、鄉鎮、設施、容量）的正解由程式推導，別名／語意／負例為人工標註。
+
+```bash
+docker exec -it disaster_app python evals/build_eval_set.py
+docker exec -it disaster_app python evals/run_rag_eval.py --embedder minilm --label baseline
+docker exec -it disaster_app python evals/run_rag_eval.py --embedder ollama:bge-m3 --label bge-m3
+```
+
+輸出各類別的 Recall@3/5/10、Precision、MRR、hit rate、相關文件平均距離、負例的 top-1 距離（用來選相似度門檻）與查詢延遲 p50/p95；完整結果存在 `evals/results/<label>.json`。`--threshold` 可指定 cosine 距離門檻計算負例的假陽性率。
+
+```
+Disaster_Hub/
+├── evals/
+│   ├── build_eval_set.py       # 產生評測集
+│   ├── rag_eval.jsonl          # 評測集
+│   ├── run_rag_eval.py         # 執行評測
+│   ├── metrics.py              # Recall / Precision / MRR
+│   └── results/                # 各次評測輸出
 ```
 
 ---
