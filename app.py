@@ -24,6 +24,7 @@ chat_service = ChatService(vector_store=vector_store, repo=repo)
 
 
 def sync_and_reindex() -> int:
+    repo.ensure_schema()
     DataSyncService().sync()
     shelters = repo.get_all_shelters()
     vector_store.build_index(shelters)
