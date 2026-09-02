@@ -20,26 +20,36 @@ def load_cases(path):
 
 
 def make_embedder(spec: str):
-    from chromadb.utils import embedding_functions
-    import config
+    from services.embeddings import build_embedding_function
 
     if spec == "minilm":
-        return embedding_functions.ONNXMiniLM_L6_V2()
+        return build_embedding_function("minilm")
     if spec.startswith("ollama:"):
-        return embedding_functions.OllamaEmbeddingFunction(
-            url=f"{config.OLLAMA_HOST}/api/embeddings",
-            model_name=spec.split(":", 1)[1],
-        )
+        return build_embedding_function("ollama", spec.split(":", 1)[1])
     raise SystemExit(f"unknown embedder: {spec}")
 
 
-def build_store(embedder_spec: str, label: str):
+def legacy_document(s) -> str:
+    from services.shelter_profile import region_of, strip_region_tag
+
+    return (
+        f"{region_of(s.name)}的{strip_region_tag(s.name)} 位於緯度 {s.lat}、經度 {s.lon}。"
+        f"總容量為 {s.capacity} 人，"
+        f"目前收容 {s.current_people} 人，"
+        f"剩餘空間 {s.remaining} 人，"
+        f"負載率 {s.occupancy_rate:.1f}%。"
+    )
+
+
+def build_store(embedder_spec: str, label: str, doc_style: str = "current"):
     from services.data_fetcher import DataFetcher
     from services.vector_store import VectorStore
 
     shelters = DataFetcher().get_shelters()
     if not shelters:
         raise SystemExit("no shelters loaded from data_for_refuge/")
+    if doc_style == "legacy":
+        VectorStore.build_document = staticmethod(legacy_document)
     store = VectorStore(embedding_function=make_embedder(embedder_spec), collection_name=f"eval_{label}")
     t0 = time.perf_counter()
     store.build_index(shelters)
@@ -156,6 +166,7 @@ def main():
     parser.add_argument("--k", default="3,5,10")
     parser.add_argument("--top", type=int, default=10)
     parser.add_argument("--threshold", type=float, default=None, help="cosine distance above which a result is treated as no-match")
+    parser.add_argument("--doc-style", default="current", choices=["current", "legacy"])
     parser.add_argument("--show-misses", type=int, default=15)
     parser.add_argument("--out", default=None)
     args = parser.parse_args()
@@ -163,10 +174,10 @@ def main():
     ks = sorted(int(x) for x in args.k.split(","))
     label = args.label or args.embedder.replace(":", "_")
     cases = load_cases(args.cases)
-    store, docs, build_s = build_store(args.embedder, label)
+    store, docs, build_s = build_store(args.embedder, label, args.doc_style)
     rows = run(cases, store, ks, max(args.top, ks[-1]), args.threshold)
     summary = summarize(rows, ks)
-    meta = {"label": label, "embedder": args.embedder, "top": args.top, "docs": docs, "index_build_s": build_s, "threshold": args.threshold, "cases": len(cases)}
+    meta = {"label": label, "embedder": args.embedder, "doc_style": args.doc_style, "top": args.top, "docs": docs, "index_build_s": build_s, "threshold": args.threshold, "cases": len(cases)}
 
     print_report(summary, ks, meta)
     print_misses(rows, ks[-1], args.show_misses)
