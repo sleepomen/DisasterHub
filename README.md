@@ -66,12 +66,13 @@ cp .env.example .env
 | `OLLAMA_HOST` | Ollama 位址，預設 `http://host.docker.internal:11434` |
 | `SYNC_API_KEY` | 手動呼叫 `/api/sync` 所需的金鑰，請換成隨機長字串 |
 
-可選變數：`OLLAMA_MODEL`（預設 `llama3.2:3b`）、`OLLAMA_TEMPERATURE`、`OLLAMA_NUM_PREDICT`、`OLLAMA_TIMEOUT`、`RAG_TOP_K`、`DB_POOL_MIN` / `DB_POOL_MAX`。
+可選變數：`OLLAMA_MODEL`（預設 `llama3.2:3b`）、`OLLAMA_TEMPERATURE`、`OLLAMA_NUM_PREDICT`、`OLLAMA_TIMEOUT`、`EMBEDDING_PROVIDER`（`ollama` 或 `minilm`）、`EMBEDDING_MODEL`（預設 `bge-m3`）、`EMBEDDING_TIMEOUT`、`RAG_TOP_K`、`DB_POOL_MIN` / `DB_POOL_MAX`。
 
-### 3. 下載 LLM 模型（第一次需要，在宿主機執行）
+### 3. 下載模型（第一次需要，在宿主機執行）
 
 ```bash
-ollama pull llama3.2:3b
+ollama pull llama3.2:3b   # 聊天模型，可用 OLLAMA_MODEL 改成 qwen2.5:7b 等
+ollama pull bge-m3        # 多語 embedding 模型，RAG 檢索用
 ```
 
 ### 4. 啟動服務
@@ -165,7 +166,18 @@ docker exec -it disaster_app python evals/run_rag_eval.py --embedder minilm --la
 docker exec -it disaster_app python evals/run_rag_eval.py --embedder ollama:bge-m3 --label bge-m3
 ```
 
-輸出各類別的 Recall@3/5/10、Precision、MRR、hit rate、相關文件平均距離、負例的 top-1 距離（用來選相似度門檻）與查詢延遲 p50/p95；完整結果存在 `evals/results/<label>.json`。`--threshold` 可指定 cosine 距離門檻計算負例的假陽性率。
+輸出各類別的 Recall@3/5/10、Precision、MRR、hit rate、相關文件平均距離、負例的 top-1 距離（用來選相似度門檻）與查詢延遲 p50/p95；完整結果存在 `evals/results/<label>.json`。`--threshold` 可指定 cosine 距離門檻計算負例的假陽性率，`--doc-style legacy` 用舊的文件模板建索引以做對照。
+
+歷次結果（macro Recall@10 / top-10 完全未命中題數）：
+
+| 設定 | R@3 | R@10 | MRR | 未命中 |
+|---|---|---|---|---|
+| MiniLM + 舊文件（baseline） | 0.379 | 0.619 | 0.561 | 27 |
+| MiniLM + 擴充文件 | 0.530 | 0.775 | 0.726 | 10 |
+| bge-m3 + 舊文件 | 0.674 | 0.865 | 0.864 | 4 |
+| **bge-m3 + 擴充文件（現行）** | **0.748** | **0.898** | **0.926** | **2** |
+
+擴充文件指 `services/shelter_profile.py` 從名稱與地址推導出的鄉鎮、設施類型、容量分級、別名，寫進向量文件與 metadata。
 
 ```
 Disaster_Hub/
