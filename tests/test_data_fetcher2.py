@@ -25,6 +25,8 @@ def test_fetcher_region_tag_and_coords():
         assert 21.5 <= s.lat <= 25.0, s.name
         assert 120.5 <= s.lon <= 122.5, s.name
         assert s.capacity > 0, s.name
+        assert s.address.endswith("號") or s.address.endswith("路"), s.name
+        assert "ˇ" not in s.address, s.name
 
 def test_fetcher_missing_folder(tmp_path):
     fetcher = DataFetcher()

@@ -25,10 +25,10 @@ class KeywordEmbedding:
 
 
 SHELTERS = [
-    Shelter("[YILAN] 宜蘭國小", 500, 24.7, 121.7, 0),
-    Shelter("[YILAN] 羅東鎮立體育館", 800, 24.6, 121.7, 100),
-    Shelter("[HUALIEN] 中正國小", 400, 23.9, 121.6, 0),
-    Shelter("[TAITUNG] 台東縣立體育館", 2000, 22.7, 121.1, 0),
+    Shelter("[YILAN] 宜蘭國小", 500, 24.7, 121.7, 0, "宜蘭縣宜蘭市崇聖街2號"),
+    Shelter("[YILAN] 羅東鎮立體育館", 800, 24.6, 121.7, 100, "宜蘭縣羅東鎮體育路15號"),
+    Shelter("[HUALIEN] 中正國小", 400, 23.9, 121.6, 0, "花蓮縣花蓮市中正路210號"),
+    Shelter("[TAITUNG] 台東縣立體育館", 2000, 22.7, 121.1, 0, "台東縣台東市桂林北路124號"),
 ]
 
 
@@ -56,15 +56,32 @@ def test_metadata_fields(store):
     hit = store.retrieve("羅東鎮立體育館", n_results=1)[0]
     meta = hit.metadata
     assert meta["region"] == "宜蘭"
+    assert meta["county"] == "宜蘭縣"
+    assert meta["township"] == "羅東鎮"
+    assert meta["facility"] == "體育場館"
+    assert meta["size_class"] == "中型"
+    assert meta["address"] == "宜蘭縣羅東鎮體育路15號"
     assert meta["capacity"] == 800
     assert meta["remaining"] == 700
     assert meta["occupancy_rate"] == 12.5
 
 
-def test_document_has_no_region_tag(store):
+def test_document_is_enriched(store):
     hit = store.retrieve("中正國小", n_results=1)[0]
-    assert "HUALIEN" not in hit.document
-    assert "花蓮的中正國小" in hit.document
+    doc = hit.document
+    assert "HUALIEN" not in doc
+    assert doc.startswith("中正國小（別名：中正國民小學）是花蓮地區的避難收容場所")
+    assert "花蓮縣花蓮市" in doc
+    assert "花蓮縣花蓮市中正路210號" in doc
+    assert "設施類型為國小" in doc
+    assert "容量 400 人，屬於中型避難所" in doc
+    assert "尚有 400 個空位" in doc
+
+
+def test_document_without_address(store):
+    doc = VectorStore.build_document(Shelter("[YILAN] 宜蘭國小", 500, 24.7, 121.7, 0))
+    assert "地址" not in doc
+    assert "位於宜蘭縣。" in doc
 
 
 def test_search_returns_joined_documents(store):

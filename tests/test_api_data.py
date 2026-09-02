@@ -9,10 +9,26 @@ FAKE_SHELTERS = [
 ]
 
 
+class FakeEmbedding:
+    def __call__(self, input):
+        return [[0.0, 0.0, 1.0] for _ in input]
+
+    def name(self):
+        return "fake"
+
+    def embed_query(self, input):
+        return self(input)
+
+    def embed_documents(self, input):
+        return self(input)
+
+
 @pytest.fixture
 def client():
     with patch("repositories.shelter_repository.ShelterRepository.get_all_shelters", return_value=FAKE_SHELTERS), \
          patch("repositories.shelter_repository.ShelterRepository.get_shelters_in_radius", return_value=[]), \
+         patch("repositories.shelter_repository.ShelterRepository.ensure_schema"), \
+         patch("services.vector_store.build_embedding_function", return_value=FakeEmbedding()), \
          patch("services.vector_store.VectorStore.build_index"), \
          patch("services.sync_service.DataSyncService.sync"):
         from fastapi.testclient import TestClient
