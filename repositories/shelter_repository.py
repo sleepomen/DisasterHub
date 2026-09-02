@@ -10,7 +10,6 @@ import config
 MAX_RETRIES = 3
 RETRY_DELAY = 2  # 秒
 
-# 以下是新增的
 logger = logging.getLogger(__name__)
 _pool = None
 _pool_lock = threading.Lock()
@@ -33,6 +32,20 @@ def _get_pool(conn_params):
         return _pool
 
 
+SELECT_COLUMNS = "name, capacity, current_ppl, ST_Y(geom::geometry), ST_X(geom::geometry), COALESCE(address, '')"
+
+
+def _row_to_shelter(row) -> Shelter:
+    return Shelter(
+        name=row[0],
+        capacity=row[1],
+        current_people=row[2],
+        lat=row[3],
+        lon=row[4],
+        address=row[5],
+    )
+
+
 class ShelterRepository:
     def __init__(self):
         self.conn_params = {
@@ -43,7 +56,6 @@ class ShelterRepository:
             "port": config.POSTGRES_PORT
         }
 
-    # 以下是新增的
     @contextmanager
     def _cursor(self):
         pool = _get_pool(self.conn_params)
@@ -59,36 +71,45 @@ class ShelterRepository:
         finally:
             pool.putconn(conn, close=bool(conn.closed))
 
+    def ensure_schema(self):
+        try:
+            with self._cursor() as cursor:
+                cursor.execute("ALTER TABLE shelters ADD COLUMN IF NOT EXISTS address VARCHAR(200) DEFAULT ''")
+        except Exception as e:
+            raise RuntimeError(f"ensure_schema 失敗：{e}")
+
     UPSERT_SQL = """
-        INSERT INTO shelters (name, capacity, current_ppl, geom)
-        VALUES (%s, %s, %s, ST_SetSRID(ST_Point(%s, %s), 4326))
+        INSERT INTO shelters (name, capacity, current_ppl, address, geom)
+        VALUES (%s, %s, %s, %s, ST_SetSRID(ST_Point(%s, %s), 4326))
         ON CONFLICT (name) DO UPDATE SET
             capacity = EXCLUDED.capacity,
             current_ppl = EXCLUDED.current_ppl,
+            address = EXCLUDED.address,
             geom = EXCLUDED.geom;
     """
+
+    @staticmethod
+    def _upsert_params(shelter: Shelter):
+        return (
+            shelter.name,
+            shelter.capacity,
+            shelter.current_people,
+            shelter.address,
+            shelter.lon,
+            shelter.lat,
+        )
 
     def upsert_shelter(self, shelter: Shelter):
         try:
             with self._cursor() as cursor:
-                cursor.execute(self.UPSERT_SQL, (
-                    shelter.name,
-                    shelter.capacity,
-                    shelter.current_people,
-                    shelter.lon,
-                    shelter.lat
-                ))
+                cursor.execute(self.UPSERT_SQL, self._upsert_params(shelter))
         except Exception as e:
             raise RuntimeError(f"upsert_shelter 失敗：{e}")
 
-    # 以下是新增的
     def upsert_shelters(self, shelters: list[Shelter]) -> int:
         if not shelters:
             return 0
-        params = [
-            (s.name, s.capacity, s.current_people, s.lon, s.lat)
-            for s in shelters
-        ]
+        params = [self._upsert_params(s) for s in shelters]
         try:
             with self._cursor() as cursor:
                 cursor.executemany(self.UPSERT_SQL, params)
@@ -97,24 +118,12 @@ class ShelterRepository:
         return len(params)
 
     def get_all_shelters(self):
-        shelters = []
         try:
             with self._cursor() as cursor:
-                cursor.execute(
-                    "SELECT name, capacity, current_ppl, ST_Y(geom::geometry), ST_X(geom::geometry) FROM shelters"
-                )
-                rows = cursor.fetchall()
-                for row in rows:
-                    shelters.append(Shelter(
-                        name=row[0],
-                        capacity=row[1],
-                        current_people=row[2],
-                        lat=row[3],
-                        lon=row[4]
-                    ))
+                cursor.execute(f"SELECT {SELECT_COLUMNS} FROM shelters")
+                return [_row_to_shelter(row) for row in cursor.fetchall()]
         except Exception as e:
             raise RuntimeError(f"get_all_shelters error：{e}")
-        return shelters
 
     def get_shelters_in_radius(self, lat: float, lon: float, radius_km: float):
         """
@@ -123,8 +132,8 @@ class ShelterRepository:
         impacted_shelters = []
         try:
             with self._cursor() as cursor:
-                sql = """
-                    SELECT name, capacity, current_ppl, ST_Y(geom::geometry), ST_X(geom::geometry)
+                sql = f"""
+                    SELECT {SELECT_COLUMNS}
                     FROM shelters
                     WHERE ST_DWithin(
                         geom,
@@ -133,15 +142,15 @@ class ShelterRepository:
                     );
                 """
                 cursor.execute(sql, (lon, lat, radius_km * 1000))
-                rows = cursor.fetchall()
-                for row in rows:
+                for row in cursor.fetchall():
                     impacted_shelters.append({
                         "name": row[0],
                         "capacity": row[1],
                         "current_ppl": row[2],
                         "remaining": max(0, row[1] - row[2]),
                         "lat": row[3],
-                        "lon": row[4]
+                        "lon": row[4],
+                        "address": row[5],
                     })
         except Exception as e:
             raise RuntimeError(f"get_shelters_in_radius 失敗：{e}")
@@ -154,13 +163,9 @@ class ShelterRepository:
         nearest = []
         try:
             with self._cursor() as cursor:
-                sql = """
+                sql = f"""
                     SELECT
-                        name,
-                        capacity,
-                        current_ppl,
-                        ST_Y(geom::geometry) AS lat,
-                        ST_X(geom::geometry) AS lon,
+                        {SELECT_COLUMNS},
                         ROUND(
                             ST_Distance(
                                 geom::geography,
@@ -172,17 +177,16 @@ class ShelterRepository:
                     LIMIT %s;
                 """
                 cursor.execute(sql, (lon, lat, lon, lat, limit))
-                rows = cursor.fetchall()
-                for row in rows:
-                    remaining = max(0, row[1] - row[2])
+                for row in cursor.fetchall():
                     nearest.append({
                         "name": row[0],
                         "capacity": row[1],
                         "current_ppl": row[2],
-                        "remaining": remaining,
+                        "remaining": max(0, row[1] - row[2]),
                         "lat": float(row[3]),
                         "lon": float(row[4]),
-                        "distance_km": float(row[5])
+                        "address": row[5],
+                        "distance_km": float(row[6]),
                     })
         except Exception as e:
             raise RuntimeError(f"get_nearest_shelters 失敗：{e}")
