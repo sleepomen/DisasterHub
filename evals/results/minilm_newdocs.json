@@ -1,0 +1,6317 @@
+{
+ "meta": {
+  "label": "minilm_newdocs",
+  "embedder": "minilm",
+  "doc_style": "current",
+  "top": 10,
+  "docs": 50,
+  "index_build_s": 4.439854998001465,
+  "threshold": null,
+  "cases": 130
+ },
+ "summary": {
+  "categories": {
+   "alias": {
+    "count": 16,
+    "mrr": 0.7225,
+    "recall@3": 0.7812,
+    "precision@3": 0.3125,
+    "hit@3": 0.8125,
+    "recall@5": 0.8438,
+    "precision@5": 0.2,
+    "hit@5": 0.875,
+    "recall@10": 0.9062,
+    "precision@10": 0.1063,
+    "hit@10": 0.9375,
+    "mean_best_relevant_distance": 0.3971
+   },
+   "capacity": {
+    "count": 9,
+    "mrr": 0.5833,
+    "recall@3": 0.3095,
+    "precision@3": 0.2963,
+    "hit@3": 0.5556,
+    "recall@5": 0.5894,
+    "precision@5": 0.3778,
+    "hit@5": 0.8889,
+    "recall@10": 0.6275,
+    "precision@10": 0.2111,
+    "hit@10": 0.8889,
+    "mean_best_relevant_distance": 0.3246
+   },
+   "exact_name": {
+    "count": 20,
+    "mrr": 0.8271,
+    "recall@3": 0.85,
+    "precision@3": 0.2833,
+    "hit@3": 0.85,
+    "recall@5": 0.9,
+    "precision@5": 0.18,
+    "hit@5": 0.9,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0,
+    "mean_best_relevant_distance": 0.2784
+   },
+   "facility": {
+    "count": 12,
+    "mrr": 0.7042,
+    "recall@3": 0.3965,
+    "precision@3": 0.5278,
+    "hit@3": 0.6667,
+    "recall@5": 0.5668,
+    "precision@5": 0.5,
+    "hit@5": 1.0,
+    "recall@10": 0.7515,
+    "precision@10": 0.4167,
+    "hit@10": 1.0,
+    "mean_best_relevant_distance": 0.3252
+   },
+   "name_variant": {
+    "count": 15,
+    "mrr": 0.6741,
+    "recall@3": 0.7333,
+    "precision@3": 0.2444,
+    "hit@3": 0.7333,
+    "recall@5": 0.7333,
+    "precision@5": 0.1467,
+    "hit@5": 0.7333,
+    "recall@10": 0.8,
+    "precision@10": 0.08,
+    "hit@10": 0.8,
+    "mean_best_relevant_distance": 0.2591
+   },
+   "region": {
+    "count": 9,
+    "mrr": 0.9444,
+    "recall@3": 0.1464,
+    "precision@3": 0.7778,
+    "hit@3": 1.0,
+    "recall@5": 0.2579,
+    "precision@5": 0.8222,
+    "hit@5": 1.0,
+    "recall@10": 0.5575,
+    "precision@10": 0.9,
+    "hit@10": 1.0,
+    "mean_best_relevant_distance": 0.3368
+   },
+   "semantic": {
+    "count": 19,
+    "mrr": 0.654,
+    "recall@3": 0.5877,
+    "precision@3": 0.3333,
+    "hit@3": 0.7368,
+    "recall@5": 0.7632,
+    "precision@5": 0.2526,
+    "hit@5": 0.8421,
+    "recall@10": 0.8684,
+    "precision@10": 0.1421,
+    "hit@10": 0.8947,
+    "mean_best_relevant_distance": 0.4272
+   },
+   "township": {
+    "count": 20,
+    "mrr": 0.7002,
+    "recall@3": 0.4339,
+    "precision@3": 0.4167,
+    "hit@3": 0.7,
+    "recall@5": 0.4774,
+    "precision@5": 0.34,
+    "hit@5": 0.75,
+    "recall@10": 0.6912,
+    "precision@10": 0.29,
+    "hit@10": 0.85,
+    "mean_best_relevant_distance": 0.3804
+   }
+  },
+  "negatives": {
+   "count": 10,
+   "mean_top1_distance": 0.463,
+   "min_top1_distance": 0.2233,
+   "false_positive_rate": null
+  },
+  "macro": {
+   "recall@3": 0.5298,
+   "recall@5": 0.6415,
+   "recall@10": 0.7753,
+   "precision@3": 0.399,
+   "precision@5": 0.3524,
+   "precision@10": 0.2808,
+   "hit@3": 0.7569,
+   "hit@5": 0.8737,
+   "hit@10": 0.9214,
+   "mrr": 0.7262
+  },
+  "micro": {
+   "mrr": 0.7237,
+   "recall@3": 0.5767,
+   "precision@3": 0.375,
+   "hit@3": 0.7583,
+   "recall@5": 0.6748,
+   "precision@5": 0.3117,
+   "hit@5": 0.8583,
+   "recall@10": 0.8042,
+   "precision@10": 0.2367,
+   "hit@10": 0.9167
+  },
+  "latency_ms": {
+   "p50": 147.16,
+   "p95": 221.62
+  }
+ },
+ "rows": [
+  {
+   "query": "花蓮縣立體育館",
+   "category": "exact_name",
+   "relevant": [
+    "[HUALIEN] 花蓮縣立體育館"
+   ],
+   "ranked": [
+    "[HUALIEN] 花蓮縣立體育館",
+    "[HUALIEN] 花蓮市公所",
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 花蓮市立圖書館",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 濤強國小",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 中正國小",
+    "[HUALIEN] 自強國中",
+    "[HUALIEN] 中原國小"
+   ],
+   "distances": [
+    0.1887,
+    0.2453,
+    0.2536,
+    0.2602,
+    0.3137,
+    0.3197,
+    0.3202,
+    0.3224,
+    0.3325,
+    0.3365
+   ],
+   "latency_ms": 164.17,
+   "top1_distance": 0.1886957883834839,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.1886957883834839
+  },
+  {
+   "query": "花蓮市立圖書館",
+   "category": "exact_name",
+   "relevant": [
+    "[HUALIEN] 花蓮市立圖書館"
+   ],
+   "ranked": [
+    "[HUALIEN] 花蓮市立圖書館",
+    "[HUALIEN] 花蓮縣立體育館",
+    "[HUALIEN] 花蓮市公所",
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 濤強國小",
+    "[HUALIEN] 中正國小",
+    "[HUALIEN] 國風國中",
+    "[HUALIEN] 中原國小"
+   ],
+   "distances": [
+    0.1942,
+    0.2496,
+    0.2735,
+    0.2942,
+    0.3506,
+    0.356,
+    0.3613,
+    0.3627,
+    0.3699,
+    0.373
+   ],
+   "latency_ms": 134.87,
+   "top1_distance": 0.1942298412322998,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.1942298412322998
+  },
+  {
+   "query": "民義國小",
+   "category": "exact_name",
+   "relevant": [
+    "[HUALIEN] 民義國小"
+   ],
+   "ranked": [
+    "[HUALIEN] 民義國小",
+    "[YILAN] 羅東國小",
+    "[YILAN] 南山國小",
+    "[YILAN] 澳花國小",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 宜蘭國小",
+    "[HUALIEN] 信義國小",
+    "[TAITUNG] 知本國小",
+    "[TAITUNG] 寶桑國小",
+    "[YILAN] 蘇澳國小"
+   ],
+   "distances": [
+    0.3816,
+    0.4439,
+    0.4653,
+    0.4759,
+    0.4815,
+    0.4845,
+    0.4889,
+    0.4891,
+    0.4951,
+    0.4987
+   ],
+   "latency_ms": 117.98,
+   "top1_distance": 0.3816264271736145,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.3816264271736145
+  },
+  {
+   "query": "中正國小",
+   "category": "exact_name",
+   "relevant": [
+    "[HUALIEN] 中正國小"
+   ],
+   "ranked": [
+    "[HUALIEN] 中正國小",
+    "[YILAN] 中興國小附幼",
+    "[TAITUNG] 寶桑國小",
+    "[YILAN] 澳花國小",
+    "[YILAN] 宜蘭國小",
+    "[YILAN] 壯圍國小",
+    "[HUALIEN] 中華國小",
+    "[TAITUNG] 知本國小",
+    "[YILAN] 羅東國小",
+    "[YILAN] 頭城國小"
+   ],
+   "distances": [
+    0.3692,
+    0.4071,
+    0.4109,
+    0.4268,
+    0.4299,
+    0.4321,
+    0.4331,
+    0.4381,
+    0.4413,
+    0.4453
+   ],
+   "latency_ms": 171.81,
+   "top1_distance": 0.3692125082015991,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.3692125082015991
+  },
+  {
+   "query": "明禮國小",
+   "category": "exact_name",
+   "relevant": [
+    "[HUALIEN] 明禮國小"
+   ],
+   "ranked": [
+    "[YILAN] 壯圍國小",
+    "[YILAN] 澳花國小",
+    "[YILAN] 宜蘭國小",
+    "[YILAN] 頭城國小",
+    "[YILAN] 蘇澳國小",
+    "[TAITUNG] 寶桑國小",
+    "[YILAN] 中興國小附幼",
+    "[HUALIEN] 明禮國小",
+    "[TAITUNG] 康樂國小",
+    "[TAITUNG] 知本國小"
+   ],
+   "distances": [
+    0.3323,
+    0.3433,
+    0.3485,
+    0.3513,
+    0.3536,
+    0.3536,
+    0.355,
+    0.3721,
+    0.3734,
+    0.3771
+   ],
+   "latency_ms": 149.35,
+   "top1_distance": 0.3323298692703247,
+   "scores": {
+    "mrr": 0.125,
+    "recall@3": 0.0,
+    "precision@3": 0.0,
+    "hit@3": 0.0,
+    "recall@5": 0.0,
+    "precision@5": 0.0,
+    "hit@5": 0.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.3721277117729187
+  },
+  {
+   "query": "信義國小",
+   "category": "exact_name",
+   "relevant": [
+    "[HUALIEN] 信義國小"
+   ],
+   "ranked": [
+    "[HUALIEN] 信義國小",
+    "[HUALIEN] 民義國小",
+    "[TAITUNG] 新生國小",
+    "[YILAN] 二城國小",
+    "[TAITUNG] 康樂國小",
+    "[YILAN] 羅東國小",
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 知本國小",
+    "[YILAN] 頭城國小",
+    "[YILAN] 南山國小"
+   ],
+   "distances": [
+    0.4063,
+    0.4981,
+    0.5169,
+    0.5177,
+    0.52,
+    0.527,
+    0.5324,
+    0.5341,
+    0.5425,
+    0.5434
+   ],
+   "latency_ms": 161.8,
+   "top1_distance": 0.4063143730163574,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.4063143730163574
+  },
+  {
+   "query": "台東縣立體育場",
+   "category": "exact_name",
+   "relevant": [
+    "[TAITUNG] 台東縣立體育場"
+   ],
+   "ranked": [
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 台東市原住民文化會館"
+   ],
+   "distances": [
+    0.2431,
+    0.2433,
+    0.2483,
+    0.2882,
+    0.3379,
+    0.3437,
+    0.377,
+    0.3776,
+    0.3939,
+    0.3957
+   ],
+   "latency_ms": 122.22,
+   "top1_distance": 0.2430933117866516,
+   "scores": {
+    "mrr": 0.5,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.24334418773651123
+  },
+  {
+   "query": "台東高中",
+   "category": "exact_name",
+   "relevant": [
+    "[TAITUNG] 台東高中"
+   ],
+   "ranked": [
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 東海國中",
+    "[TAITUNG] 寶桑國中",
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 台東市公所",
+    "[TAITUNG] 新生國中",
+    "[TAITUNG] 台東縣立體育場",
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 東海國小"
+   ],
+   "distances": [
+    0.2192,
+    0.2914,
+    0.3573,
+    0.3817,
+    0.3837,
+    0.3838,
+    0.4164,
+    0.4194,
+    0.421,
+    0.4235
+   ],
+   "latency_ms": 197.0,
+   "top1_distance": 0.21924805641174316,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.21924805641174316
+  },
+  {
+   "query": "新生國中",
+   "category": "exact_name",
+   "relevant": [
+    "[TAITUNG] 新生國中"
+   ],
+   "ranked": [
+    "[TAITUNG] 新生國中",
+    "[TAITUNG] 新生國小",
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 東海國中",
+    "[TAITUNG] 寶桑國中",
+    "[YILAN] 礁溪國中",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 羅東國小",
+    "[TAITUNG] 台東高中"
+   ],
+   "distances": [
+    0.3533,
+    0.4143,
+    0.4447,
+    0.4656,
+    0.4678,
+    0.4746,
+    0.506,
+    0.5075,
+    0.5192,
+    0.5203
+   ],
+   "latency_ms": 164.87,
+   "top1_distance": 0.3533444404602051,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.3533444404602051
+  },
+  {
+   "query": "卑南國中",
+   "category": "exact_name",
+   "relevant": [
+    "[TAITUNG] 卑南國中"
+   ],
+   "ranked": [
+    "[TAITUNG] 卑南國中",
+    "[YILAN] 南山國小",
+    "[TAITUNG] 寶桑國中",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[TAITUNG] 東海國中",
+    "[YILAN] 礁溪國中",
+    "[YILAN] 壯圍國中",
+    "[TAITUNG] 新生國中",
+    "[YILAN] 羅東國小",
+    "[TAITUNG] 寶桑國小"
+   ],
+   "distances": [
+    0.2316,
+    0.3087,
+    0.3164,
+    0.3242,
+    0.3317,
+    0.3432,
+    0.3492,
+    0.359,
+    0.3732,
+    0.3749
+   ],
+   "latency_ms": 175.5,
+   "top1_distance": 0.23159080743789673,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.23159080743789673
+  },
+  {
+   "query": "東海國小",
+   "category": "exact_name",
+   "relevant": [
+    "[TAITUNG] 東海國小"
+   ],
+   "ranked": [
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 東海國中",
+    "[TAITUNG] 康樂國小",
+    "[TAITUNG] 知本國小",
+    "[TAITUNG] 寶桑國小",
+    "[YILAN] 羅東國小",
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 新生國小",
+    "[YILAN] 南山國小",
+    "[TAITUNG] 寶桑國中"
+   ],
+   "distances": [
+    0.2613,
+    0.2959,
+    0.3631,
+    0.3697,
+    0.3881,
+    0.4008,
+    0.4073,
+    0.4124,
+    0.4202,
+    0.4283
+   ],
+   "latency_ms": 112.48,
+   "top1_distance": 0.2613181471824646,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.2613181471824646
+  },
+  {
+   "query": "康樂國小",
+   "category": "exact_name",
+   "relevant": [
+    "[TAITUNG] 康樂國小"
+   ],
+   "ranked": [
+    "[YILAN] 壯圍國小",
+    "[YILAN] 宜蘭國小",
+    "[YILAN] 澳花國小",
+    "[YILAN] 蘇澳國小",
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 康樂國小",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 頭城國小",
+    "[TAITUNG] 知本國小",
+    "[YILAN] 羅東國小"
+   ],
+   "distances": [
+    0.2779,
+    0.2859,
+    0.2944,
+    0.3044,
+    0.3092,
+    0.3092,
+    0.3133,
+    0.3162,
+    0.3176,
+    0.3182
+   ],
+   "latency_ms": 106.86,
+   "top1_distance": 0.2778506278991699,
+   "scores": {
+    "mrr": 0.16666666666666666,
+    "recall@3": 0.0,
+    "precision@3": 0.0,
+    "hit@3": 0.0,
+    "recall@5": 0.0,
+    "precision@5": 0.0,
+    "hit@5": 0.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.30917131900787354
+  },
+  {
+   "query": "宜蘭市國民運動中心",
+   "category": "exact_name",
+   "relevant": [
+    "[YILAN] 宜蘭市國民運動中心"
+   ],
+   "ranked": [
+    "[YILAN] 宜蘭市國民運動中心",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 礁溪國中",
+    "[TAITUNG] 卑南國中",
+    "[YILAN] 羅東國小",
+    "[TAITUNG] 寶桑國中",
+    "[TAITUNG] 新生國中",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 南山國小",
+    "[YILAN] 蘇澳國小"
+   ],
+   "distances": [
+    0.2257,
+    0.3823,
+    0.3936,
+    0.3976,
+    0.423,
+    0.4255,
+    0.4261,
+    0.4474,
+    0.4533,
+    0.4537
+   ],
+   "latency_ms": 125.67,
+   "top1_distance": 0.22573530673980713,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.22573530673980713
+  },
+  {
+   "query": "羅東鎮立體育館",
+   "category": "exact_name",
+   "relevant": [
+    "[YILAN] 羅東鎮立體育館"
+   ],
+   "ranked": [
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 台東市原住民文化會館",
+    "[TAITUNG] 寶桑國小"
+   ],
+   "distances": [
+    0.2233,
+    0.2323,
+    0.2643,
+    0.3003,
+    0.3183,
+    0.3526,
+    0.3695,
+    0.3751,
+    0.3804,
+    0.3845
+   ],
+   "latency_ms": 115.73,
+   "top1_distance": 0.22333306074142456,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.22333306074142456
+  },
+  {
+   "query": "蘇澳國小",
+   "category": "exact_name",
+   "relevant": [
+    "[YILAN] 蘇澳國小"
+   ],
+   "ranked": [
+    "[YILAN] 壯圍國小",
+    "[YILAN] 宜蘭國小",
+    "[YILAN] 澳花國小",
+    "[YILAN] 蘇澳國小",
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 康樂國小",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 頭城國小",
+    "[TAITUNG] 知本國小",
+    "[YILAN] 羅東國小"
+   ],
+   "distances": [
+    0.2779,
+    0.2859,
+    0.2944,
+    0.3044,
+    0.3092,
+    0.3092,
+    0.3133,
+    0.3162,
+    0.3176,
+    0.3182
+   ],
+   "latency_ms": 155.03,
+   "top1_distance": 0.2778506278991699,
+   "scores": {
+    "mrr": 0.25,
+    "recall@3": 0.0,
+    "precision@3": 0.0,
+    "hit@3": 0.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.30443239212036133
+  },
+  {
+   "query": "二城國小",
+   "category": "exact_name",
+   "relevant": [
+    "[YILAN] 二城國小"
+   ],
+   "ranked": [
+    "[YILAN] 二城國小",
+    "[YILAN] 頭城國小",
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 康樂國小",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 知本國小",
+    "[YILAN] 南山國小",
+    "[YILAN] 蘇澳國小",
+    "[TAITUNG] 馬蘭國小",
+    "[YILAN] 澳花國小"
+   ],
+   "distances": [
+    0.2183,
+    0.3588,
+    0.3818,
+    0.4036,
+    0.4206,
+    0.4214,
+    0.4271,
+    0.4376,
+    0.4439,
+    0.4444
+   ],
+   "latency_ms": 161.28,
+   "top1_distance": 0.2182886004447937,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.2182886004447937
+  },
+  {
+   "query": "壯圍國中",
+   "category": "exact_name",
+   "relevant": [
+    "[YILAN] 壯圍國中"
+   ],
+   "ranked": [
+    "[YILAN] 礁溪國中",
+    "[YILAN] 壯圍國中",
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 寶桑國中",
+    "[YILAN] 中興國小附幼",
+    "[TAITUNG] 東海國中",
+    "[TAITUNG] 寶桑國小",
+    "[YILAN] 羅東國小",
+    "[TAITUNG] 新生國中",
+    "[YILAN] 蘇澳國小"
+   ],
+   "distances": [
+    0.3181,
+    0.3237,
+    0.3256,
+    0.3271,
+    0.3578,
+    0.3694,
+    0.3858,
+    0.3866,
+    0.3902,
+    0.3945
+   ],
+   "latency_ms": 187.28,
+   "top1_distance": 0.3180863857269287,
+   "scores": {
+    "mrr": 0.5,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.3237438201904297
+  },
+  {
+   "query": "清溝國小",
+   "category": "exact_name",
+   "relevant": [
+    "[YILAN] 清溝國小"
+   ],
+   "ranked": [
+    "[YILAN] 清溝國小",
+    "[YILAN] 澳花國小",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 中興國小附幼",
+    "[TAITUNG] 知本國小",
+    "[YILAN] 宜蘭國小",
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 康樂國小",
+    "[YILAN] 頭城國小",
+    "[HUALIEN] 濤強國小"
+   ],
+   "distances": [
+    0.2323,
+    0.3547,
+    0.3724,
+    0.3728,
+    0.3864,
+    0.3882,
+    0.3902,
+    0.3912,
+    0.394,
+    0.3962
+   ],
+   "latency_ms": 118.24,
+   "top1_distance": 0.23230278491973877,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.23230278491973877
+  },
+  {
+   "query": "三星鄉綜合運動場",
+   "category": "exact_name",
+   "relevant": [
+    "[YILAN] 三星鄉綜合運動場"
+   ],
+   "ranked": [
+    "[YILAN] 三星鄉綜合運動場",
+    "[YILAN] 三星國中",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[YILAN] 羅東鎮立體育館",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東縣立體育館",
+    "[YILAN] 中興國小附幼"
+   ],
+   "distances": [
+    0.2236,
+    0.3312,
+    0.5001,
+    0.5058,
+    0.5196,
+    0.5217,
+    0.5257,
+    0.5302,
+    0.5561,
+    0.5685
+   ],
+   "latency_ms": 151.06,
+   "top1_distance": 0.2235649824142456,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.2235649824142456
+  },
+  {
+   "query": "南山國小",
+   "category": "exact_name",
+   "relevant": [
+    "[YILAN] 南山國小"
+   ],
+   "ranked": [
+    "[YILAN] 南山國小",
+    "[YILAN] 澳花國小",
+    "[TAITUNG] 康樂國小",
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 知本國小",
+    "[YILAN] 頭城國小",
+    "[YILAN] 羅東國小",
+    "[YILAN] 二城國小"
+   ],
+   "distances": [
+    0.2872,
+    0.3668,
+    0.3672,
+    0.3683,
+    0.3782,
+    0.395,
+    0.4007,
+    0.4167,
+    0.4193,
+    0.4225
+   ],
+   "latency_ms": 131.07,
+   "top1_distance": 0.2872443199157715,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.2872443199157715
+  },
+  {
+   "query": "花蓮市中正體育館的容量多少",
+   "category": "name_variant",
+   "relevant": [
+    "[HUALIEN] 花蓮市中正體育館"
+   ],
+   "ranked": [
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 花蓮市公所",
+    "[HUALIEN] 中正國小",
+    "[HUALIEN] 花蓮縣立體育館",
+    "[HUALIEN] 自強國中",
+    "[HUALIEN] 花蓮市立圖書館",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 國風國中",
+    "[HUALIEN] 中華國小"
+   ],
+   "distances": [
+    0.1946,
+    0.2453,
+    0.2586,
+    0.2587,
+    0.2794,
+    0.2918,
+    0.308,
+    0.3098,
+    0.3144,
+    0.3151
+   ],
+   "latency_ms": 166.57,
+   "top1_distance": 0.19456034898757935,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.19456034898757935
+  },
+  {
+   "query": "自強國中目前收容幾人",
+   "category": "name_variant",
+   "relevant": [
+    "[HUALIEN] 自強國中"
+   ],
+   "ranked": [
+    "[YILAN] 礁溪國中",
+    "[YILAN] 壯圍國中",
+    "[TAITUNG] 寶桑國中",
+    "[YILAN] 中興國小附幼",
+    "[TAITUNG] 卑南國中",
+    "[YILAN] 羅東國小",
+    "[YILAN] 蘇澳國小",
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 新生國中",
+    "[YILAN] 壯圍國小"
+   ],
+   "distances": [
+    0.2608,
+    0.2699,
+    0.3007,
+    0.3057,
+    0.3264,
+    0.3368,
+    0.3465,
+    0.3508,
+    0.351,
+    0.3558
+   ],
+   "latency_ms": 101.59,
+   "top1_distance": 0.26075100898742676,
+   "scores": {
+    "mrr": 0.0,
+    "recall@3": 0.0,
+    "precision@3": 0.0,
+    "hit@3": 0.0,
+    "recall@5": 0.0,
+    "precision@5": 0.0,
+    "hit@5": 0.0,
+    "recall@10": 0.0,
+    "precision@10": 0.0,
+    "hit@10": 0.0
+   },
+   "best_relevant_distance": null
+  },
+  {
+   "query": "中正國小還有空位嗎",
+   "category": "name_variant",
+   "relevant": [
+    "[HUALIEN] 中正國小"
+   ],
+   "ranked": [
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 宜蘭國小",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 蘇澳國小",
+    "[YILAN] 礁溪國中",
+    "[TAITUNG] 寶桑國小",
+    "[YILAN] 頭城國小",
+    "[YILAN] 澳花國小",
+    "[TAITUNG] 寶桑國中"
+   ],
+   "distances": [
+    0.3546,
+    0.3633,
+    0.3668,
+    0.368,
+    0.3689,
+    0.3718,
+    0.3842,
+    0.3901,
+    0.4018,
+    0.405
+   ],
+   "latency_ms": 88.04,
+   "top1_distance": 0.35461926460266113,
+   "scores": {
+    "mrr": 0.0,
+    "recall@3": 0.0,
+    "precision@3": 0.0,
+    "hit@3": 0.0,
+    "recall@5": 0.0,
+    "precision@5": 0.0,
+    "hit@5": 0.0,
+    "recall@10": 0.0,
+    "precision@10": 0.0,
+    "hit@10": 0.0
+   },
+   "best_relevant_distance": null
+  },
+  {
+   "query": "濤強國小的容量多少",
+   "category": "name_variant",
+   "relevant": [
+    "[HUALIEN] 濤強國小"
+   ],
+   "ranked": [
+    "[YILAN] 壯圍國小",
+    "[YILAN] 宜蘭國小",
+    "[YILAN] 蘇澳國小",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 頭城國小",
+    "[YILAN] 澳花國小",
+    "[TAITUNG] 康樂國小",
+    "[YILAN] 羅東國小",
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 知本國小"
+   ],
+   "distances": [
+    0.2741,
+    0.2805,
+    0.2994,
+    0.3019,
+    0.3114,
+    0.319,
+    0.3313,
+    0.334,
+    0.3351,
+    0.3428
+   ],
+   "latency_ms": 67.74,
+   "top1_distance": 0.27411532402038574,
+   "scores": {
+    "mrr": 0.0,
+    "recall@3": 0.0,
+    "precision@3": 0.0,
+    "hit@3": 0.0,
+    "recall@5": 0.0,
+    "precision@5": 0.0,
+    "hit@5": 0.0,
+    "recall@10": 0.0,
+    "precision@10": 0.0,
+    "hit@10": 0.0
+   },
+   "best_relevant_distance": null
+  },
+  {
+   "query": "台東縣立體育館目前收容幾人",
+   "category": "name_variant",
+   "relevant": [
+    "[TAITUNG] 台東縣立體育館"
+   ],
+   "ranked": [
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 台東縣立體育場",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 台東市原住民文化會館",
+    "[TAITUNG] 新生國小",
+    "[YILAN] 羅東國小"
+   ],
+   "distances": [
+    0.2166,
+    0.2315,
+    0.2598,
+    0.273,
+    0.2873,
+    0.3235,
+    0.3513,
+    0.3554,
+    0.3592,
+    0.3634
+   ],
+   "latency_ms": 156.96,
+   "top1_distance": 0.2165769338607788,
+   "scores": {
+    "mrr": 0.5,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.23149710893630981
+  },
+  {
+   "query": "台東高中還有空位嗎",
+   "category": "name_variant",
+   "relevant": [
+    "[TAITUNG] 台東高中"
+   ],
+   "ranked": [
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 台東市公所",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 寶桑國中",
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 東海國中",
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 台東縣立體育場",
+    "[YILAN] 南澳鄉綜合體育場"
+   ],
+   "distances": [
+    0.2637,
+    0.2961,
+    0.3018,
+    0.3606,
+    0.3643,
+    0.3724,
+    0.3805,
+    0.3806,
+    0.3825,
+    0.3887
+   ],
+   "latency_ms": 187.42,
+   "top1_distance": 0.26365917921066284,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.26365917921066284
+  },
+  {
+   "query": "東海國中的容量多少",
+   "category": "name_variant",
+   "relevant": [
+    "[TAITUNG] 東海國中"
+   ],
+   "ranked": [
+    "[TAITUNG] 東海國中",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 寶桑國中",
+    "[TAITUNG] 新生國中",
+    "[TAITUNG] 康樂國小",
+    "[TAITUNG] 知本國小",
+    "[TAITUNG] 寶桑國小",
+    "[YILAN] 羅東國小",
+    "[YILAN] 壯圍國中"
+   ],
+   "distances": [
+    0.2316,
+    0.2588,
+    0.3148,
+    0.3209,
+    0.3627,
+    0.3647,
+    0.3677,
+    0.3699,
+    0.3714,
+    0.3748
+   ],
+   "latency_ms": 128.74,
+   "top1_distance": 0.23161232471466064,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.23161232471466064
+  },
+  {
+   "query": "新生國小目前收容幾人",
+   "category": "name_variant",
+   "relevant": [
+    "[TAITUNG] 新生國小"
+   ],
+   "ranked": [
+    "[TAITUNG] 新生國小",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 壯圍國小",
+    "[TAITUNG] 新生國中",
+    "[YILAN] 宜蘭國小",
+    "[YILAN] 礁溪國中",
+    "[YILAN] 羅東國小",
+    "[YILAN] 蘇澳國小",
+    "[YILAN] 壯圍國中",
+    "[TAITUNG] 寶桑國小"
+   ],
+   "distances": [
+    0.3119,
+    0.3261,
+    0.3376,
+    0.3405,
+    0.3515,
+    0.3551,
+    0.3572,
+    0.3602,
+    0.3648,
+    0.3715
+   ],
+   "latency_ms": 90.04,
+   "top1_distance": 0.3119146227836609,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.3119146227836609
+  },
+  {
+   "query": "康樂國小還有空位嗎",
+   "category": "name_variant",
+   "relevant": [
+    "[TAITUNG] 康樂國小"
+   ],
+   "ranked": [
+    "[YILAN] 壯圍國小",
+    "[YILAN] 宜蘭國小",
+    "[YILAN] 蘇澳國小",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 頭城國小",
+    "[YILAN] 澳花國小",
+    "[TAITUNG] 寶桑國小",
+    "[YILAN] 壯圍國中",
+    "[TAITUNG] 康樂國小",
+    "[YILAN] 羅東國小"
+   ],
+   "distances": [
+    0.2884,
+    0.2919,
+    0.3001,
+    0.3186,
+    0.3313,
+    0.3355,
+    0.3362,
+    0.3367,
+    0.3416,
+    0.3486
+   ],
+   "latency_ms": 114.79,
+   "top1_distance": 0.2883761525154114,
+   "scores": {
+    "mrr": 0.1111111111111111,
+    "recall@3": 0.0,
+    "precision@3": 0.0,
+    "hit@3": 0.0,
+    "recall@5": 0.0,
+    "precision@5": 0.0,
+    "hit@5": 0.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.3415517210960388
+  },
+  {
+   "query": "宜蘭國小的容量多少",
+   "category": "name_variant",
+   "relevant": [
+    "[YILAN] 宜蘭國小"
+   ],
+   "ranked": [
+    "[YILAN] 壯圍國小",
+    "[YILAN] 宜蘭國小",
+    "[YILAN] 蘇澳國小",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 頭城國小",
+    "[YILAN] 澳花國小",
+    "[TAITUNG] 康樂國小",
+    "[YILAN] 羅東國小",
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 知本國小"
+   ],
+   "distances": [
+    0.2741,
+    0.2805,
+    0.2994,
+    0.3019,
+    0.3114,
+    0.319,
+    0.3313,
+    0.334,
+    0.3351,
+    0.3428
+   ],
+   "latency_ms": 64.77,
+   "top1_distance": 0.27411532402038574,
+   "scores": {
+    "mrr": 0.5,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.280548632144928
+  },
+  {
+   "query": "蘇澳鎮立體育館目前收容幾人",
+   "category": "name_variant",
+   "relevant": [
+    "[YILAN] 蘇澳鎮立體育館"
+   ],
+   "ranked": [
+    "[YILAN] 蘇澳鎮立體育館",
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 台東縣立體育館",
+    "[YILAN] 大同鄉公所",
+    "[TAITUNG] 台東縣立體育場",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 中興國小附幼",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 宜蘭運動公園體育館",
+    "[YILAN] 礁溪國中"
+   ],
+   "distances": [
+    0.2545,
+    0.3637,
+    0.3887,
+    0.4312,
+    0.4344,
+    0.4375,
+    0.4686,
+    0.4695,
+    0.4735,
+    0.4805
+   ],
+   "latency_ms": 164.76,
+   "top1_distance": 0.25452762842178345,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.25452762842178345
+  },
+  {
+   "query": "二城國小還有空位嗎",
+   "category": "name_variant",
+   "relevant": [
+    "[YILAN] 二城國小"
+   ],
+   "ranked": [
+    "[YILAN] 二城國小",
+    "[YILAN] 頭城國小",
+    "[TAITUNG] 寶桑國小",
+    "[YILAN] 蘇澳國小",
+    "[YILAN] 中興國小附幼",
+    "[TAITUNG] 康樂國小",
+    "[YILAN] 壯圍國小",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 南山國小"
+   ],
+   "distances": [
+    0.2129,
+    0.2753,
+    0.3145,
+    0.3329,
+    0.3396,
+    0.3418,
+    0.3492,
+    0.359,
+    0.3591,
+    0.363
+   ],
+   "latency_ms": 117.35,
+   "top1_distance": 0.21289420127868652,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.21289420127868652
+  },
+  {
+   "query": "宜蘭運動公園體育館的容量多少",
+   "category": "name_variant",
+   "relevant": [
+    "[YILAN] 宜蘭運動公園體育館"
+   ],
+   "ranked": [
+    "[YILAN] 宜蘭運動公園體育館",
+    "[YILAN] 大同鄉公所",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[YILAN] 中興國小附幼",
+    "[HUALIEN] 花蓮市公所",
+    "[YILAN] 宜蘭市國民運動中心",
+    "[YILAN] 清溝國小",
+    "[YILAN] 羅東鎮立體育館",
+    "[HUALIEN] 花蓮市中正體育館"
+   ],
+   "distances": [
+    0.3155,
+    0.3458,
+    0.3985,
+    0.4912,
+    0.5237,
+    0.531,
+    0.5328,
+    0.537,
+    0.5483,
+    0.5503
+   ],
+   "latency_ms": 124.56,
+   "top1_distance": 0.31545835733413696,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.31545835733413696
+  },
+  {
+   "query": "三星國中目前收容幾人",
+   "category": "name_variant",
+   "relevant": [
+    "[YILAN] 三星國中"
+   ],
+   "ranked": [
+    "[YILAN] 三星國中",
+    "[YILAN] 三星鄉綜合運動場",
+    "[YILAN] 礁溪國中",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 壯圍國中",
+    "[TAITUNG] 寶桑國中",
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 新生國中",
+    "[YILAN] 頭城國小"
+   ],
+   "distances": [
+    0.2092,
+    0.2646,
+    0.3786,
+    0.3878,
+    0.406,
+    0.4219,
+    0.4412,
+    0.4421,
+    0.4451,
+    0.4454
+   ],
+   "latency_ms": 137.74,
+   "top1_distance": 0.2091996669769287,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.2091996669769287
+  },
+  {
+   "query": "南山國小還有空位嗎",
+   "category": "name_variant",
+   "relevant": [
+    "[YILAN] 南山國小"
+   ],
+   "ranked": [
+    "[YILAN] 南山國小",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 康樂國小",
+    "[YILAN] 澳花國小",
+    "[YILAN] 蘇澳國小",
+    "[YILAN] 頭城國小",
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 東海國小",
+    "[YILAN] 羅東國小"
+   ],
+   "distances": [
+    0.2615,
+    0.3086,
+    0.3091,
+    0.3115,
+    0.3137,
+    0.3188,
+    0.3214,
+    0.3249,
+    0.3255,
+    0.3476
+   ],
+   "latency_ms": 168.46,
+   "top1_distance": 0.2614561915397644,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.2614561915397644
+  },
+  {
+   "query": "花蓮有哪些避難所",
+   "category": "region",
+   "relevant": [
+    "[HUALIEN] 中原國小",
+    "[HUALIEN] 中正國小",
+    "[HUALIEN] 中華國小",
+    "[HUALIEN] 信義國小",
+    "[HUALIEN] 國風國中",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 民義國小",
+    "[HUALIEN] 濤強國小",
+    "[HUALIEN] 自強國中",
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 花蓮市公所",
+    "[HUALIEN] 花蓮市立圖書館",
+    "[HUALIEN] 花蓮縣立體育館"
+   ],
+   "ranked": [
+    "[HUALIEN] 花蓮縣立體育館",
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 花蓮市公所",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 濤強國小",
+    "[HUALIEN] 花蓮市立圖書館",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 自強國中",
+    "[HUALIEN] 中正國小",
+    "[HUALIEN] 國風國中"
+   ],
+   "distances": [
+    0.2486,
+    0.2499,
+    0.2552,
+    0.3054,
+    0.3058,
+    0.3078,
+    0.3079,
+    0.3154,
+    0.3216,
+    0.3401
+   ],
+   "latency_ms": 168.46,
+   "top1_distance": 0.24863451719284058,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 0.21428571428571427,
+    "precision@3": 1.0,
+    "hit@3": 1.0,
+    "recall@5": 0.35714285714285715,
+    "precision@5": 1.0,
+    "hit@5": 1.0,
+    "recall@10": 0.7142857142857143,
+    "precision@10": 1.0,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.24863451719284058
+  },
+  {
+   "query": "花蓮縣的避難所",
+   "category": "region",
+   "relevant": [
+    "[HUALIEN] 中原國小",
+    "[HUALIEN] 中正國小",
+    "[HUALIEN] 中華國小",
+    "[HUALIEN] 信義國小",
+    "[HUALIEN] 國風國中",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 民義國小",
+    "[HUALIEN] 濤強國小",
+    "[HUALIEN] 自強國中",
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 花蓮市公所",
+    "[HUALIEN] 花蓮市立圖書館",
+    "[HUALIEN] 花蓮縣立體育館"
+   ],
+   "ranked": [
+    "[HUALIEN] 花蓮縣立體育館",
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 花蓮市公所",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 濤強國小",
+    "[HUALIEN] 花蓮市立圖書館",
+    "[HUALIEN] 自強國中",
+    "[HUALIEN] 中正國小",
+    "[HUALIEN] 中原國小"
+   ],
+   "distances": [
+    0.2764,
+    0.2873,
+    0.2907,
+    0.3457,
+    0.3467,
+    0.3476,
+    0.3488,
+    0.353,
+    0.3594,
+    0.3602
+   ],
+   "latency_ms": 87.4,
+   "top1_distance": 0.2763946056365967,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 0.21428571428571427,
+    "precision@3": 1.0,
+    "hit@3": 1.0,
+    "recall@5": 0.35714285714285715,
+    "precision@5": 1.0,
+    "hit@5": 1.0,
+    "recall@10": 0.7142857142857143,
+    "precision@10": 1.0,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.2763946056365967
+  },
+  {
+   "query": "花蓮地區可以去哪裡避難",
+   "category": "region",
+   "relevant": [
+    "[HUALIEN] 中原國小",
+    "[HUALIEN] 中正國小",
+    "[HUALIEN] 中華國小",
+    "[HUALIEN] 信義國小",
+    "[HUALIEN] 國風國中",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 民義國小",
+    "[HUALIEN] 濤強國小",
+    "[HUALIEN] 自強國中",
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 花蓮市公所",
+    "[HUALIEN] 花蓮市立圖書館",
+    "[HUALIEN] 花蓮縣立體育館"
+   ],
+   "ranked": [
+    "[HUALIEN] 花蓮市公所",
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 花蓮縣立體育館",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 花蓮市立圖書館",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 濤強國小",
+    "[HUALIEN] 中正國小",
+    "[HUALIEN] 自強國中",
+    "[HUALIEN] 中原國小"
+   ],
+   "distances": [
+    0.1861,
+    0.1879,
+    0.2036,
+    0.2379,
+    0.2449,
+    0.2523,
+    0.2525,
+    0.2548,
+    0.2635,
+    0.2664
+   ],
+   "latency_ms": 189.85,
+   "top1_distance": 0.18607312440872192,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 0.21428571428571427,
+    "precision@3": 1.0,
+    "hit@3": 1.0,
+    "recall@5": 0.35714285714285715,
+    "precision@5": 1.0,
+    "hit@5": 1.0,
+    "recall@10": 0.7142857142857143,
+    "precision@10": 1.0,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.18607312440872192
+  },
+  {
+   "query": "台東有哪些避難所",
+   "category": "region",
+   "relevant": [
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 台東市公所",
+    "[TAITUNG] 台東市原住民文化會館",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 寶桑國中",
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 康樂國小",
+    "[TAITUNG] 新生國中",
+    "[TAITUNG] 新生國小",
+    "[TAITUNG] 東海國中",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 知本國小",
+    "[TAITUNG] 馬蘭國小"
+   ],
+   "ranked": [
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 寶桑國中",
+    "[YILAN] 南澳鄉綜合體育場"
+   ],
+   "distances": [
+    0.2735,
+    0.3206,
+    0.321,
+    0.3276,
+    0.343,
+    0.347,
+    0.3507,
+    0.3515,
+    0.3565,
+    0.3582
+   ],
+   "latency_ms": 279.31,
+   "top1_distance": 0.2734881639480591,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 0.125,
+    "precision@3": 0.6666666666666666,
+    "hit@3": 1.0,
+    "recall@5": 0.25,
+    "precision@5": 0.8,
+    "hit@5": 1.0,
+    "recall@10": 0.5,
+    "precision@10": 0.8,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.2734881639480591
+  },
+  {
+   "query": "台東縣的避難所",
+   "category": "region",
+   "relevant": [
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 台東市公所",
+    "[TAITUNG] 台東市原住民文化會館",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 寶桑國中",
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 康樂國小",
+    "[TAITUNG] 新生國中",
+    "[TAITUNG] 新生國小",
+    "[TAITUNG] 東海國中",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 知本國小",
+    "[TAITUNG] 馬蘭國小"
+   ],
+   "ranked": [
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 新生國小",
+    "[TAITUNG] 寶桑國中",
+    "[TAITUNG] 台東市原住民文化會館"
+   ],
+   "distances": [
+    0.3213,
+    0.3461,
+    0.3462,
+    0.3635,
+    0.3681,
+    0.3764,
+    0.3934,
+    0.3941,
+    0.4152,
+    0.4155
+   ],
+   "latency_ms": 138.77,
+   "top1_distance": 0.32126766443252563,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 0.125,
+    "precision@3": 0.6666666666666666,
+    "hit@3": 1.0,
+    "recall@5": 0.25,
+    "precision@5": 0.8,
+    "hit@5": 1.0,
+    "recall@10": 0.5625,
+    "precision@10": 0.9,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.32126766443252563
+  },
+  {
+   "query": "台東地區可以去哪裡避難",
+   "category": "region",
+   "relevant": [
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 台東市公所",
+    "[TAITUNG] 台東市原住民文化會館",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 寶桑國中",
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 康樂國小",
+    "[TAITUNG] 新生國中",
+    "[TAITUNG] 新生國小",
+    "[TAITUNG] 東海國中",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 知本國小",
+    "[TAITUNG] 馬蘭國小"
+   ],
+   "ranked": [
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 康樂國小",
+    "[TAITUNG] 台東高中"
+   ],
+   "distances": [
+    0.2524,
+    0.2695,
+    0.2761,
+    0.2789,
+    0.316,
+    0.3186,
+    0.3323,
+    0.3325,
+    0.3359,
+    0.3372
+   ],
+   "latency_ms": 189.88,
+   "top1_distance": 0.2523916959762573,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 0.125,
+    "precision@3": 0.6666666666666666,
+    "hit@3": 1.0,
+    "recall@5": 0.25,
+    "precision@5": 0.8,
+    "hit@5": 1.0,
+    "recall@10": 0.5625,
+    "precision@10": 0.9,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.2523916959762573
+  },
+  {
+   "query": "宜蘭有哪些避難所",
+   "category": "region",
+   "relevant": [
+    "[YILAN] 三星國中",
+    "[YILAN] 三星鄉綜合運動場",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 二城國小",
+    "[YILAN] 南山國小",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 宜蘭國小",
+    "[YILAN] 宜蘭市國民運動中心",
+    "[YILAN] 宜蘭運動公園體育館",
+    "[YILAN] 清溝國小",
+    "[YILAN] 澳花國小",
+    "[YILAN] 礁溪國中",
+    "[YILAN] 羅東國小",
+    "[YILAN] 羅東鎮立體育館",
+    "[YILAN] 蘇澳國小",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[YILAN] 頭城國小"
+   ],
+   "ranked": [
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 宜蘭國小",
+    "[YILAN] 礁溪國中",
+    "[YILAN] 蘇澳國小"
+   ],
+   "distances": [
+    0.5445,
+    0.5693,
+    0.5726,
+    0.5735,
+    0.5763,
+    0.5825,
+    0.5866,
+    0.5912,
+    0.5921,
+    0.6014
+   ],
+   "latency_ms": 220.74,
+   "top1_distance": 0.5444713830947876,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 0.1,
+    "precision@3": 0.6666666666666666,
+    "hit@3": 1.0,
+    "recall@5": 0.2,
+    "precision@5": 0.8,
+    "hit@5": 1.0,
+    "recall@10": 0.45,
+    "precision@10": 0.9,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.5444713830947876
+  },
+  {
+   "query": "宜蘭縣的避難所",
+   "category": "region",
+   "relevant": [
+    "[YILAN] 三星國中",
+    "[YILAN] 三星鄉綜合運動場",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 二城國小",
+    "[YILAN] 南山國小",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 宜蘭國小",
+    "[YILAN] 宜蘭市國民運動中心",
+    "[YILAN] 宜蘭運動公園體育館",
+    "[YILAN] 清溝國小",
+    "[YILAN] 澳花國小",
+    "[YILAN] 礁溪國中",
+    "[YILAN] 羅東國小",
+    "[YILAN] 羅東鎮立體育館",
+    "[YILAN] 蘇澳國小",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[YILAN] 頭城國小"
+   ],
+   "ranked": [
+    "[YILAN] 蘇澳鎮立體育館",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 宜蘭運動公園體育館",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 三星鄉綜合運動場",
+    "[YILAN] 清溝國小",
+    "[YILAN] 壯圍國小"
+   ],
+   "distances": [
+    0.5712,
+    0.6113,
+    0.6119,
+    0.6154,
+    0.6175,
+    0.6184,
+    0.6217,
+    0.6234,
+    0.63,
+    0.6313
+   ],
+   "latency_ms": 224.73,
+   "top1_distance": 0.571243405342102,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 0.1,
+    "precision@3": 0.6666666666666666,
+    "hit@3": 1.0,
+    "recall@5": 0.2,
+    "precision@5": 0.8,
+    "hit@5": 1.0,
+    "recall@10": 0.45,
+    "precision@10": 0.9,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.571243405342102
+  },
+  {
+   "query": "宜蘭地區可以去哪裡避難",
+   "category": "region",
+   "relevant": [
+    "[YILAN] 三星國中",
+    "[YILAN] 三星鄉綜合運動場",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 二城國小",
+    "[YILAN] 南山國小",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 宜蘭國小",
+    "[YILAN] 宜蘭市國民運動中心",
+    "[YILAN] 宜蘭運動公園體育館",
+    "[YILAN] 清溝國小",
+    "[YILAN] 澳花國小",
+    "[YILAN] 礁溪國中",
+    "[YILAN] 羅東國小",
+    "[YILAN] 羅東鎮立體育館",
+    "[YILAN] 蘇澳國小",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[YILAN] 頭城國小"
+   ],
+   "ranked": [
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 羅東鎮立體育館",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 台東縣立體育場",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 頭城國小",
+    "[YILAN] 宜蘭運動公園體育館",
+    "[YILAN] 蘇澳國小",
+    "[YILAN] 中興國小附幼"
+   ],
+   "distances": [
+    0.3508,
+    0.3571,
+    0.3758,
+    0.3829,
+    0.3961,
+    0.3968,
+    0.4004,
+    0.402,
+    0.4033,
+    0.406
+   ],
+   "latency_ms": 157.64,
+   "top1_distance": 0.35083335638046265,
+   "scores": {
+    "mrr": 0.5,
+    "recall@3": 0.1,
+    "precision@3": 0.6666666666666666,
+    "hit@3": 1.0,
+    "recall@5": 0.1,
+    "precision@5": 0.4,
+    "hit@5": 1.0,
+    "recall@10": 0.35,
+    "precision@10": 0.7,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.3570740222930908
+  },
+  {
+   "query": "三星鄉的避難所",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 三星國中",
+    "[YILAN] 三星鄉綜合運動場"
+   ],
+   "ranked": [
+    "[YILAN] 三星鄉綜合運動場",
+    "[YILAN] 三星國中",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[YILAN] 羅東鎮立體育館",
+    "[YILAN] 中興國小附幼",
+    "[TAITUNG] 台東女中",
+    "[YILAN] 大同鄉公所",
+    "[TAITUNG] 台東高中",
+    "[YILAN] 南澳鄉綜合體育場"
+   ],
+   "distances": [
+    0.2515,
+    0.3263,
+    0.5591,
+    0.5672,
+    0.5793,
+    0.5802,
+    0.5883,
+    0.5916,
+    0.5978,
+    0.6005
+   ],
+   "latency_ms": 244.2,
+   "top1_distance": 0.2515459656715393,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.6666666666666666,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.4,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.2,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.2515459656715393
+  },
+  {
+   "query": "三星鄉有哪裡可以避難",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 三星國中",
+    "[YILAN] 三星鄉綜合運動場"
+   ],
+   "ranked": [
+    "[YILAN] 三星鄉綜合運動場",
+    "[YILAN] 三星國中",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 台東女中",
+    "[YILAN] 礁溪國中"
+   ],
+   "distances": [
+    0.2359,
+    0.2957,
+    0.5218,
+    0.5352,
+    0.536,
+    0.544,
+    0.5458,
+    0.5496,
+    0.5739,
+    0.5756
+   ],
+   "latency_ms": 221.62,
+   "top1_distance": 0.23585420846939087,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.6666666666666666,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.4,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.2,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.23585420846939087
+  },
+  {
+   "query": "五結鄉的避難所",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 中興國小附幼"
+   ],
+   "ranked": [
+    "[YILAN] 中興國小附幼",
+    "[TAITUNG] 台東市公所",
+    "[TAITUNG] 台東女中",
+    "[YILAN] 宜蘭運動公園體育館",
+    "[YILAN] 清溝國小",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 礁溪國中",
+    "[TAITUNG] 台東高中",
+    "[YILAN] 蘇澳鎮立體育館"
+   ],
+   "distances": [
+    0.4215,
+    0.4785,
+    0.497,
+    0.4999,
+    0.5024,
+    0.5172,
+    0.5194,
+    0.5313,
+    0.5332,
+    0.5418
+   ],
+   "latency_ms": 116.49,
+   "top1_distance": 0.42146050930023193,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.42146050930023193
+  },
+  {
+   "query": "冬山鄉的避難所",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 清溝國小"
+   ],
+   "ranked": [
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 頭城國小",
+    "[YILAN] 羅東鎮立體育館",
+    "[YILAN] 蘇澳國小",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 台東女中",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 康樂國小",
+    "[YILAN] 宜蘭運動公園體育館"
+   ],
+   "distances": [
+    0.4402,
+    0.4583,
+    0.4679,
+    0.4726,
+    0.4809,
+    0.4822,
+    0.4852,
+    0.4941,
+    0.4957,
+    0.5049
+   ],
+   "latency_ms": 119.39,
+   "top1_distance": 0.4402395486831665,
+   "scores": {
+    "mrr": 0.0,
+    "recall@3": 0.0,
+    "precision@3": 0.0,
+    "hit@3": 0.0,
+    "recall@5": 0.0,
+    "precision@5": 0.0,
+    "hit@5": 0.0,
+    "recall@10": 0.0,
+    "precision@10": 0.0,
+    "hit@10": 0.0
+   },
+   "best_relevant_distance": null
+  },
+  {
+   "query": "冬山鄉有哪裡可以避難",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 清溝國小"
+   ],
+   "ranked": [
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 蘇澳國小",
+    "[YILAN] 頭城國小",
+    "[TAITUNG] 康樂國小",
+    "[YILAN] 南山國小",
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 馬蘭國小",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[TAITUNG] 寶桑國小"
+   ],
+   "distances": [
+    0.3896,
+    0.4227,
+    0.4264,
+    0.4375,
+    0.4418,
+    0.4455,
+    0.4462,
+    0.4598,
+    0.4632,
+    0.4639
+   ],
+   "latency_ms": 100.79,
+   "top1_distance": 0.3895877003669739,
+   "scores": {
+    "mrr": 0.0,
+    "recall@3": 0.0,
+    "precision@3": 0.0,
+    "hit@3": 0.0,
+    "recall@5": 0.0,
+    "precision@5": 0.0,
+    "hit@5": 0.0,
+    "recall@10": 0.0,
+    "precision@10": 0.0,
+    "hit@10": 0.0
+   },
+   "best_relevant_distance": null
+  },
+  {
+   "query": "南澳鄉的避難所",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 澳花國小"
+   ],
+   "ranked": [
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 南山國小",
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 台東女中",
+    "[YILAN] 澳花國小",
+    "[TAITUNG] 台東縣立體育館",
+    "[YILAN] 中興國小附幼",
+    "[TAITUNG] 台東縣立體育場"
+   ],
+   "distances": [
+    0.2675,
+    0.3734,
+    0.3804,
+    0.3947,
+    0.4219,
+    0.4234,
+    0.4328,
+    0.4394,
+    0.4523,
+    0.4534
+   ],
+   "latency_ms": 129.99,
+   "top1_distance": 0.26747041940689087,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 0.5,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 0.5,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.2,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.26747041940689087
+  },
+  {
+   "query": "台東市的避難所",
+   "category": "township",
+   "relevant": [
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 台東市公所",
+    "[TAITUNG] 台東市原住民文化會館",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 寶桑國中",
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 康樂國小",
+    "[TAITUNG] 新生國中",
+    "[TAITUNG] 新生國小",
+    "[TAITUNG] 東海國中",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 知本國小",
+    "[TAITUNG] 馬蘭國小"
+   ],
+   "ranked": [
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 新生國小",
+    "[TAITUNG] 寶桑國中",
+    "[TAITUNG] 台東市原住民文化會館"
+   ],
+   "distances": [
+    0.3213,
+    0.3461,
+    0.3462,
+    0.3635,
+    0.3681,
+    0.3764,
+    0.3934,
+    0.3941,
+    0.4152,
+    0.4155
+   ],
+   "latency_ms": 134.75,
+   "top1_distance": 0.32126766443252563,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 0.125,
+    "precision@3": 0.6666666666666666,
+    "hit@3": 1.0,
+    "recall@5": 0.25,
+    "precision@5": 0.8,
+    "hit@5": 1.0,
+    "recall@10": 0.5625,
+    "precision@10": 0.9,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.32126766443252563
+  },
+  {
+   "query": "台東市有哪裡可以避難",
+   "category": "township",
+   "relevant": [
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 台東市公所",
+    "[TAITUNG] 台東市原住民文化會館",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 寶桑國中",
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 康樂國小",
+    "[TAITUNG] 新生國中",
+    "[TAITUNG] 新生國小",
+    "[TAITUNG] 東海國中",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 知本國小",
+    "[TAITUNG] 馬蘭國小"
+   ],
+   "ranked": [
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 卑南國中",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 寶桑國中"
+   ],
+   "distances": [
+    0.2607,
+    0.3068,
+    0.3142,
+    0.317,
+    0.3338,
+    0.3381,
+    0.3381,
+    0.3428,
+    0.3452,
+    0.3471
+   ],
+   "latency_ms": 117.83,
+   "top1_distance": 0.2606778144836426,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 0.125,
+    "precision@3": 0.6666666666666666,
+    "hit@3": 1.0,
+    "recall@5": 0.25,
+    "precision@5": 0.8,
+    "hit@5": 1.0,
+    "recall@10": 0.5,
+    "precision@10": 0.8,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.2606778144836426
+  },
+  {
+   "query": "壯圍鄉的避難所",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 壯圍國中",
+    "[YILAN] 壯圍國小"
+   ],
+   "ranked": [
+    "[YILAN] 蘇澳鎮立體育館",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 宜蘭運動公園體育館",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 三星鄉綜合運動場",
+    "[YILAN] 清溝國小",
+    "[YILAN] 壯圍國小"
+   ],
+   "distances": [
+    0.5712,
+    0.6113,
+    0.6119,
+    0.6154,
+    0.6175,
+    0.6184,
+    0.6217,
+    0.6234,
+    0.63,
+    0.6313
+   ],
+   "latency_ms": 98.81,
+   "top1_distance": 0.571243405342102,
+   "scores": {
+    "mrr": 0.14285714285714285,
+    "recall@3": 0.0,
+    "precision@3": 0.0,
+    "hit@3": 0.0,
+    "recall@5": 0.0,
+    "precision@5": 0.0,
+    "hit@5": 0.0,
+    "recall@10": 1.0,
+    "precision@10": 0.2,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.6216726303100586
+  },
+  {
+   "query": "大同鄉的避難所",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 南山國小",
+    "[YILAN] 大同鄉公所"
+   ],
+   "ranked": [
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 三星鄉綜合運動場",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 清溝國小",
+    "[YILAN] 南山國小",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 羅東鎮立體育館"
+   ],
+   "distances": [
+    0.3936,
+    0.5568,
+    0.5643,
+    0.5664,
+    0.581,
+    0.5826,
+    0.5849,
+    0.5857,
+    0.5961,
+    0.5988
+   ],
+   "latency_ms": 104.59,
+   "top1_distance": 0.3936305046081543,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 0.5,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 0.5,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.2,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.3936305046081543
+  },
+  {
+   "query": "大同鄉有哪裡可以避難",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 南山國小",
+    "[YILAN] 大同鄉公所"
+   ],
+   "ranked": [
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 南山國小",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 三星鄉綜合運動場",
+    "[YILAN] 宜蘭國小",
+    "[TAITUNG] 寶桑國小"
+   ],
+   "distances": [
+    0.3449,
+    0.5329,
+    0.5422,
+    0.5425,
+    0.544,
+    0.5493,
+    0.5639,
+    0.5786,
+    0.5866,
+    0.589
+   ],
+   "latency_ms": 58.47,
+   "top1_distance": 0.344906210899353,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.6666666666666666,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.4,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.2,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.344906210899353
+  },
+  {
+   "query": "宜蘭市的避難所",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 宜蘭國小",
+    "[YILAN] 宜蘭市國民運動中心",
+    "[YILAN] 宜蘭運動公園體育館"
+   ],
+   "ranked": [
+    "[YILAN] 蘇澳鎮立體育館",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 宜蘭運動公園體育館",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 三星鄉綜合運動場",
+    "[YILAN] 清溝國小",
+    "[YILAN] 壯圍國小"
+   ],
+   "distances": [
+    0.5712,
+    0.6113,
+    0.6119,
+    0.6154,
+    0.6175,
+    0.6184,
+    0.6217,
+    0.6234,
+    0.63,
+    0.6313
+   ],
+   "latency_ms": 136.6,
+   "top1_distance": 0.571243405342102,
+   "scores": {
+    "mrr": 0.25,
+    "recall@3": 0.0,
+    "precision@3": 0.0,
+    "hit@3": 0.0,
+    "recall@5": 0.3333333333333333,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 0.3333333333333333,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.615443766117096
+  },
+  {
+   "query": "礁溪鄉的避難所",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 礁溪國中"
+   ],
+   "ranked": [
+    "[YILAN] 蘇澳鎮立體育館",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 宜蘭運動公園體育館",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 三星鄉綜合運動場",
+    "[YILAN] 清溝國小",
+    "[YILAN] 壯圍國小"
+   ],
+   "distances": [
+    0.5712,
+    0.6113,
+    0.6119,
+    0.6154,
+    0.6175,
+    0.6184,
+    0.6217,
+    0.6234,
+    0.63,
+    0.6313
+   ],
+   "latency_ms": 177.64,
+   "top1_distance": 0.571243405342102,
+   "scores": {
+    "mrr": 0.0,
+    "recall@3": 0.0,
+    "precision@3": 0.0,
+    "hit@3": 0.0,
+    "recall@5": 0.0,
+    "precision@5": 0.0,
+    "hit@5": 0.0,
+    "recall@10": 0.0,
+    "precision@10": 0.0,
+    "hit@10": 0.0
+   },
+   "best_relevant_distance": null
+  },
+  {
+   "query": "礁溪鄉有哪裡可以避難",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 礁溪國中"
+   ],
+   "ranked": [
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 宜蘭國小",
+    "[YILAN] 礁溪國中",
+    "[YILAN] 宜蘭運動公園體育館"
+   ],
+   "distances": [
+    0.5336,
+    0.5566,
+    0.5649,
+    0.5677,
+    0.5679,
+    0.5731,
+    0.5739,
+    0.5818,
+    0.5848,
+    0.5932
+   ],
+   "latency_ms": 113.71,
+   "top1_distance": 0.5335589051246643,
+   "scores": {
+    "mrr": 0.1111111111111111,
+    "recall@3": 0.0,
+    "precision@3": 0.0,
+    "hit@3": 0.0,
+    "recall@5": 0.0,
+    "precision@5": 0.0,
+    "hit@5": 0.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.5847517251968384
+  },
+  {
+   "query": "羅東鎮的避難所",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 羅東國小",
+    "[YILAN] 羅東鎮立體育館"
+   ],
+   "ranked": [
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 新生國小",
+    "[TAITUNG] 寶桑國中",
+    "[TAITUNG] 台東市原住民文化會館"
+   ],
+   "distances": [
+    0.3213,
+    0.3461,
+    0.3462,
+    0.3635,
+    0.3681,
+    0.3764,
+    0.3934,
+    0.3941,
+    0.4152,
+    0.4155
+   ],
+   "latency_ms": 87.21,
+   "top1_distance": 0.32126766443252563,
+   "scores": {
+    "mrr": 0.5,
+    "recall@3": 0.5,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 0.5,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 0.5,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.34614187479019165
+  },
+  {
+   "query": "花蓮市的避難所",
+   "category": "township",
+   "relevant": [
+    "[HUALIEN] 中原國小",
+    "[HUALIEN] 中正國小",
+    "[HUALIEN] 中華國小",
+    "[HUALIEN] 信義國小",
+    "[HUALIEN] 國風國中",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 民義國小",
+    "[HUALIEN] 濤強國小",
+    "[HUALIEN] 自強國中",
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 花蓮市公所",
+    "[HUALIEN] 花蓮市立圖書館",
+    "[HUALIEN] 花蓮縣立體育館"
+   ],
+   "ranked": [
+    "[HUALIEN] 花蓮縣立體育館",
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 花蓮市公所",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 濤強國小",
+    "[HUALIEN] 花蓮市立圖書館",
+    "[HUALIEN] 自強國中",
+    "[HUALIEN] 中正國小",
+    "[HUALIEN] 中原國小"
+   ],
+   "distances": [
+    0.2764,
+    0.2873,
+    0.2907,
+    0.3457,
+    0.3467,
+    0.3476,
+    0.3488,
+    0.353,
+    0.3594,
+    0.3602
+   ],
+   "latency_ms": 143.67,
+   "top1_distance": 0.2763946056365967,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 0.21428571428571427,
+    "precision@3": 1.0,
+    "hit@3": 1.0,
+    "recall@5": 0.35714285714285715,
+    "precision@5": 1.0,
+    "hit@5": 1.0,
+    "recall@10": 0.7142857142857143,
+    "precision@10": 1.0,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.2763946056365967
+  },
+  {
+   "query": "花蓮市有哪裡可以避難",
+   "category": "township",
+   "relevant": [
+    "[HUALIEN] 中原國小",
+    "[HUALIEN] 中正國小",
+    "[HUALIEN] 中華國小",
+    "[HUALIEN] 信義國小",
+    "[HUALIEN] 國風國中",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 民義國小",
+    "[HUALIEN] 濤強國小",
+    "[HUALIEN] 自強國中",
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 花蓮市公所",
+    "[HUALIEN] 花蓮市立圖書館",
+    "[HUALIEN] 花蓮縣立體育館"
+   ],
+   "ranked": [
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 花蓮縣立體育館",
+    "[HUALIEN] 花蓮市公所",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 濤強國小",
+    "[HUALIEN] 花蓮市立圖書館",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 自強國中",
+    "[HUALIEN] 中正國小",
+    "[HUALIEN] 中原國小"
+   ],
+   "distances": [
+    0.2355,
+    0.2358,
+    0.242,
+    0.2951,
+    0.2964,
+    0.2972,
+    0.2998,
+    0.3074,
+    0.3118,
+    0.3343
+   ],
+   "latency_ms": 151.8,
+   "top1_distance": 0.2355414628982544,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 0.21428571428571427,
+    "precision@3": 1.0,
+    "hit@3": 1.0,
+    "recall@5": 0.35714285714285715,
+    "precision@5": 1.0,
+    "hit@5": 1.0,
+    "recall@10": 0.7142857142857143,
+    "precision@10": 1.0,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.2355414628982544
+  },
+  {
+   "query": "蘇澳鎮的避難所",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 蘇澳國小",
+    "[YILAN] 蘇澳鎮立體育館"
+   ],
+   "ranked": [
+    "[YILAN] 蘇澳鎮立體育館",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 宜蘭運動公園體育館",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 三星鄉綜合運動場",
+    "[YILAN] 清溝國小",
+    "[YILAN] 壯圍國小"
+   ],
+   "distances": [
+    0.5712,
+    0.6113,
+    0.6119,
+    0.6154,
+    0.6175,
+    0.6184,
+    0.6217,
+    0.6234,
+    0.63,
+    0.6313
+   ],
+   "latency_ms": 210.06,
+   "top1_distance": 0.571243405342102,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 0.5,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 0.5,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 0.5,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.571243405342102
+  },
+  {
+   "query": "頭城鎮的避難所",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 二城國小",
+    "[YILAN] 頭城國小"
+   ],
+   "ranked": [
+    "[YILAN] 頭城國小",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 二城國小",
+    "[YILAN] 清溝國小",
+    "[YILAN] 羅東鎮立體育館",
+    "[YILAN] 宜蘭運動公園體育館",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東高中"
+   ],
+   "distances": [
+    0.3786,
+    0.4141,
+    0.4601,
+    0.4607,
+    0.4617,
+    0.4636,
+    0.4656,
+    0.4684,
+    0.4686,
+    0.4712
+   ],
+   "latency_ms": 188.98,
+   "top1_distance": 0.37857186794281006,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.6666666666666666,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.4,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.2,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.37857186794281006
+  },
+  {
+   "query": "頭城鎮有哪裡可以避難",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 二城國小",
+    "[YILAN] 頭城國小"
+   ],
+   "ranked": [
+    "[YILAN] 頭城國小",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 二城國小",
+    "[YILAN] 宜蘭運動公園體育館",
+    "[TAITUNG] 台東縣立體育館",
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 台東女中",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 清溝國小",
+    "[TAITUNG] 台東縣立體育場"
+   ],
+   "distances": [
+    0.3395,
+    0.3723,
+    0.4065,
+    0.4395,
+    0.4426,
+    0.4455,
+    0.4521,
+    0.453,
+    0.4536,
+    0.4543
+   ],
+   "latency_ms": 191.01,
+   "top1_distance": 0.33951783180236816,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.6666666666666666,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.4,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.2,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.33951783180236816
+  },
+  {
+   "query": "花蓮有哪些學校可以避難",
+   "category": "facility",
+   "relevant": [
+    "[HUALIEN] 中原國小",
+    "[HUALIEN] 中正國小",
+    "[HUALIEN] 中華國小",
+    "[HUALIEN] 信義國小",
+    "[HUALIEN] 國風國中",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 民義國小",
+    "[HUALIEN] 濤強國小",
+    "[HUALIEN] 自強國中"
+   ],
+   "ranked": [
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 花蓮縣立體育館",
+    "[HUALIEN] 花蓮市公所",
+    "[HUALIEN] 花蓮市立圖書館",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 濤強國小",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 自強國中",
+    "[HUALIEN] 中正國小",
+    "[HUALIEN] 中原國小"
+   ],
+   "distances": [
+    0.2254,
+    0.2272,
+    0.2324,
+    0.2871,
+    0.2924,
+    0.2942,
+    0.2973,
+    0.3057,
+    0.3082,
+    0.3318
+   ],
+   "latency_ms": 140.4,
+   "top1_distance": 0.22539448738098145,
+   "scores": {
+    "mrr": 0.2,
+    "recall@3": 0.0,
+    "precision@3": 0.0,
+    "hit@3": 0.0,
+    "recall@5": 0.1,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 0.6,
+    "precision@10": 0.6,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.29237812757492065
+  },
+  {
+   "query": "花蓮的國小避難所",
+   "category": "facility",
+   "relevant": [
+    "[HUALIEN] 中原國小",
+    "[HUALIEN] 中正國小",
+    "[HUALIEN] 中華國小",
+    "[HUALIEN] 信義國小",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 民義國小",
+    "[HUALIEN] 濤強國小"
+   ],
+   "ranked": [
+    "[HUALIEN] 濤強國小",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 中正國小",
+    "[HUALIEN] 中原國小",
+    "[YILAN] 澳花國小",
+    "[HUALIEN] 中華國小",
+    "[HUALIEN] 自強國中",
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 花蓮市公所"
+   ],
+   "distances": [
+    0.1994,
+    0.2149,
+    0.2166,
+    0.2194,
+    0.2215,
+    0.2302,
+    0.2393,
+    0.2504,
+    0.252,
+    0.2525
+   ],
+   "latency_ms": 154.89,
+   "top1_distance": 0.19944888353347778,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 0.375,
+    "precision@3": 1.0,
+    "hit@3": 1.0,
+    "recall@5": 0.625,
+    "precision@5": 1.0,
+    "hit@5": 1.0,
+    "recall@10": 0.75,
+    "precision@10": 0.6,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.19944888353347778
+  },
+  {
+   "query": "花蓮的國中",
+   "category": "facility",
+   "relevant": [
+    "[HUALIEN] 國風國中",
+    "[HUALIEN] 自強國中"
+   ],
+   "ranked": [
+    "[HUALIEN] 自強國中",
+    "[HUALIEN] 國風國中",
+    "[HUALIEN] 中正國小",
+    "[HUALIEN] 中華國小",
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 中原國小",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 濤強國小",
+    "[HUALIEN] 花蓮市公所",
+    "[HUALIEN] 明禮國小"
+   ],
+   "distances": [
+    0.2193,
+    0.2242,
+    0.247,
+    0.2493,
+    0.2523,
+    0.2652,
+    0.2722,
+    0.2732,
+    0.2857,
+    0.2885
+   ],
+   "latency_ms": 261.69,
+   "top1_distance": 0.21926641464233398,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.6666666666666666,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.4,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.2,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.21926641464233398
+  },
+  {
+   "query": "花蓮的體育館",
+   "category": "facility",
+   "relevant": [
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 花蓮縣立體育館"
+   ],
+   "ranked": [
+    "[HUALIEN] 花蓮縣立體育館",
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 花蓮市公所",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 花蓮市立圖書館",
+    "[HUALIEN] 濤強國小",
+    "[HUALIEN] 自強國中",
+    "[HUALIEN] 中正國小",
+    "[HUALIEN] 中原國小"
+   ],
+   "distances": [
+    0.2836,
+    0.2932,
+    0.2979,
+    0.3495,
+    0.3495,
+    0.3508,
+    0.3519,
+    0.3565,
+    0.3633,
+    0.3638
+   ],
+   "latency_ms": 124.51,
+   "top1_distance": 0.28356099128723145,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.6666666666666666,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.4,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.2,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.28356099128723145
+  },
+  {
+   "query": "台東有哪些學校可以避難",
+   "category": "facility",
+   "relevant": [
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 寶桑國中",
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 康樂國小",
+    "[TAITUNG] 新生國中",
+    "[TAITUNG] 新生國小",
+    "[TAITUNG] 東海國中",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 知本國小",
+    "[TAITUNG] 馬蘭國小"
+   ],
+   "ranked": [
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 東海國小",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 寶桑國小"
+   ],
+   "distances": [
+    0.2567,
+    0.2985,
+    0.3078,
+    0.3087,
+    0.3219,
+    0.3308,
+    0.3313,
+    0.3322,
+    0.3383,
+    0.3396
+   ],
+   "latency_ms": 139.82,
+   "top1_distance": 0.2566758394241333,
+   "scores": {
+    "mrr": 0.25,
+    "recall@3": 0.0,
+    "precision@3": 0.0,
+    "hit@3": 0.0,
+    "recall@5": 0.08333333333333333,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 0.4166666666666667,
+    "precision@10": 0.5,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.3087077736854553
+  },
+  {
+   "query": "台東的國小避難所",
+   "category": "facility",
+   "relevant": [
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 康樂國小",
+    "[TAITUNG] 新生國小",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 知本國小",
+    "[TAITUNG] 馬蘭國小"
+   ],
+   "ranked": [
+    "[YILAN] 羅東國小",
+    "[TAITUNG] 康樂國小",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 知本國小",
+    "[TAITUNG] 新生國小",
+    "[YILAN] 頭城國小",
+    "[YILAN] 中興國小附幼",
+    "[TAITUNG] 寶桑國中",
+    "[YILAN] 宜蘭國小"
+   ],
+   "distances": [
+    0.2339,
+    0.2347,
+    0.2352,
+    0.2366,
+    0.248,
+    0.2654,
+    0.2787,
+    0.2797,
+    0.2804,
+    0.2876
+   ],
+   "latency_ms": 198.66,
+   "top1_distance": 0.23393714427947998,
+   "scores": {
+    "mrr": 0.5,
+    "recall@3": 0.3333333333333333,
+    "precision@3": 0.6666666666666666,
+    "hit@3": 1.0,
+    "recall@5": 0.6666666666666666,
+    "precision@5": 0.8,
+    "hit@5": 1.0,
+    "recall@10": 0.8333333333333334,
+    "precision@10": 0.5,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.23467421531677246
+  },
+  {
+   "query": "台東的國中",
+   "category": "facility",
+   "relevant": [
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 寶桑國中",
+    "[TAITUNG] 新生國中",
+    "[TAITUNG] 東海國中"
+   ],
+   "ranked": [
+    "[TAITUNG] 東海國中",
+    "[TAITUNG] 寶桑國中",
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 新生國中",
+    "[YILAN] 羅東國小",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 新生國小"
+   ],
+   "distances": [
+    0.2542,
+    0.2578,
+    0.2585,
+    0.2942,
+    0.2991,
+    0.3,
+    0.3074,
+    0.3094,
+    0.3153,
+    0.3198
+   ],
+   "latency_ms": 156.93,
+   "top1_distance": 0.25421571731567383,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 0.75,
+    "precision@3": 1.0,
+    "hit@3": 1.0,
+    "recall@5": 0.75,
+    "precision@5": 0.6,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.4,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.25421571731567383
+  },
+  {
+   "query": "台東的體育館",
+   "category": "facility",
+   "relevant": [
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東縣立體育館"
+   ],
+   "ranked": [
+    "[TAITUNG] 台東市公所",
+    "[TAITUNG] 台東女中",
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 新生國小",
+    "[TAITUNG] 東海國中",
+    "[TAITUNG] 寶桑國中"
+   ],
+   "distances": [
+    0.3209,
+    0.3458,
+    0.3469,
+    0.3618,
+    0.3649,
+    0.3737,
+    0.3885,
+    0.3919,
+    0.4151,
+    0.4154
+   ],
+   "latency_ms": 154.92,
+   "top1_distance": 0.3209463357925415,
+   "scores": {
+    "mrr": 0.25,
+    "recall@3": 0.0,
+    "precision@3": 0.0,
+    "hit@3": 0.0,
+    "recall@5": 1.0,
+    "precision@5": 0.4,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.2,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.36177587509155273
+  },
+  {
+   "query": "宜蘭有哪些學校可以避難",
+   "category": "facility",
+   "relevant": [
+    "[YILAN] 三星國中",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 二城國小",
+    "[YILAN] 南山國小",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 宜蘭國小",
+    "[YILAN] 清溝國小",
+    "[YILAN] 澳花國小",
+    "[YILAN] 礁溪國中",
+    "[YILAN] 羅東國小",
+    "[YILAN] 蘇澳國小",
+    "[YILAN] 頭城國小"
+   ],
+   "ranked": [
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 礁溪國中",
+    "[YILAN] 宜蘭國小",
+    "[YILAN] 宜蘭運動公園體育館"
+   ],
+   "distances": [
+    0.534,
+    0.5497,
+    0.5599,
+    0.5651,
+    0.5663,
+    0.568,
+    0.5692,
+    0.5808,
+    0.5815,
+    0.5891
+   ],
+   "latency_ms": 134.56,
+   "top1_distance": 0.5340180397033691,
+   "scores": {
+    "mrr": 0.25,
+    "recall@3": 0.0,
+    "precision@3": 0.0,
+    "hit@3": 0.0,
+    "recall@5": 0.07692307692307693,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 0.38461538461538464,
+    "precision@10": 0.5,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.5651026368141174
+  },
+  {
+   "query": "宜蘭的國小避難所",
+   "category": "facility",
+   "relevant": [
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 二城國小",
+    "[YILAN] 南山國小",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 宜蘭國小",
+    "[YILAN] 清溝國小",
+    "[YILAN] 澳花國小",
+    "[YILAN] 羅東國小",
+    "[YILAN] 蘇澳國小",
+    "[YILAN] 頭城國小"
+   ],
+   "ranked": [
+    "[YILAN] 壯圍國小",
+    "[YILAN] 宜蘭國小",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 蘇澳國小",
+    "[YILAN] 頭城國小",
+    "[YILAN] 澳花國小",
+    "[TAITUNG] 康樂國小",
+    "[YILAN] 羅東國小",
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 知本國小"
+   ],
+   "distances": [
+    0.2837,
+    0.2896,
+    0.3103,
+    0.3123,
+    0.3219,
+    0.3243,
+    0.3411,
+    0.3423,
+    0.3437,
+    0.3479
+   ],
+   "latency_ms": 104.46,
+   "top1_distance": 0.283693790435791,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 0.3,
+    "precision@3": 1.0,
+    "hit@3": 1.0,
+    "recall@5": 0.5,
+    "precision@5": 1.0,
+    "hit@5": 1.0,
+    "recall@10": 0.7,
+    "precision@10": 0.7,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.283693790435791
+  },
+  {
+   "query": "宜蘭的國中",
+   "category": "facility",
+   "relevant": [
+    "[YILAN] 三星國中",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 礁溪國中"
+   ],
+   "ranked": [
+    "[YILAN] 壯圍國中",
+    "[YILAN] 礁溪國中",
+    "[TAITUNG] 寶桑國中",
+    "[TAITUNG] 卑南國中",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 蘇澳國小",
+    "[YILAN] 頭城國小",
+    "[TAITUNG] 東海國中",
+    "[TAITUNG] 新生國中",
+    "[YILAN] 羅東國小"
+   ],
+   "distances": [
+    0.3297,
+    0.3428,
+    0.3598,
+    0.3664,
+    0.3729,
+    0.3965,
+    0.3968,
+    0.3981,
+    0.4026,
+    0.4076
+   ],
+   "latency_ms": 202.02,
+   "top1_distance": 0.32972604036331177,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 0.6666666666666666,
+    "precision@3": 0.6666666666666666,
+    "hit@3": 1.0,
+    "recall@5": 0.6666666666666666,
+    "precision@5": 0.4,
+    "hit@5": 1.0,
+    "recall@10": 0.6666666666666666,
+    "precision@10": 0.2,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.32972604036331177
+  },
+  {
+   "query": "宜蘭的體育館",
+   "category": "facility",
+   "relevant": [
+    "[YILAN] 三星鄉綜合運動場",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 宜蘭市國民運動中心",
+    "[YILAN] 宜蘭運動公園體育館",
+    "[YILAN] 羅東鎮立體育館",
+    "[YILAN] 蘇澳鎮立體育館"
+   ],
+   "ranked": [
+    "[YILAN] 蘇澳鎮立體育館",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 三星鄉綜合運動場",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 宜蘭運動公園體育館",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 清溝國小",
+    "[YILAN] 壯圍國小"
+   ],
+   "distances": [
+    0.5703,
+    0.6082,
+    0.6124,
+    0.6141,
+    0.6159,
+    0.6166,
+    0.6182,
+    0.6188,
+    0.6191,
+    0.6277
+   ],
+   "latency_ms": 139.82,
+   "top1_distance": 0.5702939033508301,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 0.3333333333333333,
+    "precision@3": 0.6666666666666666,
+    "hit@3": 1.0,
+    "recall@5": 0.3333333333333333,
+    "precision@5": 0.4,
+    "hit@5": 1.0,
+    "recall@10": 0.6666666666666666,
+    "precision@10": 0.4,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.5702939033508301
+  },
+  {
+   "query": "花蓮能收上千人的地方",
+   "category": "capacity",
+   "relevant": [
+    "[HUALIEN] 花蓮縣立體育館"
+   ],
+   "ranked": [
+    "[HUALIEN] 花蓮市公所",
+    "[HUALIEN] 花蓮縣立體育館",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 濤強國小",
+    "[HUALIEN] 自強國中",
+    "[HUALIEN] 中原國小",
+    "[HUALIEN] 中正國小",
+    "[HUALIEN] 花蓮市立圖書館"
+   ],
+   "distances": [
+    0.2974,
+    0.3115,
+    0.3214,
+    0.323,
+    0.3374,
+    0.338,
+    0.338,
+    0.3445,
+    0.3478,
+    0.3535
+   ],
+   "latency_ms": 161.44,
+   "top1_distance": 0.29735618829727173,
+   "scores": {
+    "mrr": 0.5,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.3114882707595825
+  },
+  {
+   "query": "花蓮容量超過500人的避難所",
+   "category": "capacity",
+   "relevant": [
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 花蓮縣立體育館"
+   ],
+   "ranked": [
+    "[HUALIEN] 花蓮縣立體育館",
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 花蓮市公所",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 自強國中",
+    "[HUALIEN] 濤強國小",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 中正國小",
+    "[HUALIEN] 中原國小",
+    "[HUALIEN] 花蓮市立圖書館"
+   ],
+   "distances": [
+    0.2317,
+    0.2369,
+    0.2409,
+    0.2714,
+    0.2754,
+    0.2786,
+    0.2814,
+    0.2958,
+    0.2964,
+    0.3134
+   ],
+   "latency_ms": 161.66,
+   "top1_distance": 0.23169052600860596,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.6666666666666666,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.4,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.2,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.23169052600860596
+  },
+  {
+   "query": "花蓮的小型避難所，容量300人以下",
+   "category": "capacity",
+   "relevant": [
+    "[HUALIEN] 信義國小",
+    "[HUALIEN] 國風國中",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 濤強國小",
+    "[HUALIEN] 花蓮市公所",
+    "[HUALIEN] 花蓮市立圖書館"
+   ],
+   "ranked": [
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 濤強國小",
+    "[HUALIEN] 花蓮縣立體育館",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 花蓮市公所",
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 中正國小",
+    "[HUALIEN] 中原國小",
+    "[HUALIEN] 信義國小",
+    "[YILAN] 澳花國小"
+   ],
+   "distances": [
+    0.2648,
+    0.2661,
+    0.2679,
+    0.2709,
+    0.2736,
+    0.2865,
+    0.3055,
+    0.3093,
+    0.3149,
+    0.3171
+   ],
+   "latency_ms": 150.09,
+   "top1_distance": 0.26479339599609375,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 0.2857142857142857,
+    "precision@3": 0.6666666666666666,
+    "hit@3": 1.0,
+    "recall@5": 0.5714285714285714,
+    "precision@5": 0.8,
+    "hit@5": 1.0,
+    "recall@10": 0.7142857142857143,
+    "precision@10": 0.5,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.26479339599609375
+  },
+  {
+   "query": "台東能收上千人的地方",
+   "category": "capacity",
+   "relevant": [
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東縣立體育館"
+   ],
+   "ranked": [
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 新生國小",
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 東海國中"
+   ],
+   "distances": [
+    0.3548,
+    0.3651,
+    0.3717,
+    0.3719,
+    0.3866,
+    0.3997,
+    0.4036,
+    0.4161,
+    0.4171,
+    0.4175
+   ],
+   "latency_ms": 130.67,
+   "top1_distance": 0.3548002243041992,
+   "scores": {
+    "mrr": 0.25,
+    "recall@3": 0.0,
+    "precision@3": 0.0,
+    "hit@3": 0.0,
+    "recall@5": 1.0,
+    "precision@5": 0.4,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.2,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.37194013595581055
+  },
+  {
+   "query": "台東容量超過500人的避難所",
+   "category": "capacity",
+   "relevant": [
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 新生國中"
+   ],
+   "ranked": [
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 台東市公所",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 新生國小",
+    "[YILAN] 羅東國小",
+    "[TAITUNG] 寶桑國中",
+    "[TAITUNG] 台東市原住民文化會館"
+   ],
+   "distances": [
+    0.2767,
+    0.2918,
+    0.3094,
+    0.3119,
+    0.3233,
+    0.3292,
+    0.3295,
+    0.3374,
+    0.3521,
+    0.3528
+   ],
+   "latency_ms": 118.49,
+   "top1_distance": 0.27673089504241943,
+   "scores": {
+    "mrr": 0.25,
+    "recall@3": 0.0,
+    "precision@3": 0.0,
+    "hit@3": 0.0,
+    "recall@5": 0.6666666666666666,
+    "precision@5": 0.4,
+    "hit@5": 1.0,
+    "recall@10": 0.6666666666666666,
+    "precision@10": 0.2,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.31189191341400146
+  },
+  {
+   "query": "台東的小型避難所，容量300人以下",
+   "category": "capacity",
+   "relevant": [
+    "[TAITUNG] 台東市公所",
+    "[TAITUNG] 台東市原住民文化會館",
+    "[TAITUNG] 康樂國小",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 知本國小",
+    "[TAITUNG] 馬蘭國小"
+   ],
+   "ranked": [
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 台東女中",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 中興國小附幼",
+    "[TAITUNG] 寶桑國小",
+    "[YILAN] 羅東國小",
+    "[TAITUNG] 新生國小",
+    "[TAITUNG] 台東縣立體育場"
+   ],
+   "distances": [
+    0.3012,
+    0.3204,
+    0.332,
+    0.3358,
+    0.3402,
+    0.3495,
+    0.3496,
+    0.3504,
+    0.3506,
+    0.3617
+   ],
+   "latency_ms": 103.16,
+   "top1_distance": 0.3012199401855469,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 0.3333333333333333,
+    "precision@3": 0.6666666666666666,
+    "hit@3": 1.0,
+    "recall@5": 0.3333333333333333,
+    "precision@5": 0.4,
+    "hit@5": 1.0,
+    "recall@10": 0.3333333333333333,
+    "precision@10": 0.2,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.3012199401855469
+  },
+  {
+   "query": "宜蘭能收上千人的地方",
+   "category": "capacity",
+   "relevant": [
+    "[YILAN] 宜蘭市國民運動中心"
+   ],
+   "ranked": [
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 三星鄉綜合運動場",
+    "[YILAN] 宜蘭國小",
+    "[YILAN] 宜蘭運動公園體育館",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 新生國小",
+    "[YILAN] 中興國小附幼"
+   ],
+   "distances": [
+    0.4481,
+    0.4517,
+    0.4711,
+    0.4747,
+    0.4751,
+    0.4756,
+    0.4795,
+    0.4796,
+    0.4837,
+    0.4846
+   ],
+   "latency_ms": 68.49,
+   "top1_distance": 0.4481009840965271,
+   "scores": {
+    "mrr": 0.0,
+    "recall@3": 0.0,
+    "precision@3": 0.0,
+    "hit@3": 0.0,
+    "recall@5": 0.0,
+    "precision@5": 0.0,
+    "hit@5": 0.0,
+    "recall@10": 0.0,
+    "precision@10": 0.0,
+    "hit@10": 0.0
+   },
+   "best_relevant_distance": null
+  },
+  {
+   "query": "宜蘭容量超過500人的避難所",
+   "category": "capacity",
+   "relevant": [
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 宜蘭市國民運動中心",
+    "[YILAN] 礁溪國中",
+    "[YILAN] 羅東鎮立體育館",
+    "[YILAN] 蘇澳鎮立體育館"
+   ],
+   "ranked": [
+    "[YILAN] 宜蘭國小",
+    "[YILAN] 宜蘭運動公園體育館",
+    "[YILAN] 三星鄉綜合運動場",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[YILAN] 羅東鎮立體育館",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 礁溪國中",
+    "[YILAN] 壯圍國中",
+    "[TAITUNG] 台東女中"
+   ],
+   "distances": [
+    0.4239,
+    0.4286,
+    0.4296,
+    0.4299,
+    0.4563,
+    0.4601,
+    0.4685,
+    0.4699,
+    0.4747,
+    0.478
+   ],
+   "latency_ms": 119.9,
+   "top1_distance": 0.42393529415130615,
+   "scores": {
+    "mrr": 0.25,
+    "recall@3": 0.0,
+    "precision@3": 0.0,
+    "hit@3": 0.0,
+    "recall@5": 0.4,
+    "precision@5": 0.4,
+    "hit@5": 1.0,
+    "recall@10": 0.6,
+    "precision@10": 0.3,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.4299167990684509
+  },
+  {
+   "query": "宜蘭的小型避難所，容量300人以下",
+   "category": "capacity",
+   "relevant": [
+    "[YILAN] 二城國小",
+    "[YILAN] 南山國小",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 澳花國小"
+   ],
+   "ranked": [
+    "[YILAN] 壯圍國小",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 宜蘭國小",
+    "[YILAN] 蘇澳國小",
+    "[YILAN] 壯圍國中",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[YILAN] 頭城國小",
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 馬蘭國小"
+   ],
+   "distances": [
+    0.3735,
+    0.4142,
+    0.4229,
+    0.431,
+    0.4397,
+    0.4425,
+    0.4437,
+    0.4461,
+    0.4602,
+    0.4726
+   ],
+   "latency_ms": 131.29,
+   "top1_distance": 0.37348073720932007,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 0.16666666666666666,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 0.3333333333333333,
+    "precision@5": 0.4,
+    "hit@5": 1.0,
+    "recall@10": 0.3333333333333333,
+    "precision@10": 0.2,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.37348073720932007
+  },
+  {
+   "query": "縣立體育館",
+   "category": "alias",
+   "relevant": [
+    "[HUALIEN] 花蓮縣立體育館",
+    "[TAITUNG] 台東縣立體育館"
+   ],
+   "ranked": [
+    "[YILAN] 蘇澳鎮立體育館",
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 台東縣立體育館",
+    "[YILAN] 大同鄉公所",
+    "[TAITUNG] 台東縣立體育場",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 清溝國小",
+    "[YILAN] 中興國小附幼",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 壯圍國小"
+   ],
+   "distances": [
+    0.3167,
+    0.4378,
+    0.4571,
+    0.5024,
+    0.5121,
+    0.5473,
+    0.5508,
+    0.5622,
+    0.5692,
+    0.5778
+   ],
+   "latency_ms": 130.73,
+   "top1_distance": 0.31670671701431274,
+   "scores": {
+    "mrr": 0.3333333333333333,
+    "recall@3": 0.5,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 0.5,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 0.5,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.4571044445037842
+  },
+  {
+   "query": "花蓮體育館",
+   "category": "alias",
+   "relevant": [
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 花蓮縣立體育館"
+   ],
+   "ranked": [
+    "[HUALIEN] 花蓮縣立體育館",
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 花蓮市公所",
+    "[HUALIEN] 花蓮市立圖書館",
+    "[HUALIEN] 濤強國小",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 自強國中",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 中正國小",
+    "[HUALIEN] 國風國中"
+   ],
+   "distances": [
+    0.2607,
+    0.2645,
+    0.2722,
+    0.3198,
+    0.3317,
+    0.333,
+    0.3334,
+    0.3376,
+    0.343,
+    0.3533
+   ],
+   "latency_ms": 143.53,
+   "top1_distance": 0.2607463598251343,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.6666666666666666,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.4,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.2,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.2607463598251343
+  },
+  {
+   "query": "中正體育館",
+   "category": "alias",
+   "relevant": [
+    "[HUALIEN] 花蓮市中正體育館"
+   ],
+   "ranked": [
+    "[YILAN] 礁溪國中",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 中興國小附幼",
+    "[TAITUNG] 寶桑國中",
+    "[TAITUNG] 台東高中",
+    "[YILAN] 壯圍國中",
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 台東女中",
+    "[YILAN] 三星國中",
+    "[TAITUNG] 新生國中"
+   ],
+   "distances": [
+    0.4771,
+    0.4981,
+    0.499,
+    0.4994,
+    0.5013,
+    0.5027,
+    0.5047,
+    0.5049,
+    0.5096,
+    0.5155
+   ],
+   "latency_ms": 147.68,
+   "top1_distance": 0.4770505428314209,
+   "scores": {
+    "mrr": 0.0,
+    "recall@3": 0.0,
+    "precision@3": 0.0,
+    "hit@3": 0.0,
+    "recall@5": 0.0,
+    "precision@5": 0.0,
+    "hit@5": 0.0,
+    "recall@10": 0.0,
+    "precision@10": 0.0,
+    "hit@10": 0.0
+   },
+   "best_relevant_distance": null
+  },
+  {
+   "query": "台東體育場",
+   "category": "alias",
+   "relevant": [
+    "[TAITUNG] 台東縣立體育場"
+   ],
+   "ranked": [
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 台東高中",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[TAITUNG] 新生國小",
+    "[TAITUNG] 卑南國中"
+   ],
+   "distances": [
+    0.3078,
+    0.3079,
+    0.3332,
+    0.3354,
+    0.3549,
+    0.3696,
+    0.3739,
+    0.3803,
+    0.392,
+    0.3923
+   ],
+   "latency_ms": 107.42,
+   "top1_distance": 0.30777406692504883,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.30777406692504883
+  },
+  {
+   "query": "羅東體育館",
+   "category": "alias",
+   "relevant": [
+    "[YILAN] 羅東鎮立體育館"
+   ],
+   "ranked": [
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 台東市原住民文化會館",
+    "[TAITUNG] 寶桑國中"
+   ],
+   "distances": [
+    0.3165,
+    0.3233,
+    0.3296,
+    0.334,
+    0.3373,
+    0.356,
+    0.3569,
+    0.3644,
+    0.3662,
+    0.3738
+   ],
+   "latency_ms": 75.88,
+   "top1_distance": 0.3165278434753418,
+   "scores": {
+    "mrr": 0.5,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.3233047127723694
+  },
+  {
+   "query": "蘇澳體育館",
+   "category": "alias",
+   "relevant": [
+    "[YILAN] 蘇澳鎮立體育館"
+   ],
+   "ranked": [
+    "[YILAN] 蘇澳鎮立體育館",
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 清溝國小",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 礁溪國中",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 宜蘭國小"
+   ],
+   "distances": [
+    0.67,
+    0.6876,
+    0.6896,
+    0.703,
+    0.7047,
+    0.7071,
+    0.71,
+    0.7116,
+    0.7141,
+    0.7154
+   ],
+   "latency_ms": 115.32,
+   "top1_distance": 0.6699755191802979,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.6699755191802979
+  },
+  {
+   "query": "宜蘭運動中心",
+   "category": "alias",
+   "relevant": [
+    "[YILAN] 宜蘭市國民運動中心"
+   ],
+   "ranked": [
+    "[YILAN] 宜蘭市國民運動中心",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 礁溪國中",
+    "[TAITUNG] 新生國中",
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 寶桑國中",
+    "[YILAN] 清溝國小",
+    "[YILAN] 中興國小附幼"
+   ],
+   "distances": [
+    0.32,
+    0.5212,
+    0.529,
+    0.5312,
+    0.5359,
+    0.5389,
+    0.5545,
+    0.5604,
+    0.5623,
+    0.569
+   ],
+   "latency_ms": 131.93,
+   "top1_distance": 0.3199620246887207,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.3199620246887207
+  },
+  {
+   "query": "運動公園的體育館",
+   "category": "alias",
+   "relevant": [
+    "[YILAN] 宜蘭運動公園體育館"
+   ],
+   "ranked": [
+    "[YILAN] 宜蘭運動公園體育館",
+    "[YILAN] 大同鄉公所",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 清溝國小",
+    "[YILAN] 宜蘭市國民運動中心",
+    "[HUALIEN] 花蓮市公所",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 羅東鎮立體育館"
+   ],
+   "distances": [
+    0.3579,
+    0.364,
+    0.4137,
+    0.5021,
+    0.5321,
+    0.5348,
+    0.5381,
+    0.5424,
+    0.5563,
+    0.5578
+   ],
+   "latency_ms": 262.13,
+   "top1_distance": 0.35793352127075195,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.35793352127075195
+  },
+  {
+   "query": "原民會館",
+   "category": "alias",
+   "relevant": [
+    "[TAITUNG] 台東市原住民文化會館"
+   ],
+   "ranked": [
+    "[TAITUNG] 台東市原住民文化會館",
+    "[YILAN] 宜蘭市國民運動中心",
+    "[YILAN] 羅東國小",
+    "[YILAN] 南山國小",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 礁溪國中",
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 頭城國小",
+    "[YILAN] 清溝國小"
+   ],
+   "distances": [
+    0.4513,
+    0.4951,
+    0.5271,
+    0.5305,
+    0.5326,
+    0.5447,
+    0.5474,
+    0.5546,
+    0.5562,
+    0.5584
+   ],
+   "latency_ms": 189.94,
+   "top1_distance": 0.45132434368133545,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.45132434368133545
+  },
+  {
+   "query": "原住民文化館",
+   "category": "alias",
+   "relevant": [
+    "[TAITUNG] 台東市原住民文化會館"
+   ],
+   "ranked": [
+    "[TAITUNG] 台東市原住民文化會館",
+    "[YILAN] 宜蘭市國民運動中心",
+    "[YILAN] 羅東國小",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 頭城國小",
+    "[YILAN] 南山國小",
+    "[YILAN] 礁溪國中",
+    "[YILAN] 壯圍國中",
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 寶桑國中"
+   ],
+   "distances": [
+    0.382,
+    0.4872,
+    0.495,
+    0.5116,
+    0.5131,
+    0.5192,
+    0.5214,
+    0.5215,
+    0.5259,
+    0.5283
+   ],
+   "latency_ms": 160.68,
+   "top1_distance": 0.38201940059661865,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.38201940059661865
+  },
+  {
+   "query": "花蓮市政府可以避難嗎",
+   "category": "alias",
+   "relevant": [
+    "[HUALIEN] 花蓮市公所"
+   ],
+   "ranked": [
+    "[HUALIEN] 花蓮縣立體育館",
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 花蓮市公所",
+    "[HUALIEN] 國風國中",
+    "[HUALIEN] 花蓮市立圖書館",
+    "[HUALIEN] 自強國中",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 濤強國小",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 中原國小"
+   ],
+   "distances": [
+    0.2522,
+    0.2611,
+    0.2686,
+    0.2824,
+    0.2952,
+    0.3005,
+    0.3117,
+    0.3118,
+    0.3141,
+    0.318
+   ],
+   "latency_ms": 205.39,
+   "top1_distance": 0.252185583114624,
+   "scores": {
+    "mrr": 0.3333333333333333,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.2686470150947571
+  },
+  {
+   "query": "台東市政府",
+   "category": "alias",
+   "relevant": [
+    "[TAITUNG] 台東市公所"
+   ],
+   "ranked": [
+    "[TAITUNG] 台東市原住民文化會館",
+    "[TAITUNG] 台東縣立體育館",
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 台東市公所",
+    "[TAITUNG] 台東縣立體育場",
+    "[YILAN] 羅東國小",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 新生國中",
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 寶桑國中"
+   ],
+   "distances": [
+    0.3117,
+    0.3322,
+    0.3434,
+    0.3463,
+    0.3486,
+    0.3629,
+    0.3656,
+    0.3717,
+    0.3719,
+    0.3736
+   ],
+   "latency_ms": 208.84,
+   "top1_distance": 0.31169426441192627,
+   "scores": {
+    "mrr": 0.25,
+    "recall@3": 0.0,
+    "precision@3": 0.0,
+    "hit@3": 0.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.3462541103363037
+  },
+  {
+   "query": "女子中學",
+   "category": "alias",
+   "relevant": [
+    "[TAITUNG] 台東女中"
+   ],
+   "ranked": [
+    "[TAITUNG] 台東女中",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 礁溪國中",
+    "[YILAN] 三星國中",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 蘇澳國小",
+    "[YILAN] 頭城國小",
+    "[HUALIEN] 自強國中",
+    "[HUALIEN] 中正國小"
+   ],
+   "distances": [
+    0.4485,
+    0.5503,
+    0.5568,
+    0.5671,
+    0.5715,
+    0.5788,
+    0.5812,
+    0.5856,
+    0.5887,
+    0.589
+   ],
+   "latency_ms": 158.82,
+   "top1_distance": 0.4485478401184082,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.4485478401184082
+  },
+  {
+   "query": "台東的高中職",
+   "category": "alias",
+   "relevant": [
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 台東高中"
+   ],
+   "ranked": [
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 台東市公所",
+    "[TAITUNG] 東海國中",
+    "[TAITUNG] 寶桑國中",
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 東海國小"
+   ],
+   "distances": [
+    0.2437,
+    0.2963,
+    0.3579,
+    0.3779,
+    0.385,
+    0.4002,
+    0.4049,
+    0.4064,
+    0.4124,
+    0.4167
+   ],
+   "latency_ms": 164.93,
+   "top1_distance": 0.24365609884262085,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.6666666666666666,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.4,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.2,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.24365609884262085
+  },
+  {
+   "query": "圖書館可以避難嗎",
+   "category": "alias",
+   "relevant": [
+    "[HUALIEN] 花蓮市立圖書館"
+   ],
+   "ranked": [
+    "[HUALIEN] 花蓮市立圖書館",
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[YILAN] 宜蘭運動公園體育館",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 礁溪國中",
+    "[YILAN] 清溝國小",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 羅東鎮立體育館",
+    "[YILAN] 壯圍國中"
+   ],
+   "distances": [
+    0.5251,
+    0.5789,
+    0.5953,
+    0.6048,
+    0.6205,
+    0.6453,
+    0.6466,
+    0.6472,
+    0.6547,
+    0.6588
+   ],
+   "latency_ms": 185.83,
+   "top1_distance": 0.5250709056854248,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.5250709056854248
+  },
+  {
+   "query": "有附設幼兒園的避難所",
+   "category": "alias",
+   "relevant": [
+    "[YILAN] 中興國小附幼"
+   ],
+   "ranked": [
+    "[YILAN] 蘇澳鎮立體育館",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 宜蘭運動公園體育館",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 礁溪國中",
+    "[YILAN] 清溝國小"
+   ],
+   "distances": [
+    0.5565,
+    0.5595,
+    0.5645,
+    0.5796,
+    0.5823,
+    0.59,
+    0.5943,
+    0.5979,
+    0.6048,
+    0.6066
+   ],
+   "latency_ms": 184.72,
+   "top1_distance": 0.556485652923584,
+   "scores": {
+    "mrr": 0.14285714285714285,
+    "recall@3": 0.0,
+    "precision@3": 0.0,
+    "hit@3": 0.0,
+    "recall@5": 0.0,
+    "precision@5": 0.0,
+    "hit@5": 0.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.5942772030830383
+  },
+  {
+   "query": "知本附近",
+   "category": "semantic",
+   "relevant": [
+    "[TAITUNG] 知本國小"
+   ],
+   "ranked": [
+    "[TAITUNG] 知本國小",
+    "[YILAN] 中興國小附幼",
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 康樂國小",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 壯圍國中",
+    "[TAITUNG] 東海國小",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 礁溪國中",
+    "[YILAN] 蘇澳國小"
+   ],
+   "distances": [
+    0.5117,
+    0.5887,
+    0.5996,
+    0.6033,
+    0.6045,
+    0.605,
+    0.6062,
+    0.6083,
+    0.609,
+    0.6108
+   ],
+   "latency_ms": 165.49,
+   "top1_distance": 0.5116525292396545,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.5116525292396545
+  },
+  {
+   "query": "馬蘭那邊有避難所嗎",
+   "category": "semantic",
+   "relevant": [
+    "[TAITUNG] 馬蘭國小"
+   ],
+   "ranked": [
+    "[TAITUNG] 馬蘭國小",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 頭城國小",
+    "[YILAN] 清溝國小",
+    "[YILAN] 蘇澳國小",
+    "[YILAN] 礁溪國中",
+    "[YILAN] 宜蘭國小"
+   ],
+   "distances": [
+    0.3398,
+    0.4869,
+    0.4943,
+    0.5036,
+    0.5083,
+    0.5095,
+    0.5143,
+    0.5182,
+    0.5187,
+    0.5199
+   ],
+   "latency_ms": 154.53,
+   "top1_distance": 0.33983224630355835,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.33983224630355835
+  },
+  {
+   "query": "礁溪",
+   "category": "semantic",
+   "relevant": [
+    "[YILAN] 礁溪國中"
+   ],
+   "ranked": [
+    "[YILAN] 蘇澳鎮立體育館",
+    "[YILAN] 三星鄉綜合運動場",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 礁溪國中",
+    "[YILAN] 清溝國小",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 大同鄉公所",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 壯圍國小"
+   ],
+   "distances": [
+    0.6936,
+    0.6994,
+    0.7035,
+    0.7133,
+    0.7161,
+    0.7183,
+    0.7249,
+    0.7264,
+    0.7265,
+    0.7313
+   ],
+   "latency_ms": 139.43,
+   "top1_distance": 0.6935885548591614,
+   "scores": {
+    "mrr": 0.2,
+    "recall@3": 0.0,
+    "precision@3": 0.0,
+    "hit@3": 0.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.716079831123352
+  },
+  {
+   "query": "南澳有哪裡可以躲",
+   "category": "semantic",
+   "relevant": [
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 澳花國小"
+   ],
+   "ranked": [
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 南山國小",
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 澳花國小",
+    "[TAITUNG] 台東女中",
+    "[YILAN] 羅東鎮立體育館",
+    "[YILAN] 中興國小附幼",
+    "[TAITUNG] 寶桑國中",
+    "[TAITUNG] 台東縣立體育館"
+   ],
+   "distances": [
+    0.2312,
+    0.3269,
+    0.3491,
+    0.3988,
+    0.3997,
+    0.4429,
+    0.4434,
+    0.4452,
+    0.4498,
+    0.4553
+   ],
+   "latency_ms": 193.02,
+   "top1_distance": 0.23123252391815186,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 0.5,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.4,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.2,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.23123252391815186
+  },
+  {
+   "query": "三星鄉的收容地點",
+   "category": "semantic",
+   "relevant": [
+    "[YILAN] 三星國中",
+    "[YILAN] 三星鄉綜合運動場"
+   ],
+   "ranked": [
+    "[YILAN] 三星鄉綜合運動場",
+    "[YILAN] 三星國中",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 羅東鎮立體育館",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[TAITUNG] 台東女中",
+    "[YILAN] 頭城國小",
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 台東縣立體育場",
+    "[YILAN] 中興國小附幼"
+   ],
+   "distances": [
+    0.2297,
+    0.2918,
+    0.4546,
+    0.4855,
+    0.4921,
+    0.5029,
+    0.506,
+    0.5125,
+    0.513,
+    0.5145
+   ],
+   "latency_ms": 210.36,
+   "top1_distance": 0.22972339391708374,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.6666666666666666,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.4,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.2,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.22972339391708374
+  },
+  {
+   "query": "頭城鎮附近的學校",
+   "category": "semantic",
+   "relevant": [
+    "[YILAN] 二城國小",
+    "[YILAN] 頭城國小"
+   ],
+   "ranked": [
+    "[YILAN] 頭城國小",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 二城國小",
+    "[YILAN] 清溝國小",
+    "[YILAN] 宜蘭運動公園體育館",
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東高中"
+   ],
+   "distances": [
+    0.3655,
+    0.4014,
+    0.4471,
+    0.4492,
+    0.4494,
+    0.4495,
+    0.454,
+    0.4544,
+    0.4565,
+    0.461
+   ],
+   "latency_ms": 136.18,
+   "top1_distance": 0.36548954248428345,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.6666666666666666,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.4,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.2,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.36548954248428345
+  },
+  {
+   "query": "冬山",
+   "category": "semantic",
+   "relevant": [
+    "[YILAN] 清溝國小"
+   ],
+   "ranked": [
+    "[TAITUNG] 康樂國小",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 南山國小",
+    "[YILAN] 頭城國小",
+    "[YILAN] 二城國小",
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 東海國小",
+    "[YILAN] 蘇澳國小"
+   ],
+   "distances": [
+    0.582,
+    0.5911,
+    0.5951,
+    0.5964,
+    0.5974,
+    0.6006,
+    0.6052,
+    0.6059,
+    0.6081,
+    0.6082
+   ],
+   "latency_ms": 155.93,
+   "top1_distance": 0.5819774270057678,
+   "scores": {
+    "mrr": 0.0,
+    "recall@3": 0.0,
+    "precision@3": 0.0,
+    "hit@3": 0.0,
+    "recall@5": 0.0,
+    "precision@5": 0.0,
+    "hit@5": 0.0,
+    "recall@10": 0.0,
+    "precision@10": 0.0,
+    "hit@10": 0.0
+   },
+   "best_relevant_distance": null
+  },
+  {
+   "query": "五結鄉",
+   "category": "semantic",
+   "relevant": [
+    "[YILAN] 中興國小附幼"
+   ],
+   "ranked": [
+    "[YILAN] 中興國小附幼",
+    "[TAITUNG] 台東市公所",
+    "[TAITUNG] 台東女中",
+    "[YILAN] 礁溪國中",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 清溝國小",
+    "[YILAN] 宜蘭運動公園體育館",
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 寶桑國小",
+    "[YILAN] 二城國小"
+   ],
+   "distances": [
+    0.4405,
+    0.5429,
+    0.5478,
+    0.552,
+    0.5521,
+    0.5548,
+    0.557,
+    0.5693,
+    0.574,
+    0.5766
+   ],
+   "latency_ms": 152.45,
+   "top1_distance": 0.4404693841934204,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.4404693841934204
+  },
+  {
+   "query": "壯圍有哪些",
+   "category": "semantic",
+   "relevant": [
+    "[YILAN] 壯圍國中",
+    "[YILAN] 壯圍國小"
+   ],
+   "ranked": [
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 壯圍國小",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 宜蘭國小",
+    "[YILAN] 礁溪國中",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 蘇澳國小"
+   ],
+   "distances": [
+    0.5719,
+    0.5967,
+    0.5971,
+    0.5981,
+    0.6055,
+    0.6058,
+    0.612,
+    0.6132,
+    0.6167,
+    0.6207
+   ],
+   "latency_ms": 186.6,
+   "top1_distance": 0.5718929171562195,
+   "scores": {
+    "mrr": 0.5,
+    "recall@3": 1.0,
+    "precision@3": 0.6666666666666666,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.4,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.2,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.5967159271240234
+  },
+  {
+   "query": "大同鄉可以去哪",
+   "category": "semantic",
+   "relevant": [
+    "[YILAN] 南山國小",
+    "[YILAN] 大同鄉公所"
+   ],
+   "ranked": [
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 南山國小",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[YILAN] 中興國小附幼",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 三星鄉綜合運動場",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 羅東鎮立體育館",
+    "[YILAN] 壯圍國小",
+    "[TAITUNG] 寶桑國小"
+   ],
+   "distances": [
+    0.3604,
+    0.5455,
+    0.5556,
+    0.5606,
+    0.5708,
+    0.5717,
+    0.5718,
+    0.5884,
+    0.5893,
+    0.5946
+   ],
+   "latency_ms": 122.16,
+   "top1_distance": 0.3604344129562378,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 1.0,
+    "precision@3": 0.6666666666666666,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.4,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.2,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.3604344129562378
+  },
+  {
+   "query": "花蓮市區最大的收容場所",
+   "category": "semantic",
+   "relevant": [
+    "[HUALIEN] 花蓮縣立體育館"
+   ],
+   "ranked": [
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 花蓮縣立體育館",
+    "[HUALIEN] 花蓮市公所",
+    "[HUALIEN] 花蓮市立圖書館",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 中原國小",
+    "[HUALIEN] 濤強國小",
+    "[HUALIEN] 中正國小",
+    "[HUALIEN] 自強國中"
+   ],
+   "distances": [
+    0.2442,
+    0.2444,
+    0.2502,
+    0.3005,
+    0.3017,
+    0.3028,
+    0.304,
+    0.3094,
+    0.3098,
+    0.3241
+   ],
+   "latency_ms": 137.25,
+   "top1_distance": 0.2441948652267456,
+   "scores": {
+    "mrr": 0.5,
+    "recall@3": 1.0,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.24441063404083252
+  },
+  {
+   "query": "台東可以容納最多人的地方",
+   "category": "semantic",
+   "relevant": [
+    "[TAITUNG] 台東縣立體育館"
+   ],
+   "ranked": [
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 新生國小",
+    "[TAITUNG] 台東市原住民文化會館",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 新生國中"
+   ],
+   "distances": [
+    0.2678,
+    0.2742,
+    0.2816,
+    0.2827,
+    0.2953,
+    0.3153,
+    0.3165,
+    0.3217,
+    0.3246,
+    0.3331
+   ],
+   "latency_ms": 121.99,
+   "top1_distance": 0.26779890060424805,
+   "scores": {
+    "mrr": 0.25,
+    "recall@3": 0.0,
+    "precision@3": 0.0,
+    "hit@3": 0.0,
+    "recall@5": 1.0,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.2827235460281372
+  },
+  {
+   "query": "宜蘭最大的避難所",
+   "category": "semantic",
+   "relevant": [
+    "[YILAN] 宜蘭市國民運動中心"
+   ],
+   "ranked": [
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 三星鄉綜合運動場",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 宜蘭市國民運動中心",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 清溝國小",
+    "[HUALIEN] 花蓮縣立體育館"
+   ],
+   "distances": [
+    0.5533,
+    0.5721,
+    0.5919,
+    0.6029,
+    0.6154,
+    0.6169,
+    0.624,
+    0.626,
+    0.6285,
+    0.6342
+   ],
+   "latency_ms": 114.01,
+   "top1_distance": 0.5533361434936523,
+   "scores": {
+    "mrr": 0.14285714285714285,
+    "recall@3": 0.0,
+    "precision@3": 0.0,
+    "hit@3": 0.0,
+    "recall@5": 0.0,
+    "precision@5": 0.0,
+    "hit@5": 0.0,
+    "recall@10": 1.0,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.6240040063858032
+  },
+  {
+   "query": "鄉公所或市公所",
+   "category": "semantic",
+   "relevant": [
+    "[HUALIEN] 花蓮市公所",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 大同鄉公所"
+   ],
+   "ranked": [
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 宜蘭運動公園體育館",
+    "[TAITUNG] 台東市公所",
+    "[HUALIEN] 花蓮市公所",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[YILAN] 清溝國小",
+    "[YILAN] 宜蘭市國民運動中心",
+    "[YILAN] 中興國小附幼",
+    "[HUALIEN] 花蓮市中正體育館",
+    "[YILAN] 頭城國小"
+   ],
+   "distances": [
+    0.3595,
+    0.4014,
+    0.4606,
+    0.585,
+    0.5927,
+    0.6017,
+    0.6022,
+    0.6191,
+    0.6207,
+    0.6322
+   ],
+   "latency_ms": 89.89,
+   "top1_distance": 0.3594614863395691,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 0.6666666666666666,
+    "precision@3": 0.6666666666666666,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.6,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.3,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.3594614863395691
+  },
+  {
+   "query": "桂林北路的避難所",
+   "category": "semantic",
+   "relevant": [
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東縣立體育館"
+   ],
+   "ranked": [
+    "[YILAN] 頭城國小",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 寶桑國中",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 新生國中",
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 東海國中",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 台東女中"
+   ],
+   "distances": [
+    0.3689,
+    0.3792,
+    0.3794,
+    0.3837,
+    0.3842,
+    0.3851,
+    0.391,
+    0.391,
+    0.3924,
+    0.393
+   ],
+   "latency_ms": 110.18,
+   "top1_distance": 0.3689141273498535,
+   "scores": {
+    "mrr": 0.5,
+    "recall@3": 0.5,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 0.5,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.2,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.3791661262512207
+  },
+  {
+   "query": "中華路一段附近",
+   "category": "semantic",
+   "relevant": [
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 東海國中"
+   ],
+   "ranked": [
+    "[TAITUNG] 台東高中",
+    "[YILAN] 三星國中",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 三星鄉綜合運動場",
+    "[TAITUNG] 台東女中",
+    "[YILAN] 礁溪國中",
+    "[TAITUNG] 東海國中",
+    "[YILAN] 壯圍國中",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 清溝國小"
+   ],
+   "distances": [
+    0.4541,
+    0.4765,
+    0.4845,
+    0.4855,
+    0.488,
+    0.4937,
+    0.4979,
+    0.501,
+    0.5019,
+    0.5064
+   ],
+   "latency_ms": 117.68,
+   "top1_distance": 0.4541424512863159,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 0.5,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 0.5,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.2,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.4541424512863159
+  },
+  {
+   "query": "更生路上",
+   "category": "semantic",
+   "relevant": [
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 新生國小"
+   ],
+   "ranked": [
+    "[TAITUNG] 新生國小",
+    "[TAITUNG] 新生國中",
+    "[YILAN] 清溝國小",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[YILAN] 壯圍國小",
+    "[TAITUNG] 台東女中",
+    "[YILAN] 蘇澳國小",
+    "[YILAN] 羅東鎮立體育館"
+   ],
+   "distances": [
+    0.5463,
+    0.5766,
+    0.6107,
+    0.616,
+    0.6434,
+    0.6446,
+    0.652,
+    0.6571,
+    0.6576,
+    0.6586
+   ],
+   "latency_ms": 156.34,
+   "top1_distance": 0.5463390350341797,
+   "scores": {
+    "mrr": 1.0,
+    "recall@3": 0.5,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 0.5,
+    "precision@5": 0.2,
+    "hit@5": 1.0,
+    "recall@10": 0.5,
+    "precision@10": 0.1,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.5463390350341797
+  },
+  {
+   "query": "達固湖灣大路",
+   "category": "semantic",
+   "relevant": [
+    "[HUALIEN] 花蓮縣立體育館"
+   ],
+   "ranked": [
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 三星鄉綜合運動場",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 三星國中",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 宜蘭國小",
+    "[TAITUNG] 台東縣立體育館"
+   ],
+   "distances": [
+    0.5135,
+    0.5551,
+    0.5921,
+    0.5934,
+    0.5975,
+    0.5977,
+    0.6017,
+    0.6067,
+    0.6176,
+    0.6188
+   ],
+   "latency_ms": 93.34,
+   "top1_distance": 0.5134704113006592,
+   "scores": {
+    "mrr": 0.0,
+    "recall@3": 0.0,
+    "precision@3": 0.0,
+    "hit@3": 0.0,
+    "recall@5": 0.0,
+    "precision@5": 0.0,
+    "hit@5": 0.0,
+    "recall@10": 0.0,
+    "precision@10": 0.0,
+    "hit@10": 0.0
+   },
+   "best_relevant_distance": null
+  },
+  {
+   "query": "四維路",
+   "category": "semantic",
+   "relevant": [
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 寶桑國小"
+   ],
+   "ranked": [
+    "[YILAN] 礁溪國中",
+    "[YILAN] 中興國小附幼",
+    "[TAITUNG] 寶桑國小",
+    "[YILAN] 三星鄉綜合運動場",
+    "[TAITUNG] 台東女中",
+    "[YILAN] 三星國中",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 羅東鎮立體育館"
+   ],
+   "distances": [
+    0.5437,
+    0.5517,
+    0.5801,
+    0.5827,
+    0.5875,
+    0.5916,
+    0.5949,
+    0.5973,
+    0.5983,
+    0.5997
+   ],
+   "latency_ms": 107.19,
+   "top1_distance": 0.5436975955963135,
+   "scores": {
+    "mrr": 0.3333333333333333,
+    "recall@3": 0.5,
+    "precision@3": 0.3333333333333333,
+    "hit@3": 1.0,
+    "recall@5": 1.0,
+    "precision@5": 0.4,
+    "hit@5": 1.0,
+    "recall@10": 1.0,
+    "precision@10": 0.2,
+    "hit@10": 1.0
+   },
+   "best_relevant_distance": 0.5800537467002869
+  },
+  {
+   "query": "高雄的避難所",
+   "category": "negative",
+   "relevant": [],
+   "ranked": [
+    "[TAITUNG] 台東高中",
+    "[YILAN] 清溝國小",
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 三星鄉綜合運動場",
+    "[YILAN] 三星國中",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[YILAN] 中興國小附幼",
+    "[TAITUNG] 台東女中",
+    "[YILAN] 宜蘭市國民運動中心"
+   ],
+   "distances": [
+    0.5431,
+    0.5479,
+    0.5582,
+    0.5689,
+    0.5741,
+    0.5796,
+    0.5866,
+    0.5946,
+    0.5966,
+    0.6026
+   ],
+   "latency_ms": 67.12,
+   "top1_distance": 0.5430785417556763,
+   "false_positive": null
+  },
+  {
+   "query": "台北車站附近哪裡可以避難",
+   "category": "negative",
+   "relevant": [],
+   "ranked": [
+    "[TAITUNG] 台東市公所",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東縣立體育館",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 寶桑國中",
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 寶桑國小"
+   ],
+   "distances": [
+    0.4115,
+    0.4237,
+    0.4499,
+    0.4595,
+    0.4623,
+    0.4691,
+    0.4694,
+    0.483,
+    0.4846,
+    0.4962
+   ],
+   "latency_ms": 155.43,
+   "top1_distance": 0.411479651927948,
+   "false_positive": null
+  },
+  {
+   "query": "今天天氣如何",
+   "category": "negative",
+   "relevant": [],
+   "ranked": [
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 三星鄉綜合運動場",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 三星國中",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 南山國小",
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 寶桑國小"
+   ],
+   "distances": [
+    0.538,
+    0.542,
+    0.548,
+    0.5504,
+    0.5557,
+    0.5619,
+    0.5664,
+    0.5759,
+    0.5765,
+    0.581
+   ],
+   "latency_ms": 187.54,
+   "top1_distance": 0.5380136966705322,
+   "false_positive": null
+  },
+  {
+   "query": "澎湖有避難所嗎",
+   "category": "negative",
+   "relevant": [],
+   "ranked": [
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 宜蘭國小",
+    "[YILAN] 礁溪國中",
+    "[YILAN] 蘇澳國小"
+   ],
+   "distances": [
+    0.5513,
+    0.5779,
+    0.578,
+    0.5787,
+    0.5806,
+    0.5884,
+    0.5954,
+    0.5958,
+    0.5968,
+    0.6052
+   ],
+   "latency_ms": 182.21,
+   "top1_distance": 0.5512847900390625,
+   "false_positive": null
+  },
+  {
+   "query": "如何申請災害補助",
+   "category": "negative",
+   "relevant": [],
+   "ranked": [
+    "[YILAN] 蘇澳鎮立體育館",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 宜蘭國小",
+    "[YILAN] 清溝國小",
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 礁溪國中"
+   ],
+   "distances": [
+    0.6344,
+    0.6546,
+    0.6579,
+    0.6581,
+    0.6724,
+    0.6789,
+    0.6795,
+    0.6795,
+    0.6805,
+    0.6817
+   ],
+   "latency_ms": 192.36,
+   "top1_distance": 0.6343604326248169,
+   "false_positive": null
+  },
+  {
+   "query": "桃園機場",
+   "category": "negative",
+   "relevant": [],
+   "ranked": [
+    "[YILAN] 南澳鄉綜合體育場",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 羅東鎮立體育館",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[TAITUNG] 台東縣立體育館",
+    "[YILAN] 宜蘭運動公園體育館",
+    "[YILAN] 礁溪國中",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 三星鄉綜合運動場"
+   ],
+   "distances": [
+    0.476,
+    0.4763,
+    0.4837,
+    0.4934,
+    0.4946,
+    0.5035,
+    0.5225,
+    0.5231,
+    0.5242,
+    0.5282
+   ],
+   "latency_ms": 188.41,
+   "top1_distance": 0.4760027527809143,
+   "false_positive": null
+  },
+  {
+   "query": "台中體育館",
+   "category": "negative",
+   "relevant": [],
+   "ranked": [
+    "[YILAN] 礁溪國中",
+    "[TAITUNG] 台東高中",
+    "[YILAN] 壯圍國中",
+    "[TAITUNG] 寶桑國中",
+    "[YILAN] 中興國小附幼",
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 台東女中",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[TAITUNG] 東海國中",
+    "[TAITUNG] 新生國中"
+   ],
+   "distances": [
+    0.4141,
+    0.4296,
+    0.4325,
+    0.4369,
+    0.4388,
+    0.4392,
+    0.4455,
+    0.4607,
+    0.4729,
+    0.4778
+   ],
+   "latency_ms": 153.16,
+   "top1_distance": 0.4141243100166321,
+   "false_positive": null
+  },
+  {
+   "query": "新竹國小",
+   "category": "negative",
+   "relevant": [],
+   "ranked": [
+    "[YILAN] 壯圍國小",
+    "[YILAN] 宜蘭國小",
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 康樂國小",
+    "[YILAN] 中興國小附幼",
+    "[TAITUNG] 知本國小",
+    "[YILAN] 蘇澳國小",
+    "[TAITUNG] 新生國小",
+    "[YILAN] 羅東國小",
+    "[YILAN] 澳花國小"
+   ],
+   "distances": [
+    0.3776,
+    0.3799,
+    0.3847,
+    0.3865,
+    0.3938,
+    0.3994,
+    0.3996,
+    0.4053,
+    0.4068,
+    0.4073
+   ],
+   "latency_ms": 147.16,
+   "top1_distance": 0.37760716676712036,
+   "false_positive": null
+  },
+  {
+   "query": "屏東縣立體育館",
+   "category": "negative",
+   "relevant": [],
+   "ranked": [
+    "[YILAN] 羅東鎮立體育館",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 台東市原住民文化會館",
+    "[TAITUNG] 寶桑國小"
+   ],
+   "distances": [
+    0.2233,
+    0.2323,
+    0.2643,
+    0.3003,
+    0.3183,
+    0.3526,
+    0.3695,
+    0.3751,
+    0.3804,
+    0.3845
+   ],
+   "latency_ms": 167.62,
+   "top1_distance": 0.22333306074142456,
+   "false_positive": null
+  },
+  {
+   "query": "嘉義市公所",
+   "category": "negative",
+   "relevant": [],
+   "ranked": [
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 宜蘭運動公園體育館",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 宜蘭市國民運動中心",
+    "[HUALIEN] 民義國小",
+    "[HUALIEN] 信義國小",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[TAITUNG] 新生國中",
+    "[TAITUNG] 新生國小",
+    "[HUALIEN] 花蓮市公所"
+   ],
+   "distances": [
+    0.461,
+    0.4993,
+    0.552,
+    0.5607,
+    0.5737,
+    0.5975,
+    0.6329,
+    0.6361,
+    0.6402,
+    0.6519
+   ],
+   "latency_ms": 223.56,
+   "top1_distance": 0.4609528183937073,
+   "false_positive": null
+  }
+ ]
+}
