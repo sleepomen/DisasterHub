@@ -1,4 +1,3 @@
-# 以下是新增的
 from dataclasses import dataclass
 
 
@@ -9,6 +8,7 @@ class Shelter:
     lat: float
     lon: float
     current_people: int = 0
+    address: str = ""
 
     @property
     def remaining(self) -> int:

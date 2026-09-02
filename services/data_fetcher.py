@@ -38,7 +38,8 @@ class DataFetcher:
                             capacity=int(item.get("total_vessel", 0)),
                             current_people=int(item.get("total_people", 0)),
                             lat=float(item.get("lat", 0.0)),
-                            lon=float(item.get("lon", 0.0))
+                            lon=float(item.get("lon", 0.0)),
+                            address=str(item.get("address", "")).strip()
                         )
                         all_shelters.append(shelter)
                 logger.info("讀取 %s，共 %d 筆", filename, len(data))
