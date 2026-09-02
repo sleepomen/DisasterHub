@@ -1,31 +1,17 @@
 import glob
 import json
 import os
-import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
+from services.shelter_profile import facility_of, township_of  # noqa: E402
+
 DATA_DIR = os.path.join(ROOT, "data_for_refuge")
 OUT_PATH = os.path.join(ROOT, "evals", "rag_eval.jsonl")
 
 REGION_ZH = {"HUALIEN": "花蓮", "TAITUNG": "台東", "YILAN": "宜蘭"}
-TOWNSHIP_RE = re.compile(r"(?:宜蘭縣|花蓮縣|臺東縣|台東縣)?([^\d\s]{1,3}?[市鄉鎮])")
-FACILITY_RULES = [
-    ("國小", "國小"),
-    ("國中", "國中"),
-    ("高中", "高中"),
-    ("女中", "高中"),
-    ("體育館", "體育場館"),
-    ("體育場", "體育場館"),
-    ("運動中心", "體育場館"),
-    ("運動公園", "體育場館"),
-    ("運動場", "體育場館"),
-    ("圖書館", "圖書館"),
-    ("公所", "公所"),
-    ("會館", "會館"),
-]
 
 
 def load_shelters():
@@ -34,17 +20,17 @@ def load_shelters():
         region = os.path.basename(path).split("_")[0].upper()
         with open(path, encoding="utf-8") as f:
             for item in json.load(f):
-                addr = item.get("address", "").replace("ˇ", "")
-                m = TOWNSHIP_RE.search(addr)
+                addr = item.get("address", "").strip()
+                tagged = f"[{region}] {item['name']}"
                 rows.append({
-                    "id": f"[{region}] {item['name']}",
+                    "id": tagged,
                     "name": item["name"],
                     "region": region,
                     "region_zh": REGION_ZH[region],
                     "capacity": int(item["total_vessel"]),
                     "address": addr,
-                    "township": m.group(1) if m else "",
-                    "facility": next((label for kw, label in FACILITY_RULES if kw in item["name"]), "其他"),
+                    "township": township_of(addr),
+                    "facility": facility_of(tagged),
                 })
     return rows
 
