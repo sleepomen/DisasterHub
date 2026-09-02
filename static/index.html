@@ -2,229 +2,124 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Disaster Hub</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
 
         :root {
-            --ios-blue: #007AFF;
-            --ios-red: #FF3B30;
-            --ios-green: #34C759;
-            --ios-teal: #5AC8FA;
-            --ios-orange: #FF9500;
-            --label-primary: #000000;
-            --label-tertiary: rgba(60,60,67,0.45);
-            --separator: rgba(60,60,67,0.15);
-            --glass: rgba(242,242,247,0.68);
-            --glass-border: rgba(255,255,255,0.82);
-            --radius-large: 20px;
-            --radius-medium: 13px;
+            --bg: #171c2b;
+            --bg-deep: #10141f;
+            --panel: rgba(26, 32, 51, 0.9);
+            --panel-solid: #1d2438;
+            --panel-raised: #242c44;
+            --line: rgba(255, 190, 46, 0.18);
+            --line-strong: rgba(255, 190, 46, 0.4);
+            --hairline: rgba(148, 163, 198, 0.16);
+            --text: #eef2fb;
+            --text-dim: #9aa5c2;
+            --text-faint: #67718f;
+            --accent: #ffbe2e;
+            --accent-dim: rgba(255, 190, 46, 0.12);
+            --magenta: #ff2d78;
+            --amber: #ff7a3d;
+            --green: #2ee6a8;
+            --blue: #4da6ff;
+            --yellow: #ffe14d;
+            --ink: #0a0f1a;
+            --chamfer: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
+            --chamfer-sm: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+            --shadow: 0 10px 30px rgba(6, 10, 20, 0.55);
         }
+
+        html, body { height: 100%; }
 
         body {
             display: flex;
-            height: 100vh;
-            background: linear-gradient(160deg, #dce6f5 0%, #e4edf8 40%, #dce8f0 100%);
-            font-family: 'Noto Sans TC', -apple-system, sans-serif;
+            flex-direction: column;
+            background: var(--bg);
+            font-family: 'Noto Sans TC', 'Rajdhani', sans-serif;
             overflow: hidden;
-            color: var(--label-primary);
+            color: var(--text);
         }
 
-        .sidebar {
-            width: 272px;
+        ::selection { background: rgba(255, 190, 46, 0.3); }
+
+        .en, .brand-name, .section-header, .stat-chip, .slider-value, .progress-label span:last-child {
+            font-family: 'Rajdhani', 'Noto Sans TC', sans-serif;
+        }
+        .mono { font-family: 'Share Tech Mono', monospace; }
+
+        /* ── 頂部導覽列 ─────────────────────────────── */
+        .navbar {
+            height: 54px;
             flex-shrink: 0;
             display: flex;
-            flex-direction: column;
-            gap: 10px;
-            padding: 14px 10px 14px 12px;
-            overflow-y: auto;
-            scrollbar-width: none;
-            z-index: 1000;
-        }
-        .sidebar::-webkit-scrollbar { display: none; }
-
-        .card {
-            background: var(--glass);
-            backdrop-filter: blur(40px) saturate(200%);
-            -webkit-backdrop-filter: blur(40px) saturate(200%);
-            border: 0.5px solid var(--glass-border);
-            border-radius: var(--radius-large);
-            overflow: visible;
+            align-items: center;
+            gap: 14px;
+            padding: 0 18px;
+            background: linear-gradient(180deg, #1c2338, #181e30);
+            border-bottom: 1px solid var(--line);
+            box-shadow: 0 1px 0 rgba(255, 190, 46, 0.06), 0 6px 24px rgba(6, 10, 20, 0.4);
+            z-index: 1200;
         }
 
-        .card-inner { border-radius: var(--radius-large); overflow: hidden; }
+        .logo-mark {
+            width: 30px; height: 30px;
+            background: var(--accent);
+            clip-path: var(--chamfer-sm);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .logo-mark svg path { stroke: var(--ink); fill: rgba(10, 15, 26, 0.15); }
 
-        .section-header {
-            padding: 12px 16px 6px;
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--ios-blue);
-            letter-spacing: 0.05em;
+        .brand { display: flex; flex-direction: column; line-height: 1.1; }
+        .brand-name {
+            font-size: 17px; font-weight: 700;
+            letter-spacing: 0.14em;
             text-transform: uppercase;
         }
+        .brand-name b { color: var(--accent); font-weight: 700; }
+        .brand-sub { font-size: 10px; color: var(--text-faint); letter-spacing: 0.22em; text-transform: uppercase; }
 
-        .list-row {
-            display: flex;
-            align-items: center;
-            padding: 0 14px;
-            border-top: 0.5px solid var(--separator);
-            min-height: 44px;
-            cursor: pointer;
-            transition: background 0.12s;
-            user-select: none;
-            position: relative;
-        }
-        .list-row:first-of-type { border-top: none; }
-        .list-row:active { background: rgba(0,0,0,0.04); }
+        .nav-stats { display: flex; gap: 8px; margin-left: auto; }
 
-        .row-label { font-size: 15px; flex: 1; }
-        .row-value { font-size: 15px; color: var(--label-tertiary); margin-right: 5px; }
-        .chevron { color: var(--label-tertiary); font-size: 13px; }
-
-        .dropdown-menu {
-            display: none;
-            position: absolute;
-            top: calc(100% + 2px);
-            left: 0; right: 0;
-            background: rgba(250,250,254,0.97);
-            backdrop-filter: blur(30px);
-            border: 0.5px solid var(--glass-border);
-            border-radius: var(--radius-medium);
-            overflow: hidden;
-            z-index: 2000;
-            box-shadow: 0 6px 24px rgba(0,0,0,0.11);
-            transform-origin: top center;
-            animation: dropIn 0.16s ease;
-        }
-        @keyframes dropIn {
-            from { opacity: 0; transform: scaleY(0.88); }
-            to   { opacity: 1; transform: scaleY(1); }
-        }
-        .dropdown-menu.open { display: block; }
-
-        .dropdown-option {
-            padding: 11px 14px;
-            font-size: 15px;
-            color: var(--label-primary);
-            border-top: 0.5px solid var(--separator);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: background 0.1s;
-        }
-        .dropdown-option:first-child { border-top: none; }
-        .dropdown-option:active { background: rgba(0,122,255,0.07); }
-        .dropdown-option.selected { color: var(--ios-blue); font-weight: 500; }
-        .checkmark { font-size: 14px; color: var(--ios-blue); }
-
-        .slider-row { padding: 12px 14px; border-top: 0.5px solid var(--separator); }
-        .slider-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
-        .slider-label { font-size: 15px; }
-        .slider-value { font-size: 15px; font-weight: 500; color: var(--ios-blue); }
-
-        input[type="range"] {
-            width: 100%;
-            -webkit-appearance: none;
-            appearance: none;
-            height: 4px;
-            background: linear-gradient(to right, var(--ios-blue) 17%, rgba(0,122,255,0.18) 17%);
-            border-radius: 2px;
-            outline: none;
-            cursor: pointer;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 22px; height: 22px;
-            border-radius: 50%;
-            background: white;
-            box-shadow: 0 1px 6px rgba(0,0,0,0.18), 0 0 0 0.5px rgba(0,0,0,0.05);
-            cursor: pointer;
-        }
-
-        .btn-primary {
-            padding: 13px;
-            background: var(--ios-blue);
-            color: white;
-            border: none;
-            border-radius: var(--radius-medium);
-            font-size: 15px;
+        .stat-chip {
+            display: flex; align-items: center; gap: 8px;
+            padding: 6px 14px;
+            background: var(--panel-solid);
+            border: 1px solid var(--hairline);
+            clip-path: var(--chamfer-sm);
+            font-size: 12.5px;
             font-weight: 600;
-            font-family: inherit;
-            cursor: pointer;
-            width: 100%;
-            transition: opacity 0.15s;
+            letter-spacing: 0.08em;
+            color: var(--text-dim);
         }
-        .btn-primary:active { opacity: 0.75; }
-        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        .btn-danger {
-            padding: 13px;
-            background: rgba(255,59,48,0.09);
-            color: var(--ios-red);
-            border: 0.5px solid rgba(255,59,48,0.2);
-            border-radius: var(--radius-medium);
-            font-size: 15px;
-            font-weight: 500;
-            font-family: inherit;
-            cursor: pointer;
-            width: 100%;
-            transition: opacity 0.15s;
-        }
-        .btn-danger:active { opacity: 0.75; }
-
-        /* 進度條（模擬進行中） */
-        #sim-progress-wrap {
-            display: none;
-            background: var(--glass);
-            backdrop-filter: blur(40px) saturate(200%);
-            border: 0.5px solid var(--glass-border);
-            border-radius: var(--radius-medium);
-            padding: 12px 14px;
+        .stat-chip b {
+            color: var(--accent);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 13px;
+            font-weight: 400;
         }
 
-        #sim-progress-wrap.visible { display: block; }
-
-        .progress-label {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            color: var(--label-tertiary);
-            margin-bottom: 7px;
+        .live-dot {
+            width: 8px; height: 8px;
+            background: var(--green);
+            clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+            animation: blink 1.8s steps(2) infinite;
         }
+        @keyframes blink { 50% { opacity: 0.35; } }
 
-        #sim-progress-bar-bg {
-            height: 4px;
-            background: rgba(0,122,255,0.15);
-            border-radius: 2px;
-            overflow: hidden;
-        }
+        /* ── 主區域：全幅地圖 + 浮動面板 ───────────── */
+        .workspace { flex: 1; position: relative; overflow: hidden; background: var(--bg-deep); }
 
-        #sim-progress-bar {
-            height: 100%;
-            width: 0%;
-            background: var(--ios-blue);
-            border-radius: 2px;
-            transition: width 0.3s;
-        }
+        #map-panel { position: absolute; inset: 0; z-index: 1; }
+        #map { width: 100%; height: 100%; background: var(--bg-deep); }
+        .leaflet-tile-pane { filter: brightness(1.5) contrast(0.9) saturate(1.2) hue-rotate(-8deg); }
 
-        /* 地圖 */
-        #map-panel {
-            flex: 1;
-            margin: 14px 8px;
-            border-radius: var(--radius-large);
-            overflow: hidden;
-            border: 0.5px solid rgba(255,255,255,0.6);
-            position: relative;
-            z-index: 1;
-        }
-
-        #map { width: 100%; height: 100%; }
-
-        /* Canvas 覆蓋在地圖上畫人群點 */
         #crowd-canvas {
             position: absolute;
             top: 0; left: 0;
@@ -233,125 +128,444 @@
             z-index: 400;
         }
 
+        .overlay-panel {
+            position: absolute;
+            background: var(--panel);
+            backdrop-filter: blur(18px) saturate(140%);
+            -webkit-backdrop-filter: blur(18px) saturate(140%);
+            border: 1px solid var(--line);
+            border-radius: 3px;
+            box-shadow: var(--shadow);
+            z-index: 1000;
+        }
+        .overlay-panel::before, .overlay-panel::after {
+            content: '';
+            position: absolute;
+            width: 16px; height: 16px;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .overlay-panel::before { top: -1px; left: -1px; border-top: 2px solid var(--accent); border-left: 2px solid var(--accent); }
+        .overlay-panel::after { bottom: -1px; right: -1px; border-bottom: 2px solid var(--accent); border-right: 2px solid var(--accent); }
+
+        /* 左側控制面板 */
+        .sidebar {
+            top: 16px; left: 16px;
+            width: 292px;
+            max-height: calc(100% - 32px);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+        .sidebar::-webkit-scrollbar { display: none; }
+
+        .panel-section { padding: 14px 16px 6px; }
+        .panel-section + .panel-section { border-top: 1px solid var(--hairline); margin-top: 10px; }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--accent);
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+        .section-header::before { content: '//'; color: var(--text-faint); letter-spacing: 0; }
+        .section-header::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, var(--line-strong), transparent);
+        }
+
+        .list-row {
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            min-height: 42px;
+            margin-bottom: 8px;
+            background: rgba(16, 20, 31, 0.55);
+            border: 1px solid var(--hairline);
+            border-left: 2px solid var(--line-strong);
+            border-radius: 2px;
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+            user-select: none;
+            position: relative;
+        }
+        .list-row:hover { border-color: var(--line-strong); background: rgba(255, 190, 46, 0.06); }
+
+        .row-label { font-size: 13px; color: var(--text-dim); flex: 1; letter-spacing: 0.04em; }
+        .row-value { font-size: 13.5px; font-weight: 700; color: var(--text); margin-right: 8px; }
+        .chevron { color: var(--accent); font-size: 12px; transform: rotate(90deg); }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 5px);
+            left: -2px; right: 0;
+            background: var(--panel-raised);
+            border: 1px solid var(--line-strong);
+            border-radius: 2px;
+            overflow: hidden;
+            z-index: 2000;
+            box-shadow: 0 14px 34px rgba(6, 10, 20, 0.6);
+            transform-origin: top center;
+            animation: dropIn 0.14s ease;
+        }
+        @keyframes dropIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .dropdown-menu.open { display: block; }
+
+        .dropdown-option {
+            padding: 10px 13px;
+            font-size: 13px;
+            color: var(--text-dim);
+            border-top: 1px solid var(--hairline);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.1s, color 0.1s;
+        }
+        .dropdown-option:first-child { border-top: none; }
+        .dropdown-option:hover { background: var(--accent-dim); color: var(--text); }
+        .dropdown-option.selected { color: var(--accent); font-weight: 700; border-left: 2px solid var(--accent); padding-left: 11px; }
+        .checkmark { font-size: 12px; color: var(--accent); }
+
+        .slider-row { padding: 2px 2px 12px; }
+        .slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 0 2px; }
+        .slider-label { font-size: 13px; color: var(--text-dim); letter-spacing: 0.04em; }
+        .slider-value {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12.5px;
+            color: var(--ink);
+            background: var(--accent);
+            padding: 2px 10px;
+            clip-path: var(--chamfer-sm);
+            font-weight: 400;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 4px;
+            background: linear-gradient(to right, #ffbe2e 17%, rgba(255,190,46,0.15) 17%);
+            border-radius: 0;
+            outline: none;
+            cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 15px; height: 15px;
+            border-radius: 2px;
+            transform: rotate(45deg);
+            background: var(--bg-deep);
+            border: 2.5px solid var(--accent);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            transition: background 0.12s;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover { background: var(--accent); }
+
+        .panel-actions { padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 9px; }
+
+        .btn-primary {
+            padding: 12px;
+            background: linear-gradient(115deg, var(--accent) 88%, #ffd97a 88%);
+            color: var(--ink);
+            border: none;
+            clip-path: var(--chamfer);
+            font-size: 14.5px;
+            font-weight: 700;
+            font-family: 'Noto Sans TC', sans-serif;
+            letter-spacing: 0.12em;
+            cursor: pointer;
+            width: 100%;
+            transition: filter 0.15s, transform 0.12s;
+        }
+        .btn-primary:hover { filter: brightness(1.12); transform: translateY(-1px); }
+        .btn-primary:active { transform: translateY(0); filter: brightness(0.95); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; filter: grayscale(0.5); }
+
+        .btn-danger {
+            padding: 11px;
+            background: rgba(255, 45, 120, 0.1);
+            color: var(--magenta);
+            border: none;
+            box-shadow: inset 0 0 0 1px rgba(255, 45, 120, 0.4);
+            clip-path: var(--chamfer);
+            font-size: 13px;
+            font-weight: 700;
+            font-family: 'Noto Sans TC', sans-serif;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.15s;
+        }
+        .btn-danger:hover { background: rgba(255, 45, 120, 0.2); }
+
+        /* 進度條（模擬進行中） */
+        #sim-progress-wrap {
+            display: none;
+            margin: 4px 16px 0;
+            background: rgba(16, 20, 31, 0.55);
+            border: 1px solid var(--hairline);
+            border-left: 2px solid var(--accent);
+            border-radius: 2px;
+            padding: 12px 14px;
+        }
+        #sim-progress-wrap.visible { display: block; }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11.5px;
+            letter-spacing: 0.08em;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+        }
+        .progress-label span:last-child {
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--accent);
+        }
+
+        #sim-progress-bar-bg {
+            height: 5px;
+            background: rgba(148, 163, 198, 0.15);
+            overflow: hidden;
+        }
+
+        #sim-progress-bar {
+            height: 100%;
+            width: 0%;
+            background: repeating-linear-gradient(115deg, var(--accent) 0 8px, rgba(255, 190, 46, 0.55) 8px 12px);
+            transition: width 0.3s;
+        }
+
+        /* Leaflet 深色化 */
+        .leaflet-control-zoom { border: none !important; box-shadow: var(--shadow) !important; }
+        .leaflet-control-zoom a {
+            background: var(--panel-solid) !important;
+            color: var(--accent) !important;
+            border: 1px solid var(--hairline) !important;
+            width: 34px !important; height: 34px !important;
+            line-height: 32px !important;
+            font-weight: 700;
+        }
+        .leaflet-control-zoom a:hover { background: var(--panel-raised) !important; }
+        .leaflet-control-attribution {
+            background: rgba(16, 20, 31, 0.75) !important;
+            color: var(--text-faint) !important;
+            font-size: 10px !important;
+        }
+        .leaflet-control-attribution a { color: var(--text-dim) !important; }
+
         .leaflet-popup-content-wrapper {
-            background: rgba(255,255,255,0.92);
-            backdrop-filter: blur(20px);
-            border-radius: 14px !important;
-            border: 0.5px solid rgba(255,255,255,0.8);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1) !important;
+            background: var(--panel-raised);
+            border-radius: 3px !important;
+            border: 1px solid var(--line-strong);
+            box-shadow: var(--shadow) !important;
             padding: 0 !important;
         }
-        .leaflet-popup-content { margin: 0 !important; padding: 12px 16px !important; }
-        .leaflet-popup-tip { background: rgba(255,255,255,0.92) !important; }
+        .leaflet-popup-content { margin: 0 !important; padding: 13px 16px !important; }
+        .leaflet-popup-tip { background: var(--panel-raised) !important; border: 1px solid var(--line-strong); }
+        .leaflet-popup-close-button { color: var(--text-faint) !important; }
 
-        .popup-name { font-size: 13px; font-weight: 600; color: #000; margin-bottom: 6px; }
-        .popup-row { display: flex; justify-content: space-between; font-size: 12px; color: rgba(60,60,67,0.6); margin-bottom: 3px; }
-        .popup-row span:last-child { color: #000; font-weight: 500; }
-        .popup-bar { height: 4px; background: rgba(0,0,0,0.08); border-radius: 2px; margin-top: 8px; overflow: hidden; }
-        .popup-bar-fill { height: 100%; background: #34C759; border-radius: 2px; transition: width 0.3s; }
+        .popup-name {
+            font-size: 13.5px; font-weight: 700; color: var(--text);
+            margin-bottom: 9px;
+            padding-left: 8px;
+            border-left: 2px solid var(--accent);
+        }
+        .popup-row { display: flex; justify-content: space-between; gap: 20px; font-size: 12px; color: var(--text-dim); margin-bottom: 4px; }
+        .popup-row span:last-child { color: var(--text); font-family: 'Share Tech Mono', monospace; font-size: 12px; }
+        .popup-bar { height: 5px; background: rgba(148, 163, 198, 0.15); margin-top: 9px; overflow: hidden; }
+        .popup-bar-fill { height: 100%; background: var(--green); transition: width 0.3s; }
 
         /* 圖例 */
         .legend {
             position: absolute;
-            bottom: 24px; left: 12px;
-            background: rgba(255,255,255,0.88);
-            backdrop-filter: blur(20px);
-            border: 0.5px solid rgba(255,255,255,0.8);
-            border-radius: 12px;
-            padding: 10px 14px;
+            bottom: 18px; left: 16px;
+            background: var(--panel);
+            backdrop-filter: blur(18px) saturate(140%);
+            border: 1px solid var(--line);
+            border-radius: 3px;
+            padding: 11px 14px;
             z-index: 500;
             font-size: 11px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            box-shadow: var(--shadow);
         }
-        .legend-item { display: flex; align-items: center; gap: 7px; margin-bottom: 5px; color: rgba(60,60,67,0.75); }
+        .legend::before {
+            content: '';
+            position: absolute;
+            top: -1px; left: -1px;
+            width: 12px; height: 12px;
+            border-top: 2px solid var(--accent);
+            border-left: 2px solid var(--accent);
+        }
+        .legend-item { display: flex; align-items: center; gap: 9px; margin-bottom: 6px; color: var(--text-dim); letter-spacing: 0.03em; }
         .legend-item:last-child { margin-bottom: 0; }
-        .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .legend-dot {
+            width: 11px; height: 11px;
+            clip-path: polygon(50% 0, 100% 27%, 100% 73%, 50% 100%, 0 73%, 0 27%);
+            flex-shrink: 0;
+        }
 
         /* 右側聊天 */
         #chat-panel {
-            width: 268px;
-            flex-shrink: 0;
-            padding: 14px 12px 14px 8px;
-            display: flex;
-            flex-direction: column;
-            z-index: 1000;
-        }
-
-        .chat-card {
-            flex: 1;
-            background: var(--glass);
-            backdrop-filter: blur(40px) saturate(200%);
-            -webkit-backdrop-filter: blur(40px) saturate(200%);
-            border: 0.5px solid var(--glass-border);
-            border-radius: var(--radius-large);
+            top: 16px; right: 16px; bottom: 16px;
+            width: 304px;
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
 
-        .chat-header { padding: 14px 14px 10px; border-bottom: 0.5px solid var(--separator); }
-        .chat-title { font-size: 15px; font-weight: 600; }
-        .chat-subtitle { font-size: 11px; color: var(--label-tertiary); margin-top: 2px; }
+        .chat-header {
+            padding: 14px 16px 12px;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            background: linear-gradient(180deg, rgba(255, 190, 46, 0.05), transparent);
+        }
+        .chat-avatar {
+            width: 32px; height: 32px;
+            background: var(--panel-raised);
+            box-shadow: inset 0 0 0 1px var(--line-strong);
+            clip-path: var(--chamfer-sm);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .chat-title { font-size: 14px; font-weight: 700; letter-spacing: 0.06em; }
+        .chat-subtitle { font-size: 10.5px; color: var(--text-faint); margin-top: 2px; letter-spacing: 0.08em; }
 
         #chat-container {
             flex: 1;
             overflow-y: auto;
-            padding: 10px;
+            padding: 12px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
             scrollbar-width: none;
         }
         #chat-container::-webkit-scrollbar { display: none; }
 
         .msg {
-            max-width: 90%;
-            padding: 8px 12px;
+            max-width: 92%;
+            padding: 9px 13px;
             font-size: 13px;
-            line-height: 1.55;
-            border-radius: 17px;
+            line-height: 1.6;
+            border-radius: 2px;
             word-break: break-word;
         }
-        .msg-ai { background: white; color: var(--label-primary); align-self: flex-start; border-bottom-left-radius: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
-        .msg-user { background: var(--ios-blue); color: white; align-self: flex-end; border-bottom-right-radius: 5px; }
-        .msg-loading { background: white; color: var(--label-tertiary); align-self: flex-start; border-bottom-left-radius: 5px; font-style: italic; font-size: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+        .msg-ai {
+            background: rgba(16, 20, 31, 0.6);
+            border: 1px solid var(--hairline);
+            border-left: 2px solid var(--accent);
+            color: var(--text);
+            align-self: flex-start;
+        }
+        .msg-user {
+            background: var(--accent);
+            color: var(--ink);
+            font-weight: 500;
+            align-self: flex-end;
+            clip-path: var(--chamfer-sm);
+        }
+        .msg-loading {
+            background: rgba(16, 20, 31, 0.5);
+            border: 1px solid var(--hairline);
+            border-left: 2px solid var(--text-faint);
+            color: var(--text-faint);
+            align-self: flex-start;
+            font-size: 12px;
+        }
+        .msg-loading::after {
+            content: '…';
+            animation: dots 1.2s steps(4) infinite;
+        }
+        @keyframes dots { 0% { content: ''; } 25% { content: '·'; } 50% { content: '··'; } 75% { content: '···'; } }
 
-        .input-bar { padding: 8px 10px; border-top: 0.5px solid var(--separator); display: flex; align-items: center; gap: 7px; }
+        .input-bar { padding: 10px 12px; border-top: 1px solid var(--line); display: flex; align-items: center; gap: 8px; }
 
         .input-field {
             flex: 1; min-width: 0;
-            padding: 8px 12px;
-            background: rgba(255,255,255,0.7);
-            border: 0.5px solid rgba(180,200,230,0.35);
-            border-radius: 20px;
+            padding: 10px 13px;
+            background: rgba(16, 20, 31, 0.65);
+            border: 1px solid var(--hairline);
+            border-radius: 2px;
             font-size: 13px;
             font-family: inherit;
-            color: var(--label-primary);
+            color: var(--text);
             outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
         }
-        .input-field::placeholder { color: var(--label-tertiary); }
-        .input-field:focus { background: rgba(255,255,255,0.95); }
+        .input-field::placeholder { color: var(--text-faint); }
+        .input-field:focus { border-color: var(--line-strong); box-shadow: 0 0 0 1px var(--line); }
 
         .send-btn {
-            width: 28px; height: 28px;
+            width: 37px; height: 37px;
             flex-shrink: 0;
-            background: var(--ios-blue);
+            background: var(--accent);
             border: none;
-            border-radius: 50%;
+            clip-path: var(--chamfer-sm);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: opacity 0.15s;
+            transition: filter 0.15s;
         }
-        .send-btn:active { opacity: 0.75; }
+        .send-btn svg path { stroke: var(--ink); }
+        .send-btn:hover { filter: brightness(1.12); }
+        .send-btn:active { filter: brightness(0.9); }
+
+        @media (max-width: 1100px) {
+            .sidebar { width: 256px; }
+            #chat-panel { width: 264px; }
+            .nav-stats { display: none; }
+        }
     </style>
 </head>
 <body>
 
-<div class="sidebar">
-    <div class="card">
-        <div class="card-inner">
+<nav class="navbar">
+    <div class="logo-mark">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7V12C3 17.5 6.8 21.7 12 23C17.2 21.7 21 17.5 21 12V7L12 2Z" stroke="white" stroke-width="2" stroke-linejoin="round" fill="rgba(255,255,255,0.15)"/></svg>
+    </div>
+    <div class="brand">
+        <span class="brand-name">Disaster<b>_Hub</b></span>
+        <span class="brand-sub">East Taiwan Shelter Ops</span>
+    </div>
+    <div class="nav-stats">
+        <div class="stat-chip"><span class="live-dot"></span>即時監測中</div>
+        <div class="stat-chip">避難所 <b id="stat-shelters">–</b></div>
+        <div class="stat-chip">總容量 <b id="stat-capacity">–</b></div>
+    </div>
+</nav>
+
+<div class="workspace">
+
+    <div id="map-panel">
+        <div id="map"></div>
+        <canvas id="crowd-canvas"></canvas>
+        <div class="legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#2ee6a8"></div>花蓮 / 台東避難所</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#4da6ff"></div>宜蘭避難所</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#ff3d5c"></div>受災影響範圍</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#ffe14d"></div>疏散中人群</div>
+        </div>
+    </div>
+
+    <aside class="sidebar overlay-panel">
+        <div class="panel-section">
             <div class="section-header">觀測區域</div>
             <div class="list-row" onclick="toggleDropdown(event,'city-dropdown')">
                 <span class="row-label">地區</span>
@@ -365,10 +579,8 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="card">
-        <div class="card-inner">
+        <div class="panel-section">
             <div class="section-header">災害模擬</div>
             <div class="list-row" onclick="toggleDropdown(event,'loc-dropdown')">
                 <span class="row-label">模擬中心</span>
@@ -398,51 +610,45 @@
                 <input type="range" id="sim-radius" min="1" max="60" value="10">
             </div>
         </div>
-    </div>
 
-    <button class="btn-primary" id="btn-simulate">執行空間模擬</button>
-
-    <!-- 模擬進度條 -->
-    <div id="sim-progress-wrap">
-        <div class="progress-label">
-            <span>人群疏散模擬中</span>
-            <span id="progress-pct">0%</span>
+        <!-- 模擬進度條 -->
+        <div id="sim-progress-wrap">
+            <div class="progress-label">
+                <span>人群疏散模擬中</span>
+                <span id="progress-pct">0%</span>
+            </div>
+            <div id="sim-progress-bar-bg">
+                <div id="sim-progress-bar"></div>
+            </div>
         </div>
-        <div id="sim-progress-bar-bg">
-            <div id="sim-progress-bar"></div>
+
+        <div class="panel-actions">
+            <button class="btn-primary" id="btn-simulate">執行空間模擬</button>
+            <button class="btn-danger" id="btn-reset">清除所有圖層</button>
         </div>
-    </div>
+    </aside>
 
-    <button class="btn-danger" id="btn-reset">清除所有圖層</button>
-</div>
-
-<div id="map-panel">
-    <div id="map"></div>
-    <canvas id="crowd-canvas"></canvas>
-    <div class="legend">
-        <div class="legend-item"><div class="legend-dot" style="background:#34C759"></div>花蓮 / 台東避難所</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#5AC8FA"></div>宜蘭避難所</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#FF3B30"></div>受災影響範圍</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#FFD60A;border:1px solid #ccc"></div>疏散中人群</div>
-    </div>
-</div>
-
-<div id="chat-panel">
-    <div class="chat-card">
+    <aside id="chat-panel" class="overlay-panel">
         <div class="chat-header">
-            <div class="chat-title">AI 決策助手</div>
-            <div class="chat-subtitle">RAG · PostGIS 空間查詢 · 本地 LLM</div>
+            <div class="chat-avatar">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 3L13.9 8.6L19.5 9.2L15.4 13L16.6 18.5L12 15.6L7.4 18.5L8.6 13L4.5 9.2L10.1 8.6L12 3Z" stroke="#a5b4fc" stroke-width="1.6" stroke-linejoin="round"/></svg>
+            </div>
+            <div>
+                <div class="chat-title">AI 決策助手</div>
+                <div class="chat-subtitle">RAG · PostGIS 空間查詢 · 本地 LLM</div>
+            </div>
         </div>
         <div id="chat-container">
             <div class="msg msg-ai">系統就緒。請設定模擬參數以分析潛在風險。</div>
         </div>
         <div class="input-bar">
-            <input class="input-field" type="text" id="user-input" placeholder="輸入問題…" onkeypress="if(event.key==='Enter') sendChat(this.value)">
+            <input class="input-field" type="text" id="user-input" placeholder="詢問避難所資訊…" onkeypress="if(event.key==='Enter') sendChat(this.value)">
             <button class="send-btn" onclick="sendChat(document.getElementById('user-input').value)">
-                <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M6 1L11 6L6 11M1 6H11" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <svg width="13" height="13" viewBox="0 0 12 12" fill="none"><path d="M6 1L11 6L6 11M1 6H11" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
         </div>
-    </div>
+    </aside>
+
 </div>
 
 <script>
@@ -484,15 +690,15 @@
         const v = e.target.value;
         document.getElementById('radius-val').textContent = `${v} km`;
         const pct = ((v - 1) / 59) * 100;
-        e.target.style.background = `linear-gradient(to right, #007AFF ${pct}%, rgba(0,122,255,0.18) ${pct}%)`;
+        e.target.style.background = `linear-gradient(to right, #ffbe2e ${pct}%, rgba(255,190,46,0.15) ${pct}%)`;
     });
 
     // ── Leaflet ──────────────────────────────────────────────
     const map = L.map('map', { center: [23.9, 121.6], zoom: 9, zoomControl: true });
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 18,
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/attributions">CARTO</a>',
+        maxZoom: 19,
     }).addTo(map);
 
     let markers = [];
@@ -503,29 +709,26 @@
     const shelterOccupancy = {};
 
     function getOccupancyColor(rate) {
-        if (rate < 0.5) return '#34C759';
-        if (rate < 0.8) return '#FF9500';
-        return '#FF3B30';
+        if (rate < 0.5) return '#2ee6a8';
+        if (rate < 0.8) return '#ff7a3d';
+        return '#ff3d5c';
     }
 
     function createMarkerIcon(baseColor, size, occupancyRate) {
         const color = occupancyRate > 0 ? getOccupancyColor(occupancyRate) : baseColor;
+        const s = size + 12;
         return L.divIcon({
             className: '',
-            html: `<div style="
-                width:${size}px;height:${size}px;
-                background:${color};
-                border:2.5px solid white;
-                border-radius:50%;
-                box-shadow:0 2px 8px rgba(0,0,0,0.2);
-                display:flex;align-items:center;justify-content:center;
-                font-size:${Math.max(7, size * 0.38)}px;
-                font-weight:600;color:white;
-                font-family:-apple-system,sans-serif;
-                transition:background 0.4s;
-            "></div>`,
-            iconSize: [size, size],
-            iconAnchor: [size/2, size/2],
+            html: `<svg width="${s}" height="${s}" viewBox="0 0 28 28" style="filter:drop-shadow(0 2px 5px rgba(6,10,20,0.65));overflow:visible">
+                <path d="M14 2 L24.4 8 V20 L14 26 L3.6 20 V8 Z" fill="#10141f" fill-opacity="0.55" stroke="${color}" stroke-width="1.8"/>
+                <path d="M14 7.4 L19.7 10.7 V17.3 L14 20.6 L8.3 17.3 V10.7 Z" fill="${color}"/>
+                <line x1="14" y1="2" x2="14" y2="5.2" stroke="${color}" stroke-width="1.6"/>
+                <line x1="3.6" y1="20" x2="6.4" y2="18.4" stroke="${color}" stroke-width="1.6"/>
+                <line x1="24.4" y1="20" x2="21.6" y2="18.4" stroke="${color}" stroke-width="1.6"/>
+                <circle cx="14" cy="14" r="1.6" fill="#10141f"/>
+            </svg>`,
+            iconSize: [s, s],
+            iconAnchor: [s/2, s/2],
         });
     }
 
@@ -533,6 +736,10 @@
         const res = await fetch('/api/3d_data');
         allShelterData = await res.json();
         allShelterData.forEach(d => { shelterOccupancy[d.name] = d.ppl || 0; });
+        const statShelters = document.getElementById('stat-shelters');
+        const statCapacity = document.getElementById('stat-capacity');
+        if (statShelters) statShelters.textContent = allShelterData.length;
+        if (statCapacity) statCapacity.textContent = allShelterData.reduce((s, d) => s + (d.z || 0), 0).toLocaleString();
         renderMarkers(allShelterData);
     }
 
@@ -541,7 +748,7 @@
         markers = [];
 
         data.forEach(d => {
-            const baseColor = d.name.includes('YILAN') ? '#5AC8FA' : '#34C759';
+            const baseColor = d.name.includes('YILAN') ? '#4da6ff' : '#2ee6a8';
             const size = Math.max(12, Math.min(26, d.z / 80));
             const occ = shelterOccupancy[d.name] || 0;
             const rate = occ / d.z;
@@ -563,7 +770,7 @@
         const occ = shelterOccupancy[d.name] || 0;
         const remaining = Math.max(0, d.z - occ);
         const rate = Math.min(100, Math.round(occ / d.z * 100));
-        const barColor = rate < 50 ? '#34C759' : rate < 80 ? '#FF9500' : '#FF3B30';
+        const barColor = rate < 50 ? '#2ee6a8' : rate < 80 ? '#ff7a3d' : '#ff3d5c';
         return `
             <div class="popup-name">${d.name.replace(/\[.*?\]\s*/,'')}</div>
             <div class="popup-row"><span>總容量</span><span>${d.z} 人</span></div>
@@ -635,8 +842,75 @@
     }
 
     // 以下是新增的
-    const EVAC_DENSITY_PER_KM2 = { earthquake: 45, flood: 30, fire: 12 };
     const PEOPLE_PER_DOT = 25;
+    const EVAC_RATIO = { earthquake: 0.12, flood: 0.22, fire: 0.05 };
+
+    const COASTLINE = [
+        [25.00, 121.95], [24.93, 121.90], [24.85, 121.84], [24.75, 121.84],
+        [24.63, 121.87], [24.59, 121.88], [24.47, 121.84], [24.36, 121.80],
+        [24.24, 121.75], [24.13, 121.68], [24.03, 121.66], [23.98, 121.63],
+        [23.87, 121.61], [23.71, 121.55], [23.60, 121.52], [23.47, 121.51],
+        [23.32, 121.47], [23.20, 121.43], [23.10, 121.40], [22.97, 121.32],
+        [22.88, 121.25], [22.79, 121.20], [22.75, 121.165], [22.70, 121.07],
+        [22.61, 121.02], [22.46, 120.95], [22.34, 120.90],
+    ];
+
+    function coastLonAt(lat) {
+        const c = COASTLINE;
+        if (lat >= c[0][0]) return c[0][1];
+        if (lat <= c[c.length - 1][0]) return c[c.length - 1][1];
+        for (let i = 0; i < c.length - 1; i++) {
+            const [la, loA] = c[i], [lb, loB] = c[i + 1];
+            if (lat <= la && lat >= lb) {
+                const t = (la - lat) / (la - lb);
+                return loA + (loB - loA) * t;
+            }
+        }
+        return c[c.length - 1][1];
+    }
+
+    function isLand(lat, lon) {
+        return lon <= coastLonAt(lat) - 0.004;
+    }
+
+    const POP_CENTERS = [
+        { name: '宜蘭市', lat: 24.752, lon: 121.753, pop: 95000 },
+        { name: '羅東鎮', lat: 24.677, lon: 121.767, pop: 70000 },
+        { name: '礁溪鄉', lat: 24.827, lon: 121.771, pop: 34000 },
+        { name: '頭城鎮', lat: 24.857, lon: 121.823, pop: 29000 },
+        { name: '壯圍鄉', lat: 24.745, lon: 121.792, pop: 23000 },
+        { name: '員山鄉', lat: 24.741, lon: 121.721, pop: 32000 },
+        { name: '五結鄉', lat: 24.685, lon: 121.798, pop: 39000 },
+        { name: '冬山鄉', lat: 24.634, lon: 121.792, pop: 53000 },
+        { name: '蘇澳鎮', lat: 24.594, lon: 121.842, pop: 38000 },
+        { name: '三星鄉', lat: 24.664, lon: 121.653, pop: 21000 },
+        { name: '大同鄉', lat: 24.675, lon: 121.605, pop: 6000 },
+        { name: '南澳鄉', lat: 24.465, lon: 121.800, pop: 6000 },
+        { name: '新城鄉', lat: 24.028, lon: 121.640, pop: 20000 },
+        { name: '花蓮市', lat: 23.977, lon: 121.601, pop: 99000 },
+        { name: '吉安鄉', lat: 23.946, lon: 121.578, pop: 82000 },
+        { name: '壽豐鄉', lat: 23.870, lon: 121.508, pop: 17000 },
+        { name: '鳳林鎮', lat: 23.745, lon: 121.452, pop: 10000 },
+        { name: '光復鄉', lat: 23.669, lon: 121.423, pop: 12000 },
+        { name: '瑞穗鄉', lat: 23.497, lon: 121.376, pop: 11000 },
+        { name: '玉里鎮', lat: 23.336, lon: 121.312, pop: 24000 },
+        { name: '長濱鄉', lat: 23.315, lon: 121.451, pop: 7000 },
+        { name: '成功鎮', lat: 23.100, lon: 121.373, pop: 13000 },
+        { name: '東河鄉', lat: 22.970, lon: 121.302, pop: 8000 },
+        { name: '關山鎮', lat: 23.047, lon: 121.163, pop: 8500 },
+        { name: '池上鄉', lat: 23.122, lon: 121.215, pop: 8000 },
+        { name: '鹿野鄉', lat: 22.913, lon: 121.135, pop: 7500 },
+        { name: '卑南鄉', lat: 22.786, lon: 121.083, pop: 17000 },
+        { name: '台東市', lat: 22.756, lon: 121.144, pop: 104000 },
+        { name: '太麻里鄉', lat: 22.615, lon: 120.988, pop: 10000 },
+    ];
+
+    function gaussRand() {
+        let u = 0, v = 0;
+        while (!u) u = Math.random();
+        while (!v) v = Math.random();
+        return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+    }
 
     function pickShelterFor(lat, lon, candidates, planned) {
         let best = null, bestScore = Infinity;
@@ -658,26 +932,64 @@
             remaining: Math.max(0, s.capacity - (shelterOccupancy[s.name] || 0)),
         }));
         const totalRoom = candidates.reduce((sum, s) => sum + s.remaining, 0);
-        const density = EVAC_DENSITY_PER_KM2[disasterType] || 30;
-        const evacuees = Math.min(totalRoom, Math.round(Math.PI * radiusKm * radiusKm * density));
-        const totalDots = Math.min(300, Math.max(20, Math.round(evacuees / PEOPLE_PER_DOT)));
+        const lonScale = 111 * Math.cos(disasterLat * Math.PI / 180);
+
+        const covered = POP_CENTERS
+            .map(c => ({ ...c, d: distKm(c.lat, c.lon, disasterLat, disasterLon) }))
+            .map(c => ({ ...c, weight: c.pop * Math.max(0, Math.min(1, 1.15 - c.d / radiusKm)) }))
+            .filter(c => c.weight > 0);
+        const coveredPop = covered.reduce((s, c) => s + c.weight, 0);
+        const ratio = EVAC_RATIO[disasterType] || 0.12;
+        let evacuees = Math.round(coveredPop * ratio);
+        if (evacuees === 0) evacuees = Math.round(Math.PI * radiusKm * radiusKm * 2);
+        evacuees = Math.min(totalRoom, evacuees);
+
+        const totalDots = Math.min(300, Math.max(8, Math.round(evacuees / PEOPLE_PER_DOT)));
         const peoplePerDot = Math.max(1, Math.round(evacuees / totalDots));
         const planned = {};
 
+        function pickCenter() {
+            let r = Math.random() * coveredPop;
+            for (const c of covered) {
+                r -= c.weight;
+                if (r <= 0) return c;
+            }
+            return covered[covered.length - 1];
+        }
+
+        function sampleSpawn() {
+            for (let tries = 0; tries < 15; tries++) {
+                let lat, lon;
+                if (covered.length) {
+                    const c = pickCenter();
+                    const spreadKm = Math.min(3.2, 0.7 + Math.sqrt(c.pop) / 260);
+                    lat = c.lat + gaussRand() * spreadKm / 111;
+                    lon = c.lon + gaussRand() * spreadKm / lonScale;
+                } else {
+                    const angle = Math.random() * 2 * Math.PI;
+                    const r = Math.sqrt(Math.random()) * radiusKm;
+                    lat = disasterLat + (r / 111) * Math.cos(angle);
+                    lon = disasterLon + (r / lonScale) * Math.sin(angle);
+                }
+                if (distKm(lat, lon, disasterLat, disasterLon) <= radiusKm && isLand(lat, lon)) {
+                    return { lat, lon };
+                }
+            }
+            return null;
+        }
+
         for (let i = 0; i < totalDots; i++) {
-            const angle = Math.random() * 2 * Math.PI;
-            const r = Math.sqrt(Math.random()) * radiusKm;
-            const startLat = disasterLat + (r / 111) * Math.cos(angle);
-            const startLon = disasterLon + (r / (111 * Math.cos(disasterLat * Math.PI / 180))) * Math.sin(angle);
-            const shelter = pickShelterFor(startLat, startLon, candidates, planned);
+            const spawn = sampleSpawn();
+            if (!spawn) continue;
+            const shelter = pickShelterFor(spawn.lat, spawn.lon, candidates, planned);
             if (!shelter) break;
             planned[shelter.name] = (planned[shelter.name] || 0) + peoplePerDot;
 
             const delay = Math.random() * 8000;
-            const duration = 6000 + distKm(startLat, startLon, shelter.lat, shelter.lon) * 400 + Math.random() * 3000;
+            const duration = 6000 + distKm(spawn.lat, spawn.lon, shelter.lat, shelter.lon) * 400 + Math.random() * 3000;
 
             particles.push({
-                startLat, startLon,
+                startLat: spawn.lat, startLon: spawn.lon,
                 targetLat: shelter.lat,
                 targetLon: shelter.lon,
                 targetName: shelter.name,
@@ -694,7 +1006,9 @@
         if (particles.length === 0) {
             document.getElementById('sim-progress-wrap').classList.remove('visible');
             document.getElementById('btn-simulate').disabled = false;
-            addChat('範圍內的避難所皆已滿載，無法再安置人群。', 'ai');
+            addChat(totalRoom === 0
+                ? '範圍內的避難所皆已滿載，無法再安置人群。'
+                : '此範圍內幾乎沒有可疏散的人口（多為海域或無人山區），未產生疏散人流。', 'ai');
             return;
         }
 
@@ -776,11 +1090,11 @@
         const radius = parseFloat(document.getElementById('sim-radius').value);
         const type = state.type;
 
-        let color = '#FF3B30';
-        if (type === 'flood') color = '#007AFF';
-        if (type === 'fire') color = '#FF9500';
+        let color = '#ff3d5c';
+        if (type === 'flood') color = '#4da6ff';
+        if (type === 'fire') color = '#ff7a3d';
 
-        const dotColor = '#FFD60A';
+        const dotColor = '#ffe14d';
 
         if (disasterCircle) map.removeLayer(disasterCircle);
         disasterCircle = L.circle([lat, lon], {
