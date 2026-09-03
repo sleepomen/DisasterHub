@@ -380,6 +380,50 @@
         .popup-bar { height: 5px; background: rgba(148, 163, 198, 0.15); margin-top: 9px; overflow: hidden; }
         .popup-bar-fill { height: 100%; background: var(--green); transition: width 0.3s; }
 
+        /* 載入失敗提示 */
+        .app-error {
+            position: absolute;
+            top: 16px; left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: min(560px, calc(100% - 32px));
+            background: var(--panel);
+            backdrop-filter: blur(18px) saturate(140%);
+            border: 1px solid rgba(255, 45, 120, 0.45);
+            border-radius: 3px;
+            padding: 10px 14px;
+            z-index: 600;
+            font-size: 12px;
+            color: var(--text);
+            box-shadow: var(--shadow);
+        }
+        .app-error[hidden] { display: none; }
+        .app-error-icon {
+            flex-shrink: 0;
+            width: 16px; height: 16px;
+            display: flex; align-items: center; justify-content: center;
+            background: var(--magenta);
+            color: var(--ink);
+            font-weight: 700;
+            font-size: 11px;
+            clip-path: var(--chamfer-sm);
+        }
+        #app-error-retry {
+            flex-shrink: 0;
+            background: transparent;
+            border: 1px solid var(--line-strong);
+            color: var(--accent);
+            font-family: inherit;
+            font-size: 11px;
+            letter-spacing: 0.04em;
+            padding: 4px 10px;
+            cursor: pointer;
+            clip-path: var(--chamfer-sm);
+        }
+        #app-error-retry:hover { background: var(--accent-dim); }
+
         /* 圖例 */
         .legend {
             position: absolute;

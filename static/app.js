@@ -78,9 +78,32 @@
         });
     }
 
+    function showLoadError(message) {
+        const banner = document.getElementById('app-error');
+        const text = document.getElementById('app-error-text');
+        if (!banner || !text) return;
+        text.textContent = message;
+        banner.hidden = false;
+    }
+
+    function clearLoadError() {
+        const banner = document.getElementById('app-error');
+        if (banner) banner.hidden = true;
+    }
+
     async function loadShelters() {
-        const res = await fetch('/api/shelters');
-        allShelterData = await res.json();
+        try {
+            const res = await fetch('/api/shelters');
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            allShelterData = await res.json();
+        } catch (err) {
+            // 後端或資料庫掛掉時不要只留一張空白地圖，要講清楚發生什麼事
+            console.error('載入避難所資料失敗', err);
+            showLoadError('無法載入避難所資料，請確認後端服務與資料庫是否正常。');
+            addChat('無法載入避難所資料，地圖目前是空的。請確認後端與資料庫狀態後按「重新載入」。', 'ai');
+            return;
+        }
+        clearLoadError();
         allShelterData.forEach(d => { shelterOccupancy[d.name] = d.ppl || 0; });
         const statShelters = document.getElementById('stat-shelters');
         const statCapacity = document.getElementById('stat-capacity');
@@ -406,6 +429,7 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ lat, lon, radius, type })
             });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
             const result = await res.json();
 
             if (result.impacted_count === 0) {
@@ -471,6 +495,7 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: v })
             });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
             const data = await res.json();
             loadingEl.remove();
             addChat(data.reply, 'ai');
@@ -479,5 +504,13 @@
             addChat('連線失敗，請稍後再試', 'ai');
         }
     };
+
+    const retryBtn = document.getElementById('app-error-retry');
+    if (retryBtn) {
+        retryBtn.addEventListener('click', () => {
+            clearLoadError();
+            loadShelters();
+        });
+    }
 
     loadShelters();
