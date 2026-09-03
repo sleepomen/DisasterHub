@@ -75,6 +75,8 @@ class ShelterRepository:
         try:
             with self._cursor() as cursor:
                 cursor.execute("ALTER TABLE shelters ADD COLUMN IF NOT EXISTS address VARCHAR(200) DEFAULT ''")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_shelters_geom ON shelters USING GIST (geom)")
+                cursor.execute("DROP TABLE IF EXISTS roads")
         except Exception as e:
             raise RuntimeError(f"ensure_schema 失敗：{e}")
 
