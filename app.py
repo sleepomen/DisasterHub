@@ -2,8 +2,9 @@ import asyncio
 import logging
 import secrets
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Header, HTTPException
-from fastapi.responses import HTMLResponse
+from pathlib import Path
+from fastapi import FastAPI, Header, HTTPException, Response
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 from repositories.shelter_repository import ShelterRepository
@@ -11,11 +12,24 @@ from services.map_service import MapService
 from services.sync_service import DataSyncService
 from services.chat_service import ChatService
 from services.vector_store import VectorStore
+from services import health
 import config
 import uvicorn
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
+
+# 設定不完整就不要假裝服務正常，直接在 import 階段失敗，訊息才看得懂
+try:
+    for warning in config.validate():
+        logger.warning("設定提醒：%s", warning)
+except config.ConfigError as e:
+    logger.error("設定檢查失敗：%s", e)
+    raise
+
+BASE_DIR = Path(__file__).resolve().parent
+STATIC_DIR = BASE_DIR / "static"
+INDEX_FILE = STATIC_DIR / "index.html"
 
 # 1. 初始化 server / repo / services
 repo = ShelterRepository()
@@ -24,11 +38,11 @@ vector_store = VectorStore()
 chat_service = ChatService(vector_store=vector_store, repo=repo)
 
 
-def sync_and_reindex() -> int:
+def sync_and_reindex(force: bool = False) -> int:
     repo.ensure_schema()
     DataSyncService().sync()
     shelters = repo.get_all_shelters()
-    vector_store.build_index(shelters)
+    vector_store.build_index(shelters, force=force)
     return len(shelters)
 
 
@@ -44,12 +58,36 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
+# liveness：只表示 process 還活著
 @app.get("/health")
-async def health():
+async def health_check():
     return {"status": "ok"}
+
+
+# readiness：真的去戳依賴。
+# 資料庫與向量索引重啟後可以自行恢復，列為必要條件；
+# Ollama 跑在宿主機，重啟容器救不了它，只回報狀態不影響判定。
+@app.get("/health/ready")
+async def readiness_check(response: Response):
+    db_ok, db_detail = await asyncio.to_thread(health.check_database, repo)
+    index_ok, index_detail = await asyncio.to_thread(health.check_index, vector_store)
+    ollama_ok, ollama_detail = await asyncio.to_thread(health.check_ollama)
+
+    ready = db_ok and index_ok
+    if not ready:
+        response.status_code = 503
+
+    return {
+        "status": "ready" if ready else "not_ready",
+        "checks": {
+            "database": {"ok": db_ok, "required": True, "detail": db_detail},
+            "vector_index": {"ok": index_ok, "required": True, "detail": index_detail},
+            "ollama": {"ok": ollama_ok, "required": False, "detail": ollama_detail},
+        },
+    }
 
 # Pydantic Models
 #規範輸入範圍
@@ -83,7 +121,7 @@ async def manual_sync(x_api_key: str = Header(default="")):
         raise HTTPException(status_code=503, detail="伺服器未設定 SYNC_API_KEY，手動同步已停用")
     if not secrets.compare_digest(x_api_key, config.SYNC_API_KEY):
         raise HTTPException(status_code=401, detail="API key 無效")
-    count = await asyncio.to_thread(sync_and_reindex)
+    count = await asyncio.to_thread(sync_and_reindex, True)
     return {"status": "success", "message": "資料同步與索引重建完成", "count": count}
 
 # 地圖載入時呼叫
@@ -148,13 +186,11 @@ async def chat(request: ChatRequest):
     return {"status": "success", "reply": reply}
 
 # 渲染首頁
-@app.get("/", response_class=HTMLResponse)
+@app.get("/", response_class=FileResponse)
 async def read_index():
-    try:
-        with open("static/index.html", "r", encoding="utf-8") as f:
-            return f.read()
-    except FileNotFoundError:
-        return "<h1>Static/index.html 檔案不存在</h1>"
+    if not INDEX_FILE.is_file():
+        raise HTTPException(status_code=404, detail="找不到 static/index.html")
+    return FileResponse(INDEX_FILE, media_type="text/html")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8501)
