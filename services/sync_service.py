@@ -18,7 +18,6 @@ class DataSyncService:
             print("synchronization aborted, no data fetched.")
             return
 
-        # 以下是新增的
         try:
             success_count = self.repository.upsert_shelters(shelters)
         except Exception as e:
