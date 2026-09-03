@@ -65,6 +65,7 @@ cp .env.example .env
 | `POSTGRES_HOST` / `POSTGRES_PORT` | 容器內請保持 `disaster_db` / `5432` |
 | `OLLAMA_HOST` | Ollama 位址，預設 `http://host.docker.internal:11434` |
 | `SYNC_API_KEY` | 手動呼叫 `/api/sync` 所需的金鑰，請換成隨機長字串 |
+| `CHROMA_PATH` | 向量索引落地路徑，Docker 由 compose 設為 `/data/chroma`；留空則索引只存在記憶體 |
 
 可選變數：`OLLAMA_MODEL`（預設 `llama3.2:3b`）、`OLLAMA_TEMPERATURE`、`OLLAMA_NUM_PREDICT`、`OLLAMA_TIMEOUT`、`EMBEDDING_PROVIDER`（`ollama` 或 `minilm`）、`EMBEDDING_MODEL`（預設 `bge-m3`）、`EMBEDDING_TIMEOUT`、`RAG_TOP_K`、`DB_POOL_MIN` / `DB_POOL_MAX`。
 
@@ -83,6 +84,18 @@ docker compose up --build
 
 首次啟動會自動執行 `init.sql` 建表、同步 `data_for_refuge/` 的 JSON 到 PostGIS，並建立向量索引。開啟 <http://localhost:8501>。
 
+向量索引會落在 `chroma_data` volume，之後重啟若資料沒變就直接沿用，不再重跑 embedding。要強制重建索引請呼叫 `/api/sync`。
+
+啟動時若缺少必要環境變數（資料庫帳密等），服務會直接以清楚的錯誤訊息結束，不會帶著壞掉的設定跑起來。
+
+### 開發模式（熱重載 + 測試依賴）
+
+`docker-compose.yml` 是正式設定：不掛原始碼、不裝測試依賴、不開 `--reload`。要開發請疊上 `docker-compose.dev.yml`：
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+```
+
 ---
 
 ## 專案結構
@@ -92,12 +105,14 @@ Disaster_Hub/
 ├── app.py                      # FastAPI 主程式
 ├── config.py                   # 所有環境變數集中處
 ├── Dockerfile                  # INSTALL_DEV build arg 控制 dev 依賴
-├── docker-compose.yml
+├── docker-compose.yml          # 正式設定
+├── docker-compose.dev.yml      # 開發疊加（熱重載 / 原始碼掛載 / 測試依賴）
 ├── requirements.txt            # 執行期依賴
 ├── requirements-dev.txt        # 測試依賴（pytest / httpx）
 ├── init.sql                    # 資料庫初始化（首次啟動自動執行）
 ├── .env.example
 ├── .github/workflows/ci.yml    # push / PR 自動跑測試
+├── conftest.py                 # 測試用環境變數預設值
 │
 ├── models/
 │   └── shelter.py              # Shelter 資料模型
@@ -112,6 +127,7 @@ Disaster_Hub/
 │   ├── chat_service.py         # 意圖判斷 + RAG + LLM
 │   ├── shelter_profile.py      # 名稱/地址 → 鄉鎮、設施、別名
 │   ├── embeddings.py           # Ollama / MiniLM embedding
+│   ├── health.py               # readiness 依賴檢查
 │   └── vector_store.py         # ChromaDB 向量索引
 │
 ├── data_for_refuge/
@@ -134,6 +150,7 @@ Disaster_Hub/
     ├── test_chat_service.py
     ├── test_eval_metrics.py
     ├── test_sync_service.py
+    ├── test_config.py
     └── test_api_data.py
 ```
 
@@ -143,13 +160,16 @@ Disaster_Hub/
 
 | 方法 | 路徑 | 說明 |
 |---|---|---|
-| GET | `/health` | 服務健康檢查 |
+| GET | `/health` | liveness，只表示 process 還活著 |
+| GET | `/health/ready` | readiness，實際檢查資料庫與向量索引；未就緒回 503 |
 | GET | `/api/shelters` | 取得所有避難所資料 |
 | POST | `/api/simulate_disaster` | 執行災害空間模擬 |
 | POST | `/api/reset_simulation` | 清除模擬狀態 |
 | POST | `/api/nearest_shelter` | 查詢最近避難所（PostGIS 距離排序）|
 | POST | `/api/chat` | AI 決策助手 |
 | POST | `/api/sync` | 手動觸發資料同步（需 `X-API-Key` header）|
+
+`/health/ready` 把資料庫與向量索引視為必要條件（重啟容器可以恢復），Ollama 只回報狀態不影響判定（它跑在宿主機，重啟容器救不了）。容器的 `HEALTHCHECK` 打的是這支端點。
 
 手動同步範例：
 
@@ -166,6 +186,8 @@ curl -X POST http://localhost:8501/api/sync -H "X-API-Key: $SYNC_API_KEY"
 ```bash
 docker exec -it disaster_app pytest tests/ -v
 ```
+
+（容器內跑測試需要用開發模式啟動，正式 image 不含 pytest。）
 
 或在本機：
 

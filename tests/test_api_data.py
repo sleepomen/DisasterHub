@@ -71,3 +71,39 @@ def test_index_served(client):
     res = client.get("/")
     assert res.status_code == 200
     assert "<html" in res.text.lower()
+
+
+def test_health_is_liveness_only(client):
+    res = client.get("/health")
+    assert res.status_code == 200
+    assert res.json() == {"status": "ok"}
+
+
+def test_ready_fails_when_database_down(client):
+    with patch("repositories.shelter_repository.ShelterRepository.ping", side_effect=RuntimeError("boom")), \
+         patch("services.health.check_ollama", return_value=(True, "ok")):
+        res = client.get("/health/ready")
+    assert res.status_code == 503
+    body = res.json()
+    assert body["status"] == "not_ready"
+    assert body["checks"]["database"]["ok"] is False
+
+
+def test_ready_fails_when_index_empty(client):
+    with patch("repositories.shelter_repository.ShelterRepository.ping"), \
+         patch("services.vector_store.VectorStore.count", return_value=0), \
+         patch("services.health.check_ollama", return_value=(True, "ok")):
+        res = client.get("/health/ready")
+    assert res.status_code == 503
+    assert res.json()["checks"]["vector_index"]["ok"] is False
+
+
+def test_ready_ignores_ollama_being_down(client):
+    with patch("repositories.shelter_repository.ShelterRepository.ping"), \
+         patch("services.vector_store.VectorStore.count", return_value=2), \
+         patch("services.health.check_ollama", return_value=(False, "unreachable (ConnectionError)")):
+        res = client.get("/health/ready")
+    assert res.status_code == 200
+    body = res.json()
+    assert body["status"] == "ready"
+    assert body["checks"]["ollama"] == {"ok": False, "required": False, "detail": "unreachable (ConnectionError)"}

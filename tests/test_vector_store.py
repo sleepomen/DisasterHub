@@ -1,3 +1,4 @@
+from unittest.mock import patch
 import pytest
 from models.shelter import Shelter
 from services.vector_store import VectorStore, Hit
@@ -100,3 +101,48 @@ def test_empty_index_behaviour():
     s = VectorStore(embedding_function=KeywordEmbedding(), collection_name="test_vector_store_empty")
     assert s.retrieve("宜蘭") == []
     assert "沒有避難所資料" in s.search("宜蘭")
+
+
+def make_store(path, name="persist_test"):
+    return VectorStore(embedding_function=KeywordEmbedding(), collection_name=name, persist_path=str(path))
+
+
+def test_persisted_index_survives_new_instance(tmp_path):
+    make_store(tmp_path).build_index(SHELTERS)
+
+    reopened = make_store(tmp_path)
+    assert reopened.count() == len(SHELTERS)
+    assert reopened.retrieve("台東 體育館", n_results=1)[0].name == "[TAITUNG] 台東縣立體育館"
+
+
+def test_unchanged_data_skips_reembedding(tmp_path):
+    make_store(tmp_path).build_index(SHELTERS)
+
+    reopened = make_store(tmp_path)
+    with patch.object(reopened.collection, "add") as add:
+        reopened.build_index(SHELTERS)
+        add.assert_not_called()
+
+
+def test_changed_data_triggers_rebuild(tmp_path):
+    make_store(tmp_path).build_index(SHELTERS)
+
+    reopened = make_store(tmp_path)
+    reopened.build_index(SHELTERS[:2])
+    assert reopened.count() == 2
+
+
+def test_force_rebuilds_even_when_unchanged(tmp_path):
+    make_store(tmp_path).build_index(SHELTERS)
+
+    reopened = make_store(tmp_path)
+    with patch.object(reopened.collection, "add", wraps=reopened.collection.add) as add:
+        reopened.build_index(SHELTERS, force=True)
+        add.assert_called_once()
+
+
+def test_memory_store_writes_no_fingerprint(tmp_path):
+    store = VectorStore(embedding_function=KeywordEmbedding(), collection_name="memory_only", persist_path="")
+    store.build_index(SHELTERS)
+    assert store.count() == len(SHELTERS)
+    assert list(tmp_path.iterdir()) == []
