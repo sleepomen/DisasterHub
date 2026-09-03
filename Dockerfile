@@ -20,7 +20,8 @@ RUN if [ "$INSTALL_DEV" = "true" ]; then \
 
 COPY . .
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8501/health', timeout=4)"
+# 用 readiness 而非 liveness：資料庫或向量索引壞掉時容器要顯示 unhealthy
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8501/health/ready', timeout=8)"
 
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8501"]
