@@ -1,4 +1,3 @@
-# 以下是新增的
 from unittest.mock import patch
 import pytest
 from models.shelter import Shelter
@@ -37,8 +36,8 @@ def client():
             yield c
 
 
-def test_3d_data_endpoint(client):
-    res = client.get("/api/3d_data")
+def test_shelters_endpoint(client):
+    res = client.get("/api/shelters")
     assert res.status_code == 200
     data = res.json()
     assert isinstance(data, list)

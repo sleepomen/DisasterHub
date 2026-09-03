@@ -1,4 +1,3 @@
-# 以下是新增的
 from unittest.mock import MagicMock, patch
 import pytest
 from models.shelter import Shelter

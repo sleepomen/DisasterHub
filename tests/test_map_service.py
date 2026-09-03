@@ -1,9 +1,9 @@
 import unittest
 from models.shelter import Shelter
-from services.map_server import MapService
+from services.map_service import MapService
 
 class TestMapService(unittest.TestCase):
-    def test_transform_shelters_to_3d_data(self):
+    def test_transform_shelters_to_map_points(self):
         # Arrange
         mock_shelters = [
             Shelter(name="花蓮體育館", capacity=100, lat=23.9, lon=121.6, current_people=10),
@@ -12,7 +12,7 @@ class TestMapService(unittest.TestCase):
         service = MapService()
 
         # Act
-        result = service.prepare_3d_data(mock_shelters)
+        result = service.to_map_points(mock_shelters)
 
         # Assert
         self.assertEqual(len(result), 2)
@@ -27,7 +27,7 @@ class TestMapService(unittest.TestCase):
             Shelter(name="測試", capacity=500, lat=23.9, lon=121.6, current_people=0)
         ]
         service = MapService()
-        result = service.prepare_3d_data(mock_shelters)
+        result = service.to_map_points(mock_shelters)
 
         self.assertIn('name', result[0])
         self.assertIn('lat', result[0])
@@ -36,7 +36,7 @@ class TestMapService(unittest.TestCase):
         self.assertIn('ppl', result[0])
 
     def test_empty_input(self):
-        self.assertEqual(MapService().prepare_3d_data([]), [])
+        self.assertEqual(MapService().to_map_points([]), [])
 
 if __name__ == '__main__':
     unittest.main()

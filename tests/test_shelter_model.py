@@ -20,7 +20,6 @@ def test_shelter_default_people():
     shelter = Shelter(name="測試中心", capacity=500, lat=23.9, lon=121.6)
     assert shelter.current_people == 0
 
-# 以下是新增的
 def test_remaining_never_negative():
     shelter = Shelter(name="測試中心", capacity=100, lat=23.9, lon=121.6, current_people=150)
     assert shelter.remaining == 0
