@@ -71,6 +71,11 @@ class ShelterRepository:
         finally:
             pool.putconn(conn, close=bool(conn.closed))
 
+    def ping(self) -> None:
+        """readiness 用：確認連線池拿得到連線，而且資料庫真的答得出來"""
+        with self._cursor() as cursor:
+            cursor.execute("SELECT 1")
+
     def ensure_schema(self):
         try:
             with self._cursor() as cursor:
