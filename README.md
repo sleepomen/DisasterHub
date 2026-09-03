@@ -91,23 +91,27 @@ docker compose up --build
 Disaster_Hub/
 ├── app.py                      # FastAPI 主程式
 ├── config.py                   # 所有環境變數集中處
-├── Dockerfile
+├── Dockerfile                  # INSTALL_DEV build arg 控制 dev 依賴
 ├── docker-compose.yml
-├── requirements.txt
+├── requirements.txt            # 執行期依賴
+├── requirements-dev.txt        # 測試依賴（pytest / httpx）
 ├── init.sql                    # 資料庫初始化（首次啟動自動執行）
 ├── .env.example
+├── .github/workflows/ci.yml    # push / PR 自動跑測試
 │
 ├── models/
 │   └── shelter.py              # Shelter 資料模型
 │
 ├── repositories/
-│   └── shelter_repository.py   # PostGIS 查詢（連線池、批次 upsert）
+│   └── shelter_repository.py   # PostGIS 查詢（連線池、批次 upsert、schema migration）
 │
 ├── services/
 │   ├── data_fetcher.py         # 讀取 JSON 資料
-│   ├── map_server.py           # 地圖資料格式化
+│   ├── map_service.py          # 地圖資料格式化
 │   ├── sync_service.py         # 資料同步
 │   ├── chat_service.py         # 意圖判斷 + RAG + LLM
+│   ├── shelter_profile.py      # 名稱/地址 → 鄉鎮、設施、別名
+│   ├── embeddings.py           # Ollama / MiniLM embedding
 │   └── vector_store.py         # ChromaDB 向量索引
 │
 ├── data_for_refuge/
@@ -116,15 +120,21 @@ Disaster_Hub/
 │   └── yilan_shelter.json      # 宜蘭（20 筆）
 │
 ├── static/
-│   └── index.html              # 前端介面
+│   ├── index.html              # 頁面骨架
+│   ├── style.css               # 介面樣式
+│   ├── app.js                  # 地圖 / 模擬 / 聊天邏輯
+│   └── geo_data.js             # 海岸線折線 + 鄉鎮人口中心
 │
 └── tests/
     ├── test_shelter_model.py
     ├── test_map_service.py
     ├── test_data_fetcher2.py
+    ├── test_shelter_profile.py
+    ├── test_vector_store.py
     ├── test_chat_service.py
+    ├── test_eval_metrics.py
     ├── test_sync_service.py
-    └── test_aSpi_data.py
+    └── test_api_data.py
 ```
 
 ---
@@ -133,7 +143,8 @@ Disaster_Hub/
 
 | 方法 | 路徑 | 說明 |
 |---|---|---|
-| GET | `/api/3d_data` | 取得所有避難所資料 |
+| GET | `/health` | 服務健康檢查 |
+| GET | `/api/shelters` | 取得所有避難所資料 |
 | POST | `/api/simulate_disaster` | 執行災害空間模擬 |
 | POST | `/api/reset_simulation` | 清除模擬狀態 |
 | POST | `/api/nearest_shelter` | 查詢最近避難所（PostGIS 距離排序）|
@@ -150,10 +161,17 @@ curl -X POST http://localhost:8501/api/sync -H "X-API-Key: $SYNC_API_KEY"
 
 ## 執行測試
 
-測試全部使用 mock，不需要資料庫或 Ollama：
+測試全部使用 mock，不需要資料庫或 Ollama。push / PR 會由 GitHub Actions 自動執行。
 
 ```bash
 docker exec -it disaster_app pytest tests/ -v
+```
+
+或在本機：
+
+```bash
+pip install -r requirements-dev.txt
+pytest tests/ -v
 ```
 
 ## RAG 召回率評測
