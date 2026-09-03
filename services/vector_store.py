@@ -1,11 +1,19 @@
+import hashlib
+import json
 import logging
 from dataclasses import dataclass
+from pathlib import Path
 import chromadb
 import config
 from services.embeddings import build_embedding_function
 from services.shelter_profile import profile, strip_region_tag
 
 logger = logging.getLogger(__name__)
+
+FINGERPRINT_FILE = "index_fingerprint.json"
+
+# 拿來分隔文件，避免不同切分方式算出相同指紋
+SEPARATOR = b"|--|"
 
 
 @dataclass
@@ -17,14 +25,59 @@ class Hit:
 
 
 class VectorStore:
-    def __init__(self, embedding_function=None, collection_name: str = "shelters"):
-        self.client = chromadb.Client()
+    def __init__(self, embedding_function=None, collection_name: str = "shelters", persist_path: str | None = None):
+        # persist_path 留空 = 記憶體索引（測試、本機直跑）；有值就落地，重啟不必重新 embedding
+        self.persist_path = config.CHROMA_PATH if persist_path is None else persist_path
         self.ef = embedding_function or build_embedding_function()
+        if self.persist_path:
+            Path(self.persist_path).mkdir(parents=True, exist_ok=True)
+            self.client = chromadb.PersistentClient(path=self.persist_path)
+        else:
+            self.client = chromadb.Client()
         self.collection = self.client.get_or_create_collection(
             name=collection_name,
             embedding_function=self.ef,
             metadata={"hnsw:space": "cosine"},
         )
+
+    def _ef_name(self) -> str:
+        return self.ef.name() if hasattr(self.ef, "name") else type(self.ef).__name__
+
+    def _fingerprint_path(self) -> Path | None:
+        return Path(self.persist_path) / FINGERPRINT_FILE if self.persist_path else None
+
+    def _fingerprint(self, documents: list[str]) -> str:
+        # 換 embedding 模型也要重建，所以把模型名一起算進去
+        digest = hashlib.sha256(self._ef_name().encode("utf-8"))
+        for doc in documents:
+            digest.update(SEPARATOR)
+            digest.update(doc.encode("utf-8"))
+        return digest.hexdigest()
+
+    def _read_fingerprint(self) -> dict | None:
+        path = self._fingerprint_path()
+        if path is None or not path.is_file():
+            return None
+        try:
+            return json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            logger.warning("VectorStore: 索引指紋讀取失敗，改為重建索引")
+            return None
+
+    def _write_fingerprint(self, fingerprint: str, count: int) -> None:
+        path = self._fingerprint_path()
+        if path is None:
+            return
+        try:
+            path.write_text(
+                json.dumps({"fingerprint": fingerprint, "count": count, "embedding": self._ef_name()}),
+                encoding="utf-8",
+            )
+        except OSError:
+            logger.warning("VectorStore: 索引指紋寫入失敗，下次啟動會重建索引")
+
+    def count(self) -> int:
+        return self.collection.count()
 
     @staticmethod
     def build_document(s) -> str:
@@ -62,12 +115,26 @@ class VectorStore:
             "occupancy_rate": round(s.occupancy_rate, 1),
         }
 
-    def build_index(self, shelters: list) -> None:
+    def build_index(self, shelters: list, force: bool = False) -> None:
         """
-        將避難所資料向量化並存入 ChromaDB
+        將避難所資料向量化並存入 ChromaDB。
+        索引已落地且內容未變時直接略過，避免每次重啟都重跑 embedding；
+        force=True 用於手動同步，無論如何都重建。
         """
         if not shelters:
             logger.warning("VectorStore: 沒有資料可以建立索引")
+            return
+
+        documents = [self.build_document(s) for s in shelters]
+        fingerprint = self._fingerprint(documents)
+        saved = self._read_fingerprint()
+        if (
+            not force
+            and saved is not None
+            and saved.get("fingerprint") == fingerprint
+            and self.collection.count() == len(documents)
+        ):
+            logger.info("VectorStore: 索引內容未變（%d 筆），略過重建", len(documents))
             return
 
         existing = self.collection.get()
@@ -75,12 +142,12 @@ class VectorStore:
             self.collection.delete(ids=existing["ids"])
 
         self.collection.add(
-            documents=[self.build_document(s) for s in shelters],
+            documents=documents,
             metadatas=[self.build_metadata(s) for s in shelters],
             ids=[f"shelter_{i}" for i in range(len(shelters))],
         )
-        ef_name = self.ef.name() if hasattr(self.ef, "name") else type(self.ef).__name__
-        logger.info("VectorStore: 成功建立 %d 筆避難所索引（embedding=%s）", len(shelters), ef_name)
+        self._write_fingerprint(fingerprint, len(documents))
+        logger.info("VectorStore: 成功建立 %d 筆避難所索引（embedding=%s）", len(documents), self._ef_name())
 
     def retrieve(self, query: str, n_results: int | None = None) -> list[Hit]:
         total = self.collection.count()
