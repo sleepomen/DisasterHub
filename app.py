@@ -4,9 +4,10 @@ import secrets
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 from repositories.shelter_repository import ShelterRepository
-from services.map_server import MapService
+from services.map_service import MapService
 from services.sync_service import DataSyncService
 from services.chat_service import ChatService
 from services.vector_store import VectorStore
@@ -43,6 +44,12 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
 
 # Pydantic Models
 #規範輸入範圍
@@ -82,10 +89,10 @@ async def manual_sync(x_api_key: str = Header(default="")):
 # 地圖載入時呼叫
 #去pgSQL拿所有避難所資料
 #shelter 物件轉成前端需要的 json 格式
-@app.get("/api/3d_data")
-async def get_3d_data():
+@app.get("/api/shelters")
+async def get_shelters():
     shelters = await asyncio.to_thread(repo.get_all_shelters)
-    data = map_service.prepare_3d_data(shelters)
+    data = map_service.to_map_points(shelters)
     return data
 
 #執行空間模擬時呼叫
@@ -113,7 +120,6 @@ async def simulate(request: SimulateRequest):
         "impacted_shelters": impacted
     }
 
-# 以下是新增的
 @app.post("/api/reset_simulation")
 async def reset_simulation():
     chat_service.clear_simulation()
