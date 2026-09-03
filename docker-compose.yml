@@ -20,14 +20,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        INSTALL_DEV: "true"
     container_name: disaster_app
     restart: unless-stopped
-    command: ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8501", "--reload"]
     volumes:
-      - .:/app
-      - chroma_cache:/root/.cache/chroma
+      - chroma_data:/data/chroma
     ports:
       - "8501:8501"
     env_file:
@@ -36,6 +32,7 @@ services:
       - PYTHONPATH=/app
       - OLLAMA_HOST=http://host.docker.internal:11434
       - ANONYMIZED_TELEMETRY=False
+      - CHROMA_PATH=/data/chroma
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -44,4 +41,4 @@ services:
 
 volumes:
   db_data:
-  chroma_cache:
+  chroma_data:
