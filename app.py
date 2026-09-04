@@ -12,6 +12,7 @@ from services.map_service import MapService
 from services.sync_service import DataSyncService
 from services.chat_service import ChatService
 from services.vector_store import VectorStore
+from services.population_service import PopulationModel
 from services import health
 import config
 import uvicorn
@@ -36,6 +37,7 @@ repo = ShelterRepository()
 map_service = MapService()
 vector_store = VectorStore()
 chat_service = ChatService(vector_store=vector_store, repo=repo)
+population_model = PopulationModel()
 
 
 def sync_and_reindex(force: bool = False) -> int:
@@ -44,6 +46,24 @@ def sync_and_reindex(force: bool = False) -> int:
     shelters = repo.get_all_shelters()
     vector_store.build_index(shelters, force=force)
     return len(shelters)
+
+
+def apply_occupancy(occupancy: dict[str, int]) -> dict:
+    """
+    把收容人數寫進資料庫，只對真的有變動的避難所重算向量，
+    再同步聊天服務裡的模擬快照。回傳更新統計與最新佔用表給前端對齊畫面。
+    """
+    before = {s.name: s.current_people for s in repo.get_all_shelters()}
+    updated = repo.set_occupancy(occupancy)
+    after = repo.get_all_shelters()
+    changed = [s for s in after if before.get(s.name) != s.current_people]
+    reindexed = vector_store.upsert_shelters(changed)
+    chat_service.refresh_occupancy(after)
+    return {
+        "updated": updated,
+        "reindexed": reindexed,
+        "occupancy": {s.name: s.current_people for s in after},
+    }
 
 
 @asynccontextmanager
@@ -108,6 +128,15 @@ class SimulateRequest(BaseModel):
 class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=500, description="使用者問題")
 
+class OccupancyItem(BaseModel):
+    name: str = Field(..., min_length=1, max_length=200)
+    current_ppl: int = Field(..., ge=0, le=1_000_000, description="目前收容人數")
+
+
+class OccupancyRequest(BaseModel):
+    occupancy: list[OccupancyItem] = Field(..., min_length=1, max_length=1000)
+
+
 class NearestRequest(BaseModel):
     lat: float = Field(..., ge=-90, le=90, description="緯度")
     lon: float = Field(..., ge=-180, le=180, description="經度")
@@ -142,6 +171,11 @@ async def simulate(request: SimulateRequest):
     impacted = await asyncio.to_thread(
         repo.get_shelters_in_radius, request.lat, request.lon, request.radius
     )
+    # 人口估算與前端動畫、AI 回答共用同一份模型，三邊數字才會一致
+    total_remaining = sum(s["remaining"] for s in impacted)
+    population = population_model.estimate(
+        request.lat, request.lon, request.radius, request.type, total_remaining
+    )
 
     chat_service.set_simulation({
         "type": request.type,
@@ -149,19 +183,47 @@ async def simulate(request: SimulateRequest):
         "lon": request.lon,
         "radius_km": request.radius,
         "impacted_count": len(impacted),
-        "impacted_shelters": impacted
+        "impacted_shelters": impacted,
+        "population": population,
     })
 
     return {
         "status": "success",
         "impacted_count": len(impacted),
-        "impacted_shelters": impacted
+        "impacted_shelters": impacted,
+        "population": population,
     }
 
+
+# 人口模型（海岸線 + 鄉鎮人口）：前端人群動畫用它決定人從哪裡出發
+@app.get("/api/population")
+async def get_population():
+    return population_model.to_dict()
+
+# 疏散動畫結束後由前端回寫各避難所的收容人數。
+# 沒有這一步，地圖上滿載變紅的避難所在資料庫裡仍是 0 人，AI 會回答跟畫面相反的結論。
+@app.post("/api/occupancy")
+async def update_occupancy(request: OccupancyRequest):
+    occupancy = {item.name: item.current_ppl for item in request.occupancy}
+    try:
+        result = await asyncio.to_thread(apply_occupancy, occupancy)
+    except Exception:
+        logger.exception("收容人數回寫失敗")
+        raise HTTPException(status_code=500, detail="收容人數回寫失敗")
+    return {"status": "success", **result}
+
+
+# 清除模擬：把收容人數還原成來源資料的初始值，資料庫、向量索引、聊天快照一起歸零
 @app.post("/api/reset_simulation")
 async def reset_simulation():
     chat_service.clear_simulation()
-    return {"status": "success"}
+    try:
+        baseline = await asyncio.to_thread(DataSyncService().baseline_occupancy)
+        result = await asyncio.to_thread(apply_occupancy, baseline)
+    except Exception:
+        logger.exception("重置收容人數失敗")
+        raise HTTPException(status_code=500, detail="重置收容人數失敗")
+    return {"status": "success", **result}
 
 # 最近避難所查詢
 # 使用 PostGIS ST_Distance 真實地理距離排序
