@@ -46,10 +46,16 @@ class VectorStore:
     def _fingerprint_path(self) -> Path | None:
         return Path(self.persist_path) / FINGERPRINT_FILE if self.persist_path else None
 
+    @staticmethod
+    def doc_id(name: str) -> str:
+        # 用名稱推導 id，局部更新時才找得到對應文件，不受資料庫回傳順序影響
+        return "shelter_" + hashlib.sha1(name.encode("utf-8")).hexdigest()[:16]
+
     def _fingerprint(self, documents: list[str]) -> str:
-        # 換 embedding 模型也要重建，所以把模型名一起算進去
+        # 換 embedding 模型也要重建，所以把模型名一起算進去；
+        # 文件先排序，資料庫回傳順序不同不會被誤判成資料變了
         digest = hashlib.sha256(self._ef_name().encode("utf-8"))
-        for doc in documents:
+        for doc in sorted(documents):
             digest.update(SEPARATOR)
             digest.update(doc.encode("utf-8"))
         return digest.hexdigest()
@@ -144,10 +150,29 @@ class VectorStore:
         self.collection.add(
             documents=documents,
             metadatas=[self.build_metadata(s) for s in shelters],
-            ids=[f"shelter_{i}" for i in range(len(shelters))],
+            ids=[self.doc_id(s.name) for s in shelters],
         )
         self._write_fingerprint(fingerprint, len(documents))
         logger.info("VectorStore: 成功建立 %d 筆避難所索引（embedding=%s）", len(documents), self._ef_name())
+
+    def upsert_shelters(self, shelters: list) -> int:
+        """
+        只重算給定避難所的文件與向量（模擬回寫佔用數之後用）。
+        整批重建要跑幾十次 embedding，這裡只碰有變動的幾筆，幾秒內就能讓 AI 看到新負載。
+        """
+        if not shelters:
+            return 0
+        self.collection.upsert(
+            documents=[self.build_document(s) for s in shelters],
+            metadatas=[self.build_metadata(s) for s in shelters],
+            ids=[self.doc_id(s.name) for s in shelters],
+        )
+        # 指紋要跟著落地的內容走，否則下次啟動會被判定「資料變了」而整批重建
+        stored = self.collection.get(include=["documents"])
+        documents = stored.get("documents") or []
+        self._write_fingerprint(self._fingerprint(documents), len(documents))
+        logger.info("VectorStore: 局部更新 %d 筆避難所索引", len(shelters))
+        return len(shelters)
 
     def retrieve(self, query: str, n_results: int | None = None) -> list[Hit]:
         total = self.collection.count()
