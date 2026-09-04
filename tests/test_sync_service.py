@@ -52,3 +52,11 @@ def test_row_fallback_survives_single_failure():
     service.sync()
 
     assert repo.upsert_shelter.call_count == 2
+
+
+def test_baseline_occupancy_comes_from_source_data():
+    service, _ = _service_with([
+        Shelter(name="[HUALIEN] 甲", capacity=100, lat=23.9, lon=121.6, current_people=7),
+        Shelter(name="[YILAN] 乙", capacity=300, lat=24.7, lon=121.7),
+    ])
+    assert service.baseline_occupancy() == {"[HUALIEN] 甲": 7, "[YILAN] 乙": 0}

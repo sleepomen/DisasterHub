@@ -146,3 +146,43 @@ def test_memory_store_writes_no_fingerprint(tmp_path):
     store.build_index(SHELTERS)
     assert store.count() == len(SHELTERS)
     assert list(tmp_path.iterdir()) == []
+
+
+def test_upsert_updates_only_given_shelters(store):
+    updated = Shelter("[HUALIEN] 中正國小", 400, 23.9, 121.6, 380, "花蓮縣花蓮市中正路210號")
+    assert store.upsert_shelters([updated]) == 1
+    assert store.count() == len(SHELTERS)
+    hit = store.retrieve("中正國小", n_results=1)[0]
+    assert "目前收容 380 人" in hit.document
+    assert hit.metadata["remaining"] == 20
+    other = store.retrieve("羅東鎮立體育館", n_results=1)[0]
+    assert other.metadata["remaining"] == 700
+
+
+def test_upsert_with_nothing_is_noop(store):
+    assert store.upsert_shelters([]) == 0
+    assert store.count() == len(SHELTERS)
+
+
+def test_fingerprint_ignores_row_order(tmp_path):
+    make_store(tmp_path).build_index(SHELTERS)
+
+    reopened = make_store(tmp_path)
+    with patch.object(reopened.collection, "add") as add:
+        reopened.build_index(list(reversed(SHELTERS)))
+        add.assert_not_called()
+
+
+def test_upsert_keeps_fingerprint_in_sync(tmp_path):
+    first = make_store(tmp_path)
+    first.build_index(SHELTERS)
+    updated = Shelter("[HUALIEN] 中正國小", 400, 23.9, 121.6, 380, "花蓮縣花蓮市中正路210號")
+    first.upsert_shelters([updated])
+
+    # 重啟後拿到的是資料庫裡的新佔用數，指紋要對得上，不該整批重建
+    current = [updated if s.name == updated.name else s for s in SHELTERS]
+    reopened = make_store(tmp_path)
+    with patch.object(reopened.collection, "add") as add:
+        reopened.build_index(current)
+        add.assert_not_called()
+    assert reopened.retrieve("中正國小", n_results=1)[0].metadata["current_people"] == 380

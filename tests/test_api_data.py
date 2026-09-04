@@ -107,3 +107,68 @@ def test_ready_ignores_ollama_being_down(client):
     body = res.json()
     assert body["status"] == "ready"
     assert body["checks"]["ollama"] == {"ok": False, "required": False, "detail": "unreachable (ConnectionError)"}
+
+
+def test_occupancy_rejects_negative_and_empty(client):
+    assert client.post("/api/occupancy", json={"occupancy": []}).status_code == 422
+    assert client.post("/api/occupancy", json={"occupancy": [{"name": "x", "current_ppl": -1}]}).status_code == 422
+
+
+def test_occupancy_writes_back_and_reindexes_changed_only(client):
+    after = [
+        Shelter(name="[HUALIEN] 甲", capacity=100, lat=23.9, lon=121.6, current_people=90),
+        Shelter(name="[YILAN] 乙", capacity=300, lat=24.7, lon=121.7, current_people=0),
+    ]
+    with patch("repositories.shelter_repository.ShelterRepository.get_all_shelters", side_effect=[FAKE_SHELTERS, after]),          patch("repositories.shelter_repository.ShelterRepository.set_occupancy", return_value=1) as set_occ,          patch("services.vector_store.VectorStore.upsert_shelters", return_value=1) as upsert:
+        res = client.post("/api/occupancy", json={"occupancy": [{"name": "[HUALIEN] 甲", "current_ppl": 90}]})
+    assert res.status_code == 200
+    body = res.json()
+    assert body["updated"] == 1
+    assert body["reindexed"] == 1
+    assert body["occupancy"] == {"[HUALIEN] 甲": 90, "[YILAN] 乙": 0}
+    set_occ.assert_called_once_with({"[HUALIEN] 甲": 90})
+    assert [s.name for s in upsert.call_args.args[0]] == ["[HUALIEN] 甲"]
+
+
+def test_occupancy_reports_database_failure(client):
+    with patch("repositories.shelter_repository.ShelterRepository.set_occupancy", side_effect=RuntimeError("db down")):
+        res = client.post("/api/occupancy", json={"occupancy": [{"name": "[HUALIEN] 甲", "current_ppl": 9}]})
+    assert res.status_code == 500
+    assert "db down" not in res.text
+
+
+def test_reset_restores_baseline_occupancy(client):
+    baseline = {"[HUALIEN] 甲": 0, "[YILAN] 乙": 0}
+    with patch("services.sync_service.DataSyncService.baseline_occupancy", return_value=baseline),          patch("repositories.shelter_repository.ShelterRepository.set_occupancy", return_value=2) as set_occ,          patch("services.vector_store.VectorStore.upsert_shelters", return_value=0):
+        res = client.post("/api/reset_simulation")
+    assert res.status_code == 200
+    assert res.json()["status"] == "success"
+    assert "occupancy" in res.json()
+    set_occ.assert_called_once_with(baseline)
+
+
+def test_population_endpoint(client):
+    res = client.get("/api/population")
+    assert res.status_code == 200
+    body = res.json()
+    assert len(body["townships"]) == 29
+    assert {"name", "county", "lat", "lon", "pop"} <= set(body["townships"][0].keys())
+    assert len(body["coastline"]) > 10
+
+
+def test_simulate_includes_population_estimate(client):
+    impacted = [{"name": "[HUALIEN] 甲", "capacity": 100, "current_ppl": 10, "remaining": 90,
+                 "lat": 23.9, "lon": 121.6, "address": ""}]
+    with patch("repositories.shelter_repository.ShelterRepository.get_shelters_in_radius", return_value=impacted):
+        res = client.post("/api/simulate_disaster", json={"lat": 23.977, "lon": 121.601, "radius": 10, "type": "earthquake"})
+    assert res.status_code == 200
+    pop = res.json()["population"]
+    assert pop["covered_population"] > 150000
+    assert pop["total_remaining"] == 90
+    assert pop["placeable"] == 90
+    assert pop["shortfall"] == pop["estimated_evacuees"] - 90
+    assert pop["townships"][0]["name"] == "花蓮市"
+
+    # 聊天服務拿到的是同一份估算，AI 才會講同樣的數字
+    import app as app_module
+    assert app_module.chat_service.latest_simulation["population"] == pop
