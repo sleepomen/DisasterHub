@@ -144,3 +144,56 @@ def test_chat_calls_ollama_and_returns_response(svc):
 def test_chat_handles_ollama_failure(svc):
     with patch("services.chat_service.requests.post", side_effect=ConnectionError("down")):
         assert svc.chat("避難所有提供飲水嗎") == AI_UNAVAILABLE
+
+
+def test_refresh_occupancy_updates_simulation_snapshot(svc):
+    svc.set_simulation({"type": "flood", "radius_km": 10, "impacted_count": 1, "impacted_shelters": [
+        {"name": "[TAITUNG] 丙", "capacity": 200, "current_ppl": 50, "remaining": 150}]})
+    svc.refresh_occupancy([Shelter("[TAITUNG] 丙", 200, 22.7, 121.1, 190)])
+    ctx = svc._get_simulation_context()
+    assert "目前收容 190 人" in ctx
+    assert "剩餘空間 10 人" in ctx
+
+
+def test_refresh_occupancy_without_simulation_is_noop(svc):
+    svc.refresh_occupancy([Shelter("[TAITUNG] 丙", 200, 22.7, 121.1, 190)])
+    assert svc.latest_simulation == {}
+
+
+def test_format_people_uses_wan_for_large_numbers():
+    from services.chat_service import format_people
+    assert format_people(175000) == "約 17.5 萬人"
+    assert format_people(2100) == "約 2100 人"
+    assert format_people(None) == "不明"
+
+
+def test_simulation_summary_and_context_include_population(svc):
+    svc.set_simulation({
+        "type": "earthquake", "lat": 23.977, "lon": 121.601, "radius_km": 10, "impacted_count": 1,
+        "impacted_shelters": [{"name": "[HUALIEN] 甲", "capacity": 100, "current_ppl": 0, "remaining": 100}],
+        "population": {
+            "covered_population": 175000, "evacuation_ratio": 0.12, "estimated_evacuees": 21000,
+            "fallback_estimate": False, "total_remaining": 100, "placeable": 100, "shortfall": 20900,
+            "townships": [{"name": "花蓮市", "weight": 99000}, {"name": "吉安鄉", "weight": 60000}],
+        },
+    })
+    summary = svc._simulation_summary()
+    assert "約 17.5 萬人" in summary
+    assert "主要為花蓮市、吉安鄉" in summary
+    assert "預估需疏散約 2.1 萬人" in summary
+    assert "12% 比例" in summary
+    assert "收容缺口約 2.1 萬人" in summary
+    ctx = svc._get_simulation_context()
+    assert "約 17.5 萬人" in ctx
+    assert "受影響避難所共 1 個" in ctx
+
+
+def test_population_lines_when_fallback_and_no_shortfall():
+    from services.chat_service import population_lines
+    lines = population_lines({"fallback_estimate": True, "estimated_evacuees": 157, "evacuation_ratio": 0.05,
+                              "total_remaining": 900, "placeable": 157, "shortfall": 0, "townships": []})
+    text = "\n".join(lines)
+    assert "面積保底" in text
+    assert "約 157 人" in text
+    assert "足以安置" in text
+    assert population_lines({}) == []

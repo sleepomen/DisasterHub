@@ -51,6 +51,39 @@
     let disasterCircle = null;
     let allShelterData = [];
 
+    // 人口模型（海岸線 + 鄉鎮人口）由後端提供，與 AI 助手引用的是同一份資料
+    let popModel = { coastline: [], townships: [] };
+
+    async function loadPopulationModel() {
+        try {
+            const res = await fetch('/api/population');
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            popModel = await res.json();
+        } catch (err) {
+            console.error('載入人口模型失敗，人群動畫將改用均勻分佈', err);
+        }
+    }
+
+    function coastLonAt(lat) {
+        const c = popModel.coastline;
+        if (!c.length) return null;
+        if (lat >= c[0][0]) return c[0][1];
+        if (lat <= c[c.length - 1][0]) return c[c.length - 1][1];
+        for (let i = 0; i < c.length - 1; i++) {
+            const [la, loA] = c[i], [lb, loB] = c[i + 1];
+            if (lat <= la && lat >= lb) {
+                const t = (la - lat) / (la - lb);
+                return loA + (loB - loA) * t;
+            }
+        }
+        return c[c.length - 1][1];
+    }
+
+    function isLand(lat, lon) {
+        const coast = coastLonAt(lat);
+        return coast === null || lon <= coast - 0.004;
+    }
+
     // 每個避難所的目前人數（可動態變化）
     const shelterOccupancy = {};
 
@@ -210,9 +243,7 @@
         return best;
     }
 
-    // 以下是新增的
     const PEOPLE_PER_DOT = 25;
-    const EVAC_RATIO = { earthquake: 0.12, flood: 0.22, fire: 0.05 };
 
     function gaussRand() {
         let u = 0, v = 0;
@@ -232,7 +263,8 @@
         return best;
     }
 
-    function startCrowdAnimation(impactedShelters, disasterLat, disasterLon, radiusKm, dotColor, disasterType) {
+    // population 來自 /api/simulate_disaster：後端已算好圈內人口與疏散需求，這裡只負責把人畫出來
+    function startCrowdAnimation(impactedShelters, disasterLat, disasterLon, radiusKm, dotColor, population) {
         if (animationId) cancelAnimationFrame(animationId);
         particles = [];
 
@@ -243,14 +275,9 @@
         const totalRoom = candidates.reduce((sum, s) => sum + s.remaining, 0);
         const lonScale = 111 * Math.cos(disasterLat * Math.PI / 180);
 
-        const covered = POP_CENTERS
-            .map(c => ({ ...c, d: distKm(c.lat, c.lon, disasterLat, disasterLon) }))
-            .map(c => ({ ...c, weight: c.pop * Math.max(0, Math.min(1, 1.15 - c.d / radiusKm)) }))
-            .filter(c => c.weight > 0);
+        const covered = (population && population.townships) || [];
         const coveredPop = covered.reduce((s, c) => s + c.weight, 0);
-        const ratio = EVAC_RATIO[disasterType] || 0.12;
-        let evacuees = Math.round(coveredPop * ratio);
-        if (evacuees === 0) evacuees = Math.round(Math.PI * radiusKm * radiusKm * 2);
+        let evacuees = (population && population.estimated_evacuees) || Math.round(Math.PI * radiusKm * radiusKm * 2);
         evacuees = Math.min(totalRoom, evacuees);
 
         const totalDots = Math.min(300, Math.max(8, Math.round(evacuees / PEOPLE_PER_DOT)));
@@ -387,10 +414,45 @@
                 document.getElementById('btn-simulate').disabled = false;
                 const movedPeople = particles.reduce((sum, p) => sum + (p.people || 0), 0);
                 addChat(`疏散模擬完成！共約 ${movedPeople} 人（${total} 批次）已移入避難所，請查看各避難所目前負載率。`, 'ai');
+                syncOccupancy(candidates.map(s => s.name));
             }
         }
 
         animationId = requestAnimationFrame(animate);
+    }
+
+    // 動畫只改了瀏覽器裡的數字，要回寫後端資料庫與向量索引，AI 的回答才會跟畫面一致
+    async function syncOccupancy(names) {
+        const occupancy = names
+            .filter(name => name in shelterOccupancy)
+            .map(name => ({ name, current_ppl: Math.round(shelterOccupancy[name]) }));
+        if (occupancy.length === 0) return;
+        try {
+            const res = await fetch('/api/occupancy', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ occupancy })
+            });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const data = await res.json();
+            applyOccupancy(data.occupancy);
+            addChat(`已將 ${data.updated} 個避難所的收容人數同步至後端，AI 助手現在會依最新負載回答。`, 'ai');
+        } catch (err) {
+            console.error('收容人數回寫失敗', err);
+            addChat('收容人數回寫後端失敗，AI 助手的回答可能與地圖不一致。', 'ai');
+        }
+    }
+
+    // 以後端回傳的佔用表為準，更新本地狀態、基準值與 marker 顏色
+    function applyOccupancy(occupancy) {
+        if (!occupancy) return;
+        allShelterData.forEach(d => {
+            if (d.name in occupancy) {
+                d.ppl = occupancy[d.name];
+                shelterOccupancy[d.name] = occupancy[d.name];
+            }
+        });
+        markers.forEach(m => updateMarkerColor(m));
     }
 
     // ── 災害模擬按鈕 ─────────────────────────────────────────
@@ -439,6 +501,14 @@
 
             const typeLabel = type === 'earthquake' ? '強震' : type === 'flood' ? '淹水' : '火災';
             addChat(`模擬啟動：${typeLabel}，半徑 ${radius} km，${result.impacted_count} 個避難所受影響，開始疏散動畫…`, 'ai');
+            const pop = result.population;
+            if (pop) {
+                const fmt = n => n >= 10000 ? `約 ${(n / 10000).toFixed(1)} 萬人` : `約 ${n} 人`;
+                const gap = pop.shortfall > 0 ? `，收容缺口 ${fmt(pop.shortfall)}` : '，範圍內避難所足以安置';
+                addChat(pop.fallback_estimate
+                    ? `範圍內無主要聚落，以面積保底估算需疏散 ${fmt(pop.estimated_evacuees)}${gap}。`
+                    : `範圍涵蓋人口 ${fmt(pop.covered_population)}，預估需疏散 ${fmt(pop.estimated_evacuees)}${gap}。`, 'ai');
+            }
 
             // 顯示進度條，鎖定按鈕
             document.getElementById('sim-progress-wrap').classList.add('visible');
@@ -446,7 +516,7 @@
 
             // 重置負載率並開始動畫
             resizeCanvas();
-            startCrowdAnimation(result.impacted_shelters, lat, lon, radius, dotColor, type);
+            startCrowdAnimation(result.impacted_shelters, lat, lon, radius, dotColor, result.population);
 
         } catch {
             addChat(`模擬失敗，請確認後端服務正常運行。`, 'ai');
@@ -454,19 +524,28 @@
     });
 
     // 清除
-    document.getElementById('btn-reset').addEventListener('click', () => {
+    document.getElementById('btn-reset').addEventListener('click', async () => {
         if (disasterCircle) { map.removeLayer(disasterCircle); disasterCircle = null; }
         if (animationId) { cancelAnimationFrame(animationId); animationId = null; }
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         particles = [];
-        allShelterData.forEach(d => { shelterOccupancy[d.name] = d.ppl || 0; });
-        markers.forEach(m => updateMarkerColor(m));
         document.getElementById('sim-progress-wrap').classList.remove('visible');
         document.getElementById('btn-simulate').disabled = false;
         document.getElementById('sim-progress-bar').style.width = '0%';
         document.getElementById('progress-pct').textContent = '0%';
-        fetch('/api/reset_simulation', { method: 'POST' }).catch(() => {});
-        addChat("已清除模擬圖層與疏散動畫。", "ai");
+        try {
+            const res = await fetch('/api/reset_simulation', { method: 'POST' });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const data = await res.json();
+            applyOccupancy(data.occupancy);
+            addChat('已清除模擬圖層與疏散動畫，各避難所收容人數已還原。', 'ai');
+        } catch (err) {
+            // 後端沒回應時至少把畫面還原成上次載入的值
+            console.error('重置模擬失敗', err);
+            allShelterData.forEach(d => { shelterOccupancy[d.name] = d.ppl || 0; });
+            markers.forEach(m => updateMarkerColor(m));
+            addChat('已清除模擬圖層，但後端收容人數重置失敗，請稍後再試。', 'ai');
+        }
     });
 
     // 地圖移動時重繪 canvas 粒子位置
@@ -513,4 +592,5 @@
         });
     }
 
+    loadPopulationModel();
     loadShelters();

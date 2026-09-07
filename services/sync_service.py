@@ -10,7 +10,17 @@ class DataSyncService:
         self.fetcher = DataFetcher()
         self.repository = ShelterRepository()
 
+    def baseline_occupancy(self) -> dict[str, int]:
+        """
+        來源 JSON 裡的初始收容人數，重置模擬時用來把 current_ppl 還原
+        """
+        return {s.name: s.current_people for s in self.fetcher.get_shelters()}
+
     def sync(self):
+        """
+        把 JSON 的靜態資料（容量 / 地址 / 座標）同步進資料庫。
+        不會覆蓋既有列的 current_ppl，模擬回寫的佔用數要靠 /api/reset_simulation 才會清掉。
+        """
         print("starting data synchronization...")
         shelters = self.fetcher.get_shelters()
 

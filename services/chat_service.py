@@ -46,6 +46,48 @@ def display_name(name: str) -> str:
     return REGION_TAG_PATTERN.sub("", name or "")
 
 
+def format_people(n) -> str:
+    """大數字用「萬」表示，模型比較不會抄錯位數：175000 → 約 17.5 萬人"""
+    try:
+        n = int(n)
+    except (TypeError, ValueError):
+        return "不明"
+    if n >= 10000:
+        return f"約 {n / 10000:.1f} 萬人"
+    return f"約 {n} 人"
+
+
+def population_lines(population: dict) -> list[str]:
+    """把模擬的人口估算整理成可以直接塞進 prompt 的幾行文字"""
+    if not population:
+        return []
+    covered = population.get("townships") or []
+    lines = []
+    if population.get("fallback_estimate"):
+        lines.append("影響範圍內沒有主要人口聚落（多為海域或無人山區），疏散人數以面積保底估算。")
+    else:
+        top = "、".join(t["name"] for t in covered[:4])
+        lines.append(
+            f"影響範圍涵蓋人口{format_people(population.get('covered_population'))}"
+            + (f"（主要為{top}）" if top else "")
+            + "。"
+        )
+    ratio = population.get("evacuation_ratio")
+    ratio_text = f"（依災害類型以 {ratio * 100:.0f}% 比例估算）" if isinstance(ratio, (int, float)) else ""
+    lines.append(f"預估需疏散{format_people(population.get('estimated_evacuees'))}{ratio_text}。")
+    if "total_remaining" in population:
+        lines.append(
+            f"範圍內避難所剩餘空間合計{format_people(population.get('total_remaining'))}，"
+            f"可安置{format_people(population.get('placeable'))}。"
+        )
+        shortfall = population.get("shortfall") or 0
+        if shortfall > 0:
+            lines.append(f"收容缺口{format_people(shortfall)}，需要調度範圍外的避難所或擴大收容。")
+        else:
+            lines.append("範圍內避難所空間足以安置全部疏散人口。")
+    return lines
+
+
 class ChatService:
     def __init__(self, vector_store: VectorStore, repo=None):
         self.vector_store = vector_store
@@ -57,6 +99,22 @@ class ChatService:
 
     def clear_simulation(self):
         self.latest_simulation = {}
+
+    def refresh_occupancy(self, shelters) -> None:
+        """
+        模擬回寫佔用數後，把 latest_simulation 裡快照的受影響清單同步成資料庫最新值，
+        「哪些受影響」這類直接讀快照的問題才不會回答舊數字。
+        """
+        if not self.latest_simulation:
+            return
+        lookup = {s.name: s for s in shelters}
+        for item in self.latest_simulation.get("impacted_shelters", []):
+            s = lookup.get(item.get("name"))
+            if s is None:
+                continue
+            item["capacity"] = s.capacity
+            item["current_ppl"] = s.current_people
+            item["remaining"] = s.remaining
 
     def _is_geo_query(self, message: str) -> bool:
         return any(kw in message for kw in GEO_KEYWORDS)
@@ -72,12 +130,16 @@ class ChatService:
         if not sim:
             return ""
         sim_type = DISASTER_TYPE_LABELS.get(sim.get("type", ""), sim.get("type", ""))
-        return (
+        summary = (
             f"災害類型：{sim_type}，"
             f"中心座標：({sim.get('lat')}, {sim.get('lon')})，"
             f"影響半徑：{sim.get('radius_km')} 公里，"
             f"受影響避難所數量：{sim.get('impacted_count', 0)} 個。"
         )
+        extra = population_lines(sim.get("population") or {})
+        if extra:
+            summary += "\n" + "\n".join(extra)
+        return summary
 
     def _get_simulation_context(self) -> str:
         if not self.latest_simulation:
@@ -94,8 +156,9 @@ class ChatService:
         lines = [
             f"災害類型：{sim_type}",
             f"影響半徑：{sim.get('radius_km', '')} 公里",
-            f"受影響避難所共 {len(impacted)} 個：",
         ]
+        lines.extend(population_lines(sim.get("population") or {}))
+        lines.append(f"受影響避難所共 {len(impacted)} 個：")
         for i, s in enumerate(impacted, 1):
             capacity = s.get("capacity", 0)
             current = s.get("current_ppl", 0)

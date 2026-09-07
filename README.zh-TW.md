@@ -17,7 +17,7 @@
 
 - **真實地圖視覺化** — Leaflet.js + OpenStreetMap，宜花東 50 處避難所標記於真實座標，marker 大小依容量縮放，點擊顯示即時資訊
 - **PostGIS 空間模擬** — 設定災害中心點與影響半徑，後端透過 `ST_DWithin` 計算受影響避難所清單，支援強震、淹水、火災三種類型
-- **人群疏散動畫** — 依災害類型與影響面積估算疏散人數，人群點就近前往仍有空位的避難所，負載率即時變化
+- **人群疏散動畫** — 後端以鄉鎮人口模型估算圈內人口與疏散需求，人群點就近前往仍有空位的避難所，負載率即時變化；動畫結束後把各避難所收容人數回寫資料庫與向量索引，AI 助手回答的負載跟地圖一致
 - **AI 決策助手** — 整合 RAG + 本地 LLM，根據避難所真實資料回答問題，支援語意查詢、地理距離查詢、容量排序查詢、模擬結果查詢
 
 ---
@@ -135,24 +135,29 @@ Disaster_Hub/
 │   ├── shelter_profile.py      # 名稱/地址 → 鄉鎮、設施、別名
 │   ├── embeddings.py           # Ollama / MiniLM embedding
 │   ├── health.py               # readiness 依賴檢查
-│   └── vector_store.py         # ChromaDB 向量索引
+│   ├── population_service.py   # 海岸線 + 鄉鎮人口模型，疏散人數估算
+│   └── vector_store.py         # ChromaDB 向量索引（支援局部更新）
 │
 ├── data_for_refuge/
 │   ├── hualien_shelter.json    # 花蓮（14 筆）
 │   ├── taitung_shelter.json    # 台東（16 筆）
 │   └── yilan_shelter.json      # 宜蘭（20 筆）
 │
+├── data_reference/
+│   └── east_taiwan_population.json  # 海岸線折線 + 29 個鄉鎮人口（前端動畫與 AI 共用）
+│
 ├── static/
 │   ├── index.html              # 頁面骨架
 │   ├── style.css               # 介面樣式
-│   ├── app.js                  # 地圖 / 模擬 / 聊天邏輯
-│   └── geo_data.js             # 海岸線折線 + 鄉鎮人口中心
+│   └── app.js                  # 地圖 / 模擬 / 聊天邏輯
 │
 └── tests/
     ├── test_shelter_model.py
     ├── test_map_service.py
     ├── test_data_fetcher2.py
     ├── test_shelter_profile.py
+    ├── test_shelter_repository.py
+    ├── test_population_service.py
     ├── test_vector_store.py
     ├── test_chat_service.py
     ├── test_eval_metrics.py
@@ -170,8 +175,10 @@ Disaster_Hub/
 | GET | `/health` | liveness，只表示 process 還活著 |
 | GET | `/health/ready` | readiness，實際檢查資料庫與向量索引；未就緒回 503 |
 | GET | `/api/shelters` | 取得所有避難所資料 |
-| POST | `/api/simulate_disaster` | 執行災害空間模擬 |
-| POST | `/api/reset_simulation` | 清除模擬狀態 |
+| GET | `/api/population` | 人口模型（海岸線折線 + 鄉鎮人口），前端人群動畫用 |
+| POST | `/api/simulate_disaster` | 執行災害空間模擬，回傳受影響避難所與圈內人口 / 疏散需求 / 收容缺口估算 |
+| POST | `/api/occupancy` | 回寫各避難所目前收容人數（疏散動畫結束後由前端呼叫），只重算有變動的向量文件 |
+| POST | `/api/reset_simulation` | 清除模擬狀態，並把收容人數還原成來源資料的初始值 |
 | POST | `/api/nearest_shelter` | 查詢最近避難所（PostGIS 距離排序）|
 | POST | `/api/chat` | AI 決策助手 |
 | POST | `/api/sync` | 手動觸發資料同步（需 `X-API-Key` header）|
@@ -183,6 +190,12 @@ Disaster_Hub/
 ```bash
 curl -X POST http://localhost:8501/api/sync -H "X-API-Key: $SYNC_API_KEY"
 ```
+
+### 模擬狀態與收容人數
+
+- 模擬流程：`/api/simulate_disaster` 用 PostGIS 找出受影響避難所，並以 `data_reference/east_taiwan_population.json` 的鄉鎮人口估算圈內人口、疏散需求與收容缺口；前端依同一份估算跑疏散動畫；動畫結束後把各避難所收容人數 `POST /api/occupancy` 回寫資料庫，並只對有變動的避難所重算向量文件。此後不論走 RAG、容量排序、地理距離或模擬快照，AI 看到的負載都與地圖一致。
+- 啟動時與 `/api/sync` 的資料同步只更新容量、地址、座標，**不會**重設收容人數（容量縮到低於目前人數時才往下夾）。要清空收容人數請按「清除所有圖層」或呼叫 `/api/reset_simulation`。
+- **已知限制：模擬狀態是全域的。** 目前的災害模擬結果與收容人數存在單一後端狀態與資料庫中，沒有 session 隔離；多位使用者同時操作會互相覆蓋對方的模擬。這是單人 demo 的設計取捨，要支援多人需要引入 session 或把模擬結果掛在使用者身上。
 
 ---
 

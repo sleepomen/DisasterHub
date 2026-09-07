@@ -85,14 +85,25 @@ class ShelterRepository:
         except Exception as e:
             raise RuntimeError(f"ensure_schema 失敗：{e}")
 
+    # 同步只負責「靜態」欄位（容量 / 地址 / 座標）。
+    # current_ppl 是模擬回寫的即時狀態，重啟或手動同步都不能把它洗掉；
+    # 只有在容量縮小到低於目前人數時才往下壓，避免出現負的剩餘空間。
     UPSERT_SQL = """
         INSERT INTO shelters (name, capacity, current_ppl, address, geom)
         VALUES (%s, %s, %s, %s, ST_SetSRID(ST_Point(%s, %s), 4326))
         ON CONFLICT (name) DO UPDATE SET
             capacity = EXCLUDED.capacity,
-            current_ppl = EXCLUDED.current_ppl,
+            current_ppl = LEAST(shelters.current_ppl, EXCLUDED.capacity),
             address = EXCLUDED.address,
             geom = EXCLUDED.geom;
+    """
+
+    # 一次更新多筆佔用數；人數夾在 [0, capacity] 之間，名稱不存在的列直接略過
+    SET_OCCUPANCY_SQL = """
+        UPDATE shelters AS s
+        SET current_ppl = LEAST(GREATEST(v.ppl, 0), s.capacity)
+        FROM (SELECT unnest(%s::text[]) AS name, unnest(%s::int[]) AS ppl) AS v
+        WHERE s.name = v.name;
     """
 
     @staticmethod
@@ -124,10 +135,26 @@ class ShelterRepository:
             raise RuntimeError(f"upsert_shelters 失敗：{e}")
         return len(params)
 
-    def get_all_shelters(self):
+    def set_occupancy(self, occupancy: dict[str, int]) -> int:
+        """
+        回寫各避難所目前收容人數（模擬結果 / 重置用）。回傳實際更新的列數。
+        """
+        if not occupancy:
+            return 0
+        names = list(occupancy.keys())
+        counts = [int(occupancy[n]) for n in names]
         try:
             with self._cursor() as cursor:
-                cursor.execute(f"SELECT {SELECT_COLUMNS} FROM shelters")
+                cursor.execute(self.SET_OCCUPANCY_SQL, (names, counts))
+                return cursor.rowcount
+        except Exception as e:
+            raise RuntimeError(f"set_occupancy 失敗：{e}")
+
+    def get_all_shelters(self):
+        # 固定排序，讓向量索引指紋與前端列表在重啟後保持一致
+        try:
+            with self._cursor() as cursor:
+                cursor.execute(f"SELECT {SELECT_COLUMNS} FROM shelters ORDER BY name")
                 return [_row_to_shelter(row) for row in cursor.fetchall()]
         except Exception as e:
             raise RuntimeError(f"get_all_shelters error：{e}")

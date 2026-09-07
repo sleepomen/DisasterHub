@@ -17,7 +17,7 @@ Built in response to the 2025 barrier-lake disaster in Guangfu Township, Hualien
 
 - **Real map visualization** — Leaflet.js + OpenStreetMap. 50 shelters across Yilan, Hualien and Taitung are plotted at their real coordinates; marker size scales with capacity, and clicking one shows live information.
 - **PostGIS spatial simulation** — Set a disaster epicenter and impact radius; the backend computes the list of affected shelters via `ST_DWithin`. Earthquake, flood and fire scenarios are supported.
-- **Crowd evacuation animation** — Evacuee counts are estimated from the disaster type and affected area. Crowd points head to the nearest shelter that still has room, and load ratios update in real time.
+- **Crowd evacuation animation** — The backend estimates the population inside the impact radius and the resulting evacuation demand from a township population model. Crowd points head to the nearest shelter that still has room, and load ratios update in real time. When the animation ends, each shelter's occupancy is written back to the database and the vector index, so the loads the AI assistant reports match the map.
 - **AI decision assistant** — RAG plus a local LLM answers questions from real shelter data, covering semantic lookups, geographic distance queries, capacity rankings, and simulation-result queries.
 
 ---
@@ -135,24 +135,29 @@ Disaster_Hub/
 │   ├── shelter_profile.py      # Name/address → township, facilities, aliases
 │   ├── embeddings.py           # Ollama / MiniLM embeddings
 │   ├── health.py               # Readiness dependency checks
-│   └── vector_store.py         # ChromaDB vector index
+│   ├── population_service.py   # Coastline + township population model, evacuee estimation
+│   └── vector_store.py         # ChromaDB vector index (supports partial updates)
 │
 ├── data_for_refuge/
 │   ├── hualien_shelter.json    # Hualien (14 entries)
 │   ├── taitung_shelter.json    # Taitung (16 entries)
 │   └── yilan_shelter.json      # Yilan (20 entries)
 │
+├── data_reference/
+│   └── east_taiwan_population.json  # Coastline polylines + population of 29 townships (shared by the frontend animation and the AI)
+│
 ├── static/
 │   ├── index.html              # Page skeleton
 │   ├── style.css               # UI styles
-│   ├── app.js                  # Map / simulation / chat logic
-│   └── geo_data.js             # Coastline polylines + township population centers
+│   └── app.js                  # Map / simulation / chat logic
 │
 └── tests/
     ├── test_shelter_model.py
     ├── test_map_service.py
     ├── test_data_fetcher2.py
     ├── test_shelter_profile.py
+    ├── test_shelter_repository.py
+    ├── test_population_service.py
     ├── test_vector_store.py
     ├── test_chat_service.py
     ├── test_eval_metrics.py
@@ -170,8 +175,10 @@ Disaster_Hub/
 | GET | `/health` | Liveness — only reports that the process is alive |
 | GET | `/health/ready` | Readiness — actually checks the database and vector index; returns 503 when not ready |
 | GET | `/api/shelters` | Fetch all shelter data |
-| POST | `/api/simulate_disaster` | Run the spatial disaster simulation |
-| POST | `/api/reset_simulation` | Clear the simulation state |
+| GET | `/api/population` | The population model (coastline polylines + township population) used by the frontend crowd animation |
+| POST | `/api/simulate_disaster` | Run the spatial disaster simulation; returns the affected shelters plus estimates of the population inside the radius, the evacuation demand, and the shelter shortfall |
+| POST | `/api/occupancy` | Write back each shelter's current occupancy (called by the frontend once the evacuation animation ends); only the changed vector documents are recomputed |
+| POST | `/api/reset_simulation` | Clear the simulation state and restore occupancy to the initial values from the source data |
 | POST | `/api/nearest_shelter` | Find the nearest shelters (PostGIS distance ordering) |
 | POST | `/api/chat` | AI decision assistant |
 | POST | `/api/sync` | Trigger a data sync manually (requires the `X-API-Key` header) |
@@ -183,6 +190,12 @@ Manual sync example:
 ```bash
 curl -X POST http://localhost:8501/api/sync -H "X-API-Key: $SYNC_API_KEY"
 ```
+
+### Simulation State and Occupancy
+
+- The simulation flow: `/api/simulate_disaster` uses PostGIS to find the affected shelters and estimates the population inside the radius, the evacuation demand and the shelter shortfall from the township populations in `data_reference/east_taiwan_population.json`. The frontend runs the evacuation animation off that same estimate, and when the animation ends it writes each shelter's occupancy back to the database with `POST /api/occupancy`, recomputing vector documents only for the shelters that changed. From then on the loads the AI sees match the map, whether the answer comes from RAG, capacity ranking, geographic distance, or the simulation snapshot.
+- The data sync at startup and via `/api/sync` only updates capacity, address and coordinates — it does **not** reset occupancy (it is only clamped down when the capacity shrinks below the current headcount). To clear occupancy, use "Clear all layers" in the UI or call `/api/reset_simulation`.
+- **Known limitation: the simulation state is global.** The disaster simulation result and the occupancy live in a single backend state plus the database, with no session isolation, so concurrent users overwrite each other's simulations. That is a deliberate trade-off for a single-user demo; supporting multiple users would require sessions, or attaching the simulation result to the user.
 
 ---
 
