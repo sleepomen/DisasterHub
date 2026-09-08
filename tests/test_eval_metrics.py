@@ -48,3 +48,12 @@ def test_score_case_and_aggregate():
     assert agg["recall@1"] == 0.5
     assert agg["mrr"] == (1.0 + 0.2) / 2
     assert aggregate([]) == {}
+
+
+def test_score_case_includes_full_list_metrics():
+    ranked = ["a", "b", "c", "d"]
+    scores = score_case(ranked, {"a", "c", "z"}, [2])
+    assert scores["recall@all"] == 2 / 3
+    assert scores["precision@all"] == 2 / 4
+    assert score_case([], {"a"}, [2])["precision@all"] == 0.0
+    assert score_case([], {"a"}, [2])["recall@all"] == 0.0

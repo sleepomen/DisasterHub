@@ -33,7 +33,13 @@ def percentile(values: list[float], p: float) -> float:
 
 
 def score_case(ranked: list[str], relevant: set[str], ks: list[int]) -> dict:
-    out = {"mrr": reciprocal_rank(ranked, relevant)}
+    # @all：以整份回傳清單計分。有 metadata 篩選時檢索會回傳所有符合的文件，
+    # 列舉題（一個縣 20 筆）才不會被 top-10 的結構上限壓住
+    out = {
+        "mrr": reciprocal_rank(ranked, relevant),
+        "recall@all": recall_at_k(ranked, relevant, len(ranked)),
+        "precision@all": precision_at_k(ranked, relevant, len(ranked)) if ranked else 0.0,
+    }
     for k in ks:
         out[f"recall@{k}"] = recall_at_k(ranked, relevant, k)
         out[f"precision@{k}"] = precision_at_k(ranked, relevant, k)
