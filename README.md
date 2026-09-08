@@ -11,7 +11,7 @@
 - **真實地圖視覺化** — Leaflet.js + OpenStreetMap，宜花東 50 處避難所標記於真實座標，marker 大小依容量縮放，點擊顯示即時資訊
 - **PostGIS 空間模擬** — 設定災害中心點與影響半徑，後端透過 `ST_DWithin` 計算受影響避難所清單，支援強震、淹水、火災三種類型
 - **人群疏散動畫** — 後端以鄉鎮人口模型估算圈內人口與疏散需求，人群點就近前往仍有空位的避難所，負載率即時變化；動畫結束後把各避難所收容人數回寫資料庫與向量索引，AI 助手回答的負載跟地圖一致
-- **AI 決策助手** — 整合 RAG + 本地 LLM，根據避難所真實資料回答問題，支援語意查詢、地理距離查詢、容量排序查詢、模擬結果查詢
+- **AI 決策助手** — 整合規則層 + RAG + 本地 LLM，根據避難所真實資料回答問題，支援語意查詢、地理距離查詢、容量排序查詢、模擬結果查詢；地區 / 鄉鎮 / 設施 / 容量條件轉成 metadata 篩選，範圍外縣市直接拒答
 
 ---
 
@@ -125,6 +125,7 @@ Disaster_Hub/
 │   ├── map_service.py          # 地圖資料格式化
 │   ├── sync_service.py         # 資料同步
 │   ├── chat_service.py         # 意圖判斷 + RAG + LLM
+│   ├── query_rules.py          # 查詢規則層：地區 / 鄉鎮 / 設施 / 容量 → metadata 篩選，範圍外拒答
 │   ├── shelter_profile.py      # 名稱/地址 → 鄉鎮、設施、別名
 │   ├── embeddings.py           # Ollama / MiniLM embedding
 │   ├── health.py               # readiness 依賴檢查
@@ -151,6 +152,7 @@ Disaster_Hub/
     ├── test_shelter_profile.py
     ├── test_shelter_repository.py
     ├── test_population_service.py
+    ├── test_query_rules.py
     ├── test_vector_store.py
     ├── test_chat_service.py
     ├── test_eval_metrics.py
@@ -221,16 +223,26 @@ docker exec -it disaster_app python evals/run_rag_eval.py --embedder ollama:bge-
 
 輸出各類別的 Recall@3/5/10、Precision、MRR、hit rate、相關文件平均距離、負例的 top-1 距離（用來選相似度門檻）與查詢延遲 p50/p95；完整結果存在 `evals/results/<label>.json`。`--threshold` 可指定 cosine 距離門檻計算負例的假陽性率，`--doc-style legacy` 用舊的文件模板建索引以做對照。
 
-歷次結果（macro Recall@10 / top-10 完全未命中題數）：
+歷次結果（macro；R@all 以整份回傳清單計分，未命中為 top-10 完全沒有相關文件的題數）：
 
-| 設定 | R@3 | R@10 | MRR | 未命中 |
-|---|---|---|---|---|
-| MiniLM + 舊文件（baseline） | 0.379 | 0.619 | 0.561 | 27 |
-| MiniLM + 擴充文件 | 0.530 | 0.775 | 0.726 | 10 |
-| bge-m3 + 舊文件 | 0.674 | 0.865 | 0.864 | 4 |
-| **bge-m3 + 擴充文件（現行）** | **0.748** | **0.898** | **0.926** | **2** |
+| 設定 | R@3 | R@10 | R@all | P@all | MRR | 未命中 | 負例拒答 |
+|---|---|---|---|---|---|---|---|
+| MiniLM + 舊文件（baseline） | 0.379 | 0.619 | 0.619 | – | 0.561 | 27 | 0/10 |
+| MiniLM + 擴充文件 | 0.530 | 0.775 | 0.775 | – | 0.726 | 10 | 0/10 |
+| bge-m3 + 舊文件 | 0.674 | 0.865 | 0.865 | – | 0.864 | 4 | 0/10 |
+| bge-m3 + 擴充文件 | 0.748 | 0.898 | 0.898 | 0.335 | 0.926 | 2 | 0/10 |
+| **bge-m3 + 擴充文件 + 規則層（現行）** | **0.794** | **0.936** | **0.997** | **0.730** | **0.990** | **0** | **8/10** |
 
-擴充文件指 `services/shelter_profile.py` 從名稱與地址推導出的鄉鎮、設施類型、容量分級、別名，寫進向量文件與 metadata。
+沒有規則層時檢索固定回傳 top-10，R@all 等於 R@10。加上規則層後，地區 / 鄉鎮 / 設施 / 容量四類的 R@all 與 P@all 都到 1.0（「宜蘭有哪些避難所」回傳全部 20 筆且沒有雜訊），剩下唯一的部分未命中是純路名查詢「四維路」，留給 BM25 hybrid。兩題沒被拒答的負例是「今天天氣如何」與「如何申請災害補助」，不是地理問題，交給 prompt 規則回「沒有相關資料」。
+
+`--no-rules` 可以關掉規則層做對照：
+
+```bash
+docker exec -it disaster_app python evals/run_rag_eval.py --embedder ollama:bge-m3 --label bge-m3_rules
+docker exec -it disaster_app python evals/run_rag_eval.py --embedder ollama:bge-m3 --label bge-m3 --no-rules
+```
+
+擴充文件指 `services/shelter_profile.py` 從名稱與地址推導出的鄉鎮、設施類型、容量分級、別名，寫進向量文件與 metadata。規則層指 `services/query_rules.py`：在向量檢索前抽出地區（宜蘭 / 花蓮 / 台東）、鄉鎮（29 個，來自人口模型，支援「礁溪」這種省略字尾的寫法）、設施類型（學校 / 國小 / 體育館 / 公所…）與容量條件（上千人、超過 500 人、300 人以下、小型…），轉成 ChromaDB `where` 篩選並回傳全部符合的文件；「最大 / 最多」再依容量重排；篩選結果為空時退回一般語意檢索。提到台北、高雄等範圍外縣市、且整句沒有東部地名時，在規則層直接拒答，不進向量檢索。
 
 ```
 Disaster_Hub/
@@ -257,7 +269,16 @@ Disaster_Hub/
 → 直接讀取模擬結果，不走 RAG
 
 目前受影響的避難所還有空間嗎？
-→ RAG 語意搜尋 + 模擬 context
+→ 模擬進行中時直接讀取模擬結果；沒有模擬時走 RAG
+
+宜蘭有哪些避難所？／花蓮的國小／台東能收上千人的地方
+→ 規則層轉成 metadata 篩選，回傳全部符合的避難所
+
+高雄的避難所？
+→ 規則層直接拒答：本系統只涵蓋宜蘭、花蓮、台東
+
+請給我疏散建議
+→ 有模擬時依受影響避難所與人口估算回答；沒有模擬時提示先執行模擬
 ```
 
 ---
