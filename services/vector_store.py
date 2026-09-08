@@ -7,6 +7,7 @@ import chromadb
 import config
 from services.embeddings import build_embedding_function
 from services.shelter_profile import profile, strip_region_tag
+from services.query_rules import QueryPlan, MAX_FILTERED_RESULTS
 
 logger = logging.getLogger(__name__)
 
@@ -174,15 +175,28 @@ class VectorStore:
         logger.info("VectorStore: 局部更新 %d 筆避難所索引", len(shelters))
         return len(shelters)
 
-    def retrieve(self, query: str, n_results: int | None = None) -> list[Hit]:
-        total = self.collection.count()
+    def count_where(self, where: dict | None) -> int:
+        """符合 metadata 條件的文件數；沒有條件就是全部"""
+        if where is None:
+            return self.collection.count()
+        return len(self.collection.get(where=where, include=[])["ids"])
+
+    def retrieve(self, query: str, n_results: int | None = None, where: dict | None = None) -> list[Hit]:
+        """
+        語意檢索。給 where 時只在符合 metadata 條件的文件裡找，
+        而且預設把符合的全部回傳（上限 MAX_FILTERED_RESULTS），
+        「宜蘭有哪些避難所」這種列舉題才不會被 top-k 截掉。
+        """
+        total = self.count_where(where)
         if total == 0:
             return []
 
-        n = min(n_results or config.RAG_TOP_K, total)
+        default_n = MAX_FILTERED_RESULTS if where is not None else config.RAG_TOP_K
+        n = min(n_results or default_n, total)
         results = self.collection.query(
             query_texts=[query],
             n_results=n,
+            where=where,
             include=["documents", "metadatas", "distances"],
         )
         docs = results.get("documents", [[]])[0]
@@ -193,14 +207,28 @@ class VectorStore:
             for doc, meta, dist in zip(docs, metas, dists)
         ]
 
-    def search(self, query: str, n_results: int | None = None) -> str:
+    def retrieve_planned(self, query: str, plan: QueryPlan, n_results: int | None = None) -> list[Hit]:
         """
-        語意搜尋：找出與 query 最相關的避難所資料
+        依查詢規則層的計畫檢索：有硬條件就先用 metadata 篩選，
+        篩完沒東西再退回一般語意檢索（規則抽錯總比答不出來好）；
+        「最大 / 最多」類問題再依容量重排。
+        """
+        where = plan.to_where()
+        hits = self.retrieve(query, n_results, where=where) if where is not None else []
+        if not hits:
+            hits = self.retrieve(query, n_results)
+        if plan.order_by_capacity:
+            hits = sorted(hits, key=lambda h: h.metadata.get("capacity", 0), reverse=True)
+        return hits
+
+    def search(self, query: str, n_results: int | None = None, plan: QueryPlan | None = None) -> str:
+        """
+        語意搜尋：找出與 query 最相關的避難所資料，回傳可直接塞進 prompt 的文字
         """
         if self.collection.count() == 0:
             return "目前沒有避難所資料。"
 
-        hits = self.retrieve(query, n_results)
+        hits = self.retrieve_planned(query, plan, n_results) if plan is not None else self.retrieve(query, n_results)
         if not hits:
             return "找不到相關避難所資料。"
 

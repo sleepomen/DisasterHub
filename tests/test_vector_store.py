@@ -186,3 +186,54 @@ def test_upsert_keeps_fingerprint_in_sync(tmp_path):
         reopened.build_index(current)
         add.assert_not_called()
     assert reopened.retrieve("中正國小", n_results=1)[0].metadata["current_people"] == 380
+
+
+# ── metadata 篩選（B5）──────────────────────────────────────
+from services.query_rules import analyze  # noqa: E402
+
+
+def test_count_where(store):
+    assert store.count_where(None) == len(SHELTERS)
+    assert store.count_where({"region": "宜蘭"}) == 2
+    assert store.count_where({"region": "高雄"}) == 0
+
+
+def test_retrieve_with_where_returns_all_matching(store):
+    hits = store.retrieve("避難所", where={"region": "宜蘭"})
+    assert {h.name for h in hits} == {"[YILAN] 宜蘭國小", "[YILAN] 羅東鎮立體育館"}
+    assert all(h.metadata["region"] == "宜蘭" for h in hits)
+
+
+def test_retrieve_with_where_and_no_match_is_empty(store):
+    assert store.retrieve("避難所", where={"region": "高雄"}) == []
+
+
+def test_retrieve_planned_filters_by_region_and_facility(store):
+    hits = store.retrieve_planned("宜蘭的體育館", analyze("宜蘭的體育館"))
+    assert [h.name for h in hits] == ["[YILAN] 羅東鎮立體育館"]
+
+
+def test_retrieve_planned_filters_by_capacity(store):
+    hits = store.retrieve_planned("能收上千人的地方", analyze("能收上千人的地方"))
+    assert [h.name for h in hits] == ["[TAITUNG] 台東縣立體育館"]
+
+
+def test_retrieve_planned_orders_superlative_by_capacity(store):
+    hits = store.retrieve_planned("最大的避難所", analyze("最大的避難所"))
+    caps = [h.metadata["capacity"] for h in hits]
+    assert caps == sorted(caps, reverse=True)
+    assert hits[0].name == "[TAITUNG] 台東縣立體育館"
+
+
+def test_retrieve_planned_falls_back_when_filter_matches_nothing(store):
+    # 規則抽到「圖書館」但索引裡沒有，退回一般語意檢索而不是空手而回
+    plan = analyze("宜蘭的圖書館")
+    assert plan.to_where() is not None
+    hits = store.retrieve_planned("宜蘭的圖書館", plan)
+    assert len(hits) > 0
+
+
+def test_search_with_plan_returns_only_filtered_docs(store):
+    text = store.search("台東的體育館", plan=analyze("台東的體育館"))
+    assert "台東縣立體育館" in text
+    assert "羅東" not in text
