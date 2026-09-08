@@ -56,11 +56,22 @@ def build_store(embedder_spec: str, label: str, doc_style: str = "current"):
     return store, len(shelters), time.perf_counter() - t0
 
 
-def run(cases, store, ks, top, threshold):
+def run(cases, store, ks, top, threshold, use_rules=True):
+    from services import query_rules
+
     rows = []
     for c in cases:
         t0 = time.perf_counter()
-        hits = store.retrieve(c["query"], n_results=top)
+        rejected = None
+        if use_rules:
+            plan = query_rules.analyze(c["query"])
+            if plan.out_of_scope:
+                hits, rejected = [], plan.out_of_scope
+            else:
+                # 有篩選時交給規則決定筆數（回傳全部符合者），沒篩選時維持 top
+                hits = store.retrieve_planned(c["query"], plan, n_results=None if plan.has_filter else top)
+        else:
+            hits = store.retrieve(c["query"], n_results=top)
         latency_ms = (time.perf_counter() - t0) * 1000
         ranked = [h.name for h in hits]
         relevant = set(c["relevant"])
@@ -72,15 +83,19 @@ def run(cases, store, ks, top, threshold):
             "distances": [round(h.distance, 4) for h in hits],
             "latency_ms": round(latency_ms, 2),
             "top1_distance": hits[0].distance if hits else None,
+            "rejected": rejected,
         }
         if relevant:
             row["scores"] = score_case(ranked, relevant, ks)
             rel_dists = [h.distance for h in hits if h.name in relevant]
             row["best_relevant_distance"] = min(rel_dists) if rel_dists else None
         else:
-            row["false_positive"] = (
-                hits[0].distance < threshold if (hits and threshold is not None) else None
-            )
+            if rejected:
+                row["false_positive"] = False
+            else:
+                row["false_positive"] = (
+                    hits[0].distance < threshold if (hits and threshold is not None) else None
+                )
         rows.append(row)
     return rows
 
@@ -98,6 +113,7 @@ def summarize(rows, ks):
             fps = [g["false_positive"] for g in group if g["false_positive"] is not None]
             summary["negatives"] = {
                 "count": len(group),
+                "rejected_by_rules": sum(1 for g in group if g.get("rejected")),
                 "mean_top1_distance": round(mean(top1), 4) if top1 else None,
                 "min_top1_distance": round(min(top1), 4) if top1 else None,
                 "false_positive_rate": round(mean(fps), 4) if fps else None,
@@ -114,7 +130,7 @@ def summarize(rows, ks):
         }
 
     cat_aggs = [v for v in summary["categories"].values()]
-    metric_keys = [f"recall@{k}" for k in ks] + [f"precision@{k}" for k in ks] + [f"hit@{k}" for k in ks] + ["mrr"]
+    metric_keys = [f"recall@{k}" for k in ks] + [f"precision@{k}" for k in ks] + [f"hit@{k}" for k in ks] + ["mrr", "recall@all", "precision@all"]
     summary["macro"] = {k: round(mean(c[k] for c in cat_aggs), 4) for k in metric_keys} if cat_aggs else {}
     summary["micro"] = {k: round(v, 4) for k, v in aggregate(positive_scores).items()} if positive_scores else {}
     lat = [r["latency_ms"] for r in rows]
@@ -124,11 +140,12 @@ def summarize(rows, ks):
 
 def print_report(summary, ks, meta):
     print(f"\n=== RAG eval: {meta['label']}  (embedder={meta['embedder']}, top={meta['top']}, docs={meta['docs']}) ===")
-    header = ["category", "n"] + [f"R@{k}" for k in ks] + [f"P@{ks[0]}", "MRR", f"hit@{ks[-1]}", "rel_dist"]
+    header = ["category", "n"] + [f"R@{k}" for k in ks] + ["R@all", "P@all", f"P@{ks[0]}", "MRR", f"hit@{ks[-1]}", "rel_dist"]
     print(" | ".join(f"{h:<12}" if i == 0 else f"{h:>7}" for i, h in enumerate(header)))
     for cat, s in summary["categories"].items():
         cells = [f"{cat:<12}", f"{s['count']:>7}"]
         cells += [f"{s[f'recall@{k}']:>7.3f}" for k in ks]
+        cells += [f"{s['recall@all']:>7.3f}", f"{s['precision@all']:>7.3f}"]
         cells += [f"{s[f'precision@{ks[0]}']:>7.3f}", f"{s['mrr']:>7.3f}", f"{s[f'hit@{ks[-1]}']:>7.3f}"]
         cells += [f"{s['mean_best_relevant_distance']:>7.3f}" if s["mean_best_relevant_distance"] is not None else f"{'-':>7}"]
         print(" | ".join(cells))
@@ -137,12 +154,13 @@ def print_report(summary, ks, meta):
         if s:
             cells = [f"{name:<12}", f"{'':>7}"]
             cells += [f"{s[f'recall@{k}']:>7.3f}" for k in ks]
+            cells += [f"{s['recall@all']:>7.3f}", f"{s['precision@all']:>7.3f}"]
             cells += [f"{s[f'precision@{ks[0]}']:>7.3f}", f"{s['mrr']:>7.3f}", f"{s[f'hit@{ks[-1]}']:>7.3f}", f"{'':>7}"]
             print(" | ".join(cells))
     neg = summary["negatives"]
     if neg:
         fp = f"{neg['false_positive_rate']:.3f}" if neg["false_positive_rate"] is not None else "n/a (no --threshold)"
-        print(f"negatives    n={neg['count']}  mean_top1_dist={neg['mean_top1_distance']}  min_top1_dist={neg['min_top1_distance']}  FP_rate={fp}")
+        print(f"negatives    n={neg['count']}  rejected_by_rules={neg['rejected_by_rules']}  mean_top1_dist={neg['mean_top1_distance']}  min_top1_dist={neg['min_top1_distance']}  FP_rate={fp}")
     lat = summary["latency_ms"]
     print(f"latency      p50={lat['p50']} ms  p95={lat['p95']} ms   index_build={meta['index_build_s']:.2f}s")
 
@@ -168,6 +186,7 @@ def main():
     parser.add_argument("--threshold", type=float, default=None, help="cosine distance above which a result is treated as no-match")
     parser.add_argument("--doc-style", default="current", choices=["current", "legacy"])
     parser.add_argument("--show-misses", type=int, default=15)
+    parser.add_argument("--no-rules", action="store_true", help="skip the query rules layer (metadata filters / out-of-scope rejection)")
     parser.add_argument("--out", default=None)
     args = parser.parse_args()
 
@@ -175,9 +194,9 @@ def main():
     label = args.label or args.embedder.replace(":", "_")
     cases = load_cases(args.cases)
     store, docs, build_s = build_store(args.embedder, label, args.doc_style)
-    rows = run(cases, store, ks, max(args.top, ks[-1]), args.threshold)
+    rows = run(cases, store, ks, max(args.top, ks[-1]), args.threshold, use_rules=not args.no_rules)
     summary = summarize(rows, ks)
-    meta = {"label": label, "embedder": args.embedder, "doc_style": args.doc_style, "top": args.top, "docs": docs, "index_build_s": build_s, "threshold": args.threshold, "cases": len(cases)}
+    meta = {"label": label, "embedder": args.embedder, "doc_style": args.doc_style, "rules": not args.no_rules, "top": args.top, "docs": docs, "index_build_s": build_s, "threshold": args.threshold, "cases": len(cases)}
 
     print_report(summary, ks, meta)
     print_misses(rows, ks[-1], args.show_misses)
