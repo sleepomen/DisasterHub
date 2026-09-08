@@ -2,6 +2,7 @@ import re
 import logging
 import requests
 from services.vector_store import VectorStore
+from services import query_rules
 import config
 
 logger = logging.getLogger(__name__)
@@ -21,6 +22,17 @@ CAPACITY_KEYWORDS = ["容量最大", "最多人", "容納最多", "最大容量"
 
 # 觸發模擬結果查詢的關鍵字
 SIMULATION_KEYWORDS = ["哪些受影響", "受影響的避難所", "哪些避難所受", "模擬結果", "影響範圍", "受災避難所", "哪些被影響"]
+
+# 有模擬進行中時，這些追問也該看模擬結果而不是全域語意檢索；
+# 沒有模擬時不啟用，否則「有什麼建議」會被導去回答「尚未執行模擬」
+SIMULATION_FOLLOWUP_KEYWORDS = ["疏散建議", "怎麼疏散", "如何疏散", "疏散到哪", "安置", "調度", "建議", "還有空間", "夠不夠", "缺口"]
+
+# 明確在要疏散建議、但還沒有模擬可依據：直接請使用者先跑模擬，不要拿全域檢索硬湊
+EVACUATION_ADVICE_KEYWORDS = ["疏散建議", "怎麼疏散", "如何疏散", "疏散到哪", "疏散計畫"]
+NO_SIMULATION_REPLY = (
+    "目前尚未執行災害模擬，無法給出疏散建議。"
+    "請先在左側設定模擬中心、災害類型與受災半徑並執行空間模擬，我會依受影響避難所的容量與人口估算提供建議。"
+)
 
 # 地區關鍵字對應
 REGION_MAP = {
@@ -123,7 +135,9 @@ class ChatService:
         return any(kw in message for kw in CAPACITY_KEYWORDS)
 
     def _is_simulation_query(self, message: str) -> bool:
-        return any(kw in message for kw in SIMULATION_KEYWORDS)
+        if any(kw in message for kw in SIMULATION_KEYWORDS):
+            return True
+        return bool(self.latest_simulation) and any(kw in message for kw in SIMULATION_FOLLOWUP_KEYWORDS)
 
     def _simulation_summary(self) -> str:
         sim = self.latest_simulation
@@ -256,6 +270,9 @@ class ChatService:
         if self._is_simulation_query(user_message):
             return self._get_simulation_context(), None
 
+        if not self.latest_simulation and any(kw in user_message for kw in EVACUATION_ADVICE_KEYWORDS):
+            return None, NO_SIMULATION_REPLY
+
         if self._is_geo_query(user_message):
             coords = self._extract_coords(user_message)
             if coords is None:
@@ -266,7 +283,11 @@ class ChatService:
         if self._is_capacity_query(user_message):
             return self._get_capacity_context(user_message), None
 
-        return self.vector_store.search(user_message), None
+        # 規則層：範圍外縣市直接拒答；地區 / 鄉鎮 / 設施 / 容量條件轉成 metadata 篩選
+        plan = query_rules.analyze(user_message)
+        if plan.out_of_scope:
+            return None, query_rules.out_of_scope_reply(plan.out_of_scope)
+        return self.vector_store.search(user_message, plan=plan), None
 
     def build_prompt(self, user_message: str, shelter_context: str) -> str:
         full_context = f"【避難所資料】\n{shelter_context}"
