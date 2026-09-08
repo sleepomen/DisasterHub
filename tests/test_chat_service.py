@@ -197,3 +197,46 @@ def test_population_lines_when_fallback_and_no_shortfall():
     assert "約 157 人" in text
     assert "足以安置" in text
     assert population_lines({}) == []
+
+
+# ── 規則層（B5）────────────────────────────────────────────
+def test_out_of_scope_region_is_rejected_before_rag(svc):
+    context, early = svc.build_context("高雄的避難所")
+    assert context is None
+    assert "高雄" in early and "宜蘭、花蓮、台東" in early
+    svc.vector_store.search.assert_not_called()
+
+
+def test_rag_query_passes_plan_to_vector_store(svc):
+    context, early = svc.build_context("宜蘭有哪些國小")
+    assert early is None
+    assert context == "RAG 結果"
+    plan = svc.vector_store.search.call_args.kwargs["plan"]
+    assert plan.region == "宜蘭"
+    assert plan.facilities == ["國小"]
+
+
+def test_general_query_has_empty_plan(svc):
+    svc.build_context("避難所有提供飲水嗎")
+    plan = svc.vector_store.search.call_args.kwargs["plan"]
+    assert plan.has_filter is False
+
+
+def test_followup_routes_to_simulation_only_when_active(svc):
+    assert svc._is_simulation_query("請給我疏散建議") is False
+    svc.set_simulation({"type": "earthquake", "radius_km": 5, "impacted_count": 1, "impacted_shelters": [
+        {"name": "[HUALIEN] 甲", "capacity": 100, "current_ppl": 0, "remaining": 100}]})
+    assert svc._is_simulation_query("請給我疏散建議") is True
+    context, early = svc.build_context("避難所還有空間嗎")
+    assert early is None
+    assert "受影響避難所共 1 個" in context
+    svc.clear_simulation()
+    assert svc._is_simulation_query("避難所還有空間嗎") is False
+
+
+def test_evacuation_advice_without_simulation_asks_to_run_one(svc):
+    from services.chat_service import NO_SIMULATION_REPLY
+    context, early = svc.build_context("請給我疏散建議")
+    assert context is None
+    assert early == NO_SIMULATION_REPLY
+    svc.vector_store.search.assert_not_called()
