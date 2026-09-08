@@ -86,6 +86,7 @@ class VectorStore:
     def count(self) -> int:
         return self.collection.count()
 
+    #建立字串寫進 ChromaDB
     @staticmethod
     def build_document(s) -> str:
         clean_name = strip_region_tag(s.name)
@@ -103,6 +104,7 @@ class VectorStore:
             f"負載率 {s.occupancy_rate:.0f}%。"
         )
 
+    #同樣的字串存成metadata
     @staticmethod
     def build_metadata(s) -> dict:
         p = profile(s.name, s.address, s.capacity)
