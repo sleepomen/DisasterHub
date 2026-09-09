@@ -32,12 +32,132 @@
         document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('open'));
     });
 
-    document.getElementById('sim-radius').addEventListener('input', (e) => {
-        const v = e.target.value;
-        document.getElementById('radius-val').textContent = `${v} km`;
-        const pct = ((v - 1) / 59) * 100;
-        e.target.style.background = `linear-gradient(to right, #ffbe2e ${pct}%, rgba(255,190,46,0.15) ${pct}%)`;
-    });
+    // ── 登入狀態 ─────────────────────────────────────────────
+    // 模擬 / 收容人數回寫 / 重置會改後端資料庫與全域狀態，後端要求先登入。
+    // session 放在 HttpOnly cookie，由瀏覽器自動帶，前端不會碰到憑證本身；
+    // 開網站登入一次，之後整個班次不必再輸入任何東西。
+    const authState = { user: null, loginEnabled: true };
+    const loginOverlay = document.getElementById('login-overlay');
+    const loginForm = document.getElementById('login-form');
+    const loginError = document.getElementById('login-error');
+    const authChip = document.getElementById('auth-chip');
+    const authUser = document.getElementById('auth-user');
+    const loginOpenBtn = document.getElementById('btn-login-open');
+    let loginPromptShown = false;
+
+    function renderAuth() {
+        if (authChip) authChip.hidden = !authState.user;
+        if (authUser) authUser.textContent = authState.user || '';
+        if (loginOpenBtn) loginOpenBtn.hidden = !!authState.user || !authState.loginEnabled;
+    }
+
+    function showLogin(message) {
+        if (!loginOverlay) return;
+        if (loginError) {
+            loginError.textContent = message || '';
+            loginError.hidden = !message;
+        }
+        loginOverlay.hidden = false;
+        loginPromptShown = true;
+        const user = document.getElementById('login-user');
+        if (user) user.focus();
+    }
+
+    function hideLogin() {
+        if (loginOverlay) loginOverlay.hidden = true;
+    }
+
+    async function checkAuth() {
+        try {
+            const res = await fetch('/api/me');
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const data = await res.json();
+            authState.user = data.authenticated ? data.user : null;
+            authState.loginEnabled = !!data.login_enabled;
+        } catch (err) {
+            console.error('無法取得登入狀態', err);
+            authState.user = null;
+        }
+        renderAuth();
+        if (!authState.user && authState.loginEnabled && !loginPromptShown) showLogin();
+    }
+
+    if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('login-user').value.trim();
+            const password = document.getElementById('login-pass').value;
+            const btn = document.getElementById('btn-login');
+            if (btn) btn.disabled = true;
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    const fallback = res.status === 429 ? '登入失敗次數過多，請稍後再試。' : '登入失敗。';
+                    showLogin(typeof data.detail === 'string' ? data.detail : fallback);
+                    return;
+                }
+                authState.user = data.user;
+                renderAuth();
+                hideLogin();
+                document.getElementById('login-pass').value = '';
+                addChat(`已以 ${data.user} 登入，可執行模擬與回寫收容人數。`, 'ai');
+            } catch (err) {
+                console.error('登入失敗', err);
+                showLogin('連線失敗，請確認後端服務正常運行。');
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        });
+    }
+
+    const skipBtn = document.getElementById('btn-login-skip');
+    if (skipBtn) {
+        skipBtn.addEventListener('click', () => {
+            hideLogin();
+            addChat('目前為瀏覽模式：可查看地圖與問答，執行模擬前需要登入。', 'ai');
+        });
+    }
+    if (loginOpenBtn) loginOpenBtn.addEventListener('click', () => showLogin());
+
+    const logoutBtn = document.getElementById('btn-logout');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+            try { await fetch('/api/logout', { method: 'POST' }); } catch (err) { console.error('登出失敗', err); }
+            authState.user = null;
+            renderAuth();
+            addChat('已登出，目前為瀏覽模式。', 'ai');
+        });
+    }
+
+    // 需要登入的 POST。401 表示尚未登入或 session 過期，直接跳登入面板
+    async function postAuthed(url, body) {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: body === undefined ? undefined : JSON.stringify(body),
+        });
+        if (res.status === 401) {
+            authState.user = null;
+            renderAuth();
+            showLogin('登入已過期或尚未登入，請重新登入。');
+            throw new Error('AUTH_REQUIRED');
+        }
+        if (res.status === 503) throw new Error('AUTH_DISABLED');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+    }
+
+    function describeAuthError(err) {
+        if (!err) return null;
+        if (err.message === 'AUTH_REQUIRED') return '請先登入，才能執行模擬或回寫收容人數。';
+        if (err.message === 'AUTH_DISABLED') return '伺服器未設定管理者帳號，模擬與收容人數寫入功能已停用，請聯絡管理者。';
+        return null;
+    }
 
     // ── Leaflet ──────────────────────────────────────────────
     const map = L.map('map', { center: [23.9, 121.6], zoom: 9, zoomControl: true });
@@ -428,18 +548,12 @@
             .map(name => ({ name, current_ppl: Math.round(shelterOccupancy[name]) }));
         if (occupancy.length === 0) return;
         try {
-            const res = await fetch('/api/occupancy', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ occupancy })
-            });
-            if (!res.ok) throw new Error('HTTP ' + res.status);
-            const data = await res.json();
+            const data = await postAuthed('/api/occupancy', { occupancy });
             applyOccupancy(data.occupancy);
             addChat(`已將 ${data.updated} 個避難所的收容人數同步至後端，AI 助手現在會依最新負載回答。`, 'ai');
         } catch (err) {
             console.error('收容人數回寫失敗', err);
-            addChat('收容人數回寫後端失敗，AI 助手的回答可能與地圖不一致。', 'ai');
+            addChat(describeAuthError(err) || '收容人數回寫後端失敗，AI 助手的回答可能與地圖不一致。', 'ai');
         }
     }
 
@@ -457,6 +571,11 @@
 
     // ── 災害模擬按鈕 ─────────────────────────────────────────
     document.getElementById('btn-simulate').addEventListener('click', async () => {
+        if (!authState.user && authState.loginEnabled) {
+            addChat(describeAuthError(new Error('AUTH_REQUIRED')), 'ai');
+            showLogin();
+            return;
+        }
         const [lon, lat] = state.loc.split(',').map(Number);
         const radius = parseFloat(document.getElementById('sim-radius').value);
         const type = state.type;
@@ -486,13 +605,7 @@
         });
 
         try {
-            const res = await fetch('/api/simulate_disaster', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ lat, lon, radius, type })
-            });
-            if (!res.ok) throw new Error('HTTP ' + res.status);
-            const result = await res.json();
+            const result = await postAuthed('/api/simulate_disaster', { lat, lon, radius, type });
 
             if (result.impacted_count === 0) {
                 addChat(`此範圍內沒有避難所，請擴大半徑或更換模擬中心。`, 'ai');
@@ -518,8 +631,9 @@
             resizeCanvas();
             startCrowdAnimation(result.impacted_shelters, lat, lon, radius, dotColor, result.population);
 
-        } catch {
-            addChat(`模擬失敗，請確認後端服務正常運行。`, 'ai');
+        } catch (err) {
+            console.error('模擬失敗', err);
+            addChat(describeAuthError(err) || `模擬失敗，請確認後端服務正常運行。`, 'ai');
         }
     });
 
@@ -534,9 +648,7 @@
         document.getElementById('sim-progress-bar').style.width = '0%';
         document.getElementById('progress-pct').textContent = '0%';
         try {
-            const res = await fetch('/api/reset_simulation', { method: 'POST' });
-            if (!res.ok) throw new Error('HTTP ' + res.status);
-            const data = await res.json();
+            const data = await postAuthed('/api/reset_simulation');
             applyOccupancy(data.occupancy);
             addChat('已清除模擬圖層與疏散動畫，各避難所收容人數已還原。', 'ai');
         } catch (err) {
@@ -544,7 +656,7 @@
             console.error('重置模擬失敗', err);
             allShelterData.forEach(d => { shelterOccupancy[d.name] = d.ppl || 0; });
             markers.forEach(m => updateMarkerColor(m));
-            addChat('已清除模擬圖層，但後端收容人數重置失敗，請稍後再試。', 'ai');
+            addChat(describeAuthError(err) || '已清除模擬圖層，但後端收容人數重置失敗，請稍後再試。', 'ai');
         }
     });
 
@@ -592,5 +704,6 @@
         });
     }
 
+    checkAuth();
     loadPopulationModel();
     loadShelters();

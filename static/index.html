@@ -24,6 +24,13 @@
         <div class="stat-chip">避難所 <b id="stat-shelters">–</b></div>
         <div class="stat-chip">總容量 <b id="stat-capacity">–</b></div>
     </div>
+    <div class="auth-area">
+        <div class="auth-chip" id="auth-chip" hidden>
+            <span class="auth-user" id="auth-user"></span>
+            <button type="button" class="auth-btn" id="btn-logout">登出</button>
+        </div>
+        <button type="button" class="auth-btn" id="btn-login-open" hidden>登入</button>
+    </div>
 </nav>
 
 <div class="workspace">
@@ -129,6 +136,18 @@
         </div>
     </aside>
 
+</div>
+
+<div id="login-overlay" class="login-overlay" hidden>
+    <form id="login-form" class="login-card">
+        <div class="login-title">登入 Disaster<b>_Hub</b></div>
+        <div class="login-sub">執行模擬與回寫收容人數需要管理者帳號。不登入仍可瀏覽地圖與使用問答。</div>
+        <input class="input-field" type="text" id="login-user" placeholder="帳號" autocomplete="username" required>
+        <input class="input-field" type="password" id="login-pass" placeholder="密碼" autocomplete="current-password" required>
+        <div id="login-error" class="login-error" hidden></div>
+        <button class="btn-primary" type="submit" id="btn-login">登入</button>
+        <button class="btn-ghost" type="button" id="btn-login-skip">先瀏覽地圖</button>
+    </form>
 </div>
 
 <script src="/static/app.js"></script>
