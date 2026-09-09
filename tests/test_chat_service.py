@@ -160,6 +160,44 @@ def test_refresh_occupancy_without_simulation_is_noop(svc):
     assert svc.latest_simulation == {}
 
 
+def test_refresh_occupancy_recomputes_population_totals(svc):
+    # 回寫後總剩餘空間要等於逐筆加總；可安置 / 缺口保留模擬當下的規劃值，另外記已安置人數
+    svc.set_simulation({
+        "type": "earthquake", "radius_km": 10, "impacted_count": 2,
+        "impacted_shelters": [
+            {"name": "[HUALIEN] 甲", "capacity": 100, "current_ppl": 0, "remaining": 100},
+            {"name": "[HUALIEN] 乙", "capacity": 200, "current_ppl": 50, "remaining": 150},
+        ],
+        "population": {"estimated_evacuees": 400, "total_remaining": 250, "placeable": 250, "shortfall": 150,
+                       "fallback_estimate": False, "townships": []},
+    })
+    svc.refresh_occupancy([
+        Shelter("[HUALIEN] 甲", 100, 23.9, 121.6, 100),
+        Shelter("[HUALIEN] 乙", 200, 23.9, 121.6, 190),
+    ])
+    pop = svc.latest_simulation["population"]
+    assert pop["initial_remaining"] == 250
+    assert pop["total_remaining"] == 10
+    assert pop["placed"] == 240
+    assert pop["placeable"] == 250 and pop["shortfall"] == 150
+
+    ctx = svc._get_simulation_context()
+    assert "模擬當下範圍內避難所剩餘空間合計約 250 人" in ctx
+    assert "疏散已安置約 240 人" in ctx
+    assert "目前範圍內避難所剩餘空間合計約 10 人" in ctx
+    assert "剩餘空間 0 人" in ctx and "剩餘空間 10 人" in ctx
+
+    # 再回寫一次，基準值不能被覆蓋
+    svc.refresh_occupancy([
+        Shelter("[HUALIEN] 甲", 100, 23.9, 121.6, 100),
+        Shelter("[HUALIEN] 乙", 200, 23.9, 121.6, 200),
+    ])
+    pop = svc.latest_simulation["population"]
+    assert pop["initial_remaining"] == 250
+    assert pop["total_remaining"] == 0
+    assert pop["placed"] == 250
+
+
 def test_format_people_uses_wan_for_large_numbers():
     from services.chat_service import format_people
     assert format_people(175000) == "約 17.5 萬人"
@@ -196,7 +234,24 @@ def test_population_lines_when_fallback_and_no_shortfall():
     assert "面積保底" in text
     assert "約 157 人" in text
     assert "足以安置" in text
+    # 尚未回寫時沒有已安置那一行
+    assert "已安置" not in text
     assert population_lines({}) == []
+
+
+def test_chat_returns_unavailable_when_vector_search_fails(svc):
+    # embedding 要打 Ollama，Ollama 掛掉時要回降級訊息，不能把例外丟到 /api/chat 變 500
+    svc.vector_store.search.side_effect = ConnectionError("embed down")
+    with patch("services.chat_service.requests.post") as post:
+        assert svc.chat("避難所有提供飲水嗎") == AI_UNAVAILABLE
+    post.assert_not_called()
+
+
+def test_chat_returns_generic_error_when_context_building_fails(svc):
+    with patch.object(svc, "build_context", side_effect=RuntimeError("password=secret")):
+        reply = svc.chat("避難所有提供飲水嗎")
+    assert reply == GENERIC_ERROR
+    assert "secret" not in reply
 
 
 # ── 規則層（B5）────────────────────────────────────────────
