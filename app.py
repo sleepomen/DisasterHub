@@ -3,7 +3,7 @@ import logging
 import secrets
 from contextlib import asynccontextmanager
 from pathlib import Path
-from fastapi import FastAPI, Header, HTTPException, Response
+from fastapi import FastAPI, Header, HTTPException, Request, Response
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
@@ -14,6 +14,7 @@ from services.chat_service import ChatService
 from services.vector_store import VectorStore
 from services.population_service import PopulationModel
 from services import health
+from services import auth
 import config
 import uvicorn
 
@@ -38,6 +39,8 @@ map_service = MapService()
 vector_store = VectorStore()
 chat_service = ChatService(vector_store=vector_store, repo=repo)
 population_model = PopulationModel()
+session_manager = auth.SessionManager()
+login_throttle = auth.LoginThrottle()
 
 
 def sync_and_reindex(force: bool = False) -> int:
@@ -142,14 +145,104 @@ class NearestRequest(BaseModel):
     lon: float = Field(..., ge=-180, le=180, description="經度")
     limit: int = Field(default=5, ge=1, le=20, description="回傳筆數")
 
+
+class LoginRequest(BaseModel):
+    username: str = Field(..., min_length=1, max_length=100)
+    password: str = Field(..., min_length=1, max_length=200)
+
+
+def require_api_key(provided: str, expected: str, setting: str, feature: str) -> None:
+    """
+    只靠金鑰的端點（/api/sync）：伺服器沒設金鑰就整個停用（503）而不是放行，
+    設定漏掉時才不會變成人人可寫。
+    """
+    if not expected:
+        raise HTTPException(status_code=503, detail=f"伺服器未設定 {setting}，{feature}已停用")
+    if not secrets.compare_digest(provided, expected):
+        raise HTTPException(status_code=401, detail="API key 無效")
+
+
+def current_user(http_request: Request) -> str | None:
+    return session_manager.verify(http_request.cookies.get(auth.COOKIE_NAME))
+
+
+def require_write_access(http_request: Request, x_api_key: str) -> None:
+    """
+    模擬 / 收容人數回寫 / 重置：登入的 session cookie 或 X-API-Key 擇一。
+    兩種都沒設定時停用（503），而不是放行。
+    """
+    if not auth.credentials_configured() and not config.WRITE_API_KEY:
+        raise HTTPException(
+            status_code=503,
+            detail="伺服器未設定 ADMIN_USERNAME / ADMIN_PASSWORD，模擬與收容人數寫入已停用",
+        )
+    if current_user(http_request):
+        return
+    if x_api_key and config.WRITE_API_KEY and secrets.compare_digest(x_api_key, config.WRITE_API_KEY):
+        return
+    raise HTTPException(status_code=401, detail="請先登入")
+
+
+def client_key(http_request: Request) -> str:
+    # 反向代理後面看到的是代理的位址，優先用它轉送的第一個 IP；只拿來做登入節流，被偽造也只影響節流
+    forwarded = http_request.headers.get("x-forwarded-for", "")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return http_request.client.host if http_request.client else "unknown"
+
+
+def request_is_https(http_request: Request) -> bool:
+    return http_request.url.scheme == "https" or http_request.headers.get("x-forwarded-proto", "").lower() == "https"
+
+
+@app.post("/api/login")
+async def login(request: LoginRequest, http_request: Request, response: Response):
+    if not auth.credentials_configured():
+        raise HTTPException(status_code=503, detail="伺服器未設定 ADMIN_USERNAME / ADMIN_PASSWORD，登入已停用")
+    key = client_key(http_request)
+    wait = login_throttle.retry_after(key)
+    if wait > 0:
+        raise HTTPException(status_code=429, detail=f"登入失敗次數過多，請 {wait} 秒後再試")
+    if not auth.check_credentials(request.username, request.password):
+        login_throttle.record_failure(key)
+        logger.warning("登入失敗：帳號 %r，來源 %s", request.username, key)
+        raise HTTPException(status_code=401, detail="帳號或密碼錯誤")
+    login_throttle.reset(key)
+    response.set_cookie(
+        key=auth.COOKIE_NAME,
+        value=session_manager.issue(request.username),
+        max_age=session_manager.max_age,
+        httponly=True,
+        samesite="lax",
+        secure=request_is_https(http_request),
+        path="/",
+    )
+    logger.info("登入成功：%s，來源 %s", request.username, key)
+    return {"status": "success", "user": request.username, "expires_in": session_manager.max_age}
+
+
+@app.post("/api/logout")
+async def logout(response: Response):
+    response.delete_cookie(key=auth.COOKIE_NAME, path="/")
+    return {"status": "success"}
+
+
+# 前端載入時問一次：要不要顯示登入面板、目前是誰
+@app.get("/api/me")
+async def me(http_request: Request):
+    user = current_user(http_request)
+    return {
+        "authenticated": user is not None,
+        "user": user,
+        "login_enabled": auth.credentials_configured(),
+    }
+
+
 #sync_service.sync() 讀取json檔案寫入pgSQL
 #vector_store.build_index()重建chromadb向量索引
 @app.post("/api/sync")
 async def manual_sync(x_api_key: str = Header(default="")):
-    if not config.SYNC_API_KEY:
-        raise HTTPException(status_code=503, detail="伺服器未設定 SYNC_API_KEY，手動同步已停用")
-    if not secrets.compare_digest(x_api_key, config.SYNC_API_KEY):
-        raise HTTPException(status_code=401, detail="API key 無效")
+    require_api_key(x_api_key, config.SYNC_API_KEY, "SYNC_API_KEY", "手動同步")
     count = await asyncio.to_thread(sync_and_reindex, True)
     return {"status": "success", "message": "資料同步與索引重建完成", "count": count}
 
@@ -166,8 +259,10 @@ async def get_shelters():
 #repository 對 postGIS 執行 ST_DWithin 空間查詢
 #回傳影響範圍清單給前端
 #同時將模擬結果交給 chat_service 供 AI 聊天使用
+#模擬會覆蓋全域的聊天快照，所以跟寫入端點一樣要先登入
 @app.post("/api/simulate_disaster")
-async def simulate(request: SimulateRequest):
+async def simulate(request: SimulateRequest, http_request: Request, x_api_key: str = Header(default="")):
+    require_write_access(http_request, x_api_key)
     impacted = await asyncio.to_thread(
         repo.get_shelters_in_radius, request.lat, request.lon, request.radius
     )
@@ -203,7 +298,8 @@ async def get_population():
 # 疏散動畫結束後由前端回寫各避難所的收容人數。
 # 沒有這一步，地圖上滿載變紅的避難所在資料庫裡仍是 0 人，AI 會回答跟畫面相反的結論。
 @app.post("/api/occupancy")
-async def update_occupancy(request: OccupancyRequest):
+async def update_occupancy(request: OccupancyRequest, http_request: Request, x_api_key: str = Header(default="")):
+    require_write_access(http_request, x_api_key)
     occupancy = {item.name: item.current_ppl for item in request.occupancy}
     try:
         result = await asyncio.to_thread(apply_occupancy, occupancy)
@@ -215,14 +311,16 @@ async def update_occupancy(request: OccupancyRequest):
 
 # 清除模擬：把收容人數還原成來源資料的初始值，資料庫、向量索引、聊天快照一起歸零
 @app.post("/api/reset_simulation")
-async def reset_simulation():
-    chat_service.clear_simulation()
+async def reset_simulation(http_request: Request, x_api_key: str = Header(default="")):
+    require_write_access(http_request, x_api_key)
     try:
         baseline = await asyncio.to_thread(DataSyncService().baseline_occupancy)
         result = await asyncio.to_thread(apply_occupancy, baseline)
     except Exception:
         logger.exception("重置收容人數失敗")
         raise HTTPException(status_code=500, detail="重置收容人數失敗")
+    # 資料庫真的還原了才清快照；先清再寫失敗會變成聊天說沒模擬、地圖與資料庫卻還是滿載
+    chat_service.clear_simulation()
     return {"status": "success", **result}
 
 # 最近避難所查詢
