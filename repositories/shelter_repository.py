@@ -3,12 +3,16 @@ import logging
 import threading
 from contextlib import contextmanager
 from psycopg2 import OperationalError
-from psycopg2.pool import ThreadedConnectionPool
+from psycopg2.pool import ThreadedConnectionPool, PoolError
 from models.shelter import Shelter
 import config
 
 MAX_RETRIES = 3
 RETRY_DELAY = 2  # 秒
+
+# 連線池被同時進來的請求佔滿時，等一下再拿而不是立刻 500；超過這個秒數才放棄
+POOL_WAIT_SECONDS = 5.0
+POOL_RETRY_INTERVAL = 0.1
 
 logger = logging.getLogger(__name__)
 _pool = None
@@ -30,6 +34,18 @@ def _get_pool(conn_params):
                     else:
                         raise RuntimeError(f"資料庫連線失敗，已重試 {MAX_RETRIES} 次：{e}")
         return _pool
+
+
+def _acquire(pool):
+    """從池子拿連線；池子滿了就在 POOL_WAIT_SECONDS 內反覆重試"""
+    deadline = time.monotonic() + POOL_WAIT_SECONDS
+    while True:
+        try:
+            return pool.getconn()
+        except PoolError as e:
+            if time.monotonic() >= deadline:
+                raise RuntimeError(f"資料庫連線池已滿，等待 {POOL_WAIT_SECONDS:g} 秒仍拿不到連線：{e}")
+            time.sleep(POOL_RETRY_INTERVAL)
 
 
 SELECT_COLUMNS = "name, capacity, current_ppl, ST_Y(geom::geometry), ST_X(geom::geometry), COALESCE(address, '')"
@@ -59,7 +75,7 @@ class ShelterRepository:
     @contextmanager
     def _cursor(self):
         pool = _get_pool(self.conn_params)
-        conn = pool.getconn()
+        conn = _acquire(pool)
         try:
             with conn.cursor() as cursor:
                 yield cursor
