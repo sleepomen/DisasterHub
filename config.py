@@ -35,6 +35,14 @@ EMBEDDING_TIMEOUT = _env_int("EMBEDDING_TIMEOUT", 120)
 
 RAG_TOP_K = _env_int("RAG_TOP_K", 10)
 SYNC_API_KEY = os.environ.get("SYNC_API_KEY", "")
+# 寫入端點（模擬 / 收容人數回寫 / 重置）的兩種通行方式：
+# 1. 登入後的 session cookie（操作員用，瀏覽器自動帶）
+# 2. X-API-Key 標頭（curl / 排程腳本用，選配）
+ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "").strip()
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "")
+SESSION_SECRET = os.environ.get("SESSION_SECRET", "").strip()
+SESSION_HOURS = _env_float("SESSION_HOURS", 12)
+WRITE_API_KEY = os.environ.get("WRITE_API_KEY", "")
 
 # ChromaDB 落地路徑；留空代表用記憶體索引（測試與本機直跑的預設）
 CHROMA_PATH = os.environ.get("CHROMA_PATH", "").strip()
@@ -44,7 +52,7 @@ CHROMA_PATH = os.environ.get("CHROMA_PATH", "").strip()
 REQUIRED_SETTINGS = ("POSTGRES_DB", "POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_HOST", "POSTGRES_PORT")
 
 # .env.example 裡的佔位字串，沿用等於沒設定
-PLACEHOLDERS = {"change_me", "change_me_to_a_long_random_string"}
+PLACEHOLDERS = {"change_me", "change_me_to_a_long_random_string", "change_me_to_another_long_random_string"}
 
 
 class ConfigError(RuntimeError):
@@ -70,6 +78,16 @@ def validate() -> list[str]:
         warnings.append("未設定 SYNC_API_KEY，/api/sync 手動同步已停用")
     elif SYNC_API_KEY in PLACEHOLDERS:
         warnings.append("SYNC_API_KEY 仍是 .env.example 的預設值，請改成隨機長字串")
+    if not (ADMIN_USERNAME and ADMIN_PASSWORD):
+        warnings.append("未設定 ADMIN_USERNAME / ADMIN_PASSWORD，無法登入；模擬、收容人數回寫與重置端點只剩 X-API-Key 可用")
+    elif ADMIN_PASSWORD in PLACEHOLDERS:
+        warnings.append("ADMIN_PASSWORD 仍是 .env.example 的預設值，請改成自訂密碼")
+    if not SESSION_SECRET:
+        warnings.append("未設定 SESSION_SECRET，啟動時會隨機產生，服務重啟後所有登入都要重來")
+    elif SESSION_SECRET in PLACEHOLDERS:
+        warnings.append("SESSION_SECRET 仍是 .env.example 的預設值，請改成隨機長字串")
+    if WRITE_API_KEY in PLACEHOLDERS:
+        warnings.append("WRITE_API_KEY 仍是 .env.example 的預設值，請改成隨機長字串或留空停用")
     if not CHROMA_PATH:
         warnings.append("未設定 CHROMA_PATH，向量索引只存在記憶體，每次重啟都要重新 embedding")
     return warnings
