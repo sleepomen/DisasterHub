@@ -1,5 +1,7 @@
+import copy
 import re
 import logging
+import threading
 import requests
 from services.vector_store import VectorStore
 from services import query_rules
@@ -17,9 +19,6 @@ SYSTEM_PROMPT = """你是台灣東部災害避難所管理系統的 AI 決策助
 # 觸發地理搜尋的關鍵字
 GEO_KEYWORDS = ["最近", "附近", "離我最近", "最靠近", "距離最近", "哪裡最近", "近的"]
 
-# 觸發容量排序查詢的關鍵字
-CAPACITY_KEYWORDS = ["容量最大", "最多人", "容納最多", "最大容量", "哪個最大", "最大的避難所", "容量最高", "哪間最大", "容量排名", "容量排序", "由大到小", "由小到大"]
-
 # 觸發模擬結果查詢的關鍵字
 SIMULATION_KEYWORDS = ["哪些受影響", "受影響的避難所", "哪些避難所受", "模擬結果", "影響範圍", "受災避難所", "哪些被影響"]
 
@@ -33,14 +32,6 @@ NO_SIMULATION_REPLY = (
     "目前尚未執行災害模擬，無法給出疏散建議。"
     "請先在左側設定模擬中心、災害類型與受災半徑並執行空間模擬，我會依受影響避難所的容量與人口估算提供建議。"
 )
-
-# 地區關鍵字對應
-REGION_MAP = {
-    "宜蘭": "YILAN",
-    "花蓮": "HUALIEN",
-    "台東": "TAITUNG",
-    "臺東": "TAITUNG",
-}
 
 DISASTER_TYPE_LABELS = {"earthquake": "強震", "flood": "淹水", "fire": "火災"}
 
@@ -113,53 +104,68 @@ class ChatService:
     def __init__(self, vector_store: VectorStore, repo=None):
         self.vector_store = vector_store
         self.repo = repo
+        # 模擬快照是全域共用狀態，會被請求執行緒同時讀寫：
+        # 寫入一律持鎖，讀取一律拿深拷貝，就不會讀到改到一半的清單
+        self._lock = threading.Lock()
         self.latest_simulation: dict = {}
 
     def set_simulation(self, simulation: dict):
-        self.latest_simulation = simulation
+        with self._lock:
+            self.latest_simulation = simulation
 
     def clear_simulation(self):
-        self.latest_simulation = {}
+        with self._lock:
+            self.latest_simulation = {}
+
+    def _snapshot(self) -> dict:
+        with self._lock:
+            return copy.deepcopy(self.latest_simulation)
+
+    def has_simulation(self) -> bool:
+        with self._lock:
+            return bool(self.latest_simulation)
 
     def refresh_occupancy(self, shelters) -> None:
         """
         模擬回寫佔用數後，把 latest_simulation 裡快照的受影響清單同步成資料庫最新值，
         「哪些受影響」這類直接讀快照的問題才不會回答舊數字。
         """
-        if not self.latest_simulation:
-            return
         lookup = {s.name: s for s in shelters}
-        impacted = self.latest_simulation.get("impacted_shelters", [])
-        for item in impacted:
-            s = lookup.get(item.get("name"))
-            if s is None:
-                continue
-            item["capacity"] = s.capacity
-            item["current_ppl"] = s.current_people
-            item["remaining"] = s.remaining
+        with self._lock:
+            if not self.latest_simulation:
+                return
+            impacted = self.latest_simulation.get("impacted_shelters", [])
+            for item in impacted:
+                s = lookup.get(item.get("name"))
+                if s is None:
+                    continue
+                item["capacity"] = s.capacity
+                item["current_ppl"] = s.current_people
+                item["remaining"] = s.remaining
 
-        # 人口摘要的總剩餘空間也要跟著逐筆數字走；模擬當下的值另外留一份，
-        # 可安置 / 缺口這些規劃數字才有基準可以對照
-        population = self.latest_simulation.get("population")
-        if population and "total_remaining" in population:
-            population.setdefault("initial_remaining", population["total_remaining"])
-            current = sum(int(item.get("remaining", 0) or 0) for item in impacted)
-            population["total_remaining"] = current
-            population["placed"] = max(0, int(population["initial_remaining"]) - current)
+            # 人口摘要的總剩餘空間也要跟著逐筆數字走；模擬當下的值另外留一份，
+            # 可安置 / 缺口這些規劃數字才有基準可以對照
+            population = self.latest_simulation.get("population")
+            if population and "total_remaining" in population:
+                population.setdefault("initial_remaining", population["total_remaining"])
+                current = sum(int(item.get("remaining", 0) or 0) for item in impacted)
+                population["total_remaining"] = current
+                population["placed"] = max(0, int(population["initial_remaining"]) - current)
 
     def _is_geo_query(self, message: str) -> bool:
         return any(kw in message for kw in GEO_KEYWORDS)
 
-    def _is_capacity_query(self, message: str) -> bool:
-        return any(kw in message for kw in CAPACITY_KEYWORDS)
+    def _is_explicit_simulation_query(self, message: str) -> bool:
+        return any(kw in message for kw in SIMULATION_KEYWORDS)
+
+    def _is_simulation_followup(self, message: str) -> bool:
+        return self.has_simulation() and any(kw in message for kw in SIMULATION_FOLLOWUP_KEYWORDS)
 
     def _is_simulation_query(self, message: str) -> bool:
-        if any(kw in message for kw in SIMULATION_KEYWORDS):
-            return True
-        return bool(self.latest_simulation) and any(kw in message for kw in SIMULATION_FOLLOWUP_KEYWORDS)
+        return self._is_explicit_simulation_query(message) or self._is_simulation_followup(message)
 
     def _simulation_summary(self) -> str:
-        sim = self.latest_simulation
+        sim = self._snapshot()
         if not sim:
             return ""
         sim_type = DISASTER_TYPE_LABELS.get(sim.get("type", ""), sim.get("type", ""))
@@ -175,10 +181,10 @@ class ChatService:
         return summary
 
     def _get_simulation_context(self) -> str:
-        if not self.latest_simulation:
+        sim = self._snapshot()
+        if not sim:
             return "目前尚未執行任何災害模擬。"
 
-        sim = self.latest_simulation
         impacted = sim.get("impacted_shelters", [])
 
         if not impacted:
@@ -202,47 +208,6 @@ class ChatService:
             )
 
         return "\n".join(lines)
-
-    def _extract_region(self, message: str):
-        for word, tag in REGION_MAP.items():
-            if word in message:
-                return tag
-        return None
-
-    def _get_capacity_context(self, message: str) -> str:
-        if self.repo is None:
-            return "無法取得避難所資料。"
-        try:
-            shelters = self.repo.get_all_shelters()
-            if not shelters:
-                return "目前沒有避難所資料。"
-
-            region = self._extract_region(message)
-            if region:
-                shelters = [s for s in shelters if region in s.name]
-
-            if not shelters:
-                return "該地區沒有找到避難所資料。"
-
-            shelters.sort(key=lambda s: s.capacity, reverse=True)
-            top = shelters[:5]
-
-            region_label = ""
-            for word, tag in REGION_MAP.items():
-                if region == tag:
-                    region_label = f"{word}地區"
-                    break
-
-            lines = [f"{'全東部區域' if not region_label else region_label}容量排名（由大到小）："]
-            for i, s in enumerate(top, 1):
-                lines.append(
-                    f"{i}. {display_name(s.name)}：容量 {s.capacity} 人，"
-                    f"剩餘空間 {s.remaining} 人"
-                )
-            return "\n".join(lines)
-        except Exception:
-            logger.exception("容量查詢失敗")
-            return GENERIC_ERROR
 
     def _extract_coords(self, message: str):
         for i, pat in enumerate(COORD_PATTERNS):
@@ -280,32 +245,35 @@ class ChatService:
 
     def build_context(self, user_message: str):
         """
-        根據問題類型選擇對應查詢方式，回傳 (context, early_reply)：
-        - 模擬結果查詢 → 直接讀 latest_simulation（最精確）
-        - 地理距離查詢 → PostGIS ST_Distance
-        - 容量排序查詢 → 直接排序資料庫
-        - 一般語意查詢 → ChromaDB RAG
+        根據問題類型選擇對應查詢方式，回傳 (context, early_reply)。判斷順序：
+        1. 範圍外縣市 → 直接拒答，不管有沒有模擬在跑
+        2. 明確問模擬結果 → 直接讀模擬快照（最精確）
+        3. 有座標的地理距離查詢 → PostGIS ST_Distance
+        4. 模擬進行中的追問（建議 / 空間 / 缺口）→ 模擬快照
+        5. 沒模擬卻要疏散建議 → 請先跑模擬
+        6. 其餘 → 規則層篩選 + ChromaDB 語意檢索（容量排名也走這裡）
         """
-        if self._is_simulation_query(user_message):
-            return self._get_simulation_context(), None
-
-        if not self.latest_simulation and any(kw in user_message for kw in EVACUATION_ADVICE_KEYWORDS):
-            return None, NO_SIMULATION_REPLY
-
-        if self._is_geo_query(user_message):
-            coords = self._extract_coords(user_message)
-            if coords is None:
-                return None, "請提供您的座標以便查詢最近的避難所。例如：緯度 23.99 經度 121.60"
-            lat, lon = coords
-            return self._get_nearest_context(lat, lon), None
-
-        if self._is_capacity_query(user_message):
-            return self._get_capacity_context(user_message), None
-
-        # 規則層：範圍外縣市直接拒答；地區 / 鄉鎮 / 設施 / 容量條件轉成 metadata 篩選
         plan = query_rules.analyze(user_message)
         if plan.out_of_scope:
             return None, query_rules.out_of_scope_reply(plan.out_of_scope)
+
+        if self._is_explicit_simulation_query(user_message):
+            return self._get_simulation_context(), None
+
+        if self._is_geo_query(user_message):
+            coords = self._extract_coords(user_message)
+            if coords is not None:
+                lat, lon = coords
+                return self._get_nearest_context(lat, lon), None
+            if not self._is_simulation_followup(user_message):
+                return None, "請提供您的座標以便查詢最近的避難所。例如：緯度 23.99 經度 121.60"
+
+        if self._is_simulation_followup(user_message):
+            return self._get_simulation_context(), None
+
+        if any(kw in user_message for kw in EVACUATION_ADVICE_KEYWORDS):
+            return None, NO_SIMULATION_REPLY
+
         # 查詢向量要打 Ollama embedding，Ollama 掛掉時這裡會先炸；
         # 要回跟生成失敗一樣的降級訊息，而不是讓 /api/chat 變成 500
         try:
@@ -351,7 +319,8 @@ class ChatService:
                     "stream": False,
                     "options": {
                         "temperature": config.OLLAMA_TEMPERATURE,
-                        "num_predict": config.OLLAMA_NUM_PREDICT
+                        "num_predict": config.OLLAMA_NUM_PREDICT,
+                        "num_ctx": config.OLLAMA_NUM_CTX,
                     }
                 },
                 timeout=config.OLLAMA_TIMEOUT

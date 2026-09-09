@@ -21,12 +21,16 @@ POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD", "")
 POSTGRES_HOST = os.environ.get("POSTGRES_HOST", "disaster_db")
 POSTGRES_PORT = os.environ.get("POSTGRES_PORT", "5432")
 DB_POOL_MIN = _env_int("DB_POOL_MIN", 1)
-DB_POOL_MAX = _env_int("DB_POOL_MAX", 5)
+# asyncio.to_thread 預設最多 cpu+4 條執行緒同時查資料庫，池子要跟得上
+DB_POOL_MAX = _env_int("DB_POOL_MAX", 10)
 
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://host.docker.internal:11434")
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3.2:3b")
 OLLAMA_TEMPERATURE = _env_float("OLLAMA_TEMPERATURE", 0.3)
-OLLAMA_NUM_PREDICT = _env_int("OLLAMA_NUM_PREDICT", 300)
+# 一次列舉題可能塞 20 至 30 筆文件（約 3000 字），加系統提示會超過 Ollama 的預設上下文，
+# 沒明確設 num_ctx 前段資料會被靜默截掉；輸出也要夠長才列得完
+OLLAMA_NUM_CTX = _env_int("OLLAMA_NUM_CTX", 8192)
+OLLAMA_NUM_PREDICT = _env_int("OLLAMA_NUM_PREDICT", 800)
 OLLAMA_TIMEOUT = _env_int("OLLAMA_TIMEOUT", 120)
 
 EMBEDDING_PROVIDER = os.environ.get("EMBEDDING_PROVIDER", "ollama")
