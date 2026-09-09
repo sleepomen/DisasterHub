@@ -21,7 +21,6 @@ import uvicorn
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
 
-# 設定不完整就不要假裝服務正常，直接在 import 階段失敗，訊息才看得懂
 try:
     for warning in config.validate():
         logger.warning("設定提醒：%s", warning)
