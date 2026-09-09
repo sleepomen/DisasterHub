@@ -72,6 +72,10 @@ Edit `.env`:
 | `POSTGRES_HOST` / `POSTGRES_PORT` | Keep `disaster_db` / `5432` inside containers |
 | `OLLAMA_HOST` | Ollama address, defaults to `http://host.docker.internal:11434` |
 | `SYNC_API_KEY` | Key required to call `/api/sync` manually — replace it with a long random string |
+| `ADMIN_USERNAME` / `ADMIN_PASSWORD` | Administrator account. Running a simulation, writing back occupancy and resetting the simulation require logging in through the web UI first; when unset, those three endpoints are disabled (503) |
+| `SESSION_SECRET` | Long random string used to sign the login cookie. When unset, one is generated at startup and every login is invalidated on restart |
+| `SESSION_HOURS` | Login validity in hours, default 12 |
+| `WRITE_API_KEY` | Optional. Write key for curl or scheduled scripts (`X-API-Key` header); leave empty to disable |
 | `CHROMA_PATH` | Where the vector index is persisted; compose sets it to `/data/chroma` for Docker. Leave it empty and the index lives only in memory |
 
 Optional variables: `OLLAMA_MODEL` (default `llama3.2:3b`), `OLLAMA_TEMPERATURE`, `OLLAMA_NUM_PREDICT`, `OLLAMA_TIMEOUT`, `EMBEDDING_PROVIDER` (`ollama` or `minilm`), `EMBEDDING_MODEL` (default `bge-m3`), `EMBEDDING_TIMEOUT`, `RAG_TOP_K`, `DB_POOL_MIN` / `DB_POOL_MAX`.
@@ -179,9 +183,12 @@ Disaster_Hub/
 | GET | `/health/ready` | Readiness — actually checks the database and vector index; returns 503 when not ready |
 | GET | `/api/shelters` | Fetch all shelter data |
 | GET | `/api/population` | The population model (coastline polylines + township population) used by the frontend crowd animation |
-| POST | `/api/simulate_disaster` | Run the spatial disaster simulation; returns the affected shelters plus estimates of the population inside the radius, the evacuation demand, and the shelter shortfall |
-| POST | `/api/occupancy` | Write back each shelter's current occupancy (called by the frontend once the evacuation animation ends); only the changed vector documents are recomputed |
-| POST | `/api/reset_simulation` | Clear the simulation state and restore occupancy to the initial values from the source data |
+| POST | `/api/login` | Log in with the administrator credentials; sets an HttpOnly session cookie. Five consecutive failures lock the source for 5 minutes |
+| POST | `/api/logout` | Log out and clear the cookie |
+| GET | `/api/me` | Current login state; the frontend uses it on load to decide whether to show the login panel |
+| POST | `/api/simulate_disaster` | Run the spatial disaster simulation; returns the affected shelters plus estimates of the population inside the radius, the evacuation demand, and the shelter shortfall (requires login, or `X-API-Key`) |
+| POST | `/api/occupancy` | Write back each shelter's current occupancy (called by the frontend once the evacuation animation ends); only the changed vector documents are recomputed (requires login, or `X-API-Key`) |
+| POST | `/api/reset_simulation` | Clear the simulation state and restore occupancy to the initial values from the source data (requires login, or `X-API-Key`) |
 | POST | `/api/nearest_shelter` | Find the nearest shelters (PostGIS distance ordering) |
 | POST | `/api/chat` | AI decision assistant |
 | POST | `/api/sync` | Trigger a data sync manually (requires the `X-API-Key` header) |
@@ -198,6 +205,22 @@ curl -X POST http://localhost:8501/api/sync -H "X-API-Key: $SYNC_API_KEY"
 
 - The simulation flow: `/api/simulate_disaster` uses PostGIS to find the affected shelters and estimates the population inside the radius, the evacuation demand and the shelter shortfall from the township populations in `data_reference/east_taiwan_population.json`. The frontend runs the evacuation animation off that same estimate, and when the animation ends it writes each shelter's occupancy back to the database with `POST /api/occupancy`, recomputing vector documents only for the shelters that changed. From then on the loads the AI sees match the map, whether the answer comes from RAG, capacity ranking, geographic distance, or the simulation snapshot.
 - The data sync at startup and via `/api/sync` only updates capacity, address and coordinates — it does **not** reset occupancy (it is only clamped down when the capacity shrinks below the current headcount). To clear occupancy, use "Clear all layers" in the UI or call `/api/reset_simulation`.
+- After occupancy is written back, the snapshot's "current remaining space" is recomputed from the per-shelter figures, while "placeable / shortfall" stay as the planning numbers from the moment of simulation and the number of people already placed is reported separately, so the AI's totals never contradict its per-shelter list.
+- Simulation, write-back and reset all mutate the database or global state, and once deployed anyone who can reach the domain can call these endpoints directly, so they require a login. Operators log in once when they open the site; the session cookie is sent automatically by the browser and nothing has to be typed again while it is valid. Without logging in the UI is read-only (map and chat).
+
+### Deployment notes
+
+- Always serve over HTTPS, otherwise credentials and cookies cross the network in plain text. The simplest option is a reverse proxy that issues certificates automatically, e.g. Caddy:
+
+  ```
+  disasterhub.example.org {
+      reverse_proxy 127.0.0.1:8501
+  }
+  ```
+
+  The app reads `X-Forwarded-Proto` to decide whether to mark the cookie `Secure`; Caddy and nginx send that header by default.
+- If your organisation already has SSO or a VPN, put the whole domain behind it and treat the in-app login as a second layer.
+- Set `SESSION_SECRET` to a fixed long random string, otherwise every restart logs everyone out.
 - **Known limitation: the simulation state is global.** The disaster simulation result and the occupancy live in a single backend state plus the database, with no session isolation, so concurrent users overwrite each other's simulations. That is a deliberate trade-off for a single-user demo; supporting multiple users would require sessions, or attaching the simulation result to the user.
 
 ---
