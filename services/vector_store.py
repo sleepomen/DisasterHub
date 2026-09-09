@@ -7,7 +7,7 @@ import chromadb
 import config
 from services.embeddings import build_embedding_function
 from services.shelter_profile import profile, strip_region_tag
-from services.query_rules import QueryPlan, MAX_FILTERED_RESULTS
+from services.query_rules import QueryPlan, MAX_FILTERED_RESULTS, MAX_RANKED_RESULTS
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +23,15 @@ class Hit:
     document: str
     distance: float
     metadata: dict
+
+
+@dataclass
+class PlannedResult:
+    """規則層檢索的結果，附帶「有沒有用篩選、篩選有沒有落空、是不是容量排名」給 prompt 用"""
+    hits: list
+    filtered: bool = False
+    fell_back: bool = False
+    ranked: bool = False
 
 
 class VectorStore:
@@ -209,29 +218,78 @@ class VectorStore:
             for doc, meta, dist in zip(docs, metas, dists)
         ]
 
-    def retrieve_planned(self, query: str, plan: QueryPlan, n_results: int | None = None) -> list[Hit]:
+    def rank_by_capacity(self, where: dict | None, n_results: int | None = None, descending: bool = True) -> list[Hit]:
+        """
+        「哪間最大 / 容量排名」不該靠語意 top-k 再排序，top-k 裡未必有真正最大的那間；
+        這裡直接把符合條件的全部拿出來依 metadata 的容量排，結果才是精確的。
+        """
+        stored = self.collection.get(where=where, include=["documents", "metadatas"])
+        docs = stored.get("documents") or []
+        metas = stored.get("metadatas") or []
+        hits = [Hit(name=meta["name"], document=doc, distance=0.0, metadata=meta) for doc, meta in zip(docs, metas)]
+        hits.sort(key=lambda h: h.metadata.get("capacity", 0), reverse=descending)
+        return hits[: (n_results or MAX_RANKED_RESULTS)]
+
+    def plan_retrieve(self, query: str, plan: QueryPlan, n_results: int | None = None) -> PlannedResult:
         """
         依查詢規則層的計畫檢索：有硬條件就先用 metadata 篩選，
-        篩完沒東西再退回一般語意檢索（規則抽錯總比答不出來好）；
-        「最大 / 最多」類問題再依容量重排。
+        篩完沒東西再退回一般檢索（規則抽錯總比答不出來好），但要把「落空」記下來，
+        prompt 才能告訴模型這些只是最接近的資料，不是符合條件的結果。
         """
         where = plan.to_where()
-        hits = self.retrieve(query, n_results, where=where) if where is not None else []
-        if not hits:
-            hits = self.retrieve(query, n_results)
+        descending = plan.capacity_order != "asc"
         if plan.order_by_capacity:
-            hits = sorted(hits, key=lambda h: h.metadata.get("capacity", 0), reverse=True)
-        return hits
+            hits = self.rank_by_capacity(where, n_results, descending)
+            fell_back = False
+            if not hits and where is not None:
+                hits = self.rank_by_capacity(None, n_results, descending)
+                fell_back = True
+            return PlannedResult(hits, filtered=where is not None and not fell_back, fell_back=fell_back, ranked=True)
+
+        hits = self.retrieve(query, n_results, where=where) if where is not None else []
+        fell_back = False
+        if not hits:
+            fell_back = where is not None
+            hits = self.retrieve(query, n_results)
+        return PlannedResult(hits, filtered=where is not None and not fell_back, fell_back=fell_back)
+
+    def retrieve_planned(self, query: str, plan: QueryPlan, n_results: int | None = None) -> list[Hit]:
+        return self.plan_retrieve(query, plan, n_results).hits
+
+    @staticmethod
+    def _planned_header(plan: QueryPlan, result: PlannedResult) -> str | None:
+        order = "由小到大" if plan.capacity_order == "asc" else "由大到小"
+        condition = plan.describe()
+        if result.fell_back:
+            return (
+                f"沒有找到符合「{condition}」條件的避難所。"
+                "以下是最接近的其他資料，僅供參考；回答時請先明確告知使用者沒有完全符合條件的避難所。"
+            )
+        if result.filtered and result.ranked:
+            return f"符合「{condition}」的避難所依容量{order}排序（共 {len(result.hits)} 筆）："
+        if result.filtered:
+            return f"符合「{condition}」的避難所共 {len(result.hits)} 筆："
+        if result.ranked:
+            return f"全東部避難所依容量{order}排序（前 {len(result.hits)} 筆）："
+        return None
 
     def search(self, query: str, n_results: int | None = None, plan: QueryPlan | None = None) -> str:
         """
-        語意搜尋：找出與 query 最相關的避難所資料，回傳可直接塞進 prompt 的文字
+        語意搜尋：找出與 query 最相關的避難所資料，回傳可直接塞進 prompt 的文字。
+        有規則層計畫時在前面加一行說明篩選條件與結果狀態。
         """
         if self.collection.count() == 0:
             return "目前沒有避難所資料。"
 
-        hits = self.retrieve_planned(query, plan, n_results) if plan is not None else self.retrieve(query, n_results)
+        header = None
+        if plan is not None:
+            result = self.plan_retrieve(query, plan, n_results)
+            hits = result.hits
+            header = self._planned_header(plan, result)
+        else:
+            hits = self.retrieve(query, n_results)
         if not hits:
             return "找不到相關避難所資料。"
 
-        return "\n".join(f"- {h.document}" for h in hits)
+        body = "\n".join(f"- {h.document}" for h in hits)
+        return f"{header}\n{body}" if header else body

@@ -53,7 +53,8 @@ CAP_THOUSAND = re.compile(r"上千|千人|一千|1000\s*人")
 CAP_MORE_THAN = re.compile(r"(?:超過|多於|大於)\s*(\d{2,6})")
 CAP_AT_LEAST = re.compile(r"(\d{2,6})\s*人?\s*(?:以上|起)|至少\s*(\d{2,6})")
 CAP_AT_MOST = re.compile(r"(\d{2,6})\s*人?\s*(?:以下|以內|內)|(?:不到|少於|低於|小於)\s*(\d{2,6})")
-SUPERLATIVE = re.compile(r"最大|最多|容納最多|收最多|最能收|最寬敞")
+SUPERLATIVE = re.compile(r"最大|最多|容納最多|收最多|最能收|最寬敞|容量最高|容量排名|容量排序|由大到小|最小|容量最低|由小到大")
+ASCENDING = re.compile(r"最小|容量最低|由小到大")
 
 # 鄉鎮字尾；去掉字尾的「詞幹」也允許命中（「礁溪」→ 礁溪鄉），但這幾個詞幹太像一般用語，不做詞幹比對
 TOWNSHIP_SUFFIXES = ("市", "鄉", "鎮")
@@ -61,6 +62,8 @@ STEM_BLOCKLIST = {"成功", "大同", "光復", "新城"}
 
 # 不做篩選時的一般檢索筆數上限；有篩選時最多回傳幾筆（涵蓋單一縣的全部避難所）
 MAX_FILTERED_RESULTS = 30
+# 「最大 / 排名」類問題依容量排序後最多列幾筆，太多反而讓模型抓不到重點
+MAX_RANKED_RESULTS = 10
 
 _township_cache: dict[str, str] | None = None
 
@@ -88,6 +91,7 @@ class QueryPlan:
     capacity_max: int | None = None
     size_class: str | None = None
     order_by_capacity: bool = False
+    capacity_order: str = "desc"  # desc = 由大到小；asc = 由小到大
     out_of_scope: str | None = None  # 命中的範圍外地名
 
     @property
@@ -212,6 +216,7 @@ def analyze(query: str) -> QueryPlan:
     plan.capacity_min, plan.capacity_max = _find_capacity(query)
     plan.size_class = next((s for s in SIZE_CLASS_KEYWORDS if s in query), None)
     plan.order_by_capacity = bool(SUPERLATIVE.search(query))
+    plan.capacity_order = "asc" if ASCENDING.search(query) else "desc"
     return plan
 
 
