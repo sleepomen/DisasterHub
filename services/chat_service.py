@@ -88,8 +88,11 @@ def population_lines(population: dict) -> list[str]:
     ratio_text = f"（依災害類型以 {ratio * 100:.0f}% 比例估算）" if isinstance(ratio, (int, float)) else ""
     lines.append(f"預估需疏散{format_people(population.get('estimated_evacuees'))}{ratio_text}。")
     if "total_remaining" in population:
+        # 可安置 / 缺口是模擬當下的規劃數字；疏散回寫後剩餘空間會變，兩者要分開講，
+        # 否則總計會跟下方逐筆避難所的剩餘空間加總對不上
+        initial = population.get("initial_remaining", population.get("total_remaining"))
         lines.append(
-            f"範圍內避難所剩餘空間合計{format_people(population.get('total_remaining'))}，"
+            f"模擬當下範圍內避難所剩餘空間合計{format_people(initial)}，"
             f"可安置{format_people(population.get('placeable'))}。"
         )
         shortfall = population.get("shortfall") or 0
@@ -97,6 +100,12 @@ def population_lines(population: dict) -> list[str]:
             lines.append(f"收容缺口{format_people(shortfall)}，需要調度範圍外的避難所或擴大收容。")
         else:
             lines.append("範圍內避難所空間足以安置全部疏散人口。")
+        placed = population.get("placed") or 0
+        if placed > 0:
+            lines.append(
+                f"疏散已安置{format_people(placed)}，"
+                f"目前範圍內避難所剩餘空間合計{format_people(population.get('total_remaining'))}。"
+            )
     return lines
 
 
@@ -120,13 +129,23 @@ class ChatService:
         if not self.latest_simulation:
             return
         lookup = {s.name: s for s in shelters}
-        for item in self.latest_simulation.get("impacted_shelters", []):
+        impacted = self.latest_simulation.get("impacted_shelters", [])
+        for item in impacted:
             s = lookup.get(item.get("name"))
             if s is None:
                 continue
             item["capacity"] = s.capacity
             item["current_ppl"] = s.current_people
             item["remaining"] = s.remaining
+
+        # 人口摘要的總剩餘空間也要跟著逐筆數字走；模擬當下的值另外留一份，
+        # 可安置 / 缺口這些規劃數字才有基準可以對照
+        population = self.latest_simulation.get("population")
+        if population and "total_remaining" in population:
+            population.setdefault("initial_remaining", population["total_remaining"])
+            current = sum(int(item.get("remaining", 0) or 0) for item in impacted)
+            population["total_remaining"] = current
+            population["placed"] = max(0, int(population["initial_remaining"]) - current)
 
     def _is_geo_query(self, message: str) -> bool:
         return any(kw in message for kw in GEO_KEYWORDS)
@@ -287,7 +306,13 @@ class ChatService:
         plan = query_rules.analyze(user_message)
         if plan.out_of_scope:
             return None, query_rules.out_of_scope_reply(plan.out_of_scope)
-        return self.vector_store.search(user_message, plan=plan), None
+        # 查詢向量要打 Ollama embedding，Ollama 掛掉時這裡會先炸；
+        # 要回跟生成失敗一樣的降級訊息，而不是讓 /api/chat 變成 500
+        try:
+            return self.vector_store.search(user_message, plan=plan), None
+        except Exception:
+            logger.exception("向量檢索失敗")
+            return None, AI_UNAVAILABLE
 
     def build_prompt(self, user_message: str, shelter_context: str) -> str:
         full_context = f"【避難所資料】\n{shelter_context}"
@@ -305,7 +330,12 @@ class ChatService:
 2. 請用繁體中文回答，不得使用任何英文。"""
 
     def chat(self, user_message: str) -> str:
-        shelter_context, early_reply = self.build_context(user_message)
+        try:
+            shelter_context, early_reply = self.build_context(user_message)
+        except Exception:
+            # 任何查詢層的例外都不該變成 500；細節只進 log，不回給使用者
+            logger.exception("建立查詢內容失敗")
+            return GENERIC_ERROR
         if early_reply:
             return early_reply
 
