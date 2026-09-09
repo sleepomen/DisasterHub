@@ -225,6 +225,52 @@ def test_retrieve_planned_orders_superlative_by_capacity(store):
     assert hits[0].name == "[TAITUNG] 台東縣立體育館"
 
 
+def test_ranking_is_exact_not_limited_to_semantic_top_k(store):
+    # 語意 top-1 對「最大的避難所」抓到的未必是最大那間；排名要看整個索引
+    with patch("config.RAG_TOP_K", 1):
+        hits = store.retrieve_planned("最大的避難所", analyze("最大的避難所"))
+    assert [h.name for h in hits][:2] == ["[TAITUNG] 台東縣立體育館", "[YILAN] 羅東鎮立體育館"]
+    assert len(hits) == len(SHELTERS)
+
+
+def test_ranking_respects_filter_and_direction(store):
+    hits = store.retrieve_planned("宜蘭最大的避難所", analyze("宜蘭最大的避難所"))
+    assert [h.name for h in hits] == ["[YILAN] 羅東鎮立體育館", "[YILAN] 宜蘭國小"]
+    hits = store.retrieve_planned("宜蘭最小的避難所", analyze("宜蘭最小的避難所"))
+    assert [h.name for h in hits] == ["[YILAN] 宜蘭國小", "[YILAN] 羅東鎮立體育館"]
+
+
+def test_plan_retrieve_reports_filter_state(store):
+    result = store.plan_retrieve("宜蘭的體育館", analyze("宜蘭的體育館"))
+    assert (result.filtered, result.fell_back, result.ranked) == (True, False, False)
+    result = store.plan_retrieve("宜蘭的圖書館", analyze("宜蘭的圖書館"))
+    assert (result.filtered, result.fell_back) == (False, True)
+    assert len(result.hits) > 0
+    result = store.plan_retrieve("最大的避難所", analyze("最大的避難所"))
+    assert (result.filtered, result.fell_back, result.ranked) == (False, False, True)
+    result = store.plan_retrieve("避難所有提供飲水嗎", analyze("避難所有提供飲水嗎"))
+    assert (result.filtered, result.fell_back, result.ranked) == (False, False, False)
+
+
+def test_search_header_tells_model_about_filter_state(store):
+    text = store.search("宜蘭的體育館", plan=analyze("宜蘭的體育館"))
+    assert text.startswith("符合「宜蘭地區、體育場館」的避難所共 1 筆：")
+
+    text = store.search("宜蘭的圖書館", plan=analyze("宜蘭的圖書館"))
+    assert text.startswith("沒有找到符合「宜蘭地區、圖書館」條件的避難所。")
+    assert "僅供參考" in text
+
+    text = store.search("台東最大的避難所", plan=analyze("台東最大的避難所"))
+    assert "依容量由大到小排序" in text.splitlines()[0]
+
+    text = store.search("容量由小到大", plan=analyze("容量由小到大"))
+    assert text.startswith("全東部避難所依容量由小到大排序")
+
+    # 沒有任何條件的一般問題不加說明行
+    text = store.search("避難所有提供飲水嗎", plan=analyze("避難所有提供飲水嗎"))
+    assert text.startswith("- ")
+
+
 def test_retrieve_planned_falls_back_when_filter_matches_nothing(store):
     # 規則抽到「圖書館」但索引裡沒有，退回一般語意檢索而不是空手而回
     plan = analyze("宜蘭的圖書館")

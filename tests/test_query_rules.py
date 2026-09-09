@@ -77,6 +77,16 @@ def test_superlative_orders_by_capacity():
     assert analyze("宜蘭最大的避難所").order_by_capacity is True
     assert analyze("台東可以容納最多人的地方").order_by_capacity is True
     assert analyze("宜蘭的避難所").order_by_capacity is False
+    # 原本聊天服務關鍵字分支涵蓋的說法也要能命中
+    for q in ("花蓮容量排名", "容量由大到小", "哪間容量最高"):
+        assert analyze(q).order_by_capacity is True, q
+
+
+def test_capacity_order_direction():
+    assert analyze("宜蘭最大的避難所").capacity_order == "desc"
+    assert analyze("容量由小到大").capacity_order == "asc"
+    assert analyze("最小的避難所").capacity_order == "asc"
+    assert analyze("容量最低的地方").order_by_capacity is True
 
 
 @pytest.mark.parametrize("query,place", [

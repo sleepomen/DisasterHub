@@ -36,15 +36,13 @@ def route(svc, msg):
         return "simulation"
     if svc._is_geo_query(msg):
         return "geo"
-    if svc._is_capacity_query(msg):
-        return "capacity"
     return "rag"
 
 
 @pytest.mark.parametrize("msg,expected", [
     ("哪間避難所離我最近？緯度 23.99 經度 121.60", "geo"),
     ("影響範圍大小如何？", "simulation"),
-    ("花蓮哪間避難所容量最大？", "capacity"),
+    ("花蓮哪間避難所容量最大？", "rag"),
     ("哪些避難所受到影響？", "simulation"),
     ("目前受影響的避難所還有空間嗎？", "simulation"),
     ("避難所有提供飲水嗎", "rag"),
@@ -86,19 +84,17 @@ def test_nearest_context_has_no_region_tag(svc):
     assert "1.2 公里" in ctx
 
 
-def test_capacity_context_filters_region(svc):
-    ctx = svc._get_capacity_context("宜蘭哪間避難所容量最大")
-    assert "宜蘭地區" in ctx
-    assert "乙" in ctx
-    assert "甲" not in ctx
-
-
-def test_capacity_context_sorted_desc(svc):
-    ctx = svc._get_capacity_context("容量最大")
-    lines = [l for l in ctx.splitlines() if l[:1].isdigit()]
-    assert lines[0].startswith("1. 乙")
-    assert lines[1].startswith("2. 丙")
-    assert lines[2].startswith("3. 甲")
+def test_capacity_ranking_goes_through_rules_layer(svc):
+    # 容量排名不再有獨立的關鍵字分支，統一由規則層抽條件、向量庫依 metadata 排序
+    context, early = svc.build_context("花蓮市哪間國小容量最大")
+    assert early is None and context == "RAG 結果"
+    plan = svc.vector_store.search.call_args.kwargs["plan"]
+    assert plan.order_by_capacity is True
+    assert plan.capacity_order == "desc"
+    assert plan.township == "花蓮市"
+    assert plan.facilities == ["國小"]
+    svc.build_context("容量由小到大排序")
+    assert svc.vector_store.search.call_args.kwargs["plan"].capacity_order == "asc"
 
 
 def test_simulation_context_includes_remaining(svc):
@@ -127,7 +123,6 @@ def test_prompt_includes_simulation_summary(svc):
 
 def test_errors_do_not_leak_details():
     svc = ChatService(MagicMock(), BrokenRepo())
-    assert svc._get_capacity_context("容量最大") == GENERIC_ERROR
     assert svc._get_nearest_context(23.9, 121.6) == GENERIC_ERROR
 
 
@@ -139,6 +134,10 @@ def test_chat_calls_ollama_and_returns_response(svc):
         body = post.call_args.kwargs["json"]
         assert "RAG 結果" in body["prompt"]
         assert body["stream"] is False
+        # 列舉題一次會塞 20 至 30 筆文件，沒設 num_ctx 會被 Ollama 預設值靜默截斷
+        import config
+        assert body["options"]["num_ctx"] == config.OLLAMA_NUM_CTX
+        assert body["options"]["num_predict"] == config.OLLAMA_NUM_PREDICT
 
 
 def test_chat_handles_ollama_failure(svc):
@@ -287,6 +286,42 @@ def test_followup_routes_to_simulation_only_when_active(svc):
     assert "受影響避難所共 1 個" in context
     svc.clear_simulation()
     assert svc._is_simulation_query("避難所還有空間嗎") is False
+
+
+SIM = {"type": "earthquake", "radius_km": 5, "impacted_count": 1, "impacted_shelters": [
+    {"name": "[HUALIEN] 甲", "capacity": 100, "current_ppl": 0, "remaining": 100}]}
+
+
+def test_out_of_scope_is_rejected_even_during_simulation(svc):
+    svc.set_simulation(SIM)
+    context, early = svc.build_context("高雄有什麼疏散建議")
+    assert context is None
+    assert "高雄" in early and "宜蘭、花蓮、台東" in early
+
+
+def test_geo_query_with_coords_wins_over_simulation_followup(svc):
+    svc.set_simulation(SIM)
+    context, early = svc.build_context("緯度 23.99 經度 121.60 附近有什麼建議")
+    assert early is None
+    assert "距離最近的避難所" in context
+    assert "受影響避難所共" not in context
+
+
+def test_geo_query_without_coords_during_simulation_uses_snapshot(svc):
+    svc.set_simulation(SIM)
+    context, early = svc.build_context("附近的避難所還有空間嗎")
+    assert early is None
+    assert "受影響避難所共 1 個" in context
+    svc.clear_simulation()
+    context, early = svc.build_context("附近的避難所還有空間嗎")
+    assert context is None and "座標" in early
+
+
+def test_snapshot_is_a_copy_so_readers_cannot_mutate_state(svc):
+    svc.set_simulation(SIM)
+    snap = svc._snapshot()
+    snap["impacted_shelters"][0]["remaining"] = 0
+    assert svc.latest_simulation["impacted_shelters"][0]["remaining"] == 100
 
 
 def test_evacuation_advice_without_simulation_asks_to_run_one(svc):
