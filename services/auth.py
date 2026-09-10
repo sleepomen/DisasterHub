@@ -23,6 +23,8 @@ COOKIE_NAME = "disasterhub_session"
 # 登入失敗節流：同一來源連續失敗達上限後，冷卻時間內一律拒絕
 MAX_FAILURES = 5
 LOCKOUT_SECONDS = 300
+# 失敗紀錄表的硬上限：有人拿大量不同來源灑密碼時，記憶體不能跟著無限長
+MAX_TRACKED_SOURCES = 10_000
 
 
 def credentials_configured() -> bool:
@@ -99,13 +101,35 @@ class LoginThrottle:
     """
     以來源位址計算連續失敗次數。達上限後在冷卻時間內直接拒絕，
     成功登入或冷卻結束就歸零。只放記憶體，重啟即清空，對單機部署夠用。
+    每次記錄失敗都會順手清掉已經過了冷卻時間的舊紀錄，表的大小只跟最近一個冷卻週期的來源數有關。
     """
 
-    def __init__(self, max_failures: int = MAX_FAILURES, lockout_seconds: int = LOCKOUT_SECONDS):
+    def __init__(
+        self,
+        max_failures: int = MAX_FAILURES,
+        lockout_seconds: int = LOCKOUT_SECONDS,
+        max_tracked: int = MAX_TRACKED_SOURCES,
+    ):
         self.max_failures = max_failures
         self.lockout_seconds = lockout_seconds
+        self.max_tracked = max_tracked
         self._failures: dict[str, tuple[int, float]] = {}
         self._lock = threading.Lock()
+
+    def tracked(self) -> int:
+        with self._lock:
+            return len(self._failures)
+
+    def _prune(self, now: float) -> None:
+        """要在持鎖狀態下呼叫。丟掉過期的紀錄；仍然超過硬上限就把最舊的砍掉"""
+        expired = [key for key, (_, last) in self._failures.items() if last + self.lockout_seconds <= now]
+        for key in expired:
+            del self._failures[key]
+        overflow = len(self._failures) - self.max_tracked
+        if overflow > 0:
+            oldest = sorted(self._failures, key=lambda k: self._failures[k][1])[:overflow]
+            for key in oldest:
+                del self._failures[key]
 
     def retry_after(self, key: str, now: float | None = None) -> int:
         """尚在鎖定中回剩餘秒數，否則回 0"""
@@ -128,6 +152,7 @@ class LoginThrottle:
         with self._lock:
             count, _ = self._failures.get(key, (0, now))
             self._failures[key] = (count + 1, now)
+            self._prune(now)
 
     def reset(self, key: str) -> None:
         with self._lock:
