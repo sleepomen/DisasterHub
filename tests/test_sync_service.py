@@ -35,13 +35,32 @@ def test_sync_falls_back_to_row_upsert_when_batch_fails():
     assert repo.upsert_shelter.call_count == len(FAKE)
 
 
-def test_sync_skips_when_no_data():
+def test_sync_raises_when_no_data():
+    # 沒讀到資料不能當成同步成功，啟動流程與 /api/sync 要看得到失敗
+    import pytest
     service, repo = _service_with([])
 
-    service.sync()
+    with pytest.raises(RuntimeError):
+        service.sync()
 
     repo.upsert_shelters.assert_not_called()
     repo.upsert_shelter.assert_not_called()
+
+
+def test_sync_raises_when_nothing_could_be_written():
+    import pytest
+    service, repo = _service_with(FAKE)
+    repo.upsert_shelters.side_effect = RuntimeError("batch failed")
+    repo.upsert_shelter.side_effect = RuntimeError("row failed")
+
+    with pytest.raises(RuntimeError):
+        service.sync()
+
+
+def test_sync_returns_written_count():
+    service, repo = _service_with(FAKE)
+    repo.upsert_shelters.return_value = len(FAKE)
+    assert service.sync() == len(FAKE)
 
 
 def test_row_fallback_survives_single_failure():

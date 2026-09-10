@@ -70,3 +70,25 @@ def test_throttle_locks_after_max_failures_and_recovers():
     t.record_failure("1.2.3.4", now=200)
     t.reset("1.2.3.4")
     assert t.retry_after("1.2.3.4", now=200) == 0
+
+
+def test_throttle_prunes_expired_sources():
+    # 有人拿大量不同來源灑密碼時，過了冷卻時間的紀錄要清掉，表不能無限長
+    t = LoginThrottle(max_failures=3, lockout_seconds=60)
+    for i in range(500):
+        t.record_failure(f"10.0.0.{i}", now=100)
+    assert t.tracked() == 500
+    t.record_failure("fresh", now=100 + 60)
+    assert t.tracked() == 1
+
+
+def test_throttle_enforces_hard_cap():
+    t = LoginThrottle(max_failures=3, lockout_seconds=3600, max_tracked=100)
+    for i in range(150):
+        t.record_failure(f"src-{i}", now=100 + i)
+    assert t.tracked() == 100
+    # 最舊的被砍掉，最新的還在
+    assert t.retry_after("src-0", now=300) == 0
+    t.record_failure("src-149", now=300)
+    t.record_failure("src-149", now=300)
+    assert t.retry_after("src-149", now=300) > 0

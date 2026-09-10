@@ -135,10 +135,21 @@ def test_changed_data_triggers_rebuild(tmp_path):
 def test_force_rebuilds_even_when_unchanged(tmp_path):
     make_store(tmp_path).build_index(SHELTERS)
 
-    reopened = make_store(tmp_path)
-    with patch.object(reopened.collection, "add", wraps=reopened.collection.add) as add:
-        reopened.build_index(SHELTERS, force=True)
-        add.assert_called_once()
+    class CountingEmbedding(KeywordEmbedding):
+        calls = 0
+
+        def __call__(self, input):
+            CountingEmbedding.calls += 1
+            return super().__call__(input)
+
+    reopened = VectorStore(embedding_function=CountingEmbedding(), collection_name="persist_test", persist_path=str(tmp_path))
+    old_collection = reopened.collection
+    CountingEmbedding.calls = 0
+    reopened.build_index(SHELTERS, force=True)
+    # 強制重建真的重跑了 embedding，而且是換成新的 collection，不是在舊的上面刪了再加
+    assert CountingEmbedding.calls >= 1
+    assert reopened.collection is not old_collection
+    assert reopened.count() == len(SHELTERS)
 
 
 def test_memory_store_writes_no_fingerprint(tmp_path):
@@ -283,3 +294,80 @@ def test_search_with_plan_returns_only_filtered_docs(store):
     text = store.search("台東的體育館", plan=analyze("台東的體育館"))
     assert "台東縣立體育館" in text
     assert "羅東" not in text
+
+
+class GatedEmbedding(KeywordEmbedding):
+    """重建索引時把 embedding 卡住，讓測試在「重建進行中」的時間點去查舊索引"""
+
+    def __init__(self):
+        import threading
+        self.gate = threading.Event()
+        self.started = threading.Event()
+        self.blocking = False
+
+    def __call__(self, input):
+        if self.blocking:
+            self.started.set()
+            self.gate.wait(timeout=5)
+        return super().__call__(input)
+
+
+def test_old_index_stays_queryable_while_rebuilding():
+    import threading
+    ef = GatedEmbedding()
+    store = VectorStore(embedding_function=ef, collection_name="test_rebuild_window")
+    store.build_index(SHELTERS[:2])
+    assert store.count() == 2
+
+    ef.blocking = True
+    worker = threading.Thread(target=store.build_index, args=(SHELTERS, True))
+    worker.start()
+    assert ef.started.wait(timeout=5)
+    # 舊版做法是先刪光再加回，這時 count 會是 0、問答會回「目前沒有避難所資料」
+    assert store.count() == 2
+    assert [h.name for h in store.rank_by_capacity(None)] == ["[YILAN] 羅東鎮立體育館", "[YILAN] 宜蘭國小"]
+    ef.gate.set()
+    worker.join(timeout=10)
+    assert not worker.is_alive()
+    assert store.count() == 4
+    # 暫存 collection 不能留下來
+    assert "test_rebuild_window__rebuild" not in [c.name for c in store.client.list_collections()]
+
+
+def test_rebuild_cleans_up_staging_when_embedding_fails():
+    class BrokenEmbedding(KeywordEmbedding):
+        def __init__(self):
+            self.fail = False
+
+        def __call__(self, input):
+            if self.fail:
+                raise RuntimeError("embedding down")
+            return super().__call__(input)
+
+    ef = BrokenEmbedding()
+    store = VectorStore(embedding_function=ef, collection_name="test_rebuild_failure")
+    store.build_index(SHELTERS[:2])
+    ef.fail = True
+    with pytest.raises(RuntimeError):
+        store.build_index(SHELTERS, force=True)
+    # 舊索引原封不動，暫存 collection 也清掉了
+    assert store.count() == 2
+    assert "test_rebuild_failure__rebuild" not in [c.name for c in store.client.list_collections()]
+
+
+def test_leftover_staging_collection_is_dropped_on_startup(tmp_path):
+    first = make_store(tmp_path, name="leftover")
+    first.build_index(SHELTERS)
+    first.client.get_or_create_collection("leftover__rebuild")
+    second = make_store(tmp_path, name="leftover")
+    assert "leftover__rebuild" not in [c.name for c in second.client.list_collections()]
+    assert second.count() == len(SHELTERS)
+
+
+def test_persisted_rebuild_is_visible_to_a_new_instance(tmp_path):
+    store = make_store(tmp_path, name="persist_rebuild")
+    store.build_index(SHELTERS[:2])
+    store.build_index(SHELTERS, force=True)
+    again = make_store(tmp_path, name="persist_rebuild")
+    assert again.count() == len(SHELTERS)
+    assert again.build_index(SHELTERS) is None  # 指紋相符，不重建

@@ -53,3 +53,39 @@ def test_set_occupancy_clamps_between_zero_and_capacity():
 def test_set_occupancy_with_nothing_skips_database():
     # 空字典不該去碰連線池（測試環境沒有資料庫）
     assert ShelterRepository().set_occupancy({}) == 0
+
+
+def test_connection_params_carry_timeouts():
+    # 資料庫卡住時請求要在幾秒內失敗，而不是所有執行緒一起無限等
+    with patch("config.DB_CONNECT_TIMEOUT", 7), patch("config.DB_STATEMENT_TIMEOUT_MS", 4321):
+        params = ShelterRepository().conn_params
+    assert params["connect_timeout"] == 7
+    assert "statement_timeout=4321" in params["options"]
+
+
+def test_pool_creation_retries_without_holding_the_lock_while_sleeping():
+    from psycopg2 import OperationalError
+    good_pool = MagicMock()
+    attempts = [OperationalError("down"), OperationalError("down"), good_pool]
+    lock_held_during_sleep = []
+
+    def fake_sleep(_):
+        lock_held_during_sleep.append(shelter_repository._pool_lock.locked())
+
+    with patch.object(shelter_repository, "_pool", None), \
+         patch.object(shelter_repository, "ThreadedConnectionPool", side_effect=attempts) as pool_cls, \
+         patch.object(shelter_repository.time, "sleep", side_effect=fake_sleep):
+        assert shelter_repository._get_pool({}) is good_pool
+    assert pool_cls.call_count == 3
+    assert lock_held_during_sleep == [False, False]
+
+
+def test_pool_creation_gives_up_after_max_retries():
+    from psycopg2 import OperationalError
+    with patch.object(shelter_repository, "_pool", None), \
+         patch.object(shelter_repository, "ThreadedConnectionPool", side_effect=OperationalError("down")), \
+         patch.object(shelter_repository.time, "sleep"):
+        with pytest.raises(RuntimeError) as exc:
+            shelter_repository._get_pool({})
+    assert "重試" in str(exc.value)
+    assert shelter_repository._pool is None

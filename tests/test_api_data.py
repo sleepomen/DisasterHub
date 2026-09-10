@@ -121,8 +121,35 @@ def test_login_sets_cookie_and_unlocks_write_endpoints(client):
 def test_login_marks_cookie_secure_behind_https_proxy(client):
     res = login(client)
     assert "secure" not in res.headers["set-cookie"].lower()
+    # 直接對外時不信任 X-Forwarded-Proto；只有明確設了 TRUST_PROXY_HEADERS 才讀
     res = client.post("/api/login", json=ADMIN, headers={"X-Forwarded-Proto": "https"})
+    assert "secure" not in res.headers["set-cookie"].lower()
+    with patch("config.TRUST_PROXY_HEADERS", True):
+        res = client.post("/api/login", json=ADMIN, headers={"X-Forwarded-Proto": "https"})
     assert "secure" in res.headers["set-cookie"].lower()
+
+
+def test_forwarded_for_only_trusted_behind_proxy():
+    from starlette.requests import Request
+    import app as app_module
+    scope = {
+        "type": "http", "method": "POST", "path": "/api/login", "query_string": b"",
+        "headers": [(b"x-forwarded-for", b"9.9.9.9, 10.0.0.1")],
+        "client": ("1.2.3.4", 1234),
+    }
+    request = Request(scope)
+    with patch("config.TRUST_PROXY_HEADERS", False):
+        assert app_module.client_key(request) == "1.2.3.4"
+    with patch("config.TRUST_PROXY_HEADERS", True):
+        assert app_module.client_key(request) == "9.9.9.9"
+
+
+def test_login_failure_log_does_not_contain_username(client, caplog):
+    import logging
+    with caplog.at_level(logging.WARNING, logger="app"):
+        assert login(client, username="hunter2-typed-in-wrong-box", password="nope").status_code == 401
+    assert "登入失敗" in caplog.text
+    assert "hunter2" not in caplog.text
 
 
 def test_login_rejects_wrong_credentials(client):
@@ -305,3 +332,35 @@ def test_simulate_includes_population_estimate(client):
     # 聊天服務拿到的是同一份估算，AI 才會講同樣的數字
     import app as app_module
     assert app_module.chat_service.latest_simulation["population"] == pop
+
+
+def test_chat_returns_429_when_all_slots_are_busy(client):
+    import app as app_module
+    with patch("app.chat_service.chat", return_value="ok") as chat:
+        assert client.post("/api/chat", json={"message": "宜蘭有哪些避難所"}).status_code == 200
+        # 把所有生成名額佔住：下一個問題要立刻被拒絕，而不是排隊或碰到 Ollama
+        held = 0
+        while app_module.chat_slots.acquire(blocking=False):
+            held += 1
+        try:
+            res = client.post("/api/chat", json={"message": "宜蘭有哪些避難所"})
+        finally:
+            for _ in range(held):
+                app_module.chat_slots.release()
+    assert held == app_module.config.CHAT_MAX_CONCURRENT
+    assert res.status_code == 429
+    assert "稍後再試" in res.json()["detail"]
+    assert chat.call_count == 1
+    # 名額釋放後恢復正常
+    with patch("app.chat_service.chat", return_value="ok"):
+        assert client.post("/api/chat", json={"message": "宜蘭有哪些避難所"}).status_code == 200
+
+
+def test_chat_slot_is_released_when_chat_raises(client):
+    # TestClient 會把伺服器端的例外原樣丟回來；重點是名額要還回去
+    import app as app_module
+    before = app_module.chat_slots._value
+    with patch("app.chat_service.chat", side_effect=RuntimeError("boom")):
+        with pytest.raises(RuntimeError):
+            client.post("/api/chat", json={"message": "x"})
+    assert app_module.chat_slots._value == before

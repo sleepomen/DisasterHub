@@ -87,3 +87,41 @@ def test_validate_warns_when_session_secret_missing(monkeypatch):
     warnings = config.validate()
     assert len(warnings) == 1
     assert "SESSION_SECRET" in warnings[0] and "重來" in warnings[0]
+
+
+def test_validate_rejects_out_of_range_numbers(monkeypatch):
+    config = load_config(
+        monkeypatch,
+        POSTGRES_PASSWORD="pw", SYNC_API_KEY="a-long-random-key", WRITE_API_KEY=None,
+        ADMIN_USERNAME="ops", ADMIN_PASSWORD="pw", SESSION_SECRET="a-long-random-secret",
+        CHROMA_PATH="/data/chroma",
+        SESSION_HOURS="0", DB_POOL_MIN="5", DB_POOL_MAX="2", RAG_TOP_K="0", CHAT_MAX_CONCURRENT="0",
+    )
+    with pytest.raises(config.ConfigError) as exc:
+        config.validate()
+    message = str(exc.value)
+    for key in ("SESSION_HOURS", "DB_POOL_MAX", "RAG_TOP_K", "CHAT_MAX_CONCURRENT"):
+        assert key in message
+
+
+def test_unparseable_numbers_fall_back_and_warn(monkeypatch):
+    # 打錯字的數值不該讓服務起不來，但要在啟動 log 提醒設定被忽略了
+    config = load_config(
+        monkeypatch,
+        POSTGRES_PASSWORD="pw", SYNC_API_KEY="a-long-random-key", WRITE_API_KEY=None,
+        ADMIN_USERNAME="ops", ADMIN_PASSWORD="pw", SESSION_SECRET="a-long-random-secret",
+        CHROMA_PATH="/data/chroma",
+        RAG_TOP_K="ten", TRUST_PROXY_HEADERS="maybe",
+    )
+    assert config.RAG_TOP_K == 10
+    assert config.TRUST_PROXY_HEADERS is False
+    warnings = config.validate()
+    assert any("RAG_TOP_K" in w and "預設值" in w for w in warnings)
+    assert any("TRUST_PROXY_HEADERS" in w for w in warnings)
+
+
+def test_bool_setting_accepts_common_spellings(monkeypatch):
+    assert load_config(monkeypatch, TRUST_PROXY_HEADERS="true").TRUST_PROXY_HEADERS is True
+    assert load_config(monkeypatch, TRUST_PROXY_HEADERS="1").TRUST_PROXY_HEADERS is True
+    assert load_config(monkeypatch, TRUST_PROXY_HEADERS="off").TRUST_PROXY_HEADERS is False
+    assert load_config(monkeypatch, TRUST_PROXY_HEADERS=None).TRUST_PROXY_HEADERS is False
