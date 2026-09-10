@@ -20,20 +20,25 @@ _pool_lock = threading.Lock()
 
 
 def _get_pool(conn_params):
+    """
+    建立（或取回）全域連線池。鎖只包住「建池」這一步，重試之間的等待放在鎖外面，
+    資料庫還沒起來時其他請求執行緒才不會跟著被鎖卡住好幾秒。
+    """
     global _pool
-    with _pool_lock:
-        if _pool is None:
-            for attempt in range(1, MAX_RETRIES + 1):
-                try:
-                    _pool = ThreadedConnectionPool(config.DB_POOL_MIN, config.DB_POOL_MAX, **conn_params)
-                    break
-                except OperationalError as e:
-                    logger.warning("DB 連線失敗（第 %d 次）：%s", attempt, e)
-                    if attempt < MAX_RETRIES:
-                        time.sleep(RETRY_DELAY)
-                    else:
-                        raise RuntimeError(f"資料庫連線失敗，已重試 {MAX_RETRIES} 次：{e}")
-        return _pool
+    last_error = None
+    for attempt in range(1, MAX_RETRIES + 1):
+        with _pool_lock:
+            if _pool is not None:
+                return _pool
+            try:
+                _pool = ThreadedConnectionPool(config.DB_POOL_MIN, config.DB_POOL_MAX, **conn_params)
+                return _pool
+            except OperationalError as e:
+                last_error = e
+                logger.warning("DB 連線失敗（第 %d 次）：%s", attempt, e)
+        if attempt < MAX_RETRIES:
+            time.sleep(RETRY_DELAY)
+    raise RuntimeError(f"資料庫連線失敗，已重試 {MAX_RETRIES} 次：{last_error}")
 
 
 def _acquire(pool):
@@ -69,7 +74,10 @@ class ShelterRepository:
             "user": config.POSTGRES_USER,
             "password": config.POSTGRES_PASSWORD,
             "host": config.POSTGRES_HOST,
-            "port": config.POSTGRES_PORT
+            "port": config.POSTGRES_PORT,
+            # 資料庫卡住時請求要能在幾秒內失敗，readiness 才會如實回報，而不是所有人一起無限等
+            "connect_timeout": config.DB_CONNECT_TIMEOUT,
+            "options": f"-c statement_timeout={config.DB_STATEMENT_TIMEOUT_MS}",
         }
 
     @contextmanager
@@ -97,7 +105,6 @@ class ShelterRepository:
             with self._cursor() as cursor:
                 cursor.execute("ALTER TABLE shelters ADD COLUMN IF NOT EXISTS address VARCHAR(200) DEFAULT ''")
                 cursor.execute("CREATE INDEX IF NOT EXISTS idx_shelters_geom ON shelters USING GIST (geom)")
-                cursor.execute("DROP TABLE IF EXISTS roads")
         except Exception as e:
             raise RuntimeError(f"ensure_schema 失敗：{e}")
 
