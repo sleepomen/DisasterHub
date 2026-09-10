@@ -1,18 +1,42 @@
 import os
 
+# 環境變數解析失敗時退回預設值，但要記下來，validate() 才能提醒使用者設定被忽略了
+PARSE_WARNINGS: list[str] = []
+
 
 def _env_float(key: str, default: float) -> float:
+    raw = os.environ.get(key)
+    if raw is None or not raw.strip():
+        return default
     try:
-        return float(os.environ.get(key, default))
+        return float(raw)
     except ValueError:
+        PARSE_WARNINGS.append(f"{key}={raw!r} 不是數字，改用預設值 {default}")
         return default
 
 
 def _env_int(key: str, default: int) -> int:
-    try:
-        return int(os.environ.get(key, default))
-    except ValueError:
+    raw = os.environ.get(key)
+    if raw is None or not raw.strip():
         return default
+    try:
+        return int(raw)
+    except ValueError:
+        PARSE_WARNINGS.append(f"{key}={raw!r} 不是整數，改用預設值 {default}")
+        return default
+
+
+def _env_bool(key: str, default: bool) -> bool:
+    raw = os.environ.get(key)
+    if raw is None or not raw.strip():
+        return default
+    value = raw.strip().lower()
+    if value in ("1", "true", "yes", "on"):
+        return True
+    if value in ("0", "false", "no", "off"):
+        return False
+    PARSE_WARNINGS.append(f"{key}={raw!r} 不是布林值（true/false），改用預設值 {default}")
+    return default
 
 
 POSTGRES_DB = os.environ.get("POSTGRES_DB", "disaster_db")
@@ -23,6 +47,9 @@ POSTGRES_PORT = os.environ.get("POSTGRES_PORT", "5432")
 DB_POOL_MIN = _env_int("DB_POOL_MIN", 1)
 # asyncio.to_thread 預設最多 cpu+4 條執行緒同時查資料庫，池子要跟得上
 DB_POOL_MAX = _env_int("DB_POOL_MAX", 10)
+# 資料庫卡住時請求不能無限等：連線幾秒內連不上就放棄，單一 SQL 跑超過上限由伺服器端中止
+DB_CONNECT_TIMEOUT = _env_int("DB_CONNECT_TIMEOUT", 5)
+DB_STATEMENT_TIMEOUT_MS = _env_int("DB_STATEMENT_TIMEOUT_MS", 15000)
 
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://host.docker.internal:11434")
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3.2:3b")
@@ -38,6 +65,12 @@ EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", "bge-m3")
 EMBEDDING_TIMEOUT = _env_int("EMBEDDING_TIMEOUT", 120)
 
 RAG_TOP_K = _env_int("RAG_TOP_K", 10)
+# 同時進行的 LLM 生成上限。每次生成最長 OLLAMA_TIMEOUT 秒，佔用一條工作執行緒；
+# 不設上限的話幾個人同時發問就會把執行緒池吃光，地圖載入與 readiness 一起卡住
+CHAT_MAX_CONCURRENT = _env_int("CHAT_MAX_CONCURRENT", 2)
+# 只有在前面確定有反向代理時才信任 X-Forwarded-For / X-Forwarded-Proto；
+# 直接對外時這兩個 header 任何人都能自己帶，用來繞過登入節流
+TRUST_PROXY_HEADERS = _env_bool("TRUST_PROXY_HEADERS", False)
 SYNC_API_KEY = os.environ.get("SYNC_API_KEY", "")
 # 寫入端點（模擬 / 收容人數回寫 / 重置）的兩種通行方式：
 # 1. 登入後的 session cookie（操作員用，瀏覽器自動帶）
@@ -63,9 +96,31 @@ class ConfigError(RuntimeError):
     pass
 
 
+def _bounds_errors() -> list[str]:
+    """
+    數值設定的下限。這些值填錯服務照樣起得來，但行為會壞掉：
+    SESSION_HOURS=0 所有登入立刻過期、DB_POOL_MAX < DB_POOL_MIN 連線池建不起來、RAG_TOP_K=0 檢索永遠是空的。
+    """
+    checks = [
+        ("SESSION_HOURS", SESSION_HOURS, SESSION_HOURS > 0, "必須大於 0"),
+        ("DB_POOL_MIN", DB_POOL_MIN, DB_POOL_MIN >= 1, "至少要 1"),
+        ("DB_POOL_MAX", DB_POOL_MAX, DB_POOL_MAX >= DB_POOL_MIN, f"不能小於 DB_POOL_MIN（{DB_POOL_MIN}）"),
+        ("DB_CONNECT_TIMEOUT", DB_CONNECT_TIMEOUT, DB_CONNECT_TIMEOUT >= 1, "至少要 1 秒"),
+        ("DB_STATEMENT_TIMEOUT_MS", DB_STATEMENT_TIMEOUT_MS, DB_STATEMENT_TIMEOUT_MS >= 1000, "至少要 1000 毫秒"),
+        ("RAG_TOP_K", RAG_TOP_K, RAG_TOP_K >= 1, "至少要 1"),
+        ("CHAT_MAX_CONCURRENT", CHAT_MAX_CONCURRENT, CHAT_MAX_CONCURRENT >= 1, "至少要 1"),
+        ("OLLAMA_TIMEOUT", OLLAMA_TIMEOUT, OLLAMA_TIMEOUT >= 1, "至少要 1 秒"),
+        ("EMBEDDING_TIMEOUT", EMBEDDING_TIMEOUT, EMBEDDING_TIMEOUT >= 1, "至少要 1 秒"),
+        ("OLLAMA_NUM_CTX", OLLAMA_NUM_CTX, OLLAMA_NUM_CTX >= 1024, "至少要 1024，否則系統提示加資料就放不下"),
+        ("OLLAMA_NUM_PREDICT", OLLAMA_NUM_PREDICT, OLLAMA_NUM_PREDICT >= 1, "至少要 1"),
+        ("OLLAMA_TEMPERATURE", OLLAMA_TEMPERATURE, 0 <= OLLAMA_TEMPERATURE <= 2, "必須介於 0 到 2"),
+    ]
+    return [f"{key}={value!r} {reason}" for key, value, ok, reason in checks if not ok]
+
+
 def validate() -> list[str]:
     """
-    檢查啟動必要設定。缺少必填變數直接丟 ConfigError；
+    檢查啟動必要設定。缺少必填變數或數值超出合理範圍直接丟 ConfigError；
     其餘只是提醒，用 list 回傳給呼叫端記 log。
     """
     missing = [key for key in REQUIRED_SETTINGS if not str(globals()[key]).strip()]
@@ -74,8 +129,11 @@ def validate() -> list[str]:
             "缺少必要環境變數：" + "、".join(missing)
             + "。請執行 cp .env.example .env 並填入實際值後重新啟動。"
         )
+    bad = _bounds_errors()
+    if bad:
+        raise ConfigError("環境變數超出合理範圍：" + "；".join(bad))
 
-    warnings = []
+    warnings = list(PARSE_WARNINGS)
     if POSTGRES_PASSWORD in PLACEHOLDERS:
         warnings.append("POSTGRES_PASSWORD 仍是 .env.example 的預設值，請改成自訂密碼")
     if not SYNC_API_KEY:
