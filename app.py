@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import secrets
+import threading
 from contextlib import asynccontextmanager
 from pathlib import Path
 from fastapi import FastAPI, Header, HTTPException, Request, Response
@@ -40,6 +41,10 @@ chat_service = ChatService(vector_store=vector_store, repo=repo)
 population_model = PopulationModel()
 session_manager = auth.SessionManager()
 login_throttle = auth.LoginThrottle()
+# LLM 生成的併發名額：一次生成最長 OLLAMA_TIMEOUT 秒，超出名額的問題立刻回 429，
+# 不排隊、不佔執行緒，地圖與 readiness 才不會跟著 Ollama 一起卡住
+chat_slots = threading.BoundedSemaphore(config.CHAT_MAX_CONCURRENT)
+AI_BUSY = "AI 助手正在回答其他問題，請稍後再試。"
 
 
 def sync_and_reindex(force: bool = False) -> int:
@@ -183,15 +188,22 @@ def require_write_access(http_request: Request, x_api_key: str) -> None:
 
 
 def client_key(http_request: Request) -> str:
-    # 反向代理後面看到的是代理的位址，優先用它轉送的第一個 IP；只拿來做登入節流，被偽造也只影響節流
-    forwarded = http_request.headers.get("x-forwarded-for", "")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
+    """
+    登入節流用的來源識別。反向代理後面看到的是代理的位址，要改用它轉送的第一個 IP；
+    但這個 header 誰都能自己帶，直接對外時信任它等於讓人隨便換 key 繞過節流，
+    所以只有 TRUST_PROXY_HEADERS 開啟時才讀。
+    """
+    if config.TRUST_PROXY_HEADERS:
+        forwarded = http_request.headers.get("x-forwarded-for", "")
+        if forwarded:
+            return forwarded.split(",")[0].strip()
     return http_request.client.host if http_request.client else "unknown"
 
 
 def request_is_https(http_request: Request) -> bool:
-    return http_request.url.scheme == "https" or http_request.headers.get("x-forwarded-proto", "").lower() == "https"
+    if http_request.url.scheme == "https":
+        return True
+    return config.TRUST_PROXY_HEADERS and http_request.headers.get("x-forwarded-proto", "").lower() == "https"
 
 
 @app.post("/api/login")
@@ -204,7 +216,8 @@ async def login(request: LoginRequest, http_request: Request, response: Response
         raise HTTPException(status_code=429, detail=f"登入失敗次數過多，請 {wait} 秒後再試")
     if not auth.check_credentials(request.username, request.password):
         login_throttle.record_failure(key)
-        logger.warning("登入失敗：帳號 %r，來源 %s", request.username, key)
+        # 不記輸入的帳號：操作員把密碼打進帳號欄時，密碼就會留在 log 裡
+        logger.warning("登入失敗：來源 %s", key)
         raise HTTPException(status_code=401, detail="帳號或密碼錯誤")
     login_throttle.reset(key)
     response.set_cookie(
@@ -341,7 +354,12 @@ async def nearest_shelter(request: NearestRequest):
 #llm回答回傳前端
 @app.post("/api/chat")
 async def chat(request: ChatRequest):
-    reply = await asyncio.to_thread(chat_service.chat, request.message)
+    if not chat_slots.acquire(blocking=False):
+        raise HTTPException(status_code=429, detail=AI_BUSY)
+    try:
+        reply = await asyncio.to_thread(chat_service.chat, request.message)
+    finally:
+        chat_slots.release()
     return {"status": "success", "reply": reply}
 
 # 渲染首頁

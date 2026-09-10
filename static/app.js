@@ -675,8 +675,22 @@
         return d;
     }
 
+    // 一次只送一個問題：等回答期間鎖住輸入框，連按 Enter 不會對後端塞進多個生成請求
+    let chatPending = false;
+
+    function setChatBusy(busy) {
+        chatPending = busy;
+        const input = document.getElementById('user-input');
+        const btn = document.querySelector('.send-btn');
+        if (input) input.disabled = busy;
+        if (btn) btn.disabled = busy;
+        if (!busy && input) input.focus();
+    }
+
     window.sendChat = async function(v) {
-        if (!v) return;
+        v = (v || '').trim();
+        if (!v || chatPending) return;
+        setChatBusy(true);
         addChat(v, 'user');
         document.getElementById('user-input').value = '';
         const loadingEl = addChat('AI 思考中…', 'loading');
@@ -686,13 +700,20 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: v })
             });
-            if (!res.ok) throw new Error('HTTP ' + res.status);
-            const data = await res.json();
+            const data = await res.json().catch(() => ({}));
             loadingEl.remove();
+            if (res.status === 429) {
+                // 後端的生成名額滿了（別人正在問），不是連線問題
+                addChat(typeof data.detail === 'string' ? data.detail : 'AI 助手正在回答其他問題，請稍後再試。', 'ai');
+                return;
+            }
+            if (!res.ok) throw new Error('HTTP ' + res.status);
             addChat(data.reply, 'ai');
         } catch {
             loadingEl.remove();
             addChat('連線失敗，請稍後再試', 'ai');
+        } finally {
+            setChatBusy(false);
         }
     };
 

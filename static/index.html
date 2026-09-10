@@ -130,7 +130,7 @@
             <div class="msg msg-ai">系統就緒。請設定模擬參數以分析潛在風險。</div>
         </div>
         <div class="input-bar">
-            <input class="input-field" type="text" id="user-input" placeholder="詢問避難所資訊…" onkeypress="if(event.key==='Enter') sendChat(this.value)">
+            <input class="input-field" type="text" id="user-input" placeholder="詢問避難所資訊…" onkeydown="if(event.key==='Enter') sendChat(this.value)">
             <button class="send-btn" onclick="sendChat(document.getElementById('user-input').value)">
                 <svg width="13" height="13" viewBox="0 0 12 12" fill="none"><path d="M6 1L11 6L6 11M1 6H11" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
