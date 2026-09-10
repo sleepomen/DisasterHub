@@ -16,28 +16,31 @@ class DataSyncService:
         """
         return {s.name: s.current_people for s in self.fetcher.get_shelters()}
 
-    def sync(self):
+    def sync(self) -> int:
         """
-        把 JSON 的靜態資料（容量 / 地址 / 座標）同步進資料庫。
+        把 JSON 的靜態資料（容量 / 地址 / 座標）同步進資料庫，回傳成功寫入的筆數。
         不會覆蓋既有列的 current_ppl，模擬回寫的佔用數要靠 /api/reset_simulation 才會清掉。
+        讀不到任何資料時丟 RuntimeError，啟動流程與 /api/sync 才不會把空同步當成成功。
         """
-        print("starting data synchronization...")
+        logger.info("開始同步避難所資料")
         shelters = self.fetcher.get_shelters()
 
         if not shelters:
-            print("synchronization aborted, no data fetched.")
-            return
+            raise RuntimeError("同步中止：來源資料夾沒有任何避難所資料")
 
         try:
             success_count = self.repository.upsert_shelters(shelters)
         except Exception as e:
-            logger.exception("batch upsert failed, falling back to per-row upsert: %s", e)
+            logger.exception("批次寫入失敗，改為逐筆寫入：%s", e)
             success_count = 0
             for s in shelters:
                 try:
                     self.repository.upsert_shelter(s)
                     success_count += 1
                 except Exception as row_err:
-                    logger.error("error when upserting %s: %s", s.name, row_err)
+                    logger.error("寫入 %s 失敗：%s", s.name, row_err)
 
-        print(f"synchronization success {success_count}/{len(shelters)} times data")
+        if success_count == 0:
+            raise RuntimeError(f"同步失敗：{len(shelters)} 筆資料沒有任何一筆寫入資料庫")
+        logger.info("同步完成：%d / %d 筆（來源略過 %d 筆）", success_count, len(shelters), self.fetcher.skipped)
+        return success_count
