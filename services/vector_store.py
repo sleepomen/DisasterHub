@@ -1,6 +1,7 @@
 import hashlib
 import json
 import logging
+import threading
 from dataclasses import dataclass
 from pathlib import Path
 import chromadb
@@ -12,6 +13,8 @@ from services.query_rules import QueryPlan, MAX_FILTERED_RESULTS, MAX_RANKED_RES
 logger = logging.getLogger(__name__)
 
 FINGERPRINT_FILE = "index_fingerprint.json"
+# 重建索引時先建到這個暫存 collection，embedding 跑完才整個換過去
+REBUILD_SUFFIX = "__rebuild"
 
 # 拿來分隔文件，避免不同切分方式算出相同指紋
 SEPARATOR = b"|--|"
@@ -38,17 +41,37 @@ class VectorStore:
     def __init__(self, embedding_function=None, collection_name: str = "shelters", persist_path: str | None = None):
         # persist_path 留空 = 記憶體索引（測試、本機直跑）；有值就落地，重啟不必重新 embedding
         self.persist_path = config.CHROMA_PATH if persist_path is None else persist_path
+        self.collection_name = collection_name
         self.ef = embedding_function or build_embedding_function()
         if self.persist_path:
             Path(self.persist_path).mkdir(parents=True, exist_ok=True)
             self.client = chromadb.PersistentClient(path=self.persist_path)
         else:
             self.client = chromadb.Client()
-        self.collection = self.client.get_or_create_collection(
-            name=collection_name,
+        # 讀寫 self.collection 都要拿這把鎖（RLock：search → plan_retrieve → retrieve 會巢狀進來）。
+        # 重建索引時 embedding 在鎖外面跑，只有最後「換 collection」那一瞬間持鎖，查詢不會被擋幾十秒。
+        self._lock = threading.RLock()
+        # 兩個 /api/sync 同時進來時重建要排隊，不能同時操作同一個暫存 collection
+        self._build_lock = threading.Lock()
+        self._drop_collection(self._rebuild_name())
+        self.collection = self._open_collection(collection_name)
+
+    def _rebuild_name(self) -> str:
+        return f"{self.collection_name}{REBUILD_SUFFIX}"
+
+    def _open_collection(self, name: str):
+        return self.client.get_or_create_collection(
+            name=name,
             embedding_function=self.ef,
             metadata={"hnsw:space": "cosine"},
         )
+
+    def _drop_collection(self, name: str) -> None:
+        # 上次重建到一半被中斷會留下暫存 collection，開場先清掉
+        try:
+            self.client.delete_collection(name)
+        except Exception:
+            pass
 
     def _ef_name(self) -> str:
         return self.ef.name() if hasattr(self.ef, "name") else type(self.ef).__name__
@@ -93,7 +116,8 @@ class VectorStore:
             logger.warning("VectorStore: 索引指紋寫入失敗，下次啟動會重建索引")
 
     def count(self) -> int:
-        return self.collection.count()
+        with self._lock:
+            return self.collection.count()
 
     #建立字串寫進 ChromaDB
     @staticmethod
@@ -150,21 +174,32 @@ class VectorStore:
             not force
             and saved is not None
             and saved.get("fingerprint") == fingerprint
-            and self.collection.count() == len(documents)
+            and self.count() == len(documents)
         ):
             logger.info("VectorStore: 索引內容未變（%d 筆），略過重建", len(documents))
             return
 
-        existing = self.collection.get()
-        if existing["ids"]:
-            self.collection.delete(ids=existing["ids"])
+        # 先建到暫存 collection：embedding 要跑幾十秒，這段時間查詢仍然打舊索引，
+        # 不會像「先刪光再加回」那樣出現一段回答「目前沒有避難所資料」的空窗
+        with self._build_lock:
+            rebuild_name = self._rebuild_name()
+            self._drop_collection(rebuild_name)
+            staging = self._open_collection(rebuild_name)
+            try:
+                staging.add(
+                    documents=documents,
+                    metadatas=[self.build_metadata(s) for s in shelters],
+                    ids=[self.doc_id(s.name) for s in shelters],
+                )
+            except Exception:
+                self._drop_collection(rebuild_name)
+                raise
 
-        self.collection.add(
-            documents=documents,
-            metadatas=[self.build_metadata(s) for s in shelters],
-            ids=[self.doc_id(s.name) for s in shelters],
-        )
-        self._write_fingerprint(fingerprint, len(documents))
+            with self._lock:
+                self._drop_collection(self.collection_name)
+                staging.modify(name=self.collection_name)
+                self.collection = staging
+            self._write_fingerprint(fingerprint, len(documents))
         logger.info("VectorStore: 成功建立 %d 筆避難所索引（embedding=%s）", len(documents), self._ef_name())
 
     def upsert_shelters(self, shelters: list) -> int:
@@ -174,13 +209,14 @@ class VectorStore:
         """
         if not shelters:
             return 0
-        self.collection.upsert(
-            documents=[self.build_document(s) for s in shelters],
-            metadatas=[self.build_metadata(s) for s in shelters],
-            ids=[self.doc_id(s.name) for s in shelters],
-        )
-        # 指紋要跟著落地的內容走，否則下次啟動會被判定「資料變了」而整批重建
-        stored = self.collection.get(include=["documents"])
+        with self._lock:
+            self.collection.upsert(
+                documents=[self.build_document(s) for s in shelters],
+                metadatas=[self.build_metadata(s) for s in shelters],
+                ids=[self.doc_id(s.name) for s in shelters],
+            )
+            # 指紋要跟著落地的內容走，否則下次啟動會被判定「資料變了」而整批重建
+            stored = self.collection.get(include=["documents"])
         documents = stored.get("documents") or []
         self._write_fingerprint(self._fingerprint(documents), len(documents))
         logger.info("VectorStore: 局部更新 %d 筆避難所索引", len(shelters))
@@ -188,9 +224,10 @@ class VectorStore:
 
     def count_where(self, where: dict | None) -> int:
         """符合 metadata 條件的文件數；沒有條件就是全部"""
-        if where is None:
-            return self.collection.count()
-        return len(self.collection.get(where=where, include=[])["ids"])
+        with self._lock:
+            if where is None:
+                return self.collection.count()
+            return len(self.collection.get(where=where, include=[])["ids"])
 
     def retrieve(self, query: str, n_results: int | None = None, where: dict | None = None) -> list[Hit]:
         """
@@ -198,18 +235,19 @@ class VectorStore:
         而且預設把符合的全部回傳（上限 MAX_FILTERED_RESULTS），
         「宜蘭有哪些避難所」這種列舉題才不會被 top-k 截掉。
         """
-        total = self.count_where(where)
-        if total == 0:
-            return []
+        with self._lock:
+            total = self.count_where(where)
+            if total == 0:
+                return []
 
-        default_n = MAX_FILTERED_RESULTS if where is not None else config.RAG_TOP_K
-        n = min(n_results or default_n, total)
-        results = self.collection.query(
-            query_texts=[query],
-            n_results=n,
-            where=where,
-            include=["documents", "metadatas", "distances"],
-        )
+            default_n = MAX_FILTERED_RESULTS if where is not None else config.RAG_TOP_K
+            n = min(n_results or default_n, total)
+            results = self.collection.query(
+                query_texts=[query],
+                n_results=n,
+                where=where,
+                include=["documents", "metadatas", "distances"],
+            )
         docs = results.get("documents", [[]])[0]
         metas = results.get("metadatas", [[]])[0]
         dists = results.get("distances", [[]])[0]
@@ -223,7 +261,8 @@ class VectorStore:
         「哪間最大 / 容量排名」不該靠語意 top-k 再排序，top-k 裡未必有真正最大的那間；
         這裡直接把符合條件的全部拿出來依 metadata 的容量排，結果才是精確的。
         """
-        stored = self.collection.get(where=where, include=["documents", "metadatas"])
+        with self._lock:
+            stored = self.collection.get(where=where, include=["documents", "metadatas"])
         docs = stored.get("documents") or []
         metas = stored.get("metadatas") or []
         hits = [Hit(name=meta["name"], document=doc, distance=0.0, metadata=meta) for doc, meta in zip(docs, metas)]
@@ -278,7 +317,7 @@ class VectorStore:
         語意搜尋：找出與 query 最相關的避難所資料，回傳可直接塞進 prompt 的文字。
         有規則層計畫時在前面加一行說明篩選條件與結果狀態。
         """
-        if self.collection.count() == 0:
+        if self.count() == 0:
             return "目前沒有避難所資料。"
 
         header = None
