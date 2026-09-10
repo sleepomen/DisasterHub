@@ -25,7 +25,9 @@ services:
     volumes:
       - chroma_data:/data/chroma
     ports:
-      - "8501:8501"
+      # 預設只綁本機：對外一律走前面的 HTTPS 反向代理，8501 直接對外就能繞過 HTTPS 用明文登入。
+      # 沒有代理、要讓區網其他機器直接連時，在 .env 設 APP_BIND=0.0.0.0
+      - "${APP_BIND:-127.0.0.1}:8501:8501"
     env_file:
       - .env
     environment:
