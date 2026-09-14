@@ -1,0 +1,5143 @@
+{
+ "meta": {
+  "label": "gen_qwen2.5-7b",
+  "model": "qwen2.5:7b",
+  "embedder": "ollama:bge-m3",
+  "num_predict": 800,
+  "temperature": 0.3,
+  "num_ctx": 8192,
+  "docs": 50,
+  "index_build_s": 10.985093143000086,
+  "cases": 130
+ },
+ "summary": {
+  "categories": {
+   "alias": {
+    "count": 16,
+    "answer_recall": 0.9375,
+    "answer_precision": 0.8354,
+    "complete": 0.9375,
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "numbers_supported": 1.0,
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "latency_p50_ms": 12764.8,
+    "output_tokens_mean": 64.6
+   },
+   "capacity": {
+    "count": 9,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "numbers_supported": 1.0,
+    "capacity_stated": 1.0,
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "latency_p50_ms": 19018.6,
+    "output_tokens_mean": 109.9
+   },
+   "exact_name": {
+    "count": 20,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "numbers_supported": 1.0,
+    "capacity_stated": 1.0,
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "latency_p50_ms": 33242.1,
+    "output_tokens_mean": 30
+   },
+   "facility": {
+    "count": 12,
+    "answer_recall": 0.9583,
+    "answer_precision": 1.0,
+    "complete": 0.9167,
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "numbers_supported": 1.0,
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "latency_p50_ms": 32269.6,
+    "output_tokens_mean": 184.7
+   },
+   "name_variant": {
+    "count": 15,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "numbers_supported": 1.0,
+    "capacity_stated": 1.0,
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "latency_p50_ms": 29553.7,
+    "output_tokens_mean": 30.9
+   },
+   "region": {
+    "count": 9,
+    "answer_recall": 0.9841,
+    "answer_precision": 1.0,
+    "complete": 0.7778,
+    "hallucinated": 0.2222,
+    "false_abstain": 0.0,
+    "numbers_supported": 1.0,
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "latency_p50_ms": 98713.4,
+    "output_tokens_mean": 481.3
+   },
+   "semantic": {
+    "count": 19,
+    "answer_recall": 0.9737,
+    "answer_precision": 0.8185,
+    "complete": 0.9474,
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "numbers_supported": 1.0,
+    "capacity_stated": 1.0,
+    "top1_correct": 1.0,
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "latency_p50_ms": 25873.6,
+    "output_tokens_mean": 73.8
+   },
+   "township": {
+    "count": 20,
+    "answer_recall": 0.9964,
+    "answer_precision": 1.0,
+    "complete": 0.95,
+    "hallucinated": 0.05,
+    "false_abstain": 0.0,
+    "numbers_supported": 1.0,
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "latency_p50_ms": 13004.9,
+    "output_tokens_mean": 127.3
+   }
+  },
+  "negatives": {
+   "count": 10,
+   "abstain_correct": 0.9,
+   "format_ok": 1.0,
+   "truncated": 0.0
+  },
+  "macro": {
+   "answer_recall": 0.9812,
+   "answer_precision": 0.9567,
+   "complete": 0.9412,
+   "hallucinated": 0.034,
+   "false_abstain": 0.0,
+   "numbers_supported": 1.0,
+   "capacity_stated": 1.0,
+   "top1_correct": 1.0,
+   "format_ok": 1.0,
+   "truncated": 0.0
+  },
+  "micro": {
+   "answer_recall": 0.9815,
+   "answer_precision": 0.9493,
+   "complete": 0.95,
+   "hallucinated": 0.025,
+   "false_abstain": 0.0,
+   "numbers_supported": 1.0,
+   "capacity_stated": 1.0,
+   "top1_correct": 1.0,
+   "format_ok": 1.0,
+   "truncated": 0.0
+  },
+  "latency_ms": {
+   "p50": 18982.9,
+   "p95": 86126.1
+  },
+  "generated": 122
+ },
+ "rows": [
+  {
+   "query": "花蓮縣立體育館",
+   "category": "exact_name",
+   "relevant": [
+    "[HUALIEN] 花蓮縣立體育館"
+   ],
+   "generated": true,
+   "reply": "花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 個。",
+   "context_chars": 233,
+   "latency_ms": 29340.5,
+   "done_reason": "stop",
+   "prompt_tokens": 599,
+   "output_tokens": 35,
+   "generate_ms": 3666.2,
+   "scores": {
+    "mentioned": [
+     "[HUALIEN] 花蓮縣立體育館"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "花蓮市立圖書館",
+   "category": "exact_name",
+   "relevant": [
+    "[HUALIEN] 花蓮市立圖書館"
+   ],
+   "generated": true,
+   "reply": "花蓮市立圖書館：花蓮市，容量 150 人，剩餘空位 150 人。",
+   "context_chars": 124,
+   "latency_ms": 10414.7,
+   "done_reason": "stop",
+   "prompt_tokens": 496,
+   "output_tokens": 32,
+   "generate_ms": 3381.3,
+   "scores": {
+    "mentioned": [
+     "[HUALIEN] 花蓮市立圖書館"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "民義國小",
+   "category": "exact_name",
+   "relevant": [
+    "[HUALIEN] 民義國小"
+   ],
+   "generated": true,
+   "reply": "民義國小：花蓮市，容量 500 人，剩餘空位 500 人。",
+   "context_chars": 2373,
+   "latency_ms": 69670.4,
+   "done_reason": "stop",
+   "prompt_tokens": 2588,
+   "output_tokens": 29,
+   "generate_ms": 3394.4,
+   "scores": {
+    "mentioned": [
+     "[HUALIEN] 民義國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "中正國小",
+   "category": "exact_name",
+   "relevant": [
+    "[HUALIEN] 中正國小"
+   ],
+   "generated": true,
+   "reply": "中正國小：花蓮市，容量 400 人，剩餘空位 400 人。",
+   "context_chars": 2373,
+   "latency_ms": 69039.2,
+   "done_reason": "stop",
+   "prompt_tokens": 2588,
+   "output_tokens": 29,
+   "generate_ms": 3360.3,
+   "scores": {
+    "mentioned": [
+     "[HUALIEN] 中正國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "明禮國小",
+   "category": "exact_name",
+   "relevant": [
+    "[HUALIEN] 明禮國小"
+   ],
+   "generated": true,
+   "reply": "明禮國小：花蓮市，容量 250 人，剩餘空位 250 人。",
+   "context_chars": 2373,
+   "latency_ms": 69044.4,
+   "done_reason": "stop",
+   "prompt_tokens": 2588,
+   "output_tokens": 29,
+   "generate_ms": 3425.6,
+   "scores": {
+    "mentioned": [
+     "[HUALIEN] 明禮國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "信義國小",
+   "category": "exact_name",
+   "relevant": [
+    "[HUALIEN] 信義國小"
+   ],
+   "generated": true,
+   "reply": "信義國小：花蓮市，容量 200 人，剩餘空位 200 人。",
+   "context_chars": 2373,
+   "latency_ms": 68723.0,
+   "done_reason": "stop",
+   "prompt_tokens": 2588,
+   "output_tokens": 29,
+   "generate_ms": 3358.1,
+   "scores": {
+    "mentioned": [
+     "[HUALIEN] 信義國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "台東縣立體育場",
+   "category": "exact_name",
+   "relevant": [
+    "[TAITUNG] 台東縣立體育場"
+   ],
+   "generated": true,
+   "reply": "台東縣立體育場：台東市，容量 1500 人，剩餘空位 1500 人。",
+   "context_chars": 238,
+   "latency_ms": 13358.2,
+   "done_reason": "stop",
+   "prompt_tokens": 598,
+   "output_tokens": 34,
+   "generate_ms": 3532.5,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 台東縣立體育場"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "台東高中",
+   "category": "exact_name",
+   "relevant": [
+    "[TAITUNG] 台東高中"
+   ],
+   "generated": true,
+   "reply": "台東高中：台東市，容量 500 人，剩餘空位 500 人。",
+   "context_chars": 221,
+   "latency_ms": 11980.9,
+   "done_reason": "stop",
+   "prompt_tokens": 577,
+   "output_tokens": 28,
+   "generate_ms": 2857.2,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 台東高中"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "新生國中",
+   "category": "exact_name",
+   "relevant": [
+    "[TAITUNG] 新生國中"
+   ],
+   "generated": true,
+   "reply": "新生國中：台東市，容量 600 人，剩餘空位 600 人。",
+   "context_chars": 901,
+   "latency_ms": 29412.3,
+   "done_reason": "stop",
+   "prompt_tokens": 1214,
+   "output_tokens": 28,
+   "generate_ms": 2979.5,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 新生國中"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "卑南國中",
+   "category": "exact_name",
+   "relevant": [
+    "[TAITUNG] 卑南國中"
+   ],
+   "generated": true,
+   "reply": "卑南國中：台東市，容量 400 人，剩餘空位 400 人。",
+   "context_chars": 1055,
+   "latency_ms": 33242.1,
+   "done_reason": "stop",
+   "prompt_tokens": 1344,
+   "output_tokens": 29,
+   "generate_ms": 3122.7,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 卑南國中"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "東海國小",
+   "category": "exact_name",
+   "relevant": [
+    "[TAITUNG] 東海國小"
+   ],
+   "generated": true,
+   "reply": "東海國小：台東市，容量 300 人，剩餘空位 300 人。",
+   "context_chars": 2373,
+   "latency_ms": 69602.3,
+   "done_reason": "stop",
+   "prompt_tokens": 2588,
+   "output_tokens": 29,
+   "generate_ms": 3403.1,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 東海國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "康樂國小",
+   "category": "exact_name",
+   "relevant": [
+    "[TAITUNG] 康樂國小"
+   ],
+   "generated": true,
+   "reply": "康樂國小：台東市，容量 250 人，剩餘空位 250 人。",
+   "context_chars": 2373,
+   "latency_ms": 68322.6,
+   "done_reason": "stop",
+   "prompt_tokens": 2588,
+   "output_tokens": 29,
+   "generate_ms": 3366.4,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 康樂國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "宜蘭市國民運動中心",
+   "category": "exact_name",
+   "relevant": [
+    "[YILAN] 宜蘭市國民運動中心"
+   ],
+   "generated": true,
+   "reply": "宜蘭市國民運動中心：宜蘭市，容量 1200 人，剩餘空位 1200 人。",
+   "context_chars": 235,
+   "latency_ms": 13201.8,
+   "done_reason": "stop",
+   "prompt_tokens": 594,
+   "output_tokens": 34,
+   "generate_ms": 3528.7,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 宜蘭市國民運動中心"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "羅東鎮立體育館",
+   "category": "exact_name",
+   "relevant": [
+    "[YILAN] 羅東鎮立體育館"
+   ],
+   "generated": true,
+   "reply": "羅東鎮立體育館：羅東鎮，容量 800 人，剩餘空位 800 人。",
+   "context_chars": 124,
+   "latency_ms": 10445.7,
+   "done_reason": "stop",
+   "prompt_tokens": 498,
+   "output_tokens": 32,
+   "generate_ms": 3262.9,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 羅東鎮立體育館"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "蘇澳國小",
+   "category": "exact_name",
+   "relevant": [
+    "[YILAN] 蘇澳國小"
+   ],
+   "generated": true,
+   "reply": "蘇澳國小：蘇澳鎮，容量 320 人，剩餘空位 320 人。",
+   "context_chars": 120,
+   "latency_ms": 9890.5,
+   "done_reason": "stop",
+   "prompt_tokens": 489,
+   "output_tokens": 29,
+   "generate_ms": 2944.1,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 蘇澳國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "二城國小",
+   "category": "exact_name",
+   "relevant": [
+    "[YILAN] 二城國小"
+   ],
+   "generated": true,
+   "reply": "二城國小：頭城鎮，容量 300 人，剩餘空位 300 人。",
+   "context_chars": 2373,
+   "latency_ms": 69010.5,
+   "done_reason": "stop",
+   "prompt_tokens": 2588,
+   "output_tokens": 29,
+   "generate_ms": 3363.8,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 二城國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "壯圍國中",
+   "category": "exact_name",
+   "relevant": [
+    "[YILAN] 壯圍國中"
+   ],
+   "generated": true,
+   "reply": "壯圍國中：壯圍鄉，容量 300 人，剩餘空位 300 人。",
+   "context_chars": 118,
+   "latency_ms": 9925.4,
+   "done_reason": "stop",
+   "prompt_tokens": 488,
+   "output_tokens": 29,
+   "generate_ms": 2952.5,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 壯圍國中"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "清溝國小",
+   "category": "exact_name",
+   "relevant": [
+    "[YILAN] 清溝國小"
+   ],
+   "generated": true,
+   "reply": "清溝國小：冬山鄉，容量 350 人，剩餘空位 350 人。",
+   "context_chars": 2373,
+   "latency_ms": 69506.4,
+   "done_reason": "stop",
+   "prompt_tokens": 2589,
+   "output_tokens": 30,
+   "generate_ms": 3532.6,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 清溝國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "三星鄉綜合運動場",
+   "category": "exact_name",
+   "relevant": [
+    "[YILAN] 三星鄉綜合運動場"
+   ],
+   "generated": true,
+   "reply": "三星鄉綜合運動場：三星鄉，容量 500 人，剩餘空位 500 人。",
+   "context_chars": 129,
+   "latency_ms": 10039.7,
+   "done_reason": "stop",
+   "prompt_tokens": 494,
+   "output_tokens": 29,
+   "generate_ms": 2950.3,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 三星鄉綜合運動場"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "南山國小",
+   "category": "exact_name",
+   "relevant": [
+    "[YILAN] 南山國小"
+   ],
+   "generated": true,
+   "reply": "南山國小：大同鄉，容量 200 人，剩餘空位 200 人。",
+   "context_chars": 2373,
+   "latency_ms": 68935.0,
+   "done_reason": "stop",
+   "prompt_tokens": 2587,
+   "output_tokens": 28,
+   "generate_ms": 3249.6,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 南山國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "花蓮市中正體育館的容量多少",
+   "category": "name_variant",
+   "relevant": [
+    "[HUALIEN] 花蓮市中正體育館"
+   ],
+   "generated": true,
+   "reply": "花蓮市中正體育館：花蓮市，容量 600 人，剩餘空位 600 人。",
+   "context_chars": 232,
+   "latency_ms": 13406.9,
+   "done_reason": "stop",
+   "prompt_tokens": 603,
+   "output_tokens": 33,
+   "generate_ms": 3408.0,
+   "scores": {
+    "mentioned": [
+     "[HUALIEN] 花蓮市中正體育館"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "自強國中目前收容幾人",
+   "category": "name_variant",
+   "relevant": [
+    "[HUALIEN] 自強國中"
+   ],
+   "generated": true,
+   "reply": "自強國中：花蓮市，容量 450 人，剩餘空位 450 人。",
+   "context_chars": 901,
+   "latency_ms": 29265.8,
+   "done_reason": "stop",
+   "prompt_tokens": 1220,
+   "output_tokens": 29,
+   "generate_ms": 3071.7,
+   "scores": {
+    "mentioned": [
+     "[HUALIEN] 自強國中"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "中正國小還有空位嗎",
+   "category": "name_variant",
+   "relevant": [
+    "[HUALIEN] 中正國小"
+   ],
+   "generated": true,
+   "reply": "中正國小：花蓮市，容量 400 人，剩餘空位 400 人。",
+   "context_chars": 2373,
+   "latency_ms": 56539.1,
+   "done_reason": "stop",
+   "prompt_tokens": 2592,
+   "output_tokens": 29,
+   "generate_ms": 3378.0,
+   "scores": {
+    "mentioned": [
+     "[HUALIEN] 中正國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "濤強國小的容量多少",
+   "category": "name_variant",
+   "relevant": [
+    "[HUALIEN] 濤強國小"
+   ],
+   "generated": true,
+   "reply": "濤強國小：花蓮市，容量 300 人，剩餘空位 300 人。",
+   "context_chars": 2373,
+   "latency_ms": 68930.6,
+   "done_reason": "stop",
+   "prompt_tokens": 2592,
+   "output_tokens": 30,
+   "generate_ms": 3495.6,
+   "scores": {
+    "mentioned": [
+     "[HUALIEN] 濤強國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "台東縣立體育館目前收容幾人",
+   "category": "name_variant",
+   "relevant": [
+    "[TAITUNG] 台東縣立體育館"
+   ],
+   "generated": true,
+   "reply": "台東縣立體育館：台東市，容量 2000 人，剩餘空位 2000 人。",
+   "context_chars": 238,
+   "latency_ms": 12817.5,
+   "done_reason": "stop",
+   "prompt_tokens": 603,
+   "output_tokens": 34,
+   "generate_ms": 3518.6,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 台東縣立體育館"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "台東高中還有空位嗎",
+   "category": "name_variant",
+   "relevant": [
+    "[TAITUNG] 台東高中"
+   ],
+   "generated": true,
+   "reply": "台東高中：台東市，容量 500 人，剩餘空位 500 人。",
+   "context_chars": 221,
+   "latency_ms": 6850.1,
+   "done_reason": "stop",
+   "prompt_tokens": 581,
+   "output_tokens": 28,
+   "generate_ms": 2871.1,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 台東高中"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "東海國中的容量多少",
+   "category": "name_variant",
+   "relevant": [
+    "[TAITUNG] 東海國中"
+   ],
+   "generated": true,
+   "reply": "東海國中：台東市，容量 500 人，剩餘空位 500 個。",
+   "context_chars": 901,
+   "latency_ms": 29553.7,
+   "done_reason": "stop",
+   "prompt_tokens": 1217,
+   "output_tokens": 30,
+   "generate_ms": 3188.1,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 東海國中"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "新生國小目前收容幾人",
+   "category": "name_variant",
+   "relevant": [
+    "[TAITUNG] 新生國小"
+   ],
+   "generated": true,
+   "reply": "新生國小：台東市，容量 350 人，剩餘空位 350 人。",
+   "context_chars": 2373,
+   "latency_ms": 68889.4,
+   "done_reason": "stop",
+   "prompt_tokens": 2592,
+   "output_tokens": 28,
+   "generate_ms": 3268.1,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 新生國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "康樂國小還有空位嗎",
+   "category": "name_variant",
+   "relevant": [
+    "[TAITUNG] 康樂國小"
+   ],
+   "generated": true,
+   "reply": "康樂國小：台東市，容量 250 人，剩餘空位 250 人。",
+   "context_chars": 2373,
+   "latency_ms": 68557.9,
+   "done_reason": "stop",
+   "prompt_tokens": 2592,
+   "output_tokens": 29,
+   "generate_ms": 3370.0,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 康樂國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "宜蘭國小的容量多少",
+   "category": "name_variant",
+   "relevant": [
+    "[YILAN] 宜蘭國小"
+   ],
+   "generated": true,
+   "reply": "宜蘭國小：宜蘭市，容量 500 人，剩餘空位 500 人。",
+   "context_chars": 1004,
+   "latency_ms": 32466.5,
+   "done_reason": "stop",
+   "prompt_tokens": 1319,
+   "output_tokens": 29,
+   "generate_ms": 3093.5,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 宜蘭國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "蘇澳鎮立體育館目前收容幾人",
+   "category": "name_variant",
+   "relevant": [
+    "[YILAN] 蘇澳鎮立體育館"
+   ],
+   "generated": true,
+   "reply": "蘇澳鎮立體育館：蘇澳鎮，容量 600 人，剩餘空位 600 人。目前收容 0 人。",
+   "context_chars": 121,
+   "latency_ms": 11269.6,
+   "done_reason": "stop",
+   "prompt_tokens": 499,
+   "output_tokens": 40,
+   "generate_ms": 4122.9,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 蘇澳鎮立體育館"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "二城國小還有空位嗎",
+   "category": "name_variant",
+   "relevant": [
+    "[YILAN] 二城國小"
+   ],
+   "generated": true,
+   "reply": "二城國小：頭城鎮，容量 300 人，剩餘空位 300 人。",
+   "context_chars": 2373,
+   "latency_ms": 69203.8,
+   "done_reason": "stop",
+   "prompt_tokens": 2592,
+   "output_tokens": 29,
+   "generate_ms": 3370.8,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 二城國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "宜蘭運動公園體育館的容量多少",
+   "category": "name_variant",
+   "relevant": [
+    "[YILAN] 宜蘭運動公園體育館"
+   ],
+   "generated": true,
+   "reply": "宜蘭運動公園體育館：宜蘭市，容量 350 人，剩餘空位 350 人。",
+   "context_chars": 650,
+   "latency_ms": 23454.1,
+   "done_reason": "stop",
+   "prompt_tokens": 982,
+   "output_tokens": 32,
+   "generate_ms": 3343.9,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 宜蘭運動公園體育館"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "三星國中目前收容幾人",
+   "category": "name_variant",
+   "relevant": [
+    "[YILAN] 三星國中"
+   ],
+   "generated": true,
+   "reply": "三星國中：三星鄉，容量 400 人，剩餘空位 400 人，目前收容 0 人。",
+   "context_chars": 117,
+   "latency_ms": 10329.6,
+   "done_reason": "stop",
+   "prompt_tokens": 487,
+   "output_tokens": 35,
+   "generate_ms": 3572.3,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 三星國中"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "南山國小還有空位嗎",
+   "category": "name_variant",
+   "relevant": [
+    "[YILAN] 南山國小"
+   ],
+   "generated": true,
+   "reply": "南山國小：大同鄉，容量 200 人，剩餘空位 200 人。",
+   "context_chars": 2373,
+   "latency_ms": 70565.2,
+   "done_reason": "stop",
+   "prompt_tokens": 2591,
+   "output_tokens": 28,
+   "generate_ms": 3247.3,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 南山國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "花蓮有哪些避難所",
+   "category": "region",
+   "relevant": [
+    "[HUALIEN] 中原國小",
+    "[HUALIEN] 中正國小",
+    "[HUALIEN] 中華國小",
+    "[HUALIEN] 信義國小",
+    "[HUALIEN] 國風國中",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 民義國小",
+    "[HUALIEN] 濤強國小",
+    "[HUALIEN] 自強國中",
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 花蓮市公所",
+    "[HUALIEN] 花蓮市立圖書館",
+    "[HUALIEN] 花蓮縣立體育館"
+   ],
+   "generated": true,
+   "reply": "花蓮市公所：花蓮市，容量 100 人，剩餘空位 100 人\n花蓮市立圖書館：花蓮市，容量 150 人，剩餘空位 150 人\n信義國小：花蓮市，容量 200 人，剩餘空位 200 人\n中原國小：花蓮市，容量 350 人，剩餘空位 350 人\n花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 人\n民義國小：花蓮市，容量 500 人，剩餘空位 500 人\n中正國小：花蓮市，容量 400 人，剩餘空位 400 人\n中華國小：花蓮市，容量 400 人，剩餘空位 400 人\n明廉國小：花蓮市，容量 300 人，剩餘空位 300 人\n明禮國小：花蓮市，容量 250 人，剩餘空位 250 人\n國風國中：花蓮市，容量 300 人，剩餘空位 300 人\n自強國中：花蓮市，容量 450 人，剩餘空位 450 人\n涙強國小：花蓮市，容量 300 人，剩餘空位 300 人\n花蓮市中正體育館：花蓮市，容量 600 人，剩餘空位 600 人",
+   "context_chars": 1403,
+   "latency_ms": 86126.1,
+   "done_reason": "stop",
+   "prompt_tokens": 1686,
+   "output_tokens": 405,
+   "generate_ms": 46585.9,
+   "scores": {
+    "mentioned": [
+     "[HUALIEN] 花蓮市公所",
+     "[HUALIEN] 花蓮市立圖書館",
+     "[HUALIEN] 信義國小",
+     "[HUALIEN] 中原國小",
+     "[HUALIEN] 花蓮縣立體育館",
+     "[HUALIEN] 民義國小",
+     "[HUALIEN] 中正國小",
+     "[HUALIEN] 中華國小",
+     "[HUALIEN] 明廉國小",
+     "[HUALIEN] 明禮國小",
+     "[HUALIEN] 國風國中",
+     "[HUALIEN] 自強國中",
+     "[HUALIEN] 花蓮市中正體育館"
+    ],
+    "invented": [
+     "涙強國小"
+    ],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 0.9285714285714286,
+    "answer_precision": 1.0,
+    "complete": 0.0,
+    "unsupported_mentions": [],
+    "hallucinated": 1.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 11
+   }
+  },
+  {
+   "query": "花蓮縣的避難所",
+   "category": "region",
+   "relevant": [
+    "[HUALIEN] 中原國小",
+    "[HUALIEN] 中正國小",
+    "[HUALIEN] 中華國小",
+    "[HUALIEN] 信義國小",
+    "[HUALIEN] 國風國中",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 民義國小",
+    "[HUALIEN] 濤強國小",
+    "[HUALIEN] 自強國中",
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 花蓮市公所",
+    "[HUALIEN] 花蓮市立圖書館",
+    "[HUALIEN] 花蓮縣立體育館"
+   ],
+   "generated": true,
+   "reply": "花蓮市公所：花蓮市，容量 100 人，剩餘空位 100 人\n中原國小：花蓮市，容量 350 人，剩餘空位 350 人\n信義國小：花蓮市，容量 200 人，剩餘空位 200 人\n花蓮市立圖書館：花蓮市，容量 150 人，剩餘空位 150 人\n花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 人\n明廉國小：花蓮市，容量 300 人，剩餘空位 300 人\n明禮國小：花蓮市，容量 250 人，剩餘空位 250 人\n中華國小：花蓮市，容量 400 人，剩餘空位 400 人\n中正國小：花蓮市，容量 400 人，剩餘空位 400 人\n民義國小：花蓮市，容量 500 人，剩餘空位 500 人\n國風國中：花蓮市，容量 300 人，剩餘空位 300 人\n花蓮市中正體育館：花蓮市，容量 600 人，剩餘空位 600 人\n濤強國小：花蓮市，容量 300 人，剩餘空位 300 人\n自強國中：花蓮市，容量 450 人，剩餘空位 450 人",
+   "context_chars": 1403,
+   "latency_ms": 84248.6,
+   "done_reason": "stop",
+   "prompt_tokens": 1687,
+   "output_tokens": 405,
+   "generate_ms": 47298.4,
+   "scores": {
+    "mentioned": [
+     "[HUALIEN] 花蓮市公所",
+     "[HUALIEN] 中原國小",
+     "[HUALIEN] 信義國小",
+     "[HUALIEN] 花蓮市立圖書館",
+     "[HUALIEN] 花蓮縣立體育館",
+     "[HUALIEN] 明廉國小",
+     "[HUALIEN] 明禮國小",
+     "[HUALIEN] 中華國小",
+     "[HUALIEN] 中正國小",
+     "[HUALIEN] 民義國小",
+     "[HUALIEN] 國風國中",
+     "[HUALIEN] 花蓮市中正體育館",
+     "[HUALIEN] 濤強國小",
+     "[HUALIEN] 自強國中"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 11
+   }
+  },
+  {
+   "query": "花蓮地區可以去哪裡避難",
+   "category": "region",
+   "relevant": [
+    "[HUALIEN] 中原國小",
+    "[HUALIEN] 中正國小",
+    "[HUALIEN] 中華國小",
+    "[HUALIEN] 信義國小",
+    "[HUALIEN] 國風國中",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 民義國小",
+    "[HUALIEN] 濤強國小",
+    "[HUALIEN] 自強國中",
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 花蓮市公所",
+    "[HUALIEN] 花蓮市立圖書館",
+    "[HUALIEN] 花蓮縣立體育館"
+   ],
+   "generated": true,
+   "reply": "花蓮市立圖書館：花蓮市，容量 150 人，剩餘空位 150 人\n信義國小：花蓮市，容量 200 人，剩餘空位 200 人\n花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 人\n花蓮市公所：花蓮市，容量 100 人，剩餘空位 100 人\n中原國小：花蓮市，容量 350 人，剩餘空位 350 人\n中華國小：花蓮市，容量 400 人，剩餘空位 400 人\n民義國小：花蓮市，容量 500 人，剩餘空位 500 人\n明廉國小：花蓮市，容量 300 人，剩餘空位 300 人\n明禮國小：花蓮市，容量 250 人，剩餘空位 250 人\n國風國中：花蓮市，容量 300 人，剩餘空位 300 人\n中正國小：花蓮市，容量 400 人，剩餘空位 400 人\n涙強國小：花蓮市，容量 300 人，剩餘空位 300 人\n自強國中：花蓮市，容量 450 人，剩餘空位 450 人\n花蓮市中正體育館：花蓮市，容量 600 人，剩餘空位 600 人",
+   "context_chars": 1403,
+   "latency_ms": 86022.0,
+   "done_reason": "stop",
+   "prompt_tokens": 1688,
+   "output_tokens": 405,
+   "generate_ms": 46831.6,
+   "scores": {
+    "mentioned": [
+     "[HUALIEN] 花蓮市立圖書館",
+     "[HUALIEN] 信義國小",
+     "[HUALIEN] 花蓮縣立體育館",
+     "[HUALIEN] 花蓮市公所",
+     "[HUALIEN] 中原國小",
+     "[HUALIEN] 中華國小",
+     "[HUALIEN] 民義國小",
+     "[HUALIEN] 明廉國小",
+     "[HUALIEN] 明禮國小",
+     "[HUALIEN] 國風國中",
+     "[HUALIEN] 中正國小",
+     "[HUALIEN] 自強國中",
+     "[HUALIEN] 花蓮市中正體育館"
+    ],
+    "invented": [
+     "涙強國小"
+    ],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 0.9285714285714286,
+    "answer_precision": 1.0,
+    "complete": 0.0,
+    "unsupported_mentions": [],
+    "hallucinated": 1.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 11
+   }
+  },
+  {
+   "query": "台東有哪些避難所",
+   "category": "region",
+   "relevant": [
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 台東市公所",
+    "[TAITUNG] 台東市原住民文化會館",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 寶桑國中",
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 康樂國小",
+    "[TAITUNG] 新生國中",
+    "[TAITUNG] 新生國小",
+    "[TAITUNG] 東海國中",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 知本國小",
+    "[TAITUNG] 馬蘭國小"
+   ],
+   "generated": true,
+   "reply": "台東市公所：台東市，容量 150 人，剩餘空位 150 人\n台東高中：台東市，容量 500 人，剩餘空位 500 人\n知本國小：台東市，容量 250 人，剩餘空位 250 人\n台東女中：台東市，容量 500 人，剩餘空位 500 人\n台東縣立體育場：台東市，容量 1500 人，剩餘空位 1500 人\n台東縣立體育館：台東市，容量 2000 人，剩餘空位 2000 人\n新生國小：台東市，容量 350 人，剩餘空位 350 人\n台東市原住民文化會館：台東市，容量 250 人，剩餘空位 250 人\n康樂國小：台東市，容量 250 人，剩餘空位 250 人\n寶桑國小：台東市，容量 400 人，剩餘空位 400 人\n東海國小：台東市，容量 300 人，剩餘空位 300 人\n馬蘭國小：台東市，容量 300 人，剩餘空位 300 人\n寶桑國中：台東市，容量 450 人，剩餘空位 450 人\n新生國中：台東市，容量 600 人，剩餘空位 600 人\n東海國中：台東市，容量 500 人，剩餘空位 500 人\n卑南國中：台東市，容量 400 人，剩餘空位 400 人",
+   "context_chars": 1629,
+   "latency_ms": 99049.7,
+   "done_reason": "stop",
+   "prompt_tokens": 1885,
+   "output_tokens": 461,
+   "generate_ms": 53839.2,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 台東市公所",
+     "[TAITUNG] 台東高中",
+     "[TAITUNG] 知本國小",
+     "[TAITUNG] 台東女中",
+     "[TAITUNG] 台東縣立體育場",
+     "[TAITUNG] 台東縣立體育館",
+     "[TAITUNG] 新生國小",
+     "[TAITUNG] 台東市原住民文化會館",
+     "[TAITUNG] 康樂國小",
+     "[TAITUNG] 寶桑國小",
+     "[TAITUNG] 東海國小",
+     "[TAITUNG] 馬蘭國小",
+     "[TAITUNG] 寶桑國中",
+     "[TAITUNG] 新生國中",
+     "[TAITUNG] 東海國中",
+     "[TAITUNG] 卑南國中"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 10
+   }
+  },
+  {
+   "query": "台東縣的避難所",
+   "category": "region",
+   "relevant": [
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 台東市公所",
+    "[TAITUNG] 台東市原住民文化會館",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 寶桑國中",
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 康樂國小",
+    "[TAITUNG] 新生國中",
+    "[TAITUNG] 新生國小",
+    "[TAITUNG] 東海國中",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 知本國小",
+    "[TAITUNG] 馬蘭國小"
+   ],
+   "generated": true,
+   "reply": "台東市公所：台東市，容量 150 人，剩餘空位 150 人\n台東縣立體育場：台東市，容量 1500 人，剩餘空位 1500 人\n台東高中：台東市，容量 500 人，剩餘空位 500 人\n台東縣立體育館：台東市，容量 2000 人，剩餘空位 2000 人\n康樂國小：台東市，容量 250 人，剩餘空位 250 人\n寶桑國小：台東市，容量 400 人，剩餘空位 400 人\n台東女中：台東市，容量 500 人，剩餘空位 500 人\n知本國小：台東市，容量 250 人，剩餘空位 250 人\n東海國小：台東市，容量 300 人，剩餘空位 300 人\n新生國小：台東市，容量 350 人，剩餘空位 350 人\n寶桑國中：台東市，容量 450 人，剩餘空位 450 人\n台東市原住民文化會館：台東市，容量 250 人，剩餘空位 250 人\n東海國中：台東市，容量 500 人，剩餘空位 500 人\n馬蘭國小：台東市，容量 300 人，剩餘空位 300 人\n新生國中：台東市，容量 600 人，剩餘空位 600 人\n卑南國中：台東市，容量 400 人，剩餘空位 400 人",
+   "context_chars": 1629,
+   "latency_ms": 96455.9,
+   "done_reason": "stop",
+   "prompt_tokens": 1886,
+   "output_tokens": 461,
+   "generate_ms": 53945.0,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 台東市公所",
+     "[TAITUNG] 台東縣立體育場",
+     "[TAITUNG] 台東高中",
+     "[TAITUNG] 台東縣立體育館",
+     "[TAITUNG] 康樂國小",
+     "[TAITUNG] 寶桑國小",
+     "[TAITUNG] 台東女中",
+     "[TAITUNG] 知本國小",
+     "[TAITUNG] 東海國小",
+     "[TAITUNG] 新生國小",
+     "[TAITUNG] 寶桑國中",
+     "[TAITUNG] 台東市原住民文化會館",
+     "[TAITUNG] 東海國中",
+     "[TAITUNG] 馬蘭國小",
+     "[TAITUNG] 新生國中",
+     "[TAITUNG] 卑南國中"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 10
+   }
+  },
+  {
+   "query": "台東地區可以去哪裡避難",
+   "category": "region",
+   "relevant": [
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 台東市公所",
+    "[TAITUNG] 台東市原住民文化會館",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 寶桑國中",
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 康樂國小",
+    "[TAITUNG] 新生國中",
+    "[TAITUNG] 新生國小",
+    "[TAITUNG] 東海國中",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 知本國小",
+    "[TAITUNG] 馬蘭國小"
+   ],
+   "generated": true,
+   "reply": "台東高中：台東市，容量 500 人，剩餘空位 500 人\n知本國小：台東市，容量 250 人，剩餘空位 250 人\n台東女中：台東市，容量 500 人，剩餘空位 500 人\n台東縣立體育場：台東市，容量 1500 人，剩餘空位 1500 人\n台東縣立體育館：台東市，容量 2000 人，剩餘空位 2000 人\n台東市公所：台東市，容量 150 人，剩餘空位 150 人\n康樂國小：台東市，容量 250 人，剩餘空位 250 人\n東海國小：台東市，容量 300 人，剩餘空位 300 人\n台東市原住民文化會館：台東市，容量 250 人，剩餘空位 250 人\n寶桑國小：台東市，容量 400 人，剩餘空位 400 人\n東海國中：台東市，容量 500 人，剩餘空位 500 人\n新生國小：台東市，容量 350 人，剩餘空位 350 人\n馬蘭國小：台東市，容量 300 人，剩餘空位 300 人\n寶桑國中：台東市，容量 450 人，剩餘空位 450 人\n新生國中：台東市，容量 600 人，剩餘空位 600 人\n卑南國中：台東市，容量 400 人，剩餘空位 400 人",
+   "context_chars": 1629,
+   "latency_ms": 98713.4,
+   "done_reason": "stop",
+   "prompt_tokens": 1887,
+   "output_tokens": 461,
+   "generate_ms": 53912.2,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 台東高中",
+     "[TAITUNG] 知本國小",
+     "[TAITUNG] 台東女中",
+     "[TAITUNG] 台東縣立體育場",
+     "[TAITUNG] 台東縣立體育館",
+     "[TAITUNG] 台東市公所",
+     "[TAITUNG] 康樂國小",
+     "[TAITUNG] 東海國小",
+     "[TAITUNG] 台東市原住民文化會館",
+     "[TAITUNG] 寶桑國小",
+     "[TAITUNG] 東海國中",
+     "[TAITUNG] 新生國小",
+     "[TAITUNG] 馬蘭國小",
+     "[TAITUNG] 寶桑國中",
+     "[TAITUNG] 新生國中",
+     "[TAITUNG] 卑南國中"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 10
+   }
+  },
+  {
+   "query": "宜蘭有哪些避難所",
+   "category": "region",
+   "relevant": [
+    "[YILAN] 三星國中",
+    "[YILAN] 三星鄉綜合運動場",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 二城國小",
+    "[YILAN] 南山國小",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 宜蘭國小",
+    "[YILAN] 宜蘭市國民運動中心",
+    "[YILAN] 宜蘭運動公園體育館",
+    "[YILAN] 清溝國小",
+    "[YILAN] 澳花國小",
+    "[YILAN] 礁溪國中",
+    "[YILAN] 羅東國小",
+    "[YILAN] 羅東鎮立體育館",
+    "[YILAN] 蘇澳國小",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[YILAN] 頭城國小"
+   ],
+   "generated": true,
+   "reply": "宜蘭國小：宜蘭市，容量 500 人，剩餘空位 500 人\n宜蘭市國民運動中心：宜蘭市，容量 1200 人，剩餘空位 1200 人\n宜蘭運動公園體育館：宜蘭市，容量 350 人，剩餘空位 350 人\n南山國小：大同鄉，容量 200 人，剩餘空位 200 人\n中興國小附幼：五結鄉，容量 350 人，剩餘空位 350 人\n礁溪國中：礁溪鄉，容量 550 人，剩餘空位 550 人\n羅東國小：羅東鎮，容量 450 人，剩餘空位 450 人\n三星國中：三星鄉，容量 400 人，剩餘空位 400 人\n大同鄉公所：大同鄉，容量 150 人，剩餘空位 150 人\n清溝國小：冬山鄉，容量 350 人，剩餘空位 350 人\n壯圍國小：壯圍鄉，容量 300 人，剩餘空位 300 人\n澳花國小：南澳鄉，容量 150 人，剩餘空位 150 人\n蘇澳國小：蘇澳鎮，容量 320 人，剩餘空位 320 人\n南澳鄉綜合體育場：南澳鄉，容量 550 人，剩餘空位 550 人\n壯圍國中：壯圍鄉，容量 300 人，剩餘空位 300 人\n二城國小：頭城鎮，容量 300 人，剩餘空位 300 人\n頭城國小：頭城鎮，容量 400 人，剩餘空位 400 人\n三星鄉綜合運動場：三星鄉，容量 500 人，剩餘空位 500 人\n羅東鎮立體育館：羅東鎮，容量 800 人，剩餘空位 800 人\n蘇澳鎮立體育館：蘇澳鎮，容量 600 人，剩餘空位 600 人",
+   "context_chars": 2020,
+   "latency_ms": 117815.9,
+   "done_reason": "stop",
+   "prompt_tokens": 2257,
+   "output_tokens": 578,
+   "generate_ms": 68450.5,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 宜蘭國小",
+     "[YILAN] 宜蘭市國民運動中心",
+     "[YILAN] 宜蘭運動公園體育館",
+     "[YILAN] 南山國小",
+     "[YILAN] 中興國小附幼",
+     "[YILAN] 礁溪國中",
+     "[YILAN] 羅東國小",
+     "[YILAN] 三星國中",
+     "[YILAN] 大同鄉公所",
+     "[YILAN] 清溝國小",
+     "[YILAN] 壯圍國小",
+     "[YILAN] 澳花國小",
+     "[YILAN] 蘇澳國小",
+     "[YILAN] 南澳鄉綜合體育場",
+     "[YILAN] 壯圍國中",
+     "[YILAN] 二城國小",
+     "[YILAN] 頭城國小",
+     "[YILAN] 三星鄉綜合運動場",
+     "[YILAN] 羅東鎮立體育館",
+     "[YILAN] 蘇澳鎮立體育館"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 12
+   }
+  },
+  {
+   "query": "宜蘭縣的避難所",
+   "category": "region",
+   "relevant": [
+    "[YILAN] 三星國中",
+    "[YILAN] 三星鄉綜合運動場",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 二城國小",
+    "[YILAN] 南山國小",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 宜蘭國小",
+    "[YILAN] 宜蘭市國民運動中心",
+    "[YILAN] 宜蘭運動公園體育館",
+    "[YILAN] 清溝國小",
+    "[YILAN] 澳花國小",
+    "[YILAN] 礁溪國中",
+    "[YILAN] 羅東國小",
+    "[YILAN] 羅東鎮立體育館",
+    "[YILAN] 蘇澳國小",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[YILAN] 頭城國小"
+   ],
+   "generated": true,
+   "reply": "宜蘭國小：宜蘭市，容量 500 人，剩餘空位 500 人\n宜蘭市國民運動中心：宜蘭市，容量 1200 人，剩餘空位 1200 人\n南山國小：大同鄉，容量 200 人，剩餘空位 200 人\n中興國小附幼：五結鄉，容量 350 人，剩餘空位 350 人\n礁溪國中：礁溪鄉，容量 550 人，剩餘空位 550 人\n宜蘭運動公園體育館：宜蘭市，容量 350 人，剩餘空位 350 人\n大同鄉公所：大同鄉，容量 150 人，剩餘空位 150 人\n壯圍國小：壯圍鄉，容量 300 人，剩餘空位 300 人\n三星國中：三星鄉，容量 400 人，剩餘空位 400 人\n澳花國小：南澳鄉，容量 150 人，剩餘空位 150 人\n羅東國小：羅東鎮，容量 450 人，剩餘空位 450 人\n清溝國小：冬山鄉，容量 350 人，剩餘空位 350 人\n壯圍國中：壯圍鄉，容量 300 人，剩餘空位 300 人\n二城國小：頭城鎮，容量 300 人，剩餘空位 300 人\n南澳鄉綜合體育場：南澳鄉，容量 550 人，剩餘空位 550 人\n蘇澳國小：蘇澳鎮，容量 320 人，剩餘空位 320 人\n頭城國小：頭城鎮，容量 400 人，剩餘空位 400 人\n三星鄉綜合運動場：三星鄉，容量 500 人，剩餘空位 500 人\n羅東鎮立體育館：羅東鎮，容量 800 人，剩餘空位 800 人\n蘇澳鎮立體育館：蘇澳鎮，容量 600 人，剩餘空位 600 人",
+   "context_chars": 2020,
+   "latency_ms": 102444.9,
+   "done_reason": "stop",
+   "prompt_tokens": 2258,
+   "output_tokens": 578,
+   "generate_ms": 63789.1,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 宜蘭國小",
+     "[YILAN] 宜蘭市國民運動中心",
+     "[YILAN] 南山國小",
+     "[YILAN] 中興國小附幼",
+     "[YILAN] 礁溪國中",
+     "[YILAN] 宜蘭運動公園體育館",
+     "[YILAN] 大同鄉公所",
+     "[YILAN] 壯圍國小",
+     "[YILAN] 三星國中",
+     "[YILAN] 澳花國小",
+     "[YILAN] 羅東國小",
+     "[YILAN] 清溝國小",
+     "[YILAN] 壯圍國中",
+     "[YILAN] 二城國小",
+     "[YILAN] 南澳鄉綜合體育場",
+     "[YILAN] 蘇澳國小",
+     "[YILAN] 頭城國小",
+     "[YILAN] 三星鄉綜合運動場",
+     "[YILAN] 羅東鎮立體育館",
+     "[YILAN] 蘇澳鎮立體育館"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 12
+   }
+  },
+  {
+   "query": "宜蘭地區可以去哪裡避難",
+   "category": "region",
+   "relevant": [
+    "[YILAN] 三星國中",
+    "[YILAN] 三星鄉綜合運動場",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 二城國小",
+    "[YILAN] 南山國小",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 宜蘭國小",
+    "[YILAN] 宜蘭市國民運動中心",
+    "[YILAN] 宜蘭運動公園體育館",
+    "[YILAN] 清溝國小",
+    "[YILAN] 澳花國小",
+    "[YILAN] 礁溪國中",
+    "[YILAN] 羅東國小",
+    "[YILAN] 羅東鎮立體育館",
+    "[YILAN] 蘇澳國小",
+    "[YILAN] 蘇澳鎮立體育館",
+    "[YILAN] 頭城國小"
+   ],
+   "generated": true,
+   "reply": "宜蘭國小：宜蘭市，容量 500 人，剩餘空位 500 人\n宜蘭市國民運動中心：宜蘭市，容量 1200 人，剩餘空位 1200 人\n壯圍國小：壯圍鄉，容量 300 人，剩餘空位 300 人\n南山國小：大同鄉，容量 200 人，剩餘空位 200 人\n宜蘭運動公園體育館：宜蘭市，容量 350 人，剩餘空位 350 人\n礁溪國中：礁溪鄉，容量 550 人，剩餘空位 550 人\n壯圍國中：壯圍鄉，容量 300 人，剩餘空位 300 人\n羅東國小：羅東鎮，容量 450 人，剩餘空位 450 人\n清溝國小：冬山鄉，容量 350 人，剩餘空位 350 人\n中興國小附幼：五結鄉，容量 350 人，剩餘空位 350 人\n蘇澳國小：蘇澳鎮，容量 320 人，剩餘空位 320 人\n三星國中：三星鄉，容量 400 人，剩餘空位 400 人\n二城國小：頭城鎮，容量 300 人，剩餘空位 300 人\n頭城國小：頭城鎮，容量 400 人，剩餘空位 400 人\n澳花國小：南澳鄉，容量 150 人，剩餘空位 150 人\n南澳鄉綜合體育場：南澳鄉，容量 550 人，剩餘空位 550 人\n大同鄉公所：大同鄉，容量 150 人，剩餘空位 150 人\n羅東鎮立體育館：羅東鎮，容量 800 人，剩餘空位 800 人\n三星鄉綜合運動場：三星鄉，容量 500 人，剩餘空位 500 人\n蘇澳鎮立體育館：蘇澳鎮，容量 600 人，剩餘空位 600 人",
+   "context_chars": 2020,
+   "latency_ms": 103337.4,
+   "done_reason": "stop",
+   "prompt_tokens": 2259,
+   "output_tokens": 578,
+   "generate_ms": 64388.2,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 宜蘭國小",
+     "[YILAN] 宜蘭市國民運動中心",
+     "[YILAN] 壯圍國小",
+     "[YILAN] 南山國小",
+     "[YILAN] 宜蘭運動公園體育館",
+     "[YILAN] 礁溪國中",
+     "[YILAN] 壯圍國中",
+     "[YILAN] 羅東國小",
+     "[YILAN] 清溝國小",
+     "[YILAN] 中興國小附幼",
+     "[YILAN] 蘇澳國小",
+     "[YILAN] 三星國中",
+     "[YILAN] 二城國小",
+     "[YILAN] 頭城國小",
+     "[YILAN] 澳花國小",
+     "[YILAN] 南澳鄉綜合體育場",
+     "[YILAN] 大同鄉公所",
+     "[YILAN] 羅東鎮立體育館",
+     "[YILAN] 三星鄉綜合運動場",
+     "[YILAN] 蘇澳鎮立體育館"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 12
+   }
+  },
+  {
+   "query": "三星鄉的避難所",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 三星國中",
+    "[YILAN] 三星鄉綜合運動場"
+   ],
+   "generated": true,
+   "reply": "三星國中：三星鄉，容量 400 人，剩餘空位 400 人\n三星鄉綜合運動場：三星鄉，容量 500 人，剩餘空位 500 人",
+   "context_chars": 221,
+   "latency_ms": 12519.8,
+   "done_reason": "stop",
+   "prompt_tokens": 578,
+   "output_tokens": 54,
+   "generate_ms": 5307.1,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 三星國中",
+     "[YILAN] 三星鄉綜合運動場"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 2
+   }
+  },
+  {
+   "query": "三星鄉有哪裡可以避難",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 三星國中",
+    "[YILAN] 三星鄉綜合運動場"
+   ],
+   "generated": true,
+   "reply": "三星國中：三星鄉，容量 400 人，剩餘空位 400 人\n三星鄉綜合運動場：三星鄉，容量 500 人，剩餘空位 500 人",
+   "context_chars": 221,
+   "latency_ms": 8461.4,
+   "done_reason": "stop",
+   "prompt_tokens": 579,
+   "output_tokens": 54,
+   "generate_ms": 5312.8,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 三星國中",
+     "[YILAN] 三星鄉綜合運動場"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 2
+   }
+  },
+  {
+   "query": "五結鄉的避難所",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 中興國小附幼"
+   ],
+   "generated": true,
+   "reply": "中興國小附幼：五結鄉，容量 350 人，剩餘空位 350 人。",
+   "context_chars": 118,
+   "latency_ms": 8429.5,
+   "done_reason": "stop",
+   "prompt_tokens": 490,
+   "output_tokens": 31,
+   "generate_ms": 3010.6,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 中興國小附幼"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1
+   }
+  },
+  {
+   "query": "冬山鄉的避難所",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 清溝國小"
+   ],
+   "generated": true,
+   "reply": "清溝國小：冬山鄉，容量 350 人，剩餘空位 350 人。",
+   "context_chars": 115,
+   "latency_ms": 8307.3,
+   "done_reason": "stop",
+   "prompt_tokens": 489,
+   "output_tokens": 30,
+   "generate_ms": 2878.6,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 清溝國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1
+   }
+  },
+  {
+   "query": "冬山鄉有哪裡可以避難",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 清溝國小"
+   ],
+   "generated": true,
+   "reply": "清溝國小：冬山鄉，容量 350 人，剩餘空位 350 人。",
+   "context_chars": 115,
+   "latency_ms": 5933.6,
+   "done_reason": "stop",
+   "prompt_tokens": 490,
+   "output_tokens": 30,
+   "generate_ms": 2900.1,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 清溝國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1
+   }
+  },
+  {
+   "query": "南澳鄉的避難所",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 澳花國小"
+   ],
+   "generated": true,
+   "reply": "南澳鄉綜合體育場：南澳鄉，容量 550 人，剩餘空位 550 人\n澳花國小：南澳鄉，容量 150 人，剩餘空位 150 人",
+   "context_chars": 220,
+   "latency_ms": 13178.7,
+   "done_reason": "stop",
+   "prompt_tokens": 585,
+   "output_tokens": 59,
+   "generate_ms": 5827.0,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 南澳鄉綜合體育場",
+     "[YILAN] 澳花國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 2
+   }
+  },
+  {
+   "query": "台東市的避難所",
+   "category": "township",
+   "relevant": [
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 台東市公所",
+    "[TAITUNG] 台東市原住民文化會館",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 寶桑國中",
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 康樂國小",
+    "[TAITUNG] 新生國中",
+    "[TAITUNG] 新生國小",
+    "[TAITUNG] 東海國中",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 知本國小",
+    "[TAITUNG] 馬蘭國小"
+   ],
+   "generated": true,
+   "reply": "台東市公所：台東市，容量 150 人，剩餘空位 150 人\n台東高中：台東市，容量 500 人，剩餘空位 500 人\n台東女中：台東市，容量 500 人，剩餘空位 500 人\n知本國小：台東市，容量 250 人，剩餘空位 250 人\n台東市原住民文化會館：台東市，容量 250 人，剩餘空位 250 人\n台東縣立體育場：台東市，容量 1500 人，剩餘空位 1500 人\n寶桑國小：台東市，容量 400 人，剩餘空位 400 人\n台東縣立體育館：台東市，容量 2000 人，剩餘空位 2000 人\n康樂國小：台東市，容量 250 人，剩餘空位 250 人\n新生國小：台東市，容量 350 人，剩餘空位 350 人\n東海國小：台東市，容量 300 人，剩餘空位 300 人\n寶桑國中：台東市，容量 450 人，剩餘空位 450 人\n馬蘭國小：台東市，容量 300 人，剩餘空位 300 人\n新生國中：台東市，容量 600 人，剩餘空位 600 人\n東海國中：台東市，容量 500 人，剩餘空位 500 人\n卑南國中：台東市，容量 400 人，剩餘空位 400 人",
+   "context_chars": 1628,
+   "latency_ms": 85539.8,
+   "done_reason": "stop",
+   "prompt_tokens": 1886,
+   "output_tokens": 461,
+   "generate_ms": 50527.3,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 台東市公所",
+     "[TAITUNG] 台東高中",
+     "[TAITUNG] 台東女中",
+     "[TAITUNG] 知本國小",
+     "[TAITUNG] 台東市原住民文化會館",
+     "[TAITUNG] 台東縣立體育場",
+     "[TAITUNG] 寶桑國小",
+     "[TAITUNG] 台東縣立體育館",
+     "[TAITUNG] 康樂國小",
+     "[TAITUNG] 新生國小",
+     "[TAITUNG] 東海國小",
+     "[TAITUNG] 寶桑國中",
+     "[TAITUNG] 馬蘭國小",
+     "[TAITUNG] 新生國中",
+     "[TAITUNG] 東海國中",
+     "[TAITUNG] 卑南國中"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 10
+   }
+  },
+  {
+   "query": "台東市有哪裡可以避難",
+   "category": "township",
+   "relevant": [
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 台東市公所",
+    "[TAITUNG] 台東市原住民文化會館",
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 寶桑國中",
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 康樂國小",
+    "[TAITUNG] 新生國中",
+    "[TAITUNG] 新生國小",
+    "[TAITUNG] 東海國中",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 知本國小",
+    "[TAITUNG] 馬蘭國小"
+   ],
+   "generated": true,
+   "reply": "台東市公所：台東市，容量 150 人，剩餘空位 150 人\n台東高中：台東市，容量 500 人，剩餘空位 500 人\n台東縣立體育場：台東市，容量 1500 人，剩餘空位 1500 人\n知本國小：台東市，容量 250 人，剩餘空位 250 人\n台東縣立體育館：台東市，容量 2000 人，剩餘空位 2000 人\n台東女中：台東市，容量 500 人，剩餘空位 500 人\n台東市原住民文化會館：台東市，容量 250 人，剩餘空位 250 人\n康樂國小：台東市，容量 250 人，剩餘空位 250 人\n寶桑國小：台東市，容量 400 人，剩餘空位 400 人\n東海國小：台東市，容量 300 人，剩餘空位 300 人\n新生國小：台東市，容量 350 人，剩餘空位 350 人\n馬蘭國小：台東市，容量 300 人，剩餘空位 300 人\n東海國中：台東市，容量 500 人，剩餘空位 500 人\n新生國中：台東市，容量 600 人，剩餘空位 600 人\n寶桑國中：台東市，容量 450 人，剩餘空位 450 人\n卑南國中：台東市，容量 400 人，剩餘空位 400 人",
+   "context_chars": 1628,
+   "latency_ms": 82412.3,
+   "done_reason": "stop",
+   "prompt_tokens": 1887,
+   "output_tokens": 461,
+   "generate_ms": 50794.7,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 台東市公所",
+     "[TAITUNG] 台東高中",
+     "[TAITUNG] 台東縣立體育場",
+     "[TAITUNG] 知本國小",
+     "[TAITUNG] 台東縣立體育館",
+     "[TAITUNG] 台東女中",
+     "[TAITUNG] 台東市原住民文化會館",
+     "[TAITUNG] 康樂國小",
+     "[TAITUNG] 寶桑國小",
+     "[TAITUNG] 東海國小",
+     "[TAITUNG] 新生國小",
+     "[TAITUNG] 馬蘭國小",
+     "[TAITUNG] 東海國中",
+     "[TAITUNG] 新生國中",
+     "[TAITUNG] 寶桑國中",
+     "[TAITUNG] 卑南國中"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 10
+   }
+  },
+  {
+   "query": "壯圍鄉的避難所",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 壯圍國中",
+    "[YILAN] 壯圍國小"
+   ],
+   "generated": true,
+   "reply": "壯圍國小：壯圍鄉，容量 300 人，剩餘空位 300 人\n壯圍國中：壯圍鄉，容量 300 人，剩餘空位 300 人",
+   "context_chars": 212,
+   "latency_ms": 12855.0,
+   "done_reason": "stop",
+   "prompt_tokens": 579,
+   "output_tokens": 56,
+   "generate_ms": 5601.0,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 壯圍國小",
+     "[YILAN] 壯圍國中"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1
+   }
+  },
+  {
+   "query": "大同鄉的避難所",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 南山國小",
+    "[YILAN] 大同鄉公所"
+   ],
+   "generated": true,
+   "reply": "大同鄉公所：宜蘭縣，容量 150 人，剩餘空位 150 人\n南山國小：宜蘭縣，容量 200 人，剩餘空位 200 人",
+   "context_chars": 214,
+   "latency_ms": 13073.6,
+   "done_reason": "stop",
+   "prompt_tokens": 579,
+   "output_tokens": 57,
+   "generate_ms": 5716.2,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 大同鄉公所",
+     "[YILAN] 南山國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 2
+   }
+  },
+  {
+   "query": "大同鄉有哪裡可以避難",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 南山國小",
+    "[YILAN] 大同鄉公所"
+   ],
+   "generated": true,
+   "reply": "大同鄉公所：宜蘭縣大同鄉，容量 150 人，剩餘空位 150 人\n南山國小：宜蘭縣大同鄉，容量 200 人，剩餘空位 200 人",
+   "context_chars": 214,
+   "latency_ms": 9410.6,
+   "done_reason": "stop",
+   "prompt_tokens": 580,
+   "output_tokens": 62,
+   "generate_ms": 6208.3,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 大同鄉公所",
+     "[YILAN] 南山國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 2
+   }
+  },
+  {
+   "query": "宜蘭市的避難所",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 宜蘭國小",
+    "[YILAN] 宜蘭市國民運動中心",
+    "[YILAN] 宜蘭運動公園體育館"
+   ],
+   "generated": true,
+   "reply": "宜蘭國小：宜蘭市，容量 500 人，剩餘空位 500 人\n宜蘭市國民運動中心：宜蘭市，容量 1200 人，剩餘空位 1200 人\n宜蘭運動公園體育館：宜蘭市，容量 350 人，剩餘空位 350 人",
+   "context_chars": 326,
+   "latency_ms": 18982.9,
+   "done_reason": "stop",
+   "prompt_tokens": 679,
+   "output_tokens": 92,
+   "generate_ms": 9373.6,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 宜蘭國小",
+     "[YILAN] 宜蘭市國民運動中心",
+     "[YILAN] 宜蘭運動公園體育館"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 3
+   }
+  },
+  {
+   "query": "礁溪鄉的避難所",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 礁溪國中"
+   ],
+   "generated": true,
+   "reply": "礁溪國中：礁溪鄉，容量 550 人，剩餘空位 550 人。",
+   "context_chars": 116,
+   "latency_ms": 8348.7,
+   "done_reason": "stop",
+   "prompt_tokens": 489,
+   "output_tokens": 29,
+   "generate_ms": 2852.8,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 礁溪國中"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1
+   }
+  },
+  {
+   "query": "礁溪鄉有哪裡可以避難",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 礁溪國中"
+   ],
+   "generated": true,
+   "reply": "礁溪國中：礁溪鄉，容量 550 人，剩餘空位 550 人。",
+   "context_chars": 116,
+   "latency_ms": 5983.6,
+   "done_reason": "stop",
+   "prompt_tokens": 490,
+   "output_tokens": 29,
+   "generate_ms": 2842.2,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 礁溪國中"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1
+   }
+  },
+  {
+   "query": "羅東鎮的避難所",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 羅東國小",
+    "[YILAN] 羅東鎮立體育館"
+   ],
+   "generated": true,
+   "reply": "羅東國小：羅東鎮，容量 450 人，剩餘空位 450 人。\n\n羅東鎮立體育館：羅東鎮，容量 800 人，剩餘空位 800 人。",
+   "context_chars": 215,
+   "latency_ms": 13661.6,
+   "done_reason": "stop",
+   "prompt_tokens": 583,
+   "output_tokens": 60,
+   "generate_ms": 6088.1,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 羅東國小",
+     "[YILAN] 羅東鎮立體育館"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 2
+   }
+  },
+  {
+   "query": "花蓮市的避難所",
+   "category": "township",
+   "relevant": [
+    "[HUALIEN] 中原國小",
+    "[HUALIEN] 中正國小",
+    "[HUALIEN] 中華國小",
+    "[HUALIEN] 信義國小",
+    "[HUALIEN] 國風國中",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 民義國小",
+    "[HUALIEN] 濤強國小",
+    "[HUALIEN] 自強國中",
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 花蓮市公所",
+    "[HUALIEN] 花蓮市立圖書館",
+    "[HUALIEN] 花蓮縣立體育館"
+   ],
+   "generated": true,
+   "reply": "花蓮市公所：花蓮市，容量 100 人，剩餘空位 100 人\n花蓮市立圖書館：花蓮市，容量 150 人，剩餘空位 150 人\n信義國小：花蓮市，容量 200 人，剩餘空位 200 人\n中原國小：花蓮市，容量 350 人，剩餘空位 350 人\n花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 人\n中華國小：花蓮市，容量 400 人，剩餘空位 400 人\n民義國小：花蓮市，容量 500 人，剩餘空位 500 人\n中正國小：花蓮市，容量 400 人，剩餘空位 400 人\n明廉國小：花蓮市，容量 300 人，剩餘空位 300 人\n明禮國小：花蓮市，容量 250 人，剩餘空位 250 人\n國風國中：花蓮市，容量 300 人，剩餘空位 300 人\n涇強國小：花蓮市，容量 300 人，剩餘空位 300 人\n花蓮市中正體育館：花蓮市，容量 600 人，剩餘空位 600 人\n自強國中：花蓮市，容量 450 人，剩餘空位 450 人",
+   "context_chars": 1402,
+   "latency_ms": 75444.3,
+   "done_reason": "stop",
+   "prompt_tokens": 1687,
+   "output_tokens": 405,
+   "generate_ms": 44064.2,
+   "scores": {
+    "mentioned": [
+     "[HUALIEN] 花蓮市公所",
+     "[HUALIEN] 花蓮市立圖書館",
+     "[HUALIEN] 信義國小",
+     "[HUALIEN] 中原國小",
+     "[HUALIEN] 花蓮縣立體育館",
+     "[HUALIEN] 中華國小",
+     "[HUALIEN] 民義國小",
+     "[HUALIEN] 中正國小",
+     "[HUALIEN] 明廉國小",
+     "[HUALIEN] 明禮國小",
+     "[HUALIEN] 國風國中",
+     "[HUALIEN] 花蓮市中正體育館",
+     "[HUALIEN] 自強國中"
+    ],
+    "invented": [
+     "涇強國小"
+    ],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 0.9285714285714286,
+    "answer_precision": 1.0,
+    "complete": 0.0,
+    "unsupported_mentions": [],
+    "hallucinated": 1.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 11
+   }
+  },
+  {
+   "query": "花蓮市有哪裡可以避難",
+   "category": "township",
+   "relevant": [
+    "[HUALIEN] 中原國小",
+    "[HUALIEN] 中正國小",
+    "[HUALIEN] 中華國小",
+    "[HUALIEN] 信義國小",
+    "[HUALIEN] 國風國中",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 民義國小",
+    "[HUALIEN] 濤強國小",
+    "[HUALIEN] 自強國中",
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 花蓮市公所",
+    "[HUALIEN] 花蓮市立圖書館",
+    "[HUALIEN] 花蓮縣立體育館"
+   ],
+   "generated": true,
+   "reply": "花蓮市立圖書館：花蓮市，容量 150 人，剩餘空位 150 人\n花蓮市公所：花蓮市，容量 100 人，剩餘空位 100 人\n信義國小：花蓮市，容量 200 人，剩餘空位 200 人\n花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 人\n中原國小：花蓮市，容量 350 人，剩餘空位 350 人\n中華國小：花蓮市，容量 400 人，剩餘空位 400 人\n民義國小：花蓮市，容量 500 人，剩餘空位 500 人\n明廉國小：花蓮市，容量 300 人，剩餘空位 300 人\n中正國小：花蓮市，容量 400 人，剩餘空位 400 人\n明禮國小：花蓮市，容量 250 人，剩餘空位 250 人\n國風國中：花蓮市，容量 300 人，剩餘空位 300 人\n花蓮市中正體育館：花蓮市，容量 600 人，剩餘空位 600 人\n濤強國小：花蓮市，容量 300 人，剩餘空位 300 人\n自強國中：花蓮市，容量 450 人，剩餘空位 450 人",
+   "context_chars": 1402,
+   "latency_ms": 75035.2,
+   "done_reason": "stop",
+   "prompt_tokens": 1688,
+   "output_tokens": 405,
+   "generate_ms": 44122.1,
+   "scores": {
+    "mentioned": [
+     "[HUALIEN] 花蓮市立圖書館",
+     "[HUALIEN] 花蓮市公所",
+     "[HUALIEN] 信義國小",
+     "[HUALIEN] 花蓮縣立體育館",
+     "[HUALIEN] 中原國小",
+     "[HUALIEN] 中華國小",
+     "[HUALIEN] 民義國小",
+     "[HUALIEN] 明廉國小",
+     "[HUALIEN] 中正國小",
+     "[HUALIEN] 明禮國小",
+     "[HUALIEN] 國風國中",
+     "[HUALIEN] 花蓮市中正體育館",
+     "[HUALIEN] 濤強國小",
+     "[HUALIEN] 自強國中"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 11
+   }
+  },
+  {
+   "query": "蘇澳鎮的避難所",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 蘇澳國小",
+    "[YILAN] 蘇澳鎮立體育館"
+   ],
+   "generated": true,
+   "reply": "蘇澳國小：蘇澳鎮，容量 320 人，剩餘空位 320 人\n蘇澳鎮立體育館：蘇澳鎮，容量 600 人，剩餘空位 600 人",
+   "context_chars": 216,
+   "latency_ms": 13242.5,
+   "done_reason": "stop",
+   "prompt_tokens": 582,
+   "output_tokens": 59,
+   "generate_ms": 5871.3,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 蘇澳國小",
+     "[YILAN] 蘇澳鎮立體育館"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 2
+   }
+  },
+  {
+   "query": "頭城鎮的避難所",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 二城國小",
+    "[YILAN] 頭城國小"
+   ],
+   "generated": true,
+   "reply": "頭城國小：頭城鎮，容量 400 人，剩餘空位 400 人\n二城國小：頭城鎮，容量 300 人，剩餘空位 300 人",
+   "context_chars": 215,
+   "latency_ms": 13004.9,
+   "done_reason": "stop",
+   "prompt_tokens": 582,
+   "output_tokens": 56,
+   "generate_ms": 5593.6,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 頭城國小",
+     "[YILAN] 二城國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 2
+   }
+  },
+  {
+   "query": "頭城鎮有哪裡可以避難",
+   "category": "township",
+   "relevant": [
+    "[YILAN] 二城國小",
+    "[YILAN] 頭城國小"
+   ],
+   "generated": true,
+   "reply": "頭城國小：頭城鎮，容量 400 人，剩餘空位 400 人\n二城國小：頭城鎮，容量 300 人，剩餘空位 300 人",
+   "context_chars": 215,
+   "latency_ms": 8754.6,
+   "done_reason": "stop",
+   "prompt_tokens": 583,
+   "output_tokens": 56,
+   "generate_ms": 5585.3,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 頭城國小",
+     "[YILAN] 二城國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 2
+   }
+  },
+  {
+   "query": "花蓮有哪些學校可以避難",
+   "category": "facility",
+   "relevant": [
+    "[HUALIEN] 中原國小",
+    "[HUALIEN] 中正國小",
+    "[HUALIEN] 中華國小",
+    "[HUALIEN] 信義國小",
+    "[HUALIEN] 國風國中",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 民義國小",
+    "[HUALIEN] 濤強國小",
+    "[HUALIEN] 自強國中"
+   ],
+   "generated": true,
+   "reply": "信義國小：花蓮市，容量 200 人，剩餘空位 200 人\n中原國小：花蓮市，容量 350 人，剩餘空位 350 人\n明禮國小：花蓮市，容量 250 人，剩餘空位 250 人\n中正國小：花蓮市，容量 400 人，剩餘空位 400 人\n明廉國小：花蓮市，容量 300 人，剩餘空位 300 人\n國風國中：花蓮市，容量 300 人，剩餘空位 300 人\n民義國小：花蓮市，容量 500 人，剩餘空位 500 人\n中華國小：花蓮市，容量 400 人，剩餘空位 400 人\n自強國中：花蓮市，容量 450 人，剩餘空位 450 人\n濤強國小：花蓮市，容量 300 人，剩餘空位 300 人",
+   "context_chars": 1000,
+   "latency_ms": 52699.1,
+   "done_reason": "stop",
+   "prompt_tokens": 1308,
+   "output_tokens": 280,
+   "generate_ms": 29794.5,
+   "scores": {
+    "mentioned": [
+     "[HUALIEN] 信義國小",
+     "[HUALIEN] 中原國小",
+     "[HUALIEN] 明禮國小",
+     "[HUALIEN] 中正國小",
+     "[HUALIEN] 明廉國小",
+     "[HUALIEN] 國風國中",
+     "[HUALIEN] 民義國小",
+     "[HUALIEN] 中華國小",
+     "[HUALIEN] 自強國中",
+     "[HUALIEN] 濤強國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 7
+   }
+  },
+  {
+   "query": "花蓮的國小避難所",
+   "category": "facility",
+   "relevant": [
+    "[HUALIEN] 中原國小",
+    "[HUALIEN] 中正國小",
+    "[HUALIEN] 中華國小",
+    "[HUALIEN] 信義國小",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 民義國小",
+    "[HUALIEN] 濤強國小"
+   ],
+   "generated": true,
+   "reply": "信義國小：花蓮市，容量 200 人，剩餘空位 200 人\n中原國小：花蓮市，容量 350 人，剩餘空位 350 人\n中華國小：花蓮市，容量 400 人，剩餘空位 400 人\n明廉國小：花蓮市，容量 300 人，剩餘空位 300 人\n中正國小：花蓮市，容量 400 人，剩餘空位 400 人\n明禮國小：花蓮市，容量 250 人，剩餘空位 250 人\n民義國小：花蓮市，容量 500 人，剩餘空位 500 人\n濤強國小：花蓮市，容量 300 人，剩餘空位 300 人",
+   "context_chars": 800,
+   "latency_ms": 42278.1,
+   "done_reason": "stop",
+   "prompt_tokens": 1124,
+   "output_tokens": 224,
+   "generate_ms": 23564.4,
+   "scores": {
+    "mentioned": [
+     "[HUALIEN] 信義國小",
+     "[HUALIEN] 中原國小",
+     "[HUALIEN] 中華國小",
+     "[HUALIEN] 明廉國小",
+     "[HUALIEN] 中正國小",
+     "[HUALIEN] 明禮國小",
+     "[HUALIEN] 民義國小",
+     "[HUALIEN] 濤強國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 6
+   }
+  },
+  {
+   "query": "花蓮的國中",
+   "category": "facility",
+   "relevant": [
+    "[HUALIEN] 國風國中",
+    "[HUALIEN] 自強國中"
+   ],
+   "generated": true,
+   "reply": "國風國中：花蓮市，容量 300 人，剩餘空位 300 人\n自強國中：花蓮市，容量 450 人，剩餘空位 450 人",
+   "context_chars": 214,
+   "latency_ms": 12770.5,
+   "done_reason": "stop",
+   "prompt_tokens": 576,
+   "output_tokens": 56,
+   "generate_ms": 5619.4,
+   "scores": {
+    "mentioned": [
+     "[HUALIEN] 國風國中",
+     "[HUALIEN] 自強國中"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 2
+   }
+  },
+  {
+   "query": "花蓮的體育館",
+   "category": "facility",
+   "relevant": [
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 花蓮縣立體育館"
+   ],
+   "generated": true,
+   "reply": "花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 個\n花蓮市中正體育館：花蓮市，容量 600 人，剩餘空位 600 個",
+   "context_chars": 233,
+   "latency_ms": 14382.9,
+   "done_reason": "stop",
+   "prompt_tokens": 598,
+   "output_tokens": 67,
+   "generate_ms": 6701.7,
+   "scores": {
+    "mentioned": [
+     "[HUALIEN] 花蓮縣立體育館",
+     "[HUALIEN] 花蓮市中正體育館"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 2
+   }
+  },
+  {
+   "query": "台東有哪些學校可以避難",
+   "category": "facility",
+   "relevant": [
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 寶桑國中",
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 康樂國小",
+    "[TAITUNG] 新生國中",
+    "[TAITUNG] 新生國小",
+    "[TAITUNG] 東海國中",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 知本國小",
+    "[TAITUNG] 馬蘭國小"
+   ],
+   "generated": true,
+   "reply": "台東高中：台東市，容量 500 人，剩餘空位 500 人\n台東女中：台東市，容量 500 人，剩餘空位 500 人\n知本國小：台東市，容量 250 人，剩餘空位 250 人\n康樂國小：台東市，容量 250 人，剩餘空位 250 人\n東海國小：台東市，容量 300 人，剩餘空位 300 人\n寶桑國中：台東市，容量 450 人，剩餘空位 450 人\n新生國中：台東市，容量 600 人，剩餘空位 600 人\n新生國小：台東市，容量 350 人，剩餘空位 350 人\n寶桑國小：台東市，容量 400 人，剩餘空位 400 人\n東海國中：台東市，容量 500 人，剩餘空位 500 人\n卑南國中：台東市，容量 400 人，剩餘空位 400 人\n馬蘭國小：台東市，容量 300 人，剩餘空位 300 人",
+   "context_chars": 1221,
+   "latency_ms": 63154.5,
+   "done_reason": "stop",
+   "prompt_tokens": 1511,
+   "output_tokens": 333,
+   "generate_ms": 35721.8,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 台東高中",
+     "[TAITUNG] 台東女中",
+     "[TAITUNG] 知本國小",
+     "[TAITUNG] 康樂國小",
+     "[TAITUNG] 東海國小",
+     "[TAITUNG] 寶桑國中",
+     "[TAITUNG] 新生國中",
+     "[TAITUNG] 新生國小",
+     "[TAITUNG] 寶桑國小",
+     "[TAITUNG] 東海國中",
+     "[TAITUNG] 卑南國中",
+     "[TAITUNG] 馬蘭國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 7
+   }
+  },
+  {
+   "query": "台東的國小避難所",
+   "category": "facility",
+   "relevant": [
+    "[TAITUNG] 寶桑國小",
+    "[TAITUNG] 康樂國小",
+    "[TAITUNG] 新生國小",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 知本國小",
+    "[TAITUNG] 馬蘭國小"
+   ],
+   "generated": true,
+   "reply": "康樂國小：台東市，容量 250 人，剩餘空位 250 人\n寶桑國小：台東市，容量 400 人，剩餘空位 400 人\n東海國小：台東市，容量 300 人，剩餘空位 300 人\n新生國小：台東市，容量 350 人，剩餘空位 350 人\n知本國小：台東市，容量 250 人，剩餘空位 250 人\n馬蘭國小：台東市，容量 300 人，剩餘空位 300 人",
+   "context_chars": 616,
+   "latency_ms": 32269.6,
+   "done_reason": "stop",
+   "prompt_tokens": 952,
+   "output_tokens": 167,
+   "generate_ms": 17190.2,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 康樂國小",
+     "[TAITUNG] 寶桑國小",
+     "[TAITUNG] 東海國小",
+     "[TAITUNG] 新生國小",
+     "[TAITUNG] 知本國小",
+     "[TAITUNG] 馬蘭國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 4
+   }
+  },
+  {
+   "query": "台東的國中",
+   "category": "facility",
+   "relevant": [
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 寶桑國中",
+    "[TAITUNG] 新生國中",
+    "[TAITUNG] 東海國中"
+   ],
+   "generated": true,
+   "reply": "新生國中：台東市，容量 600 人，剩餘空位 600 人\n卑南國中：台東市，容量 400 人，剩餘空位 400 人\n東海國中：台東市，容量 500 人，剩餘空位 500 人\n寶桑國中：台東市，容量 450 人，剩餘空位 450 人",
+   "context_chars": 419,
+   "latency_ms": 22546.8,
+   "done_reason": "stop",
+   "prompt_tokens": 768,
+   "output_tokens": 111,
+   "generate_ms": 11355.1,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 新生國中",
+     "[TAITUNG] 卑南國中",
+     "[TAITUNG] 東海國中",
+     "[TAITUNG] 寶桑國中"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 4
+   }
+  },
+  {
+   "query": "台東的體育館",
+   "category": "facility",
+   "relevant": [
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東縣立體育館"
+   ],
+   "generated": true,
+   "reply": "台東縣立體育館：台東市，容量 2000 人，剩餘空位 2000 人\n台東縣立體場：台東市，容量 1500 人，剩餘空位 1500 人",
+   "context_chars": 238,
+   "latency_ms": 14138.3,
+   "done_reason": "stop",
+   "prompt_tokens": 597,
+   "output_tokens": 65,
+   "generate_ms": 6555.4,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 台東縣立體育館"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 0.5,
+    "answer_precision": 1.0,
+    "complete": 0.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 2
+   }
+  },
+  {
+   "query": "宜蘭有哪些學校可以避難",
+   "category": "facility",
+   "relevant": [
+    "[YILAN] 三星國中",
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 二城國小",
+    "[YILAN] 南山國小",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 宜蘭國小",
+    "[YILAN] 清溝國小",
+    "[YILAN] 澳花國小",
+    "[YILAN] 礁溪國中",
+    "[YILAN] 羅東國小",
+    "[YILAN] 蘇澳國小",
+    "[YILAN] 頭城國小"
+   ],
+   "generated": true,
+   "reply": "宜蘭國小：宜蘭市，容量 500 人，剩餘空位 500 人\n礁溪國中：礁溪鄉，容量 550 人，剩餘空位 550 人\n南山國小：大同鄉，容量 200 人，剩餘空位 200 人\n羅東國小：羅東鎮，容量 450 人，剩餘空位 450 人\n壯圍國小：壯圍鄉，容量 300 人，剩餘空位 300 人\n清溝國小：冬山鄉，容量 350 人，剩餘空位 350 人\n三星國中：三星鄉，容量 400 人，剩餘空位 400 人\n壯圍國中：壯圍鄉，容量 300 人，剩餘空位 300 人\n蘇澳國小：蘇澳鎮，容量 320 人，剩餘空位 320 人\n頭城國小：頭城鎮，容量 400 人，剩餘空位 400 人\n澳花國小：南澳鄉，容量 150 人，剩餘空位 150 人\n二城國小：頭城鎮，容量 300 人，剩餘空位 300 人\n中興國小附幼：五結鄉，容量 350 人，剩餘空位 350 人",
+   "context_chars": 1304,
+   "latency_ms": 68460.0,
+   "done_reason": "stop",
+   "prompt_tokens": 1597,
+   "output_tokens": 364,
+   "generate_ms": 39427.0,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 宜蘭國小",
+     "[YILAN] 礁溪國中",
+     "[YILAN] 南山國小",
+     "[YILAN] 羅東國小",
+     "[YILAN] 壯圍國小",
+     "[YILAN] 清溝國小",
+     "[YILAN] 三星國中",
+     "[YILAN] 壯圍國中",
+     "[YILAN] 蘇澳國小",
+     "[YILAN] 頭城國小",
+     "[YILAN] 澳花國小",
+     "[YILAN] 二城國小",
+     "[YILAN] 中興國小附幼"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 9
+   }
+  },
+  {
+   "query": "宜蘭的國小避難所",
+   "category": "facility",
+   "relevant": [
+    "[YILAN] 中興國小附幼",
+    "[YILAN] 二城國小",
+    "[YILAN] 南山國小",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 宜蘭國小",
+    "[YILAN] 清溝國小",
+    "[YILAN] 澳花國小",
+    "[YILAN] 羅東國小",
+    "[YILAN] 蘇澳國小",
+    "[YILAN] 頭城國小"
+   ],
+   "generated": true,
+   "reply": "宜蘭國小：宜蘭市，容量 500 人，剩餘空位 500 人\n南山國小：大同鄉，容量 200 人，剩餘空位 200 人\n壯圍國小：壯圍鄉，容量 300 人，剩餘空位 300 人\n羅東國小：羅東鎮，容量 450 人，剩餘空位 450 人\n清溝國小：冬山鄉，容量 350 人，剩餘空位 350 人\n蘇澳國小：蘇澳鎮，容量 320 人，剩餘空位 320 人\n澳花國小：南澳鄉，容量 150 人，剩餘空位 150 人\n中興國小附幼：五結鄉，容量 350 人，剩餘空位 350 人\n頭城國小：頭城鎮，容量 400 人，剩餘空位 400 人\n二城國小：頭城鎮，容量 300 人，剩餘空位 300 人",
+   "context_chars": 1004,
+   "latency_ms": 50847.8,
+   "done_reason": "stop",
+   "prompt_tokens": 1320,
+   "output_tokens": 282,
+   "generate_ms": 29945.9,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 宜蘭國小",
+     "[YILAN] 南山國小",
+     "[YILAN] 壯圍國小",
+     "[YILAN] 羅東國小",
+     "[YILAN] 清溝國小",
+     "[YILAN] 蘇澳國小",
+     "[YILAN] 澳花國小",
+     "[YILAN] 中興國小附幼",
+     "[YILAN] 頭城國小",
+     "[YILAN] 二城國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 8
+   }
+  },
+  {
+   "query": "宜蘭的國中",
+   "category": "facility",
+   "relevant": [
+    "[YILAN] 三星國中",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 礁溪國中"
+   ],
+   "generated": true,
+   "reply": "礁溪國中：礁溪鄉，容量 550 人，剩餘空位 550 人\n三星國中：三星鄉，容量 400 人，剩餘空位 400 人\n壯圍國中：壯圍鄉，容量 300 人，剩餘空位 300 人",
+   "context_chars": 315,
+   "latency_ms": 17337.9,
+   "done_reason": "stop",
+   "prompt_tokens": 670,
+   "output_tokens": 82,
+   "generate_ms": 8229.1,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 礁溪國中",
+     "[YILAN] 三星國中",
+     "[YILAN] 壯圍國中"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 3
+   }
+  },
+  {
+   "query": "宜蘭的體育館",
+   "category": "facility",
+   "relevant": [
+    "[YILAN] 三星鄉綜合運動場",
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 宜蘭市國民運動中心",
+    "[YILAN] 宜蘭運動公園體育館",
+    "[YILAN] 羅東鎮立體育館",
+    "[YILAN] 蘇澳鎮立體育館"
+   ],
+   "generated": true,
+   "reply": "宜蘭運動公園體育館：宜蘭市，容量 350 人，剩餘空位 350 人\n宜蘭市國民運動中心：宜蘭市，容量 1200 人，剩餘空位 1200 人\n羅東鎮立體育館：羅東鎮，容量 800 人，剩餘空位 800 人\n蘇澳鎮立體育館：蘇澳鎮，容量 600 人，剩餘空位 600 人\n南澳鄉綜合體育場：南澳鄉，容量 550 人，剩餘空位 550 人\n三星鄉綜合運動場：三星鄉，容量 500 人，剩餘空位 500 人",
+   "context_chars": 650,
+   "latency_ms": 28585.6,
+   "done_reason": "stop",
+   "prompt_tokens": 978,
+   "output_tokens": 185,
+   "generate_ms": 19243.1,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 宜蘭運動公園體育館",
+     "[YILAN] 宜蘭市國民運動中心",
+     "[YILAN] 羅東鎮立體育館",
+     "[YILAN] 蘇澳鎮立體育館",
+     "[YILAN] 南澳鄉綜合體育場",
+     "[YILAN] 三星鄉綜合運動場"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 6
+   }
+  },
+  {
+   "query": "花蓮能收上千人的地方",
+   "category": "capacity",
+   "relevant": [
+    "[HUALIEN] 花蓮縣立體育館"
+   ],
+   "generated": true,
+   "reply": "花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 人。",
+   "context_chars": 135,
+   "latency_ms": 9062.5,
+   "done_reason": "stop",
+   "prompt_tokens": 505,
+   "output_tokens": 34,
+   "generate_ms": 3340.8,
+   "scores": {
+    "mentioned": [
+     "[HUALIEN] 花蓮縣立體育館"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "花蓮容量超過500人的避難所",
+   "category": "capacity",
+   "relevant": [
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 花蓮縣立體育館"
+   ],
+   "generated": true,
+   "reply": "花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 人\n花蓮市中正體育館：花蓮市，容量 600 人，剩餘空位 600 人",
+   "context_chars": 237,
+   "latency_ms": 14317.8,
+   "done_reason": "stop",
+   "prompt_tokens": 605,
+   "output_tokens": 65,
+   "generate_ms": 6535.7,
+   "scores": {
+    "mentioned": [
+     "[HUALIEN] 花蓮縣立體育館",
+     "[HUALIEN] 花蓮市中正體育館"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 2
+   }
+  },
+  {
+   "query": "花蓮的小型避難所，容量300人以下",
+   "category": "capacity",
+   "relevant": [
+    "[HUALIEN] 信義國小",
+    "[HUALIEN] 國風國中",
+    "[HUALIEN] 明廉國小",
+    "[HUALIEN] 明禮國小",
+    "[HUALIEN] 濤強國小",
+    "[HUALIEN] 花蓮市公所",
+    "[HUALIEN] 花蓮市立圖書館"
+   ],
+   "generated": true,
+   "reply": "花蓮市立圖書館：花蓮市，容量 150 人，剩餘空位 150 人\n信義國小：花蓮市，容量 200 人，剩餘空位 200 人\n花蓮市公所：花蓮市，容量 100 人，剩餘空位 100 人\n明廉國小：花蓮市，容量 300 人，剩餘空位 300 人\n濤強國小：花蓮市，容量 300 人，剩餘空位 300 人\n國風國中：花蓮市，容量 300 人，剩餘空位 300 人\n明禮國小：花蓮市，容量 250 人，剩餘空位 250 人",
+   "context_chars": 712,
+   "latency_ms": 37845.6,
+   "done_reason": "stop",
+   "prompt_tokens": 1047,
+   "output_tokens": 201,
+   "generate_ms": 20923.6,
+   "scores": {
+    "mentioned": [
+     "[HUALIEN] 花蓮市立圖書館",
+     "[HUALIEN] 信義國小",
+     "[HUALIEN] 花蓮市公所",
+     "[HUALIEN] 明廉國小",
+     "[HUALIEN] 濤強國小",
+     "[HUALIEN] 國風國中",
+     "[HUALIEN] 明禮國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 5
+   }
+  },
+  {
+   "query": "台東能收上千人的地方",
+   "category": "capacity",
+   "relevant": [
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東縣立體育館"
+   ],
+   "generated": true,
+   "reply": "台東縣立體育館：台東市，容量 2000 人，剩餘空位 2000 人\n台東縣立體育場：台東市，容量 1500 人，剩餘空位 1500 人",
+   "context_chars": 243,
+   "latency_ms": 14361.9,
+   "done_reason": "stop",
+   "prompt_tokens": 601,
+   "output_tokens": 66,
+   "generate_ms": 6658.2,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 台東縣立體育館",
+     "[TAITUNG] 台東縣立體育場"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 2
+   }
+  },
+  {
+   "query": "台東容量超過500人的避難所",
+   "category": "capacity",
+   "relevant": [
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東縣立體育館",
+    "[TAITUNG] 新生國中"
+   ],
+   "generated": true,
+   "reply": "台東縣立體育場：台東市，容量 1500 人，剩餘空位 1500 人\n台東縣立體育館：台東市，容量 2000 人，剩餘空位 2000 人\n新生國中：台東市，容量 600 人，剩餘空位 600 人",
+   "context_chars": 343,
+   "latency_ms": 19018.6,
+   "done_reason": "stop",
+   "prompt_tokens": 697,
+   "output_tokens": 93,
+   "generate_ms": 9401.3,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 台東縣立體育場",
+     "[TAITUNG] 台東縣立體育館",
+     "[TAITUNG] 新生國中"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 3
+   }
+  },
+  {
+   "query": "台東的小型避難所，容量300人以下",
+   "category": "capacity",
+   "relevant": [
+    "[TAITUNG] 台東市公所",
+    "[TAITUNG] 台東市原住民文化會館",
+    "[TAITUNG] 康樂國小",
+    "[TAITUNG] 東海國小",
+    "[TAITUNG] 知本國小",
+    "[TAITUNG] 馬蘭國小"
+   ],
+   "generated": true,
+   "reply": "東海國小：台東市，容量 300 人，剩餘空位 300 人\n康樂國小：台東市，容量 250 人，剩餘空位 250 人\n台東市公所：台東市，容量 150 人，剩餘空位 150 人\n馬蘭國小：台東市，容量 300 人，剩餘空位 300 人\n知本國小：台東市，容量 250 人，剩餘空位 250 人\n台東市原住民文化會館：台東市，容量 250 人，剩餘空位 250 人",
+   "context_chars": 624,
+   "latency_ms": 33494.6,
+   "done_reason": "stop",
+   "prompt_tokens": 961,
+   "output_tokens": 174,
+   "generate_ms": 18301.8,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 東海國小",
+     "[TAITUNG] 康樂國小",
+     "[TAITUNG] 台東市公所",
+     "[TAITUNG] 馬蘭國小",
+     "[TAITUNG] 知本國小",
+     "[TAITUNG] 台東市原住民文化會館"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 3
+   }
+  },
+  {
+   "query": "宜蘭能收上千人的地方",
+   "category": "capacity",
+   "relevant": [
+    "[YILAN] 宜蘭市國民運動中心"
+   ],
+   "generated": true,
+   "reply": "宜蘭市國民運動中心：宜蘭市，容量 1200 人，剩餘空位 1200 人。",
+   "context_chars": 134,
+   "latency_ms": 9878.9,
+   "done_reason": "stop",
+   "prompt_tokens": 500,
+   "output_tokens": 34,
+   "generate_ms": 3638.7,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 宜蘭市國民運動中心"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0
+   }
+  },
+  {
+   "query": "宜蘭容量超過500人的避難所",
+   "category": "capacity",
+   "relevant": [
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 宜蘭市國民運動中心",
+    "[YILAN] 礁溪國中",
+    "[YILAN] 羅東鎮立體育館",
+    "[YILAN] 蘇澳鎮立體育館"
+   ],
+   "generated": true,
+   "reply": "宜蘭市國民運動中心：宜蘭市，容量 1200 人，剩餘空位 1200 人\n礁溪國中：礁溪鄉，容量 550 人，剩餘空位 550 人\n南澳鄉綜合體育場：南澳鄉，容量 550 人，剩餘空位 550 人\n羅東鎮立體育館：羅東鎮，容量 800 人，剩餘空位 800 人\n蘇澳鎮立體育館：蘇澳鎮，容量 600 人，剩餘空位 600 人",
+   "context_chars": 539,
+   "latency_ms": 30933.9,
+   "done_reason": "stop",
+   "prompt_tokens": 885,
+   "output_tokens": 154,
+   "generate_ms": 16901.3,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 宜蘭市國民運動中心",
+     "[YILAN] 礁溪國中",
+     "[YILAN] 南澳鄉綜合體育場",
+     "[YILAN] 羅東鎮立體育館",
+     "[YILAN] 蘇澳鎮立體育館"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 4
+   }
+  },
+  {
+   "query": "宜蘭的小型避難所，容量300人以下",
+   "category": "capacity",
+   "relevant": [
+    "[YILAN] 二城國小",
+    "[YILAN] 南山國小",
+    "[YILAN] 壯圍國中",
+    "[YILAN] 壯圍國小",
+    "[YILAN] 大同鄉公所",
+    "[YILAN] 澳花國小"
+   ],
+   "generated": true,
+   "reply": "壯圍國小：壯圍鄉，容量 300 人，剩餘空位 300 人\n南山國小：大同鄉，容量 200 人，剩餘空位 200 人\n壯圍國中：壯圍鄉，容量 300 人，剩餘空位 300 人\n澳花國小：南澳鄉，容量 150 人，剩餘空位 150 人\n二城國小：頭城鎮，容量 300 人，剩餘空位 300 人\n大同鄉公所：大同鄉，容量 150 人，剩餘空位 150 人",
+   "context_chars": 616,
+   "latency_ms": 32935.5,
+   "done_reason": "stop",
+   "prompt_tokens": 959,
+   "output_tokens": 168,
+   "generate_ms": 17469.9,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 壯圍國小",
+     "[YILAN] 南山國小",
+     "[YILAN] 壯圍國中",
+     "[YILAN] 澳花國小",
+     "[YILAN] 二城國小",
+     "[YILAN] 大同鄉公所"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 3
+   }
+  },
+  {
+   "query": "縣立體育館",
+   "category": "alias",
+   "relevant": [
+    "[HUALIEN] 花蓮縣立體育館",
+    "[TAITUNG] 台東縣立體育館"
+   ],
+   "generated": true,
+   "reply": "花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 人\n台東縣立體育館：台東市，容量 2000 人，剩餘空位 2000 人\n台東縣立體育場：台東市，容量 1500 人，剩餘空位 1500 人\n羅東鎮立體育館：羅東鎮，容量 800 人，剩餘空位 800 人\n蘇澳鎮立體育館：蘇澳鎮，容量 600 人，剩餘空位 600 人\n宜蘭運動公園體育館：宜蘭市，容量 350 人，剩餘空位 350 人\n宜蘭市國民運動中心：宜蘭市，容量 1200 人，剩餘空位 1200 人\n花蓮市中正體育館：花蓮市，容量 600 人，剩餘空位 600 人\n三星鄉綜合運動場：三星鄉，容量 500 人，剩餘空位 500 人\n南澳鄉綜合體育場：南澳鄉，容量 550 人，剩餘空位 550 人",
+   "context_chars": 1071,
+   "latency_ms": 57967.7,
+   "done_reason": "stop",
+   "prompt_tokens": 1369,
+   "output_tokens": 316,
+   "generate_ms": 33805.1,
+   "scores": {
+    "mentioned": [
+     "[HUALIEN] 花蓮縣立體育館",
+     "[TAITUNG] 台東縣立體育館",
+     "[TAITUNG] 台東縣立體育場",
+     "[YILAN] 羅東鎮立體育館",
+     "[YILAN] 蘇澳鎮立體育館",
+     "[YILAN] 宜蘭運動公園體育館",
+     "[YILAN] 宜蘭市國民運動中心",
+     "[HUALIEN] 花蓮市中正體育館",
+     "[YILAN] 三星鄉綜合運動場",
+     "[YILAN] 南澳鄉綜合體育場"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 0.2,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 8
+   }
+  },
+  {
+   "query": "花蓮體育館",
+   "category": "alias",
+   "relevant": [
+    "[HUALIEN] 花蓮市中正體育館",
+    "[HUALIEN] 花蓮縣立體育館"
+   ],
+   "generated": true,
+   "reply": "花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 個\n花蓮市中正體育館：花蓮市，容量 600 人，剩餘空位 600 個",
+   "context_chars": 233,
+   "latency_ms": 9854.9,
+   "done_reason": "stop",
+   "prompt_tokens": 597,
+   "output_tokens": 67,
+   "generate_ms": 6707.0,
+   "scores": {
+    "mentioned": [
+     "[HUALIEN] 花蓮縣立體育館",
+     "[HUALIEN] 花蓮市中正體育館"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 2
+   }
+  },
+  {
+   "query": "中正體育館",
+   "category": "alias",
+   "relevant": [
+    "[HUALIEN] 花蓮市中正體育館"
+   ],
+   "generated": true,
+   "reply": "中正體育館：花蓮市，容量 600 人，剩餘空位 600 人。",
+   "context_chars": 1071,
+   "latency_ms": 27508.0,
+   "done_reason": "stop",
+   "prompt_tokens": 1369,
+   "output_tokens": 30,
+   "generate_ms": 3106.6,
+   "scores": {
+    "mentioned": [
+     "[HUALIEN] 花蓮市中正體育館"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1
+   }
+  },
+  {
+   "query": "台東體育場",
+   "category": "alias",
+   "relevant": [
+    "[TAITUNG] 台東縣立體育場"
+   ],
+   "generated": true,
+   "reply": "台東縣立體育場：台東市，容量 1500 人，剩餘空位 1500 人\n台東縣立體館：台東市，容量 2000 人，剩餘空位 2000 人",
+   "context_chars": 238,
+   "latency_ms": 13631.6,
+   "done_reason": "stop",
+   "prompt_tokens": 596,
+   "output_tokens": 65,
+   "generate_ms": 6554.7,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 台東縣立體育場"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 2
+   }
+  },
+  {
+   "query": "羅東體育館",
+   "category": "alias",
+   "relevant": [
+    "[YILAN] 羅東鎮立體育館"
+   ],
+   "generated": true,
+   "reply": "羅東鎮立體育館：羅東鎮，容量 800 人，剩餘空位 800 人。",
+   "context_chars": 124,
+   "latency_ms": 6225.4,
+   "done_reason": "stop",
+   "prompt_tokens": 496,
+   "output_tokens": 32,
+   "generate_ms": 3128.7,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 羅東鎮立體育館"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1
+   }
+  },
+  {
+   "query": "蘇澳體育館",
+   "category": "alias",
+   "relevant": [
+    "[YILAN] 蘇澳鎮立體育館"
+   ],
+   "generated": true,
+   "reply": "蘇澳鎮立體育館：蘇澳鎮，容量 600 人，剩餘空位 600 人。",
+   "context_chars": 121,
+   "latency_ms": 8615.6,
+   "done_reason": "stop",
+   "prompt_tokens": 492,
+   "output_tokens": 32,
+   "generate_ms": 3133.9,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 蘇澳鎮立體育館"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1
+   }
+  },
+  {
+   "query": "宜蘭運動中心",
+   "category": "alias",
+   "relevant": [
+    "[YILAN] 宜蘭市國民運動中心"
+   ],
+   "generated": true,
+   "reply": "宜蘭運動公園體育館：宜蘭市，容量 350 人，剩餘空位 350 人。",
+   "context_chars": 650,
+   "latency_ms": 18709.2,
+   "done_reason": "stop",
+   "prompt_tokens": 976,
+   "output_tokens": 32,
+   "generate_ms": 3211.7,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 宜蘭運動公園體育館"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 0.0,
+    "answer_precision": 0.0,
+    "complete": 0.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1
+   }
+  },
+  {
+   "query": "運動公園的體育館",
+   "category": "alias",
+   "relevant": [
+    "[YILAN] 宜蘭運動公園體育館"
+   ],
+   "generated": true,
+   "reply": "宜蘭運動公園體育館：宜蘭市，容量 350 人，剩餘空位 350 人\n宜蘭市國民運動中心：宜蘭市，容量 1200 人，剩餘空位 1200 人\n羅東鎮立體育館：羅東鎮，容量 800 人，剩餘空位 800 人\n三星鄉綜合運動場：三星鄉，容量 500 人，剩餘空位 500 人\n蘇澳鎮立體育館：蘇澳鎮，容量 600 人，剩餘空位 600 人\n南澳鄉綜合體育場：南澳鄉，容量 550 人，剩餘空位 550 人",
+   "context_chars": 1071,
+   "latency_ms": 44011.0,
+   "done_reason": "stop",
+   "prompt_tokens": 1370,
+   "output_tokens": 185,
+   "generate_ms": 19713.7,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 宜蘭運動公園體育館",
+     "[YILAN] 宜蘭市國民運動中心",
+     "[YILAN] 羅東鎮立體育館",
+     "[YILAN] 三星鄉綜合運動場",
+     "[YILAN] 蘇澳鎮立體育館",
+     "[YILAN] 南澳鄉綜合體育場"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 0.16666666666666666,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 6
+   }
+  },
+  {
+   "query": "原民會館",
+   "category": "alias",
+   "relevant": [
+    "[TAITUNG] 台東市原住民文化會館"
+   ],
+   "generated": true,
+   "reply": "台東市原住民文化會館：台東縣，容量 250 人，剩餘空位 250 人。",
+   "context_chars": 119,
+   "latency_ms": 8779.5,
+   "done_reason": "stop",
+   "prompt_tokens": 486,
+   "output_tokens": 34,
+   "generate_ms": 3343.8,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 台東市原住民文化會館"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1
+   }
+  },
+  {
+   "query": "原住民文化館",
+   "category": "alias",
+   "relevant": [
+    "[TAITUNG] 台東市原住民文化會館"
+   ],
+   "generated": true,
+   "reply": "台東市原住民文化會館：台東市，容量 250 人，剩餘空位 250 人。",
+   "context_chars": 119,
+   "latency_ms": 6423.9,
+   "done_reason": "stop",
+   "prompt_tokens": 487,
+   "output_tokens": 34,
+   "generate_ms": 3350.4,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 台東市原住民文化會館"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1
+   }
+  },
+  {
+   "query": "花蓮市政府可以避難嗎",
+   "category": "alias",
+   "relevant": [
+    "[HUALIEN] 花蓮市公所"
+   ],
+   "generated": true,
+   "reply": "花蓮市公所：花蓮市，容量 100 人，剩餘空位 100 人。",
+   "context_chars": 119,
+   "latency_ms": 8397.5,
+   "done_reason": "stop",
+   "prompt_tokens": 492,
+   "output_tokens": 30,
+   "generate_ms": 2928.2,
+   "scores": {
+    "mentioned": [
+     "[HUALIEN] 花蓮市公所"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1
+   }
+  },
+  {
+   "query": "台東市政府",
+   "category": "alias",
+   "relevant": [
+    "[TAITUNG] 台東市公所"
+   ],
+   "generated": true,
+   "reply": "台東市公所：台東市，容量 150 人，剩餘空位 150 人。",
+   "context_chars": 119,
+   "latency_ms": 8368.5,
+   "done_reason": "stop",
+   "prompt_tokens": 487,
+   "output_tokens": 30,
+   "generate_ms": 2952.0,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 台東市公所"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1
+   }
+  },
+  {
+   "query": "女子中學",
+   "category": "alias",
+   "relevant": [
+    "[TAITUNG] 台東女中"
+   ],
+   "generated": true,
+   "reply": "台東女中：台東市，容量 500 人，剩餘空位 500 人",
+   "context_chars": 982,
+   "latency_ms": 25179.0,
+   "done_reason": "stop",
+   "prompt_tokens": 1285,
+   "output_tokens": 28,
+   "generate_ms": 2860.5,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 台東女中"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1
+   }
+  },
+  {
+   "query": "台東的高中職",
+   "category": "alias",
+   "relevant": [
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 台東高中"
+   ],
+   "generated": true,
+   "reply": "台東高中：台東市，容量 500 人，剩餘空位 500 人\n台東女中：台東市，容量 500 人，剩餘空位 500 人",
+   "context_chars": 221,
+   "latency_ms": 12764.8,
+   "done_reason": "stop",
+   "prompt_tokens": 579,
+   "output_tokens": 55,
+   "generate_ms": 5502.0,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 台東高中",
+     "[TAITUNG] 台東女中"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1
+   }
+  },
+  {
+   "query": "圖書館可以避難嗎",
+   "category": "alias",
+   "relevant": [
+    "[HUALIEN] 花蓮市立圖書館"
+   ],
+   "generated": true,
+   "reply": "花蓮市立圖書館：花蓮市，容量 150 人，剩餘空位 150 人。",
+   "context_chars": 120,
+   "latency_ms": 8588.5,
+   "done_reason": "stop",
+   "prompt_tokens": 492,
+   "output_tokens": 32,
+   "generate_ms": 3122.6,
+   "scores": {
+    "mentioned": [
+     "[HUALIEN] 花蓮市立圖書館"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1
+   }
+  },
+  {
+   "query": "有附設幼兒園的避難所",
+   "category": "alias",
+   "relevant": [
+    "[YILAN] 中興國小附幼"
+   ],
+   "generated": true,
+   "reply": "中興國小附幼：五結鄉，容量 350 人，剩餘空位 350 人。",
+   "context_chars": 982,
+   "latency_ms": 25753.0,
+   "done_reason": "stop",
+   "prompt_tokens": 1293,
+   "output_tokens": 31,
+   "generate_ms": 3228.4,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 中興國小附幼"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1
+   }
+  },
+  {
+   "query": "知本附近",
+   "category": "semantic",
+   "relevant": [
+    "[TAITUNG] 知本國小"
+   ],
+   "generated": true,
+   "reply": "知本國小：台東市，容量 250 人，剩餘空位 250 人。",
+   "context_chars": 1004,
+   "latency_ms": 25936.5,
+   "done_reason": "stop",
+   "prompt_tokens": 1307,
+   "output_tokens": 29,
+   "generate_ms": 2965.1,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 知本國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1
+   }
+  },
+  {
+   "query": "馬蘭那邊有避難所嗎",
+   "category": "semantic",
+   "relevant": [
+    "[TAITUNG] 馬蘭國小"
+   ],
+   "generated": true,
+   "reply": "馬蘭國小：台東市，容量 300 人，剩餘空位 300 人。",
+   "context_chars": 991,
+   "latency_ms": 25873.6,
+   "done_reason": "stop",
+   "prompt_tokens": 1303,
+   "output_tokens": 29,
+   "generate_ms": 2990.8,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 馬蘭國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1
+   }
+  },
+  {
+   "query": "礁溪",
+   "category": "semantic",
+   "relevant": [
+    "[YILAN] 礁溪國中"
+   ],
+   "generated": true,
+   "reply": "礁溪國中：礁溪鄉，容量 550 人，剩餘空位 550 人。",
+   "context_chars": 116,
+   "latency_ms": 5834.2,
+   "done_reason": "stop",
+   "prompt_tokens": 484,
+   "output_tokens": 29,
+   "generate_ms": 2812.1,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 礁溪國中"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1
+   }
+  },
+  {
+   "query": "南澳有哪裡可以躲",
+   "category": "semantic",
+   "relevant": [
+    "[YILAN] 南澳鄉綜合體育場",
+    "[YILAN] 澳花國小"
+   ],
+   "generated": true,
+   "reply": "南澳鄉綜合體育場：南澳鄉，容量 550 人，剩餘空位 550 人\n澳花國小：南澳鄉，容量 150 人，剩餘空位 150 人",
+   "context_chars": 220,
+   "latency_ms": 9143.4,
+   "done_reason": "stop",
+   "prompt_tokens": 584,
+   "output_tokens": 59,
+   "generate_ms": 5919.6,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 南澳鄉綜合體育場",
+     "[YILAN] 澳花國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 2
+   }
+  },
+  {
+   "query": "三星鄉的收容地點",
+   "category": "semantic",
+   "relevant": [
+    "[YILAN] 三星國中",
+    "[YILAN] 三星鄉綜合運動場"
+   ],
+   "generated": true,
+   "reply": "三星國中：三星鄉，容量 400 人，剩餘空位 400 人\n三星鄉綜合運動場：三星鄉，容量 500 人，剩餘空位 500 人",
+   "context_chars": 221,
+   "latency_ms": 8983.8,
+   "done_reason": "stop",
+   "prompt_tokens": 579,
+   "output_tokens": 54,
+   "generate_ms": 5523.8,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 三星國中",
+     "[YILAN] 三星鄉綜合運動場"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 2
+   }
+  },
+  {
+   "query": "頭城鎮附近的學校",
+   "category": "semantic",
+   "relevant": [
+    "[YILAN] 二城國小",
+    "[YILAN] 頭城國小"
+   ],
+   "generated": true,
+   "reply": "頭城國小：頭城鎮，容量 400 人，剩餘空位 400 人\n二城國小：頭城鎮，容量 300 人，剩餘空位 300 人",
+   "context_chars": 224,
+   "latency_ms": 13600.6,
+   "done_reason": "stop",
+   "prompt_tokens": 588,
+   "output_tokens": 56,
+   "generate_ms": 5758.6,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 頭城國小",
+     "[YILAN] 二城國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 2
+   }
+  },
+  {
+   "query": "冬山",
+   "category": "semantic",
+   "relevant": [
+    "[YILAN] 清溝國小"
+   ],
+   "generated": true,
+   "reply": "清溝國小：冬山鄉，容量 350 人，剩餘空位 350 人。",
+   "context_chars": 115,
+   "latency_ms": 6083.9,
+   "done_reason": "stop",
+   "prompt_tokens": 484,
+   "output_tokens": 30,
+   "generate_ms": 2947.2,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 清溝國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1
+   }
+  },
+  {
+   "query": "五結鄉",
+   "category": "semantic",
+   "relevant": [
+    "[YILAN] 中興國小附幼"
+   ],
+   "generated": true,
+   "reply": "中興國小附幼：五結鄉，容量 350 人，剩餘空位 350 人。",
+   "context_chars": 118,
+   "latency_ms": 6081.4,
+   "done_reason": "stop",
+   "prompt_tokens": 486,
+   "output_tokens": 31,
+   "generate_ms": 3054.6,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 中興國小附幼"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1
+   }
+  },
+  {
+   "query": "壯圍有哪些",
+   "category": "semantic",
+   "relevant": [
+    "[YILAN] 壯圍國中",
+    "[YILAN] 壯圍國小"
+   ],
+   "generated": true,
+   "reply": "壯圍國中：壯圍鄉，容量 300 人，剩餘空位 300 人\n壯圍國小：壯圍鄉，容量 300 人，剩餘空位 300 人",
+   "context_chars": 212,
+   "latency_ms": 13082.2,
+   "done_reason": "stop",
+   "prompt_tokens": 575,
+   "output_tokens": 56,
+   "generate_ms": 5734.8,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 壯圍國中",
+     "[YILAN] 壯圍國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1
+   }
+  },
+  {
+   "query": "大同鄉可以去哪",
+   "category": "semantic",
+   "relevant": [
+    "[YILAN] 南山國小",
+    "[YILAN] 大同鄉公所"
+   ],
+   "generated": true,
+   "reply": "大同鄉公所：宜蘭縣大同鄉，容量 150 人，剩餘空位 150 人。\n\n南山國小：宜蘭縣大同鄉，容量 200 人，剩餘空位 200 人。",
+   "context_chars": 214,
+   "latency_ms": 9700.6,
+   "done_reason": "stop",
+   "prompt_tokens": 578,
+   "output_tokens": 63,
+   "generate_ms": 6429.3,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 大同鄉公所",
+     "[YILAN] 南山國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 2
+   }
+  },
+  {
+   "query": "花蓮市區最大的收容場所",
+   "category": "semantic",
+   "relevant": [
+    "[HUALIEN] 花蓮縣立體育館"
+   ],
+   "generated": true,
+   "reply": "花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 人。",
+   "context_chars": 1019,
+   "latency_ms": 27344.1,
+   "done_reason": "stop",
+   "prompt_tokens": 1331,
+   "output_tokens": 34,
+   "generate_ms": 3559.6,
+   "scores": {
+    "mentioned": [
+     "[HUALIEN] 花蓮縣立體育館"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "capacity_stated": 1.0,
+    "top1_correct": 1.0
+   }
+  },
+  {
+   "query": "台東可以容納最多人的地方",
+   "category": "semantic",
+   "relevant": [
+    "[TAITUNG] 台東縣立體育館"
+   ],
+   "generated": true,
+   "reply": "台東縣立體育館：台東市，容量 2000 人，剩餘空位 2000 人\n台東縣立體育場：台東市，容量 1500 人，剩餘空位 1500 人",
+   "context_chars": 1043,
+   "latency_ms": 31604.8,
+   "done_reason": "stop",
+   "prompt_tokens": 1345,
+   "output_tokens": 66,
+   "generate_ms": 7617.0,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 台東縣立體育館",
+     "[TAITUNG] 台東縣立體育場"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 0.5,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 2,
+    "capacity_stated": 1.0,
+    "top1_correct": 1.0
+   }
+  },
+  {
+   "query": "宜蘭最大的避難所",
+   "category": "semantic",
+   "relevant": [
+    "[YILAN] 宜蘭市國民運動中心"
+   ],
+   "generated": true,
+   "reply": "宜蘭市國民運動中心：宜蘭市，容量 1200 人，剩餘空位 1200 人",
+   "context_chars": 1036,
+   "latency_ms": 33702.6,
+   "done_reason": "stop",
+   "prompt_tokens": 1340,
+   "output_tokens": 33,
+   "generate_ms": 890193.7,
+   "scores": {
+    "mentioned": [
+     "[YILAN] 宜蘭市國民運動中心"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1,
+    "top1_correct": 1.0
+   }
+  },
+  {
+   "query": "鄉公所或市公所",
+   "category": "semantic",
+   "relevant": [
+    "[HUALIEN] 花蓮市公所",
+    "[TAITUNG] 台東市公所",
+    "[YILAN] 大同鄉公所"
+   ],
+   "generated": true,
+   "reply": "花蓮市公所：花蓮，容量 100 人，剩餘空位 100 人\n大同鄉公所：宜蘭，容量 150 人，剩餘空位 150 人\n台東市公所：台東，容量 150 人，剩餘空位 150 人",
+   "context_chars": 312,
+   "latency_ms": 18904.1,
+   "done_reason": "stop",
+   "prompt_tokens": 671,
+   "output_tokens": 84,
+   "generate_ms": 8347.1,
+   "scores": {
+    "mentioned": [
+     "[HUALIEN] 花蓮市公所",
+     "[YILAN] 大同鄉公所",
+     "[TAITUNG] 台東市公所"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 1.0,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 2
+   }
+  },
+  {
+   "query": "桂林北路的避難所",
+   "category": "semantic",
+   "relevant": [
+    "[TAITUNG] 台東縣立體育場",
+    "[TAITUNG] 台東縣立體育館"
+   ],
+   "generated": true,
+   "reply": "台東縣立體育館：台東市，容量 2000 人，剩餘空位 2000 人\n宜蘭市國民運動中心：宜蘭市，容量 1200 人，剩餘空位 1200 人\n台東縣立體育場：台東市，容量 1500 人，剩餘空位 1500 人",
+   "context_chars": 1020,
+   "latency_ms": 34334.7,
+   "done_reason": "stop",
+   "prompt_tokens": 1319,
+   "output_tokens": 99,
+   "generate_ms": 10292.7,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 台東縣立體育館",
+     "[YILAN] 宜蘭市國民運動中心",
+     "[TAITUNG] 台東縣立體育場"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 0.6666666666666666,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 3
+   }
+  },
+  {
+   "query": "中華路一段附近",
+   "category": "semantic",
+   "relevant": [
+    "[TAITUNG] 台東高中",
+    "[TAITUNG] 東海國中"
+   ],
+   "generated": true,
+   "reply": "台東高中：台東市，容量 500 人，剩餘空位 500 人\n民義國小：花蓮市，容量 500 人，剩餘空位 500 人",
+   "context_chars": 986,
+   "latency_ms": 28118.7,
+   "done_reason": "stop",
+   "prompt_tokens": 1295,
+   "output_tokens": 55,
+   "generate_ms": 5771.9,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 台東高中",
+     "[HUALIEN] 民義國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 0.5,
+    "answer_precision": 0.5,
+    "complete": 0.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 1
+   }
+  },
+  {
+   "query": "更生路上",
+   "category": "semantic",
+   "relevant": [
+    "[TAITUNG] 卑南國中",
+    "[TAITUNG] 新生國小"
+   ],
+   "generated": true,
+   "reply": "新生國小：台東市，容量 350 人，剩餘空位 350 人\n卑南國中：台東市，容量 400 人，剩餘空位 400 人\n台東女中：台東市，容量 500 人，剩餘空位 500 人\n新生國中：台東市，容量 600 人，剩餘空位 600 人\n知本國小：台東市，容量 250 人，剩餘空位 250 人\n台東市公所：台東市，容量 150 人，剩餘空位 150 人\n台東市原住民文化會館：台東市，容量 250 人，剩餘空位 250 人",
+   "context_chars": 993,
+   "latency_ms": 43358.6,
+   "done_reason": "stop",
+   "prompt_tokens": 1298,
+   "output_tokens": 200,
+   "generate_ms": 20834.3,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 新生國小",
+     "[TAITUNG] 卑南國中",
+     "[TAITUNG] 台東女中",
+     "[TAITUNG] 新生國中",
+     "[TAITUNG] 知本國小",
+     "[TAITUNG] 台東市公所",
+     "[TAITUNG] 台東市原住民文化會館"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 0.2857142857142857,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 6
+   }
+  },
+  {
+   "query": "達固湖灣大路",
+   "category": "semantic",
+   "relevant": [
+    "[HUALIEN] 花蓮縣立體育館"
+   ],
+   "generated": true,
+   "reply": "花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 人\n\n濤強國小：花蓮市，容量 300 人，剩餘空位 300 人\n\n信義國小：花蓮市，容量 200 人，剩餘空位 200 人\n\n中原國小：花蓮市，容量 350 人，剩餘空位 350 人\n\n中正國小：花蓮市，容量 400 人，剩餘空位 400 人\n\n民義國小：花蓮市，容量 500 人，剩餘空位 500 人\n\n南山國小：大同鄉，容量 200 人，剩餘空位 200 人\n\n羅東國小：羅東鎮，容量 450 人，剩餘空位 450 人\n\n自強國中：花蓮市，容量 450 人，剩餘空位 450 人\n\n寶桑國小：台東市，容量 400 人，剩餘空位 400 人",
+   "context_chars": 984,
+   "latency_ms": 53062.0,
+   "done_reason": "stop",
+   "prompt_tokens": 1298,
+   "output_tokens": 284,
+   "generate_ms": 30743.1,
+   "scores": {
+    "mentioned": [
+     "[HUALIEN] 花蓮縣立體育館",
+     "[HUALIEN] 濤強國小",
+     "[HUALIEN] 信義國小",
+     "[HUALIEN] 中原國小",
+     "[HUALIEN] 中正國小",
+     "[HUALIEN] 民義國小",
+     "[YILAN] 南山國小",
+     "[YILAN] 羅東國小",
+     "[HUALIEN] 自強國中",
+     "[TAITUNG] 寶桑國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 0.1,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 7
+   }
+  },
+  {
+   "query": "四維路",
+   "category": "semantic",
+   "relevant": [
+    "[TAITUNG] 台東女中",
+    "[TAITUNG] 寶桑國小"
+   ],
+   "generated": true,
+   "reply": "台東女中：台東市，容量 500 人，剩餘空位 500 人\n壯圍國小：壯圍鄉，容量 300 人，剩餘空位 300 人\n二城國小：頭城鎮，容量 300 人，剩餘空位 300 人\n寶桑國小：台東市，容量 400 人，剩餘空位 400 人",
+   "context_chars": 977,
+   "latency_ms": 33912.9,
+   "done_reason": "stop",
+   "prompt_tokens": 1286,
+   "output_tokens": 112,
+   "generate_ms": 11746.6,
+   "scores": {
+    "mentioned": [
+     "[TAITUNG] 台東女中",
+     "[YILAN] 壯圍國小",
+     "[YILAN] 二城國小",
+     "[TAITUNG] 寶桑國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "answer_recall": 1.0,
+    "answer_precision": 0.5,
+    "complete": 1.0,
+    "unsupported_mentions": [],
+    "hallucinated": 0.0,
+    "false_abstain": 0.0,
+    "unsupported_numbers": [],
+    "numbers_supported": 1.0,
+    "numbers_checked": 3
+   }
+  },
+  {
+   "query": "高雄的避難所",
+   "category": "negative",
+   "relevant": [],
+   "generated": false,
+   "reply": "本系統只涵蓋宜蘭、花蓮、台東三縣的避難所資料，目前沒有高雄的避難所資訊。請改問東部地區的避難所，或洽當地政府的災害應變中心。",
+   "context_chars": 0,
+   "latency_ms": 0.0,
+   "scores": {
+    "mentioned": [],
+    "invented": [],
+    "abstained": true,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "abstain_correct": 1.0
+   }
+  },
+  {
+   "query": "台北車站附近哪裡可以避難",
+   "category": "negative",
+   "relevant": [],
+   "generated": false,
+   "reply": "本系統只涵蓋宜蘭、花蓮、台東三縣的避難所資料，目前沒有台北的避難所資訊。請改問東部地區的避難所，或洽當地政府的災害應變中心。",
+   "context_chars": 0,
+   "latency_ms": 0.0,
+   "scores": {
+    "mentioned": [],
+    "invented": [],
+    "abstained": true,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "abstain_correct": 1.0
+   }
+  },
+  {
+   "query": "今天天氣如何",
+   "category": "negative",
+   "relevant": [],
+   "generated": true,
+   "reply": "國風國中：花蓮市，容量 300 人，剩餘空位 300 人\n花蓮市立圖書館：花蓮市，容量 150 人，剩餘空位 150 人\n花蓮市公所：花蓮市，容量 100 人，剩餘空位 100 人\n台東市公所：台東市，容量 150 人，剩餘空位 150 人\n壯圍國小：壯圍鄉，容量 300 人，剩餘空位 300 人\n台東高中：台東市，容量 500 人，剩餘空位 500 人\n馬蘭國小：台東市，容量 300 人，剩餘空位 300 人\n二城國小：頭城鎮，容量 300 人，剩餘空位 300 人\n明禮國小：花蓮市，容量 250 人，剩餘空位 250 人\n東海國小：台東市，容量 300 人，剩餘空位 300 人",
+   "context_chars": 984,
+   "latency_ms": 51497.7,
+   "done_reason": "stop",
+   "prompt_tokens": 1291,
+   "output_tokens": 284,
+   "generate_ms": 29859.5,
+   "scores": {
+    "mentioned": [
+     "[HUALIEN] 國風國中",
+     "[HUALIEN] 花蓮市立圖書館",
+     "[HUALIEN] 花蓮市公所",
+     "[TAITUNG] 台東市公所",
+     "[YILAN] 壯圍國小",
+     "[TAITUNG] 台東高中",
+     "[TAITUNG] 馬蘭國小",
+     "[YILAN] 二城國小",
+     "[HUALIEN] 明禮國小",
+     "[TAITUNG] 東海國小"
+    ],
+    "invented": [],
+    "abstained": false,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "abstain_correct": 0.0
+   }
+  },
+  {
+   "query": "澎湖有避難所嗎",
+   "category": "negative",
+   "relevant": [],
+   "generated": false,
+   "reply": "本系統只涵蓋宜蘭、花蓮、台東三縣的避難所資料，目前沒有澎湖的避難所資訊。請改問東部地區的避難所，或洽當地政府的災害應變中心。",
+   "context_chars": 0,
+   "latency_ms": 0.0,
+   "scores": {
+    "mentioned": [],
+    "invented": [],
+    "abstained": true,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "abstain_correct": 1.0
+   }
+  },
+  {
+   "query": "如何申請災害補助",
+   "category": "negative",
+   "relevant": [],
+   "generated": true,
+   "reply": "目前沒有相關資料。",
+   "context_chars": 982,
+   "latency_ms": 23656.7,
+   "done_reason": "stop",
+   "prompt_tokens": 1293,
+   "output_tokens": 6,
+   "generate_ms": 524.9,
+   "scores": {
+    "mentioned": [],
+    "invented": [],
+    "abstained": true,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "abstain_correct": 1.0
+   }
+  },
+  {
+   "query": "桃園機場",
+   "category": "negative",
+   "relevant": [],
+   "generated": false,
+   "reply": "本系統只涵蓋宜蘭、花蓮、台東三縣的避難所資料，目前沒有桃園的避難所資訊。請改問東部地區的避難所，或洽當地政府的災害應變中心。",
+   "context_chars": 0,
+   "latency_ms": 0.0,
+   "scores": {
+    "mentioned": [],
+    "invented": [],
+    "abstained": true,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "abstain_correct": 1.0
+   }
+  },
+  {
+   "query": "台中體育館",
+   "category": "negative",
+   "relevant": [],
+   "generated": false,
+   "reply": "本系統只涵蓋宜蘭、花蓮、台東三縣的避難所資料，目前沒有台中的避難所資訊。請改問東部地區的避難所，或洽當地政府的災害應變中心。",
+   "context_chars": 0,
+   "latency_ms": 0.0,
+   "scores": {
+    "mentioned": [],
+    "invented": [],
+    "abstained": true,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "abstain_correct": 1.0
+   }
+  },
+  {
+   "query": "新竹國小",
+   "category": "negative",
+   "relevant": [],
+   "generated": false,
+   "reply": "本系統只涵蓋宜蘭、花蓮、台東三縣的避難所資料，目前沒有新竹的避難所資訊。請改問東部地區的避難所，或洽當地政府的災害應變中心。",
+   "context_chars": 0,
+   "latency_ms": 0.0,
+   "scores": {
+    "mentioned": [],
+    "invented": [],
+    "abstained": true,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "abstain_correct": 1.0
+   }
+  },
+  {
+   "query": "屏東縣立體育館",
+   "category": "negative",
+   "relevant": [],
+   "generated": false,
+   "reply": "本系統只涵蓋宜蘭、花蓮、台東三縣的避難所資料，目前沒有屏東的避難所資訊。請改問東部地區的避難所，或洽當地政府的災害應變中心。",
+   "context_chars": 0,
+   "latency_ms": 0.0,
+   "scores": {
+    "mentioned": [],
+    "invented": [],
+    "abstained": true,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "abstain_correct": 1.0
+   }
+  },
+  {
+   "query": "嘉義市公所",
+   "category": "negative",
+   "relevant": [],
+   "generated": false,
+   "reply": "本系統只涵蓋宜蘭、花蓮、台東三縣的避難所資料，目前沒有嘉義的避難所資訊。請改問東部地區的避難所，或洽當地政府的災害應變中心。",
+   "context_chars": 0,
+   "latency_ms": 0.0,
+   "scores": {
+    "mentioned": [],
+    "invented": [],
+    "abstained": true,
+    "format_issues": [],
+    "format_ok": 1.0,
+    "truncated": 0.0,
+    "abstain_correct": 1.0
+   }
+  }
+ ]
+}
