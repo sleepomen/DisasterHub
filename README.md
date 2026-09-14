@@ -333,7 +333,25 @@ The same 130-question set is used. `evals/build_eval_set.py` attaches an `expect
 
 Each run also records latency p50/p95, output tokens and the full reply per question in `evals/results/<label>.json`.
 
-GEN_RESULTS_EN
+Results so far (macro averages over the eight positive categories; `negatives` is the separate abstention score, `p50` the median end-to-end latency per question):
+
+| Configuration | ansR | ansP | full | halluc | f_abst | num_ok | fmt_ok | trunc | negatives | p50 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| llama3.2:3b, prompt before this round (baseline) | 0.725 | 0.719 | 0.707 | 0.022 | 0.214 | 0.986 | 1.000 | 0.014 | 0.900 | 9.4 s |
+| **llama3.2:3b, current pipeline** | 0.961 | 0.913 | 0.943 | 0.006 | 0.016 | 0.994 | 1.000 | 0.000 | 1.000 | 8.6 s |
+| **qwen2.5:7b, current pipeline** | 0.967 | 0.961 | 0.926 | 0.036 | 0.000 | 1.000 | 1.000 | 0.000 | 1.000 | 21.4 s |
+
+The baseline's dominant failure was not hallucination but over-refusal: on 21% of the questions the model answered "no relevant data" even though the retrieved context listed exactly the shelters it had been asked about. Three changes removed it.
+
+- The system prompt now says the shelter block is pre-filtered by the rules layer, so whatever is listed there must be used; refusing is only allowed when the block is empty or the question is not about shelters at all.
+- A question that names a place ("near Zhiben", "around Zhonghua Road section 1") goes to retrieval instead of being bounced back with a request for coordinates.
+- When a question names a shelter outright, retrieval keeps only that shelter, and the answer format is fixed at one line per shelter. Together these removed truncation on the 3B model (0.044 → 0.000), which used to answer a single-shelter question by listing ten and running out of output budget.
+
+Out-of-scope questions are now declined by a distance gate rather than by the model: if plain semantic retrieval's closest document is farther than `RAG_MAX_DISTANCE`, a fixed reply is returned and no generation happens. Weather and subsidy questions sit at a cosine distance of 0.588 and above, while the farthest question that does have an answer sits at 0.483.
+
+`capacity_stated` in the baseline row is not comparable with the rows below it: that column now applies only to questions that actually ask about capacity or occupancy, instead of every single-shelter question.
+
+What remains on both models is dropped or mistyped names rather than invented facts: 濤強國小 written as 涙強國小, 中興國小附幼 shortened to 中興國小, 台東縣立體育場 written as 台東縣立體場. That is what most of qwen2.5:7b's `halluc` 0.036 is, and it also explains the recall that is missing from 1.000. Every number either model printed was traceable to the retrieved context, nothing was truncated, and all ten out-of-scope questions were declined. The 3B model's `top1` of 0.667 is one of the three ranking questions, where it named the second-largest shelter first.
 
 ---
 
@@ -705,7 +723,25 @@ docker exec -it disaster_app python evals/run_gen_eval.py --limit 10 --category 
 
 每次執行也會記錄延遲 p50/p95、輸出 token 數，以及每題的完整回覆，存在 `evals/results/<label>.json`。
 
-GEN_RESULTS_ZH
+目前結果（八個正例類別的 macro 平均；`negatives` 是另外計算的拒答分數，`p50` 是每題端到端延遲中位數）：
+
+| 設定 | ansR | ansP | full | halluc | f_abst | num_ok | fmt_ok | trunc | negatives | p50 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| llama3.2:3b，本輪修改前的 prompt（baseline） | 0.725 | 0.719 | 0.707 | 0.022 | 0.214 | 0.986 | 1.000 | 0.014 | 0.900 | 9.4 秒 |
+| **llama3.2:3b，目前的流程** | 0.961 | 0.913 | 0.943 | 0.006 | 0.016 | 0.994 | 1.000 | 0.000 | 1.000 | 8.6 秒 |
+| **qwen2.5:7b，目前的流程** | 0.967 | 0.961 | 0.926 | 0.036 | 0.000 | 1.000 | 1.000 | 0.000 | 1.000 | 21.4 秒 |
+
+baseline 最主要的問題不是幻覺，而是過度拒答：有 21% 的題目，檢索明明已經把被問到的避難所放進資料區，模型還是回「目前沒有相關資料」。三項修改把它消掉。
+
+- 系統提示改成明講【避難所資料】是規則層事先篩好的，裡面列出的就必須拿來回答；只有資料區是空的、或問題根本與避難所無關時才能拒答。
+- 帶地名的問句（「知本附近」「中華路一段附近」）改走檢索，不再被攔下來要座標。
+- 直接點名某間避難所時，檢索只留那一筆，回答格式固定成每間一行。這兩項合起來讓 3B 模型的截斷率從 0.044 降到 0，它以前會把單一避難所的問題答成列十筆然後把輸出長度用完。
+
+範圍外的問題現在由距離門檻擋下，不再交給模型判斷：純語意檢索最接近的文件超過 `RAG_MAX_DISTANCE` 就回固定句子，完全不進生成。天氣與補助類問題的 cosine 距離在 0.588 以上，而真的有答案的題目最遠是 0.483。
+
+baseline 那一列的 `capacity_stated` 不能跟下面兩列比：這個欄位現在只套用在真的問容量或收容人數的題目，而不是每一道單一避難所的題目。
+
+兩個模型剩下的錯誤都是把名稱寫漏或寫錯，不是編造事實：濤強國小寫成涙強國小、中興國小附幼簡寫成中興國小、台東縣立體育場寫成台東縣立體場。qwen2.5:7b 的 `halluc` 0.036 大部分就是這個，召回率差那一點也是同一個原因。兩個模型印出來的數字全部都能在檢索資料裡找到，沒有任何一題被截斷，十道範圍外問題全部正確拒答。3B 模型的 `top1` 0.667 是三道排名題裡有一道把第二大的避難所講在前面。
 
 ---
 
