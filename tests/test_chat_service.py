@@ -77,6 +77,29 @@ def test_geo_query_without_coords_returns_prompt(svc):
     assert "座標" in early
 
 
+@pytest.mark.parametrize("msg", ["知本附近", "頭城鎮附近的學校", "中華路一段附近", "宜蘭市附近有哪些避難所"])
+def test_geo_query_with_place_name_goes_to_retrieval(svc, msg):
+    # 使用者已經講了地點，就交給檢索，不要回頭要座標
+    context, early = svc.build_context(msg)
+    assert early is None
+    assert context == "RAG 結果"
+    svc.vector_store.search.assert_called()
+
+
+@pytest.mark.parametrize("msg", ["最近的避難所在哪", "附近有什麼避難所", "我附近可以去哪裡"])
+def test_geo_query_without_any_place_still_asks_for_coords(svc, msg):
+    context, early = svc.build_context(msg)
+    assert context is None and "座標" in early
+
+
+def test_prompt_tells_model_data_is_prefiltered(svc):
+    from services.chat_service import SYSTEM_PROMPT
+    assert "不可以說沒有資料" in SYSTEM_PROMPT
+    prompt = svc.build_prompt("宜蘭有哪些避難所", "資料")
+    assert "每間一行" in prompt
+    assert "原樣引用" in prompt
+
+
 def test_nearest_context_has_no_region_tag(svc):
     ctx = svc._get_nearest_context(23.99, 121.6)
     assert "花蓮縣立體育館" in ctx
@@ -330,3 +353,14 @@ def test_evacuation_advice_without_simulation_asks_to_run_one(svc):
     assert context is None
     assert early == NO_SIMULATION_REPLY
     svc.vector_store.search.assert_not_called()
+
+
+def test_no_match_from_retrieval_becomes_fixed_reply_without_llm(svc):
+    from services.chat_service import NO_RELEVANT_REPLY
+    from services.vector_store import NO_MATCH, NO_DATA
+    for sentinel in (NO_MATCH, NO_DATA):
+        svc.vector_store.search.return_value = sentinel
+        with patch("services.chat_service.requests.post") as post:
+            assert svc.chat("今天天氣如何") == NO_RELEVANT_REPLY
+        post.assert_not_called()
+    svc.vector_store.search.return_value = "RAG 結果"

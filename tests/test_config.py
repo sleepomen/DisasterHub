@@ -125,3 +125,10 @@ def test_bool_setting_accepts_common_spellings(monkeypatch):
     assert load_config(monkeypatch, TRUST_PROXY_HEADERS="1").TRUST_PROXY_HEADERS is True
     assert load_config(monkeypatch, TRUST_PROXY_HEADERS="off").TRUST_PROXY_HEADERS is False
     assert load_config(monkeypatch, TRUST_PROXY_HEADERS=None).TRUST_PROXY_HEADERS is False
+
+
+def test_validate_rejects_bad_distance_threshold(monkeypatch):
+    config = load_config(monkeypatch, POSTGRES_PASSWORD="pw", RAG_MAX_DISTANCE="0")
+    with pytest.raises(config.ConfigError) as exc:
+        config.validate()
+    assert "RAG_MAX_DISTANCE" in str(exc.value)

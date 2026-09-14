@@ -85,7 +85,7 @@ Edit `.env`:
 | `CHAT_MAX_CONCURRENT` | How many LLM generations may run at once, default 2. Extra questions get an immediate 429 instead of queueing, so the map and readiness never wait on Ollama |
 | `DB_CONNECT_TIMEOUT` / `DB_STATEMENT_TIMEOUT_MS` | Database connect timeout (seconds, default 5) and per-statement timeout (milliseconds, default 15000), so a hung database fails requests within seconds instead of blocking every worker thread |
 
-Optional variables: `OLLAMA_MODEL` (default `llama3.2:3b`), `OLLAMA_TEMPERATURE`, `OLLAMA_NUM_CTX` (default 8192 — must hold the 20–30 shelter documents a list-style query retrieves), `OLLAMA_NUM_PREDICT` (default 800), `OLLAMA_TIMEOUT`, `EMBEDDING_PROVIDER` (`ollama` or `minilm`), `EMBEDDING_MODEL` (default `bge-m3`), `EMBEDDING_TIMEOUT`, `RAG_TOP_K`, `DB_POOL_MIN` / `DB_POOL_MAX` (default 1 / 10).
+Optional variables: `OLLAMA_MODEL` (default `llama3.2:3b`), `OLLAMA_TEMPERATURE`, `OLLAMA_NUM_CTX` (default 8192 — must hold the 20–30 shelter documents a list-style query retrieves), `OLLAMA_NUM_PREDICT` (default 800), `OLLAMA_TIMEOUT`, `EMBEDDING_PROVIDER` (`ollama` or `minilm`), `EMBEDDING_MODEL` (default `bge-m3`), `EMBEDDING_TIMEOUT`, `RAG_TOP_K`, `RAG_MAX_DISTANCE` (default 0.56 — cosine distance above which a plain semantic search is treated as "no relevant data"; questions about the weather or subsidies then get a fixed reply instead of ten unrelated shelters), `DB_POOL_MIN` / `DB_POOL_MAX` (default 1 / 10).
 
 Numeric settings are range-checked at startup (for example `SESSION_HOURS` must be positive and `DB_POOL_MAX` may not be smaller than `DB_POOL_MIN`); an out-of-range value stops the service with a clear message, and a value that cannot be parsed falls back to the default with a warning in the log.
 
@@ -181,6 +181,7 @@ Disaster_Hub/
     ├── test_vector_store.py
     ├── test_chat_service.py
     ├── test_eval_metrics.py
+    ├── test_gen_metrics.py
     ├── test_sync_service.py
     ├── test_config.py
     └── test_api_data.py
@@ -295,10 +296,44 @@ Disaster_Hub/
 ├── evals/
 │   ├── build_eval_set.py       # Generates the evaluation set
 │   ├── rag_eval.jsonl          # The evaluation set
-│   ├── run_rag_eval.py         # Runs the evaluation
+│   ├── run_rag_eval.py         # Runs the retrieval evaluation
 │   ├── metrics.py              # Recall / Precision / MRR
+│   ├── run_gen_eval.py         # Runs the generation evaluation (real ChatService + Ollama)
+│   ├── gen_metrics.py          # Answer recall / hallucination / number faithfulness / format rules
 │   └── results/                # Output of each run
 ```
+
+---
+
+## Generation Quality Evaluation
+
+Retrieval recall only says whether the right documents reached the model. `evals/run_gen_eval.py` measures what the model finally says: every question goes through the real `ChatService` path (rules layer, retrieval, prompt, Ollama) and the reply is scored by the rules in `evals/gen_metrics.py`. No LLM judge is involved, so the numbers are reproducible and do not depend on a second model.
+
+```bash
+docker exec -it disaster_app python evals/run_gen_eval.py --embedder ollama:bge-m3 --model llama3.2:3b --label gen_llama3.2-3b
+docker exec -it disaster_app python evals/run_gen_eval.py --embedder ollama:bge-m3 --model qwen2.5:7b --label gen_qwen2.5-7b
+docker exec -it disaster_app python evals/run_gen_eval.py --limit 10 --category region   # quick spot check
+```
+
+The same 130-question set is used. `evals/build_eval_set.py` attaches an `expect` block to every positive case with the capacity of each relevant shelter and, for "largest / most" questions, the shelter that must come first.
+
+| Metric | Meaning |
+|---|---|
+| `ansR` answer recall | Share of the relevant shelters that are actually named in the reply (display name or alias) |
+| `ansP` answer precision | Share of the shelters named in the reply that are relevant |
+| `full` | Reply names every relevant shelter |
+| `halluc` | Reply names a shelter that was not in the retrieved context, or a facility-like name that matches no known shelter |
+| `f_abst` false abstain | Reply says "no data" although relevant data was retrieved |
+| `num_ok` | Every integer ≥ 50 in the reply also appears in the retrieved context (capacity, occupancy, remaining space are not altered or invented) |
+| `cap_ok` | Single-shelter questions: the reply states that shelter's capacity |
+| `top1` | Ranking questions: the first shelter named is the correct largest one |
+| `fmt_ok` | Traditional Chinese only, no English letters, no simplified characters, no emoji |
+| `trunc` | Ollama stopped because `num_predict` ran out (the list was cut off) |
+| negatives `abstain_correct` | Out-of-scope or unanswerable questions are declined without naming any shelter |
+
+Each run also records latency p50/p95, output tokens and the full reply per question in `evals/results/<label>.json`.
+
+GEN_RESULTS_EN
 
 ---
 
@@ -423,7 +458,7 @@ cp .env.example .env
 | `CHAT_MAX_CONCURRENT` | 同時進行的 LLM 生成上限，預設 2。超出的問題立刻回 429 而不是排隊，地圖與 readiness 才不會跟著 Ollama 一起等 |
 | `DB_CONNECT_TIMEOUT` / `DB_STATEMENT_TIMEOUT_MS` | 資料庫連線逾時（秒，預設 5）與單一 SQL 逾時（毫秒，預設 15000），資料庫卡住時請求會在幾秒內失敗，不會把所有工作執行緒一起卡死 |
 
-可選變數：`OLLAMA_MODEL`（預設 `llama3.2:3b`）、`OLLAMA_TEMPERATURE`、`OLLAMA_NUM_CTX`（預設 8192，要放得下列舉題一次撈出的 20 至 30 筆避難所文件）、`OLLAMA_NUM_PREDICT`（預設 800）、`OLLAMA_TIMEOUT`、`EMBEDDING_PROVIDER`（`ollama` 或 `minilm`）、`EMBEDDING_MODEL`（預設 `bge-m3`）、`EMBEDDING_TIMEOUT`、`RAG_TOP_K`、`DB_POOL_MIN` / `DB_POOL_MAX`（預設 1 / 10）。
+可選變數：`OLLAMA_MODEL`（預設 `llama3.2:3b`）、`OLLAMA_TEMPERATURE`、`OLLAMA_NUM_CTX`（預設 8192，要放得下列舉題一次撈出的 20 至 30 筆避難所文件）、`OLLAMA_NUM_PREDICT`（預設 800）、`OLLAMA_TIMEOUT`、`EMBEDDING_PROVIDER`（`ollama` 或 `minilm`）、`EMBEDDING_MODEL`（預設 `bge-m3`）、`EMBEDDING_TIMEOUT`、`RAG_TOP_K`、`RAG_MAX_DISTANCE`（預設 0.56，純語意檢索的 cosine 距離超過此值就視為沒有相關資料，天氣、補助這類問題會得到固定回覆而不是十筆不相干的避難所）、`DB_POOL_MIN` / `DB_POOL_MAX`（預設 1 / 10）。
 
 數值設定啟動時會檢查範圍（例如 `SESSION_HOURS` 必須大於 0、`DB_POOL_MAX` 不能小於 `DB_POOL_MIN`）；超出範圍會以清楚的訊息停止服務，解析不了的值會退回預設並在 log 提醒。
 
@@ -518,6 +553,7 @@ Disaster_Hub/
     ├── test_vector_store.py
     ├── test_chat_service.py
     ├── test_eval_metrics.py
+    ├── test_gen_metrics.py
     ├── test_sync_service.py
     ├── test_config.py
     └── test_api_data.py
@@ -632,10 +668,44 @@ Disaster_Hub/
 ├── evals/
 │   ├── build_eval_set.py       # 產生評測集
 │   ├── rag_eval.jsonl          # 評測集
-│   ├── run_rag_eval.py         # 執行評測
+│   ├── run_rag_eval.py         # 執行檢索評測
 │   ├── metrics.py              # Recall / Precision / MRR
+│   ├── run_gen_eval.py         # 執行生成評測（真實 ChatService + Ollama）
+│   ├── gen_metrics.py          # 回答召回 / 幻覺 / 數字忠實 / 格式規則
 │   └── results/                # 各次評測輸出
 ```
+
+---
+
+## 生成品質評測
+
+檢索召回率只能說明「對的資料有沒有送到模型面前」。`evals/run_gen_eval.py` 量的是模型最後講出來的話：每一題都走真實的 `ChatService` 路徑（規則層、檢索、組 prompt、Ollama 生成），再用 `evals/gen_metrics.py` 的規則對回覆評分。不用另一個 LLM 當裁判，數字可以重現，也不受第二個模型影響。
+
+```bash
+docker exec -it disaster_app python evals/run_gen_eval.py --embedder ollama:bge-m3 --model llama3.2:3b --label gen_llama3.2-3b
+docker exec -it disaster_app python evals/run_gen_eval.py --embedder ollama:bge-m3 --model qwen2.5:7b --label gen_qwen2.5-7b
+docker exec -it disaster_app python evals/run_gen_eval.py --limit 10 --category region   # 快速抽查
+```
+
+題庫沿用同一份 130 題。`evals/build_eval_set.py` 會替每個正例附上 `expect`：各相關避難所的容量，以及「最大 / 最多」排名題應該排第一的那間。
+
+| 指標 | 意義 |
+|---|---|
+| `ansR` 回答召回率 | 標準答案的避難所有多少比例真的在回覆裡被講出來（正式名稱或別名） |
+| `ansP` 回答精確率 | 回覆裡講到的避難所有多少比例是相關的 |
+| `full` | 回覆把所有相關避難所都講齊了 |
+| `halluc` 幻覺 | 回覆講了檢索資料裡沒有的避難所，或出現對不上任何已知避難所的設施名稱 |
+| `f_abst` 錯誤拒答 | 明明檢索到相關資料，回覆卻說沒有資料 |
+| `num_ok` 數字忠實 | 回覆裡 ≥ 50 的整數都能在檢索資料裡找到（容量、收容、剩餘空間沒有被改寫或編造） |
+| `cap_ok` | 單一避難所的題目，回覆有講出該避難所的容量 |
+| `top1` | 排名題第一個講出來的避難所是正確的最大者 |
+| `fmt_ok` 格式 | 只有繁體中文，沒有英文字母、簡體字、emoji |
+| `trunc` 截斷 | Ollama 因 `num_predict` 用完而停止（清單被切掉） |
+| 負例 `abstain_correct` | 範圍外或答不了的問題要拒答，而且不能講出任何避難所 |
+
+每次執行也會記錄延遲 p50/p95、輸出 token 數，以及每題的完整回覆，存在 `evals/results/<label>.json`。
+
+GEN_RESULTS_ZH
 
 ---
 

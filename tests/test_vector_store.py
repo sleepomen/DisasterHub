@@ -91,6 +91,15 @@ def test_search_returns_joined_documents(store):
     assert text.count("\n") == 1
 
 
+def test_search_strips_aliases_from_prompt_text(store):
+    # 別名留在索引文件裡給 embedding 用，但不進 prompt，模型才不會照抄「（別名：…）」
+    assert "別名" in store.retrieve("中正國小", n_results=1)[0].document
+    with patch("config.RAG_MAX_DISTANCE", 2.0):  # 關鍵字 embedding 的距離很粗，這裡不測門檻
+        text = store.search("中正國小", n_results=1)
+    assert "別名" not in text
+    assert "中正國小是花蓮地區的避難收容場所" in text
+
+
 def test_rebuild_replaces_index(store):
     store.build_index(SHELTERS[:1])
     assert store.collection.count() == 1
@@ -277,8 +286,9 @@ def test_search_header_tells_model_about_filter_state(store):
     text = store.search("容量由小到大", plan=analyze("容量由小到大"))
     assert text.startswith("全東部避難所依容量由小到大排序")
 
-    # 沒有任何條件的一般問題不加說明行
-    text = store.search("避難所有提供飲水嗎", plan=analyze("避難所有提供飲水嗎"))
+    # 沒有任何條件的一般問題不加說明行（門檻另外測，這裡放寬）
+    with patch("config.RAG_MAX_DISTANCE", 2.0):
+        text = store.search("避難所有提供飲水嗎", plan=analyze("避難所有提供飲水嗎"))
     assert text.startswith("- ")
 
 
@@ -371,3 +381,37 @@ def test_persisted_rebuild_is_visible_to_a_new_instance(tmp_path):
     again = make_store(tmp_path, name="persist_rebuild")
     assert again.count() == len(SHELTERS)
     assert again.build_index(SHELTERS) is None  # 指紋相符，不重建
+
+
+def test_metadata_has_road_without_section(store):
+    hit = store.retrieve("台東縣立體育館", n_results=1)[0]
+    assert hit.metadata["road"] == "桂林北路"
+
+
+def test_road_filter_returns_every_shelter_on_that_road(store):
+    from services.query_rules import analyze
+    result = store.plan_retrieve("崇聖街", analyze("崇聖街"))
+    assert result.filtered and [h.name for h in result.hits] == ["[YILAN] 宜蘭國小"]
+
+
+def test_named_query_keeps_only_the_named_shelter(store):
+    from services.query_rules import analyze
+    # 直接點名時只留那一筆，小模型才不會把 top-k 全部列出來
+    result = store.plan_retrieve("中正國小還有空位嗎", analyze("中正國小還有空位嗎"))
+    assert result.named
+    assert [h.name for h in result.hits] == ["[HUALIEN] 中正國小"]
+    text = store.search("中正國小還有空位嗎", plan=analyze("中正國小還有空位嗎"))
+    assert text.startswith("使用者詢問的避難所資料如下（共 1 筆）")
+    assert "羅東" not in text
+
+
+def test_far_semantic_hits_are_treated_as_no_match(store):
+    from services.query_rules import analyze
+    from services.vector_store import NO_MATCH
+    # 沒有任何關鍵字的問題：最接近的文件也離很遠，純語意路徑要回沒有資料
+    assert store.search("今天天氣如何", plan=analyze("今天天氣如何")) == NO_MATCH
+    # 有 metadata 篩選命中的路徑不套門檻
+    assert "宜蘭國小" in store.search("宜蘭有哪些", plan=analyze("宜蘭有哪些"))
+    # 門檻放寬到最大時，同一個問題就會回資料
+    with patch("config.RAG_MAX_DISTANCE", 2.0):
+        assert store.search("今天天氣如何", plan=analyze("今天天氣如何")) != NO_MATCH

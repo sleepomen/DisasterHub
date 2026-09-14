@@ -143,3 +143,26 @@ def test_where_clause_composition():
 def test_describe_is_human_readable():
     assert analyze("羅東鎮的國小").describe() == "羅東鎮、國小"
     assert analyze("台東能收上千人的地方").describe() == "台東地區、容量 ≥ 1000"
+
+
+@pytest.mark.parametrize("query,road", [
+    ("四維路", "四維路"),
+    ("更生路上", "更生路"),
+    ("桂林北路的避難所", "桂林北路"),
+    ("中華路一段附近", "中華路"),
+    ("達固湖灣大路", "達固湖灣大路"),
+    ("宜蘭市中山路一段有避難所嗎", "中山路"),
+    ("羅東鎮的國小", None),
+    ("避難所路線怎麼走", None),
+    ("走路可以到的避難所", None),
+])
+def test_road_extraction(query, road):
+    assert analyze(query).road == road
+
+
+def test_road_filter_composes_with_township():
+    plan = analyze("宜蘭市中山路一段有避難所嗎")
+    assert plan.has_filter
+    assert plan.to_where() == {"$and": [{"township": "宜蘭市"}, {"road": "中山路"}]}
+    assert plan.describe() == "宜蘭市、中山路"
+    assert analyze("四維路").to_where() == {"road": "四維路"}
