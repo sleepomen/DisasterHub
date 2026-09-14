@@ -7,23 +7,23 @@
   "temperature": 0.3,
   "num_ctx": 8192,
   "docs": 50,
-  "index_build_s": 10.985093143000086,
+  "index_build_s": 0.028687304999039043,
   "cases": 130
  },
  "summary": {
   "categories": {
    "alias": {
     "count": 16,
-    "answer_recall": 0.9375,
-    "answer_precision": 0.8354,
-    "complete": 0.9375,
-    "hallucinated": 0.0,
+    "answer_recall": 0.875,
+    "answer_precision": 0.825,
+    "complete": 0.875,
+    "hallucinated": 0.0625,
     "false_abstain": 0.0,
     "numbers_supported": 1.0,
     "format_ok": 1.0,
     "truncated": 0.0,
-    "latency_p50_ms": 12764.8,
-    "output_tokens_mean": 64.6
+    "latency_p50_ms": 7939.4,
+    "output_tokens_mean": 52.8
    },
    "capacity": {
     "count": 9,
@@ -36,7 +36,7 @@
     "capacity_stated": 1.0,
     "format_ok": 1.0,
     "truncated": 0.0,
-    "latency_p50_ms": 19018.6,
+    "latency_p50_ms": 51835.1,
     "output_tokens_mean": 109.9
    },
    "exact_name": {
@@ -50,8 +50,8 @@
     "capacity_stated": 1.0,
     "format_ok": 1.0,
     "truncated": 0.0,
-    "latency_p50_ms": 33242.1,
-    "output_tokens_mean": 30
+    "latency_p50_ms": 83841.8,
+    "output_tokens_mean": 29.9
    },
    "facility": {
     "count": 12,
@@ -63,7 +63,7 @@
     "numbers_supported": 1.0,
     "format_ok": 1.0,
     "truncated": 0.0,
-    "latency_p50_ms": 32269.6,
+    "latency_p50_ms": 44963.7,
     "output_tokens_mean": 184.7
    },
    "name_variant": {
@@ -77,27 +77,27 @@
     "capacity_stated": 1.0,
     "format_ok": 1.0,
     "truncated": 0.0,
-    "latency_p50_ms": 29553.7,
-    "output_tokens_mean": 30.9
+    "latency_p50_ms": 25399.7,
+    "output_tokens_mean": 31.9
    },
    "region": {
     "count": 9,
-    "answer_recall": 0.9841,
+    "answer_recall": 0.9921,
     "answer_precision": 1.0,
-    "complete": 0.7778,
-    "hallucinated": 0.2222,
+    "complete": 0.8889,
+    "hallucinated": 0.1111,
     "false_abstain": 0.0,
     "numbers_supported": 1.0,
     "format_ok": 1.0,
     "truncated": 0.0,
-    "latency_p50_ms": 98713.4,
+    "latency_p50_ms": 80670.8,
     "output_tokens_mean": 481.3
    },
    "semantic": {
     "count": 19,
-    "answer_recall": 0.9737,
-    "answer_precision": 0.8185,
-    "complete": 0.9474,
+    "answer_recall": 0.9474,
+    "answer_precision": 0.8667,
+    "complete": 0.8947,
     "hallucinated": 0.0,
     "false_abstain": 0.0,
     "numbers_supported": 1.0,
@@ -105,8 +105,8 @@
     "top1_correct": 1.0,
     "format_ok": 1.0,
     "truncated": 0.0,
-    "latency_p50_ms": 25873.6,
-    "output_tokens_mean": 73.8
+    "latency_p50_ms": 6850.5,
+    "output_tokens_mean": 71.7
    },
    "township": {
     "count": 20,
@@ -118,21 +118,21 @@
     "numbers_supported": 1.0,
     "format_ok": 1.0,
     "truncated": 0.0,
-    "latency_p50_ms": 13004.9,
-    "output_tokens_mean": 127.3
+    "latency_p50_ms": 34380.4,
+    "output_tokens_mean": 126.7
    }
   },
   "negatives": {
    "count": 10,
-   "abstain_correct": 0.9,
+   "abstain_correct": 1.0,
    "format_ok": 1.0,
    "truncated": 0.0
   },
   "macro": {
-   "answer_recall": 0.9812,
-   "answer_precision": 0.9567,
-   "complete": 0.9412,
-   "hallucinated": 0.034,
+   "answer_recall": 0.9711,
+   "answer_precision": 0.9615,
+   "complete": 0.9407,
+   "hallucinated": 0.028,
    "false_abstain": 0.0,
    "numbers_supported": 1.0,
    "capacity_stated": 1.0,
@@ -141,9 +141,9 @@
    "truncated": 0.0
   },
   "micro": {
-   "answer_recall": 0.9815,
-   "answer_precision": 0.9493,
-   "complete": 0.95,
+   "answer_recall": 0.9696,
+   "answer_precision": 0.9556,
+   "complete": 0.9417,
    "hallucinated": 0.025,
    "false_abstain": 0.0,
    "numbers_supported": 1.0,
@@ -153,10 +153,10 @@
    "truncated": 0.0
   },
   "latency_ms": {
-   "p50": 18982.9,
-   "p95": 86126.1
+   "p50": 24866.3,
+   "p95": 104997.2
   },
-  "generated": 122
+  "generated": 120
  },
  "rows": [
   {
@@ -166,13 +166,13 @@
     "[HUALIEN] 花蓮縣立體育館"
    ],
    "generated": true,
-   "reply": "花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 個。",
-   "context_chars": 233,
-   "latency_ms": 29340.5,
+   "reply": "花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 人。",
+   "context_chars": 136,
+   "latency_ms": 25479.1,
    "done_reason": "stop",
-   "prompt_tokens": 599,
-   "output_tokens": 35,
-   "generate_ms": 3666.2,
+   "prompt_tokens": 534,
+   "output_tokens": 34,
+   "generate_ms": 3382.9,
    "scores": {
     "mentioned": [
      "[HUALIEN] 花蓮縣立體育館"
@@ -202,12 +202,12 @@
    ],
    "generated": true,
    "reply": "花蓮市立圖書館：花蓮市，容量 150 人，剩餘空位 150 人。",
-   "context_chars": 124,
-   "latency_ms": 10414.7,
+   "context_chars": 132,
+   "latency_ms": 83841.8,
    "done_reason": "stop",
-   "prompt_tokens": 496,
+   "prompt_tokens": 529,
    "output_tokens": 32,
-   "generate_ms": 3381.3,
+   "generate_ms": 3168.4,
    "scores": {
     "mentioned": [
      "[HUALIEN] 花蓮市立圖書館"
@@ -237,12 +237,12 @@
    ],
    "generated": true,
    "reply": "民義國小：花蓮市，容量 500 人，剩餘空位 500 人。",
-   "context_chars": 2373,
-   "latency_ms": 69670.4,
+   "context_chars": 127,
+   "latency_ms": 87342.7,
    "done_reason": "stop",
-   "prompt_tokens": 2588,
+   "prompt_tokens": 523,
    "output_tokens": 29,
-   "generate_ms": 3394.4,
+   "generate_ms": 2950.1,
    "scores": {
     "mentioned": [
      "[HUALIEN] 民義國小"
@@ -272,12 +272,12 @@
    ],
    "generated": true,
    "reply": "中正國小：花蓮市，容量 400 人，剩餘空位 400 人。",
-   "context_chars": 2373,
-   "latency_ms": 69039.2,
+   "context_chars": 127,
+   "latency_ms": 97548.2,
    "done_reason": "stop",
-   "prompt_tokens": 2588,
+   "prompt_tokens": 521,
    "output_tokens": 29,
-   "generate_ms": 3360.3,
+   "generate_ms": 2876.3,
    "scores": {
     "mentioned": [
      "[HUALIEN] 中正國小"
@@ -307,12 +307,12 @@
    ],
    "generated": true,
    "reply": "明禮國小：花蓮市，容量 250 人，剩餘空位 250 人。",
-   "context_chars": 2373,
-   "latency_ms": 69044.4,
+   "context_chars": 125,
+   "latency_ms": 95787.9,
    "done_reason": "stop",
-   "prompt_tokens": 2588,
+   "prompt_tokens": 519,
    "output_tokens": 29,
-   "generate_ms": 3425.6,
+   "generate_ms": 2848.3,
    "scores": {
     "mentioned": [
      "[HUALIEN] 明禮國小"
@@ -342,12 +342,12 @@
    ],
    "generated": true,
    "reply": "信義國小：花蓮市，容量 200 人，剩餘空位 200 人。",
-   "context_chars": 2373,
-   "latency_ms": 68723.0,
+   "context_chars": 125,
+   "latency_ms": 94723.5,
    "done_reason": "stop",
-   "prompt_tokens": 2588,
+   "prompt_tokens": 519,
    "output_tokens": 29,
-   "generate_ms": 3358.1,
+   "generate_ms": 2890.2,
    "scores": {
     "mentioned": [
      "[HUALIEN] 信義國小"
@@ -377,12 +377,12 @@
    ],
    "generated": true,
    "reply": "台東縣立體育場：台東市，容量 1500 人，剩餘空位 1500 人。",
-   "context_chars": 238,
-   "latency_ms": 13358.2,
+   "context_chars": 138,
+   "latency_ms": 119478.7,
    "done_reason": "stop",
-   "prompt_tokens": 598,
+   "prompt_tokens": 533,
    "output_tokens": 34,
-   "generate_ms": 3532.5,
+   "generate_ms": 3346.1,
    "scores": {
     "mentioned": [
      "[TAITUNG] 台東縣立體育場"
@@ -412,12 +412,12 @@
    ],
    "generated": true,
    "reply": "台東高中：台東市，容量 500 人，剩餘空位 500 人。",
-   "context_chars": 221,
-   "latency_ms": 11980.9,
+   "context_chars": 129,
+   "latency_ms": 118430.9,
    "done_reason": "stop",
-   "prompt_tokens": 577,
+   "prompt_tokens": 520,
    "output_tokens": 28,
-   "generate_ms": 2857.2,
+   "generate_ms": 2745.1,
    "scores": {
     "mentioned": [
      "[TAITUNG] 台東高中"
@@ -447,12 +447,12 @@
    ],
    "generated": true,
    "reply": "新生國中：台東市，容量 600 人，剩餘空位 600 人。",
-   "context_chars": 901,
-   "latency_ms": 29412.3,
+   "context_chars": 130,
+   "latency_ms": 118744.5,
    "done_reason": "stop",
-   "prompt_tokens": 1214,
+   "prompt_tokens": 522,
    "output_tokens": 28,
-   "generate_ms": 2979.5,
+   "generate_ms": 2758.0,
    "scores": {
     "mentioned": [
      "[TAITUNG] 新生國中"
@@ -482,12 +482,12 @@
    ],
    "generated": true,
    "reply": "卑南國中：台東市，容量 400 人，剩餘空位 400 人。",
-   "context_chars": 1055,
-   "latency_ms": 33242.1,
+   "context_chars": 127,
+   "latency_ms": 22405.6,
    "done_reason": "stop",
-   "prompt_tokens": 1344,
+   "prompt_tokens": 522,
    "output_tokens": 29,
-   "generate_ms": 3122.7,
+   "generate_ms": 3102.2,
    "scores": {
     "mentioned": [
      "[TAITUNG] 卑南國中"
@@ -517,12 +517,12 @@
    ],
    "generated": true,
    "reply": "東海國小：台東市，容量 300 人，剩餘空位 300 人。",
-   "context_chars": 2373,
-   "latency_ms": 69602.3,
+   "context_chars": 127,
+   "latency_ms": 17691.1,
    "done_reason": "stop",
-   "prompt_tokens": 2588,
+   "prompt_tokens": 521,
    "output_tokens": 29,
-   "generate_ms": 3403.1,
+   "generate_ms": 2887.4,
    "scores": {
     "mentioned": [
      "[TAITUNG] 東海國小"
@@ -552,12 +552,12 @@
    ],
    "generated": true,
    "reply": "康樂國小：台東市，容量 250 人，剩餘空位 250 人。",
-   "context_chars": 2373,
-   "latency_ms": 68322.6,
+   "context_chars": 129,
+   "latency_ms": 15203.9,
    "done_reason": "stop",
-   "prompt_tokens": 2588,
+   "prompt_tokens": 521,
    "output_tokens": 29,
-   "generate_ms": 3366.4,
+   "generate_ms": 2866.9,
    "scores": {
     "mentioned": [
      "[TAITUNG] 康樂國小"
@@ -587,12 +587,12 @@
    ],
    "generated": true,
    "reply": "宜蘭市國民運動中心：宜蘭市，容量 1200 人，剩餘空位 1200 人。",
-   "context_chars": 235,
-   "latency_ms": 13201.8,
+   "context_chars": 135,
+   "latency_ms": 17730.9,
    "done_reason": "stop",
-   "prompt_tokens": 594,
+   "prompt_tokens": 529,
    "output_tokens": 34,
-   "generate_ms": 3528.7,
+   "generate_ms": 3402.2,
    "scores": {
     "mentioned": [
      "[YILAN] 宜蘭市國民運動中心"
@@ -622,12 +622,12 @@
    ],
    "generated": true,
    "reply": "羅東鎮立體育館：羅東鎮，容量 800 人，剩餘空位 800 人。",
-   "context_chars": 124,
-   "latency_ms": 10445.7,
+   "context_chars": 131,
+   "latency_ms": 9666.1,
    "done_reason": "stop",
-   "prompt_tokens": 498,
+   "prompt_tokens": 530,
    "output_tokens": 32,
-   "generate_ms": 3262.9,
+   "generate_ms": 3205.7,
    "scores": {
     "mentioned": [
      "[YILAN] 羅東鎮立體育館"
@@ -657,12 +657,12 @@
    ],
    "generated": true,
    "reply": "蘇澳國小：蘇澳鎮，容量 320 人，剩餘空位 320 人。",
-   "context_chars": 120,
-   "latency_ms": 9890.5,
+   "context_chars": 129,
+   "latency_ms": 21869.6,
    "done_reason": "stop",
-   "prompt_tokens": 489,
+   "prompt_tokens": 523,
    "output_tokens": 29,
-   "generate_ms": 2944.1,
+   "generate_ms": 2872.7,
    "scores": {
     "mentioned": [
      "[YILAN] 蘇澳國小"
@@ -692,12 +692,12 @@
    ],
    "generated": true,
    "reply": "二城國小：頭城鎮，容量 300 人，剩餘空位 300 人。",
-   "context_chars": 2373,
-   "latency_ms": 69010.5,
+   "context_chars": 129,
+   "latency_ms": 94731.3,
    "done_reason": "stop",
-   "prompt_tokens": 2588,
+   "prompt_tokens": 523,
    "output_tokens": 29,
-   "generate_ms": 3363.8,
+   "generate_ms": 2854.8,
    "scores": {
     "mentioned": [
      "[YILAN] 二城國小"
@@ -727,12 +727,12 @@
    ],
    "generated": true,
    "reply": "壯圍國中：壯圍鄉，容量 300 人，剩餘空位 300 人。",
-   "context_chars": 118,
-   "latency_ms": 9925.4,
+   "context_chars": 127,
+   "latency_ms": 94818.5,
    "done_reason": "stop",
-   "prompt_tokens": 488,
+   "prompt_tokens": 522,
    "output_tokens": 29,
-   "generate_ms": 2952.5,
+   "generate_ms": 2871.2,
    "scores": {
     "mentioned": [
      "[YILAN] 壯圍國中"
@@ -762,12 +762,12 @@
    ],
    "generated": true,
    "reply": "清溝國小：冬山鄉，容量 350 人，剩餘空位 350 人。",
-   "context_chars": 2373,
-   "latency_ms": 69506.4,
+   "context_chars": 127,
+   "latency_ms": 21401.5,
    "done_reason": "stop",
-   "prompt_tokens": 2589,
+   "prompt_tokens": 524,
    "output_tokens": 30,
-   "generate_ms": 3532.6,
+   "generate_ms": 2957.5,
    "scores": {
     "mentioned": [
      "[YILAN] 清溝國小"
@@ -797,12 +797,12 @@
    ],
    "generated": true,
    "reply": "三星鄉綜合運動場：三星鄉，容量 500 人，剩餘空位 500 人。",
-   "context_chars": 129,
-   "latency_ms": 10039.7,
+   "context_chars": 136,
+   "latency_ms": 21305.8,
    "done_reason": "stop",
-   "prompt_tokens": 494,
+   "prompt_tokens": 527,
    "output_tokens": 29,
-   "generate_ms": 2950.3,
+   "generate_ms": 2827.2,
    "scores": {
     "mentioned": [
      "[YILAN] 三星鄉綜合運動場"
@@ -832,12 +832,12 @@
    ],
    "generated": true,
    "reply": "南山國小：大同鄉，容量 200 人，剩餘空位 200 人。",
-   "context_chars": 2373,
-   "latency_ms": 68935.0,
+   "context_chars": 128,
+   "latency_ms": 16826.3,
    "done_reason": "stop",
-   "prompt_tokens": 2587,
+   "prompt_tokens": 521,
    "output_tokens": 28,
-   "generate_ms": 3249.6,
+   "generate_ms": 2759.7,
    "scores": {
     "mentioned": [
      "[YILAN] 南山國小"
@@ -867,12 +867,12 @@
    ],
    "generated": true,
    "reply": "花蓮市中正體育館：花蓮市，容量 600 人，剩餘空位 600 人。",
-   "context_chars": 232,
-   "latency_ms": 13406.9,
+   "context_chars": 132,
+   "latency_ms": 27628.0,
    "done_reason": "stop",
-   "prompt_tokens": 603,
+   "prompt_tokens": 534,
    "output_tokens": 33,
-   "generate_ms": 3408.0,
+   "generate_ms": 3263.5,
    "scores": {
     "mentioned": [
      "[HUALIEN] 花蓮市中正體育館"
@@ -901,13 +901,13 @@
     "[HUALIEN] 自強國中"
    ],
    "generated": true,
-   "reply": "自強國中：花蓮市，容量 450 人，剩餘空位 450 人。",
-   "context_chars": 901,
-   "latency_ms": 29265.8,
+   "reply": "自強國中：花蓮市，容量 450 人，剩餘空位 450 人。目前收容 0 人。",
+   "context_chars": 126,
+   "latency_ms": 17520.8,
    "done_reason": "stop",
-   "prompt_tokens": 1220,
-   "output_tokens": 29,
-   "generate_ms": 3071.7,
+   "prompt_tokens": 525,
+   "output_tokens": 37,
+   "generate_ms": 3639.5,
    "scores": {
     "mentioned": [
      "[HUALIEN] 自強國中"
@@ -937,12 +937,12 @@
    ],
    "generated": true,
    "reply": "中正國小：花蓮市，容量 400 人，剩餘空位 400 人。",
-   "context_chars": 2373,
-   "latency_ms": 56539.1,
+   "context_chars": 127,
+   "latency_ms": 12320.5,
    "done_reason": "stop",
-   "prompt_tokens": 2592,
+   "prompt_tokens": 525,
    "output_tokens": 29,
-   "generate_ms": 3378.0,
+   "generate_ms": 2822.8,
    "scores": {
     "mentioned": [
      "[HUALIEN] 中正國小"
@@ -972,12 +972,12 @@
    ],
    "generated": true,
    "reply": "濤強國小：花蓮市，容量 300 人，剩餘空位 300 人。",
-   "context_chars": 2373,
-   "latency_ms": 68930.6,
+   "context_chars": 126,
+   "latency_ms": 21673.8,
    "done_reason": "stop",
-   "prompt_tokens": 2592,
+   "prompt_tokens": 525,
    "output_tokens": 30,
-   "generate_ms": 3495.6,
+   "generate_ms": 2934.7,
    "scores": {
     "mentioned": [
      "[HUALIEN] 濤強國小"
@@ -1006,13 +1006,13 @@
     "[TAITUNG] 台東縣立體育館"
    ],
    "generated": true,
-   "reply": "台東縣立體育館：台東市，容量 2000 人，剩餘空位 2000 人。",
-   "context_chars": 238,
-   "latency_ms": 12817.5,
+   "reply": "台東縣立體育館：台東市，容量 2000 人，剩餘空位 2000 人。目前收容 0 人。",
+   "context_chars": 135,
+   "latency_ms": 85226.3,
    "done_reason": "stop",
-   "prompt_tokens": 603,
-   "output_tokens": 34,
-   "generate_ms": 3518.6,
+   "prompt_tokens": 535,
+   "output_tokens": 42,
+   "generate_ms": 4180.1,
    "scores": {
     "mentioned": [
      "[TAITUNG] 台東縣立體育館"
@@ -1042,12 +1042,12 @@
    ],
    "generated": true,
    "reply": "台東高中：台東市，容量 500 人，剩餘空位 500 人。",
-   "context_chars": 221,
-   "latency_ms": 6850.1,
+   "context_chars": 129,
+   "latency_ms": 83883.7,
    "done_reason": "stop",
-   "prompt_tokens": 581,
+   "prompt_tokens": 524,
    "output_tokens": 28,
-   "generate_ms": 2871.1,
+   "generate_ms": 2731.9,
    "scores": {
     "mentioned": [
      "[TAITUNG] 台東高中"
@@ -1076,13 +1076,13 @@
     "[TAITUNG] 東海國中"
    ],
    "generated": true,
-   "reply": "東海國中：台東市，容量 500 人，剩餘空位 500 個。",
-   "context_chars": 901,
-   "latency_ms": 29553.7,
+   "reply": "東海國中：台東市，容量 500 人，剩餘空位 500 人。",
+   "context_chars": 132,
+   "latency_ms": 21772.6,
    "done_reason": "stop",
-   "prompt_tokens": 1217,
-   "output_tokens": 30,
-   "generate_ms": 3188.1,
+   "prompt_tokens": 528,
+   "output_tokens": 29,
+   "generate_ms": 2863.7,
    "scores": {
     "mentioned": [
      "[TAITUNG] 東海國中"
@@ -1112,12 +1112,12 @@
    ],
    "generated": true,
    "reply": "新生國小：台東市，容量 350 人，剩餘空位 350 人。",
-   "context_chars": 2373,
-   "latency_ms": 68889.4,
+   "context_chars": 130,
+   "latency_ms": 21520.8,
    "done_reason": "stop",
-   "prompt_tokens": 2592,
+   "prompt_tokens": 528,
    "output_tokens": 28,
-   "generate_ms": 3268.1,
+   "generate_ms": 2761.7,
    "scores": {
     "mentioned": [
      "[TAITUNG] 新生國小"
@@ -1147,12 +1147,12 @@
    ],
    "generated": true,
    "reply": "康樂國小：台東市，容量 250 人，剩餘空位 250 人。",
-   "context_chars": 2373,
-   "latency_ms": 68557.9,
+   "context_chars": 129,
+   "latency_ms": 15250.3,
    "done_reason": "stop",
-   "prompt_tokens": 2592,
+   "prompt_tokens": 525,
    "output_tokens": 29,
-   "generate_ms": 3370.0,
+   "generate_ms": 2858.0,
    "scores": {
     "mentioned": [
      "[TAITUNG] 康樂國小"
@@ -1182,12 +1182,12 @@
    ],
    "generated": true,
    "reply": "宜蘭國小：宜蘭市，容量 500 人，剩餘空位 500 人。",
-   "context_chars": 1004,
-   "latency_ms": 32466.5,
+   "context_chars": 125,
+   "latency_ms": 62911.0,
    "done_reason": "stop",
-   "prompt_tokens": 1319,
+   "prompt_tokens": 523,
    "output_tokens": 29,
-   "generate_ms": 3093.5,
+   "generate_ms": 2998.6,
    "scores": {
     "mentioned": [
      "[YILAN] 宜蘭國小"
@@ -1217,12 +1217,12 @@
    ],
    "generated": true,
    "reply": "蘇澳鎮立體育館：蘇澳鎮，容量 600 人，剩餘空位 600 人。目前收容 0 人。",
-   "context_chars": 121,
-   "latency_ms": 11269.6,
+   "context_chars": 128,
+   "latency_ms": 49687.9,
    "done_reason": "stop",
-   "prompt_tokens": 499,
+   "prompt_tokens": 531,
    "output_tokens": 40,
-   "generate_ms": 4122.9,
+   "generate_ms": 4197.0,
    "scores": {
     "mentioned": [
      "[YILAN] 蘇澳鎮立體育館"
@@ -1252,12 +1252,12 @@
    ],
    "generated": true,
    "reply": "二城國小：頭城鎮，容量 300 人，剩餘空位 300 人。",
-   "context_chars": 2373,
-   "latency_ms": 69203.8,
+   "context_chars": 129,
+   "latency_ms": 22930.5,
    "done_reason": "stop",
-   "prompt_tokens": 2592,
+   "prompt_tokens": 527,
    "output_tokens": 29,
-   "generate_ms": 3370.8,
+   "generate_ms": 3028.4,
    "scores": {
     "mentioned": [
      "[YILAN] 二城國小"
@@ -1287,12 +1287,12 @@
    ],
    "generated": true,
    "reply": "宜蘭運動公園體育館：宜蘭市，容量 350 人，剩餘空位 350 人。",
-   "context_chars": 650,
-   "latency_ms": 23454.1,
+   "context_chars": 136,
+   "latency_ms": 25399.7,
    "done_reason": "stop",
-   "prompt_tokens": 982,
+   "prompt_tokens": 533,
    "output_tokens": 32,
-   "generate_ms": 3343.9,
+   "generate_ms": 3293.3,
    "scores": {
     "mentioned": [
      "[YILAN] 宜蘭運動公園體育館"
@@ -1321,13 +1321,13 @@
     "[YILAN] 三星國中"
    ],
    "generated": true,
-   "reply": "三星國中：三星鄉，容量 400 人，剩餘空位 400 人，目前收容 0 人。",
-   "context_chars": 117,
-   "latency_ms": 10329.6,
+   "reply": "三星國中：三星鄉，容量 400 人，剩餘空位 400 人。目前收容 0 人。",
+   "context_chars": 126,
+   "latency_ms": 76001.4,
    "done_reason": "stop",
-   "prompt_tokens": 487,
+   "prompt_tokens": 522,
    "output_tokens": 35,
-   "generate_ms": 3572.3,
+   "generate_ms": 3513.5,
    "scores": {
     "mentioned": [
      "[YILAN] 三星國中"
@@ -1357,12 +1357,12 @@
    ],
    "generated": true,
    "reply": "南山國小：大同鄉，容量 200 人，剩餘空位 200 人。",
-   "context_chars": 2373,
-   "latency_ms": 70565.2,
+   "context_chars": 128,
+   "latency_ms": 39536.7,
    "done_reason": "stop",
-   "prompt_tokens": 2591,
+   "prompt_tokens": 525,
    "output_tokens": 28,
-   "generate_ms": 3247.3,
+   "generate_ms": 2809.5,
    "scores": {
     "mentioned": [
      "[YILAN] 南山國小"
@@ -1406,11 +1406,11 @@
    "generated": true,
    "reply": "花蓮市公所：花蓮市，容量 100 人，剩餘空位 100 人\n花蓮市立圖書館：花蓮市，容量 150 人，剩餘空位 150 人\n信義國小：花蓮市，容量 200 人，剩餘空位 200 人\n中原國小：花蓮市，容量 350 人，剩餘空位 350 人\n花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 人\n民義國小：花蓮市，容量 500 人，剩餘空位 500 人\n中正國小：花蓮市，容量 400 人，剩餘空位 400 人\n中華國小：花蓮市，容量 400 人，剩餘空位 400 人\n明廉國小：花蓮市，容量 300 人，剩餘空位 300 人\n明禮國小：花蓮市，容量 250 人，剩餘空位 250 人\n國風國中：花蓮市，容量 300 人，剩餘空位 300 人\n自強國中：花蓮市，容量 450 人，剩餘空位 450 人\n涙強國小：花蓮市，容量 300 人，剩餘空位 300 人\n花蓮市中正體育館：花蓮市，容量 600 人，剩餘空位 600 人",
    "context_chars": 1403,
-   "latency_ms": 86126.1,
+   "latency_ms": 68181.3,
    "done_reason": "stop",
-   "prompt_tokens": 1686,
+   "prompt_tokens": 1716,
    "output_tokens": 405,
-   "generate_ms": 46585.9,
+   "generate_ms": 44797.1,
    "scores": {
     "mentioned": [
      "[HUALIEN] 花蓮市公所",
@@ -1467,11 +1467,11 @@
    "generated": true,
    "reply": "花蓮市公所：花蓮市，容量 100 人，剩餘空位 100 人\n中原國小：花蓮市，容量 350 人，剩餘空位 350 人\n信義國小：花蓮市，容量 200 人，剩餘空位 200 人\n花蓮市立圖書館：花蓮市，容量 150 人，剩餘空位 150 人\n花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 人\n明廉國小：花蓮市，容量 300 人，剩餘空位 300 人\n明禮國小：花蓮市，容量 250 人，剩餘空位 250 人\n中華國小：花蓮市，容量 400 人，剩餘空位 400 人\n中正國小：花蓮市，容量 400 人，剩餘空位 400 人\n民義國小：花蓮市，容量 500 人，剩餘空位 500 人\n國風國中：花蓮市，容量 300 人，剩餘空位 300 人\n花蓮市中正體育館：花蓮市，容量 600 人，剩餘空位 600 人\n濤強國小：花蓮市，容量 300 人，剩餘空位 300 人\n自強國中：花蓮市，容量 450 人，剩餘空位 450 人",
    "context_chars": 1403,
-   "latency_ms": 84248.6,
+   "latency_ms": 59734.3,
    "done_reason": "stop",
-   "prompt_tokens": 1687,
+   "prompt_tokens": 1717,
    "output_tokens": 405,
-   "generate_ms": 47298.4,
+   "generate_ms": 44800.7,
    "scores": {
     "mentioned": [
      "[HUALIEN] 花蓮市公所",
@@ -1525,13 +1525,13 @@
     "[HUALIEN] 花蓮縣立體育館"
    ],
    "generated": true,
-   "reply": "花蓮市立圖書館：花蓮市，容量 150 人，剩餘空位 150 人\n信義國小：花蓮市，容量 200 人，剩餘空位 200 人\n花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 人\n花蓮市公所：花蓮市，容量 100 人，剩餘空位 100 人\n中原國小：花蓮市，容量 350 人，剩餘空位 350 人\n中華國小：花蓮市，容量 400 人，剩餘空位 400 人\n民義國小：花蓮市，容量 500 人，剩餘空位 500 人\n明廉國小：花蓮市，容量 300 人，剩餘空位 300 人\n明禮國小：花蓮市，容量 250 人，剩餘空位 250 人\n國風國中：花蓮市，容量 300 人，剩餘空位 300 人\n中正國小：花蓮市，容量 400 人，剩餘空位 400 人\n涙強國小：花蓮市，容量 300 人，剩餘空位 300 人\n自強國中：花蓮市，容量 450 人，剩餘空位 450 人\n花蓮市中正體育館：花蓮市，容量 600 人，剩餘空位 600 人",
+   "reply": "花蓮市立圖書館：花蓮市，容量 150 人，剩餘空位 150 人\n信義國小：花蓮市，容量 200 人，剩餘空位 200 人\n花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 人\n花蓮市公所：花蓮市，容量 100 人，剩餘空位 100 人\n中原國小：花蓮市，容量 350 人，剩餘空位 350 人\n中華國小：花蓮市，容量 400 人，剩餘空位 400 人\n民義國小：花蓮市，容量 500 人，剩餘空位 500 人\n明廉國小：花蓮市，容量 300 人，剩餘空位 300 人\n明禮國小：花蓮市，容量 250 人，剩餘空位 250 人\n國風國中：花蓮市，容量 300 人，剩餘空位 300 人\n中正國小：花蓮市，容量 400 人，剩餘空位 400 人\n濤強國小：花蓮市，容量 300 人，剩餘空位 300 人\n自強國中：花蓮市，容量 450 人，剩餘空位 450 人\n花蓮市中正體育館：花蓮市，容量 600 人，剩餘空位 600 人",
    "context_chars": 1403,
-   "latency_ms": 86022.0,
+   "latency_ms": 117449.3,
    "done_reason": "stop",
-   "prompt_tokens": 1688,
+   "prompt_tokens": 1718,
    "output_tokens": 405,
-   "generate_ms": 46831.6,
+   "generate_ms": 47223.7,
    "scores": {
     "mentioned": [
      "[HUALIEN] 花蓮市立圖書館",
@@ -1545,21 +1545,20 @@
      "[HUALIEN] 明禮國小",
      "[HUALIEN] 國風國中",
      "[HUALIEN] 中正國小",
+     "[HUALIEN] 濤強國小",
      "[HUALIEN] 自強國中",
      "[HUALIEN] 花蓮市中正體育館"
     ],
-    "invented": [
-     "涙強國小"
-    ],
+    "invented": [],
     "abstained": false,
     "format_issues": [],
     "format_ok": 1.0,
     "truncated": 0.0,
-    "answer_recall": 0.9285714285714286,
+    "answer_recall": 1.0,
     "answer_precision": 1.0,
-    "complete": 0.0,
+    "complete": 1.0,
     "unsupported_mentions": [],
-    "hallucinated": 1.0,
+    "hallucinated": 0.0,
     "false_abstain": 0.0,
     "unsupported_numbers": [],
     "numbers_supported": 1.0,
@@ -1590,11 +1589,11 @@
    "generated": true,
    "reply": "台東市公所：台東市，容量 150 人，剩餘空位 150 人\n台東高中：台東市，容量 500 人，剩餘空位 500 人\n知本國小：台東市，容量 250 人，剩餘空位 250 人\n台東女中：台東市，容量 500 人，剩餘空位 500 人\n台東縣立體育場：台東市，容量 1500 人，剩餘空位 1500 人\n台東縣立體育館：台東市，容量 2000 人，剩餘空位 2000 人\n新生國小：台東市，容量 350 人，剩餘空位 350 人\n台東市原住民文化會館：台東市，容量 250 人，剩餘空位 250 人\n康樂國小：台東市，容量 250 人，剩餘空位 250 人\n寶桑國小：台東市，容量 400 人，剩餘空位 400 人\n東海國小：台東市，容量 300 人，剩餘空位 300 人\n馬蘭國小：台東市，容量 300 人，剩餘空位 300 人\n寶桑國中：台東市，容量 450 人，剩餘空位 450 人\n新生國中：台東市，容量 600 人，剩餘空位 600 人\n東海國中：台東市，容量 500 人，剩餘空位 500 人\n卑南國中：台東市，容量 400 人，剩餘空位 400 人",
    "context_chars": 1629,
-   "latency_ms": 99049.7,
+   "latency_ms": 105701.4,
    "done_reason": "stop",
-   "prompt_tokens": 1885,
+   "prompt_tokens": 1915,
    "output_tokens": 461,
-   "generate_ms": 53839.2,
+   "generate_ms": 51104.5,
    "scores": {
     "mentioned": [
      "[TAITUNG] 台東市公所",
@@ -1654,11 +1653,11 @@
    "generated": true,
    "reply": "台東市公所：台東市，容量 150 人，剩餘空位 150 人\n台東縣立體育場：台東市，容量 1500 人，剩餘空位 1500 人\n台東高中：台東市，容量 500 人，剩餘空位 500 人\n台東縣立體育館：台東市，容量 2000 人，剩餘空位 2000 人\n康樂國小：台東市，容量 250 人，剩餘空位 250 人\n寶桑國小：台東市，容量 400 人，剩餘空位 400 人\n台東女中：台東市，容量 500 人，剩餘空位 500 人\n知本國小：台東市，容量 250 人，剩餘空位 250 人\n東海國小：台東市，容量 300 人，剩餘空位 300 人\n新生國小：台東市，容量 350 人，剩餘空位 350 人\n寶桑國中：台東市，容量 450 人，剩餘空位 450 人\n台東市原住民文化會館：台東市，容量 250 人，剩餘空位 250 人\n東海國中：台東市，容量 500 人，剩餘空位 500 人\n馬蘭國小：台東市，容量 300 人，剩餘空位 300 人\n新生國中：台東市，容量 600 人，剩餘空位 600 人\n卑南國中：台東市，容量 400 人，剩餘空位 400 人",
    "context_chars": 1629,
-   "latency_ms": 96455.9,
+   "latency_ms": 69375.7,
    "done_reason": "stop",
-   "prompt_tokens": 1886,
+   "prompt_tokens": 1916,
    "output_tokens": 461,
-   "generate_ms": 53945.0,
+   "generate_ms": 51130.2,
    "scores": {
     "mentioned": [
      "[TAITUNG] 台東市公所",
@@ -1718,11 +1717,11 @@
    "generated": true,
    "reply": "台東高中：台東市，容量 500 人，剩餘空位 500 人\n知本國小：台東市，容量 250 人，剩餘空位 250 人\n台東女中：台東市，容量 500 人，剩餘空位 500 人\n台東縣立體育場：台東市，容量 1500 人，剩餘空位 1500 人\n台東縣立體育館：台東市，容量 2000 人，剩餘空位 2000 人\n台東市公所：台東市，容量 150 人，剩餘空位 150 人\n康樂國小：台東市，容量 250 人，剩餘空位 250 人\n東海國小：台東市，容量 300 人，剩餘空位 300 人\n台東市原住民文化會館：台東市，容量 250 人，剩餘空位 250 人\n寶桑國小：台東市，容量 400 人，剩餘空位 400 人\n東海國中：台東市，容量 500 人，剩餘空位 500 人\n新生國小：台東市，容量 350 人，剩餘空位 350 人\n馬蘭國小：台東市，容量 300 人，剩餘空位 300 人\n寶桑國中：台東市，容量 450 人，剩餘空位 450 人\n新生國中：台東市，容量 600 人，剩餘空位 600 人\n卑南國中：台東市，容量 400 人，剩餘空位 400 人",
    "context_chars": 1629,
-   "latency_ms": 98713.4,
+   "latency_ms": 87435.6,
    "done_reason": "stop",
-   "prompt_tokens": 1887,
+   "prompt_tokens": 1917,
    "output_tokens": 461,
-   "generate_ms": 53912.2,
+   "generate_ms": 51389.2,
    "scores": {
     "mentioned": [
      "[TAITUNG] 台東高中",
@@ -1786,11 +1785,11 @@
    "generated": true,
    "reply": "宜蘭國小：宜蘭市，容量 500 人，剩餘空位 500 人\n宜蘭市國民運動中心：宜蘭市，容量 1200 人，剩餘空位 1200 人\n宜蘭運動公園體育館：宜蘭市，容量 350 人，剩餘空位 350 人\n南山國小：大同鄉，容量 200 人，剩餘空位 200 人\n中興國小附幼：五結鄉，容量 350 人，剩餘空位 350 人\n礁溪國中：礁溪鄉，容量 550 人，剩餘空位 550 人\n羅東國小：羅東鎮，容量 450 人，剩餘空位 450 人\n三星國中：三星鄉，容量 400 人，剩餘空位 400 人\n大同鄉公所：大同鄉，容量 150 人，剩餘空位 150 人\n清溝國小：冬山鄉，容量 350 人，剩餘空位 350 人\n壯圍國小：壯圍鄉，容量 300 人，剩餘空位 300 人\n澳花國小：南澳鄉，容量 150 人，剩餘空位 150 人\n蘇澳國小：蘇澳鎮，容量 320 人，剩餘空位 320 人\n南澳鄉綜合體育場：南澳鄉，容量 550 人，剩餘空位 550 人\n壯圍國中：壯圍鄉，容量 300 人，剩餘空位 300 人\n二城國小：頭城鎮，容量 300 人，剩餘空位 300 人\n頭城國小：頭城鎮，容量 400 人，剩餘空位 400 人\n三星鄉綜合運動場：三星鄉，容量 500 人，剩餘空位 500 人\n羅東鎮立體育館：羅東鎮，容量 800 人，剩餘空位 800 人\n蘇澳鎮立體育館：蘇澳鎮，容量 600 人，剩餘空位 600 人",
    "context_chars": 2020,
-   "latency_ms": 117815.9,
+   "latency_ms": 75836.3,
    "done_reason": "stop",
-   "prompt_tokens": 2257,
+   "prompt_tokens": 2287,
    "output_tokens": 578,
-   "generate_ms": 68450.5,
+   "generate_ms": 65936.4,
    "scores": {
     "mentioned": [
      "[YILAN] 宜蘭國小",
@@ -1858,11 +1857,11 @@
    "generated": true,
    "reply": "宜蘭國小：宜蘭市，容量 500 人，剩餘空位 500 人\n宜蘭市國民運動中心：宜蘭市，容量 1200 人，剩餘空位 1200 人\n南山國小：大同鄉，容量 200 人，剩餘空位 200 人\n中興國小附幼：五結鄉，容量 350 人，剩餘空位 350 人\n礁溪國中：礁溪鄉，容量 550 人，剩餘空位 550 人\n宜蘭運動公園體育館：宜蘭市，容量 350 人，剩餘空位 350 人\n大同鄉公所：大同鄉，容量 150 人，剩餘空位 150 人\n壯圍國小：壯圍鄉，容量 300 人，剩餘空位 300 人\n三星國中：三星鄉，容量 400 人，剩餘空位 400 人\n澳花國小：南澳鄉，容量 150 人，剩餘空位 150 人\n羅東國小：羅東鎮，容量 450 人，剩餘空位 450 人\n清溝國小：冬山鄉，容量 350 人，剩餘空位 350 人\n壯圍國中：壯圍鄉，容量 300 人，剩餘空位 300 人\n二城國小：頭城鎮，容量 300 人，剩餘空位 300 人\n南澳鄉綜合體育場：南澳鄉，容量 550 人，剩餘空位 550 人\n蘇澳國小：蘇澳鎮，容量 320 人，剩餘空位 320 人\n頭城國小：頭城鎮，容量 400 人，剩餘空位 400 人\n三星鄉綜合運動場：三星鄉，容量 500 人，剩餘空位 500 人\n羅東鎮立體育館：羅東鎮，容量 800 人，剩餘空位 800 人\n蘇澳鎮立體育館：蘇澳鎮，容量 600 人，剩餘空位 600 人",
    "context_chars": 2020,
-   "latency_ms": 102444.9,
+   "latency_ms": 80670.8,
    "done_reason": "stop",
-   "prompt_tokens": 2258,
+   "prompt_tokens": 2288,
    "output_tokens": 578,
-   "generate_ms": 63789.1,
+   "generate_ms": 65570.6,
    "scores": {
     "mentioned": [
      "[YILAN] 宜蘭國小",
@@ -1930,11 +1929,11 @@
    "generated": true,
    "reply": "宜蘭國小：宜蘭市，容量 500 人，剩餘空位 500 人\n宜蘭市國民運動中心：宜蘭市，容量 1200 人，剩餘空位 1200 人\n壯圍國小：壯圍鄉，容量 300 人，剩餘空位 300 人\n南山國小：大同鄉，容量 200 人，剩餘空位 200 人\n宜蘭運動公園體育館：宜蘭市，容量 350 人，剩餘空位 350 人\n礁溪國中：礁溪鄉，容量 550 人，剩餘空位 550 人\n壯圍國中：壯圍鄉，容量 300 人，剩餘空位 300 人\n羅東國小：羅東鎮，容量 450 人，剩餘空位 450 人\n清溝國小：冬山鄉，容量 350 人，剩餘空位 350 人\n中興國小附幼：五結鄉，容量 350 人，剩餘空位 350 人\n蘇澳國小：蘇澳鎮，容量 320 人，剩餘空位 320 人\n三星國中：三星鄉，容量 400 人，剩餘空位 400 人\n二城國小：頭城鎮，容量 300 人，剩餘空位 300 人\n頭城國小：頭城鎮，容量 400 人，剩餘空位 400 人\n澳花國小：南澳鄉，容量 150 人，剩餘空位 150 人\n南澳鄉綜合體育場：南澳鄉，容量 550 人，剩餘空位 550 人\n大同鄉公所：大同鄉，容量 150 人，剩餘空位 150 人\n羅東鎮立體育館：羅東鎮，容量 800 人，剩餘空位 800 人\n三星鄉綜合運動場：三星鄉，容量 500 人，剩餘空位 500 人\n蘇澳鎮立體育館：蘇澳鎮，容量 600 人，剩餘空位 600 人",
    "context_chars": 2020,
-   "latency_ms": 103337.4,
+   "latency_ms": 104997.2,
    "done_reason": "stop",
-   "prompt_tokens": 2259,
+   "prompt_tokens": 2289,
    "output_tokens": 578,
-   "generate_ms": 64388.2,
+   "generate_ms": 65693.8,
    "scores": {
     "mentioned": [
      "[YILAN] 宜蘭國小",
@@ -1982,13 +1981,13 @@
     "[YILAN] 三星鄉綜合運動場"
    ],
    "generated": true,
-   "reply": "三星國中：三星鄉，容量 400 人，剩餘空位 400 人\n三星鄉綜合運動場：三星鄉，容量 500 人，剩餘空位 500 人",
+   "reply": "三星國中：三星鄉，容量 400 人，剩餘空位 400 人\n\n三星鄉綜合運動場：三星鄉，容量 500 人，剩餘空位 500 人",
    "context_chars": 221,
-   "latency_ms": 12519.8,
+   "latency_ms": 23721.3,
    "done_reason": "stop",
-   "prompt_tokens": 578,
+   "prompt_tokens": 608,
    "output_tokens": 54,
-   "generate_ms": 5307.1,
+   "generate_ms": 5428.3,
    "scores": {
     "mentioned": [
      "[YILAN] 三星國中",
@@ -2020,11 +2019,11 @@
    "generated": true,
    "reply": "三星國中：三星鄉，容量 400 人，剩餘空位 400 人\n三星鄉綜合運動場：三星鄉，容量 500 人，剩餘空位 500 人",
    "context_chars": 221,
-   "latency_ms": 8461.4,
+   "latency_ms": 28717.8,
    "done_reason": "stop",
-   "prompt_tokens": 579,
+   "prompt_tokens": 609,
    "output_tokens": 54,
-   "generate_ms": 5312.8,
+   "generate_ms": 5444.2,
    "scores": {
     "mentioned": [
      "[YILAN] 三星國中",
@@ -2055,11 +2054,11 @@
    "generated": true,
    "reply": "中興國小附幼：五結鄉，容量 350 人，剩餘空位 350 人。",
    "context_chars": 118,
-   "latency_ms": 8429.5,
+   "latency_ms": 43489.8,
    "done_reason": "stop",
-   "prompt_tokens": 490,
+   "prompt_tokens": 520,
    "output_tokens": 31,
-   "generate_ms": 3010.6,
+   "generate_ms": 3062.9,
    "scores": {
     "mentioned": [
      "[YILAN] 中興國小附幼"
@@ -2089,11 +2088,11 @@
    "generated": true,
    "reply": "清溝國小：冬山鄉，容量 350 人，剩餘空位 350 人。",
    "context_chars": 115,
-   "latency_ms": 8307.3,
+   "latency_ms": 18395.7,
    "done_reason": "stop",
-   "prompt_tokens": 489,
+   "prompt_tokens": 519,
    "output_tokens": 30,
-   "generate_ms": 2878.6,
+   "generate_ms": 2957.0,
    "scores": {
     "mentioned": [
      "[YILAN] 清溝國小"
@@ -2123,11 +2122,11 @@
    "generated": true,
    "reply": "清溝國小：冬山鄉，容量 350 人，剩餘空位 350 人。",
    "context_chars": 115,
-   "latency_ms": 5933.6,
+   "latency_ms": 36707.9,
    "done_reason": "stop",
-   "prompt_tokens": 490,
+   "prompt_tokens": 520,
    "output_tokens": 30,
-   "generate_ms": 2900.1,
+   "generate_ms": 2975.2,
    "scores": {
     "mentioned": [
      "[YILAN] 清溝國小"
@@ -2156,13 +2155,13 @@
     "[YILAN] 澳花國小"
    ],
    "generated": true,
-   "reply": "南澳鄉綜合體育場：南澳鄉，容量 550 人，剩餘空位 550 人\n澳花國小：南澳鄉，容量 150 人，剩餘空位 150 人",
+   "reply": "南澳鄉綜合體育場：南澳鄉，容量 550 人，剩餘空位 550 人\n\n澳花國小：南澳鄉，容量 150 人，剩餘空位 150 人",
    "context_chars": 220,
-   "latency_ms": 13178.7,
+   "latency_ms": 39544.5,
    "done_reason": "stop",
-   "prompt_tokens": 585,
+   "prompt_tokens": 615,
    "output_tokens": 59,
-   "generate_ms": 5827.0,
+   "generate_ms": 5937.4,
    "scores": {
     "mentioned": [
      "[YILAN] 南澳鄉綜合體育場",
@@ -2208,11 +2207,11 @@
    "generated": true,
    "reply": "台東市公所：台東市，容量 150 人，剩餘空位 150 人\n台東高中：台東市，容量 500 人，剩餘空位 500 人\n台東女中：台東市，容量 500 人，剩餘空位 500 人\n知本國小：台東市，容量 250 人，剩餘空位 250 人\n台東市原住民文化會館：台東市，容量 250 人，剩餘空位 250 人\n台東縣立體育場：台東市，容量 1500 人，剩餘空位 1500 人\n寶桑國小：台東市，容量 400 人，剩餘空位 400 人\n台東縣立體育館：台東市，容量 2000 人，剩餘空位 2000 人\n康樂國小：台東市，容量 250 人，剩餘空位 250 人\n新生國小：台東市，容量 350 人，剩餘空位 350 人\n東海國小：台東市，容量 300 人，剩餘空位 300 人\n寶桑國中：台東市，容量 450 人，剩餘空位 450 人\n馬蘭國小：台東市，容量 300 人，剩餘空位 300 人\n新生國中：台東市，容量 600 人，剩餘空位 600 人\n東海國中：台東市，容量 500 人，剩餘空位 500 人\n卑南國中：台東市，容量 400 人，剩餘空位 400 人",
    "context_chars": 1628,
-   "latency_ms": 85539.8,
+   "latency_ms": 110542.6,
    "done_reason": "stop",
-   "prompt_tokens": 1886,
+   "prompt_tokens": 1916,
    "output_tokens": 461,
-   "generate_ms": 50527.3,
+   "generate_ms": 51212.3,
    "scores": {
     "mentioned": [
      "[TAITUNG] 台東市公所",
@@ -2272,11 +2271,11 @@
    "generated": true,
    "reply": "台東市公所：台東市，容量 150 人，剩餘空位 150 人\n台東高中：台東市，容量 500 人，剩餘空位 500 人\n台東縣立體育場：台東市，容量 1500 人，剩餘空位 1500 人\n知本國小：台東市，容量 250 人，剩餘空位 250 人\n台東縣立體育館：台東市，容量 2000 人，剩餘空位 2000 人\n台東女中：台東市，容量 500 人，剩餘空位 500 人\n台東市原住民文化會館：台東市，容量 250 人，剩餘空位 250 人\n康樂國小：台東市，容量 250 人，剩餘空位 250 人\n寶桑國小：台東市，容量 400 人，剩餘空位 400 人\n東海國小：台東市，容量 300 人，剩餘空位 300 人\n新生國小：台東市，容量 350 人，剩餘空位 350 人\n馬蘭國小：台東市，容量 300 人，剩餘空位 300 人\n東海國中：台東市，容量 500 人，剩餘空位 500 人\n新生國中：台東市，容量 600 人，剩餘空位 600 人\n寶桑國中：台東市，容量 450 人，剩餘空位 450 人\n卑南國中：台東市，容量 400 人，剩餘空位 400 人",
    "context_chars": 1628,
-   "latency_ms": 82412.3,
+   "latency_ms": 65918.0,
    "done_reason": "stop",
-   "prompt_tokens": 1887,
+   "prompt_tokens": 1917,
    "output_tokens": 461,
-   "generate_ms": 50794.7,
+   "generate_ms": 51038.8,
    "scores": {
     "mentioned": [
      "[TAITUNG] 台東市公所",
@@ -2322,11 +2321,11 @@
    "generated": true,
    "reply": "壯圍國小：壯圍鄉，容量 300 人，剩餘空位 300 人\n壯圍國中：壯圍鄉，容量 300 人，剩餘空位 300 人",
    "context_chars": 212,
-   "latency_ms": 12855.0,
+   "latency_ms": 34380.4,
    "done_reason": "stop",
-   "prompt_tokens": 579,
+   "prompt_tokens": 609,
    "output_tokens": 56,
-   "generate_ms": 5601.0,
+   "generate_ms": 5632.2,
    "scores": {
     "mentioned": [
      "[YILAN] 壯圍國小",
@@ -2356,13 +2355,13 @@
     "[YILAN] 大同鄉公所"
    ],
    "generated": true,
-   "reply": "大同鄉公所：宜蘭縣，容量 150 人，剩餘空位 150 人\n南山國小：宜蘭縣，容量 200 人，剩餘空位 200 人",
+   "reply": "大同鄉公所：宜蘭，容量 150 人，剩餘空位 150 人\n南山國小：宜蘭，容量 200 人，剩餘空位 200 人",
    "context_chars": 214,
-   "latency_ms": 13073.6,
+   "latency_ms": 20440.7,
    "done_reason": "stop",
-   "prompt_tokens": 579,
-   "output_tokens": 57,
-   "generate_ms": 5716.2,
+   "prompt_tokens": 609,
+   "output_tokens": 54,
+   "generate_ms": 5436.9,
    "scores": {
     "mentioned": [
      "[YILAN] 大同鄉公所",
@@ -2392,13 +2391,13 @@
     "[YILAN] 大同鄉公所"
    ],
    "generated": true,
-   "reply": "大同鄉公所：宜蘭縣大同鄉，容量 150 人，剩餘空位 150 人\n南山國小：宜蘭縣大同鄉，容量 200 人，剩餘空位 200 人",
+   "reply": "大同鄉公所：宜蘭，容量 150 人，剩餘空位 150 人\n南山國小：宜蘭，容量 200 人，剩餘空位 200 人",
    "context_chars": 214,
-   "latency_ms": 9410.6,
+   "latency_ms": 18205.4,
    "done_reason": "stop",
-   "prompt_tokens": 580,
-   "output_tokens": 62,
-   "generate_ms": 6208.3,
+   "prompt_tokens": 610,
+   "output_tokens": 54,
+   "generate_ms": 5436.2,
    "scores": {
     "mentioned": [
      "[YILAN] 大同鄉公所",
@@ -2431,11 +2430,11 @@
    "generated": true,
    "reply": "宜蘭國小：宜蘭市，容量 500 人，剩餘空位 500 人\n宜蘭市國民運動中心：宜蘭市，容量 1200 人，剩餘空位 1200 人\n宜蘭運動公園體育館：宜蘭市，容量 350 人，剩餘空位 350 人",
    "context_chars": 326,
-   "latency_ms": 18982.9,
+   "latency_ms": 28207.4,
    "done_reason": "stop",
-   "prompt_tokens": 679,
+   "prompt_tokens": 709,
    "output_tokens": 92,
-   "generate_ms": 9373.6,
+   "generate_ms": 9323.7,
    "scores": {
     "mentioned": [
      "[YILAN] 宜蘭國小",
@@ -2467,11 +2466,11 @@
    "generated": true,
    "reply": "礁溪國中：礁溪鄉，容量 550 人，剩餘空位 550 人。",
    "context_chars": 116,
-   "latency_ms": 8348.7,
+   "latency_ms": 28144.2,
    "done_reason": "stop",
-   "prompt_tokens": 489,
+   "prompt_tokens": 519,
    "output_tokens": 29,
-   "generate_ms": 2852.8,
+   "generate_ms": 2859.8,
    "scores": {
     "mentioned": [
      "[YILAN] 礁溪國中"
@@ -2501,11 +2500,11 @@
    "generated": true,
    "reply": "礁溪國中：礁溪鄉，容量 550 人，剩餘空位 550 人。",
    "context_chars": 116,
-   "latency_ms": 5983.6,
+   "latency_ms": 34663.0,
    "done_reason": "stop",
-   "prompt_tokens": 490,
+   "prompt_tokens": 520,
    "output_tokens": 29,
-   "generate_ms": 2842.2,
+   "generate_ms": 2844.2,
    "scores": {
     "mentioned": [
      "[YILAN] 礁溪國中"
@@ -2534,13 +2533,13 @@
     "[YILAN] 羅東鎮立體育館"
    ],
    "generated": true,
-   "reply": "羅東國小：羅東鎮，容量 450 人，剩餘空位 450 人。\n\n羅東鎮立體育館：羅東鎮，容量 800 人，剩餘空位 800 人。",
+   "reply": "羅東國小：羅東鎮，容量 450 人，剩餘空位 450 人\n羅東鎮立體育館：羅東鎮，容量 800 人，剩餘空位 800 人",
    "context_chars": 215,
-   "latency_ms": 13661.6,
+   "latency_ms": 15330.4,
    "done_reason": "stop",
-   "prompt_tokens": 583,
-   "output_tokens": 60,
-   "generate_ms": 6088.1,
+   "prompt_tokens": 613,
+   "output_tokens": 59,
+   "generate_ms": 5939.6,
    "scores": {
     "mentioned": [
      "[YILAN] 羅東國小",
@@ -2582,13 +2581,13 @@
     "[HUALIEN] 花蓮縣立體育館"
    ],
    "generated": true,
-   "reply": "花蓮市公所：花蓮市，容量 100 人，剩餘空位 100 人\n花蓮市立圖書館：花蓮市，容量 150 人，剩餘空位 150 人\n信義國小：花蓮市，容量 200 人，剩餘空位 200 人\n中原國小：花蓮市，容量 350 人，剩餘空位 350 人\n花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 人\n中華國小：花蓮市，容量 400 人，剩餘空位 400 人\n民義國小：花蓮市，容量 500 人，剩餘空位 500 人\n中正國小：花蓮市，容量 400 人，剩餘空位 400 人\n明廉國小：花蓮市，容量 300 人，剩餘空位 300 人\n明禮國小：花蓮市，容量 250 人，剩餘空位 250 人\n國風國中：花蓮市，容量 300 人，剩餘空位 300 人\n涇強國小：花蓮市，容量 300 人，剩餘空位 300 人\n花蓮市中正體育館：花蓮市，容量 600 人，剩餘空位 600 人\n自強國中：花蓮市，容量 450 人，剩餘空位 450 人",
+   "reply": "花蓮市公所：花蓮市，容量 100 人，剩餘空位 100 人\n花蓮市立圖書館：花蓮市，容量 150 人，剩餘空位 150 人\n信義國小：花蓮市，容量 200 人，剩餘空位 200 人\n中原國小：花蓮市，容量 350 人，剩餘空位 350 人\n花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 人\n中華國小：花蓮市，容量 400 人，剩餘空位 400 人\n民義國小：花蓮市，容量 500 人，剩餘空位 500 人\n中正國小：花蓮市，容量 400 人，剩餘空位 400 人\n明廉國小：花蓮市，容量 300 人，剩餘空位 300 人\n明禮國小：花蓮市，容量 250 人，剩餘空位 250 人\n國風國中：花蓮市，容量 300 人，剩餘空位 300 人\n涙強國小：花蓮市，容量 300 人，剩餘空位 300 人\n花蓮市中正體育館：花蓮市，容量 600 人，剩餘空位 600 人\n自強國中：花蓮市，容量 450 人，剩餘空位 450 人",
    "context_chars": 1402,
-   "latency_ms": 75444.3,
+   "latency_ms": 51281.5,
    "done_reason": "stop",
-   "prompt_tokens": 1687,
+   "prompt_tokens": 1717,
    "output_tokens": 405,
-   "generate_ms": 44064.2,
+   "generate_ms": 44232.0,
    "scores": {
     "mentioned": [
      "[HUALIEN] 花蓮市公所",
@@ -2606,7 +2605,7 @@
      "[HUALIEN] 自強國中"
     ],
     "invented": [
-     "涇強國小"
+     "涙強國小"
     ],
     "abstained": false,
     "format_issues": [],
@@ -2645,11 +2644,11 @@
    "generated": true,
    "reply": "花蓮市立圖書館：花蓮市，容量 150 人，剩餘空位 150 人\n花蓮市公所：花蓮市，容量 100 人，剩餘空位 100 人\n信義國小：花蓮市，容量 200 人，剩餘空位 200 人\n花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 人\n中原國小：花蓮市，容量 350 人，剩餘空位 350 人\n中華國小：花蓮市，容量 400 人，剩餘空位 400 人\n民義國小：花蓮市，容量 500 人，剩餘空位 500 人\n明廉國小：花蓮市，容量 300 人，剩餘空位 300 人\n中正國小：花蓮市，容量 400 人，剩餘空位 400 人\n明禮國小：花蓮市，容量 250 人，剩餘空位 250 人\n國風國中：花蓮市，容量 300 人，剩餘空位 300 人\n花蓮市中正體育館：花蓮市，容量 600 人，剩餘空位 600 人\n濤強國小：花蓮市，容量 300 人，剩餘空位 300 人\n自強國中：花蓮市，容量 450 人，剩餘空位 450 人",
    "context_chars": 1402,
-   "latency_ms": 75035.2,
+   "latency_ms": 53541.5,
    "done_reason": "stop",
-   "prompt_tokens": 1688,
+   "prompt_tokens": 1718,
    "output_tokens": 405,
-   "generate_ms": 44122.1,
+   "generate_ms": 44613.9,
    "scores": {
     "mentioned": [
      "[HUALIEN] 花蓮市立圖書館",
@@ -2691,13 +2690,13 @@
     "[YILAN] 蘇澳鎮立體育館"
    ],
    "generated": true,
-   "reply": "蘇澳國小：蘇澳鎮，容量 320 人，剩餘空位 320 人\n蘇澳鎮立體育館：蘇澳鎮，容量 600 人，剩餘空位 600 人",
+   "reply": "蘇澳國小：蘇澳鎮，容量 320 人，剩餘空位 320 人\n\n蘇澳鎮立體育館：蘇澳鎮，容量 600 人，剩餘空位 600 人",
    "context_chars": 216,
-   "latency_ms": 13242.5,
+   "latency_ms": 22449.8,
    "done_reason": "stop",
-   "prompt_tokens": 582,
+   "prompt_tokens": 612,
    "output_tokens": 59,
-   "generate_ms": 5871.3,
+   "generate_ms": 5942.6,
    "scores": {
     "mentioned": [
      "[YILAN] 蘇澳國小",
@@ -2729,11 +2728,11 @@
    "generated": true,
    "reply": "頭城國小：頭城鎮，容量 400 人，剩餘空位 400 人\n二城國小：頭城鎮，容量 300 人，剩餘空位 300 人",
    "context_chars": 215,
-   "latency_ms": 13004.9,
+   "latency_ms": 35294.4,
    "done_reason": "stop",
-   "prompt_tokens": 582,
+   "prompt_tokens": 612,
    "output_tokens": 56,
-   "generate_ms": 5593.6,
+   "generate_ms": 5601.0,
    "scores": {
     "mentioned": [
      "[YILAN] 頭城國小",
@@ -2765,11 +2764,11 @@
    "generated": true,
    "reply": "頭城國小：頭城鎮，容量 400 人，剩餘空位 400 人\n二城國小：頭城鎮，容量 300 人，剩餘空位 300 人",
    "context_chars": 215,
-   "latency_ms": 8754.6,
+   "latency_ms": 24866.3,
    "done_reason": "stop",
-   "prompt_tokens": 583,
+   "prompt_tokens": 613,
    "output_tokens": 56,
-   "generate_ms": 5585.3,
+   "generate_ms": 6550.2,
    "scores": {
     "mentioned": [
      "[YILAN] 頭城國小",
@@ -2809,11 +2808,11 @@
    "generated": true,
    "reply": "信義國小：花蓮市，容量 200 人，剩餘空位 200 人\n中原國小：花蓮市，容量 350 人，剩餘空位 350 人\n明禮國小：花蓮市，容量 250 人，剩餘空位 250 人\n中正國小：花蓮市，容量 400 人，剩餘空位 400 人\n明廉國小：花蓮市，容量 300 人，剩餘空位 300 人\n國風國中：花蓮市，容量 300 人，剩餘空位 300 人\n民義國小：花蓮市，容量 500 人，剩餘空位 500 人\n中華國小：花蓮市，容量 400 人，剩餘空位 400 人\n自強國中：花蓮市，容量 450 人，剩餘空位 450 人\n濤強國小：花蓮市，容量 300 人，剩餘空位 300 人",
    "context_chars": 1000,
-   "latency_ms": 52699.1,
+   "latency_ms": 45932.2,
    "done_reason": "stop",
-   "prompt_tokens": 1308,
+   "prompt_tokens": 1338,
    "output_tokens": 280,
-   "generate_ms": 29794.5,
+   "generate_ms": 35608.7,
    "scores": {
     "mentioned": [
      "[HUALIEN] 信義國小",
@@ -2859,11 +2858,11 @@
    "generated": true,
    "reply": "信義國小：花蓮市，容量 200 人，剩餘空位 200 人\n中原國小：花蓮市，容量 350 人，剩餘空位 350 人\n中華國小：花蓮市，容量 400 人，剩餘空位 400 人\n明廉國小：花蓮市，容量 300 人，剩餘空位 300 人\n中正國小：花蓮市，容量 400 人，剩餘空位 400 人\n明禮國小：花蓮市，容量 250 人，剩餘空位 250 人\n民義國小：花蓮市，容量 500 人，剩餘空位 500 人\n濤強國小：花蓮市，容量 300 人，剩餘空位 300 人",
    "context_chars": 800,
-   "latency_ms": 42278.1,
+   "latency_ms": 57065.2,
    "done_reason": "stop",
-   "prompt_tokens": 1124,
+   "prompt_tokens": 1154,
    "output_tokens": 224,
-   "generate_ms": 23564.4,
+   "generate_ms": 27822.7,
    "scores": {
     "mentioned": [
      "[HUALIEN] 信義國小",
@@ -2899,13 +2898,13 @@
     "[HUALIEN] 自強國中"
    ],
    "generated": true,
-   "reply": "國風國中：花蓮市，容量 300 人，剩餘空位 300 人\n自強國中：花蓮市，容量 450 人，剩餘空位 450 人",
+   "reply": "國風國中：花蓮市，容量 300 人，剩餘空位 300 人\n\n自強國中：花蓮市，容量 450 人，剩餘空位 450 人",
    "context_chars": 214,
-   "latency_ms": 12770.5,
+   "latency_ms": 44963.7,
    "done_reason": "stop",
-   "prompt_tokens": 576,
+   "prompt_tokens": 606,
    "output_tokens": 56,
-   "generate_ms": 5619.4,
+   "generate_ms": 6588.4,
    "scores": {
     "mentioned": [
      "[HUALIEN] 國風國中",
@@ -2937,11 +2936,11 @@
    "generated": true,
    "reply": "花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 個\n花蓮市中正體育館：花蓮市，容量 600 人，剩餘空位 600 個",
    "context_chars": 233,
-   "latency_ms": 14382.9,
+   "latency_ms": 46294.9,
    "done_reason": "stop",
-   "prompt_tokens": 598,
+   "prompt_tokens": 628,
    "output_tokens": 67,
-   "generate_ms": 6701.7,
+   "generate_ms": 7927.7,
    "scores": {
     "mentioned": [
      "[HUALIEN] 花蓮縣立體育館",
@@ -2983,11 +2982,11 @@
    "generated": true,
    "reply": "台東高中：台東市，容量 500 人，剩餘空位 500 人\n台東女中：台東市，容量 500 人，剩餘空位 500 人\n知本國小：台東市，容量 250 人，剩餘空位 250 人\n康樂國小：台東市，容量 250 人，剩餘空位 250 人\n東海國小：台東市，容量 300 人，剩餘空位 300 人\n寶桑國中：台東市，容量 450 人，剩餘空位 450 人\n新生國中：台東市，容量 600 人，剩餘空位 600 人\n新生國小：台東市，容量 350 人，剩餘空位 350 人\n寶桑國小：台東市，容量 400 人，剩餘空位 400 人\n東海國中：台東市，容量 500 人，剩餘空位 500 人\n卑南國中：台東市，容量 400 人，剩餘空位 400 人\n馬蘭國小：台東市，容量 300 人，剩餘空位 300 人",
    "context_chars": 1221,
-   "latency_ms": 63154.5,
+   "latency_ms": 49973.6,
    "done_reason": "stop",
-   "prompt_tokens": 1511,
+   "prompt_tokens": 1541,
    "output_tokens": 333,
-   "generate_ms": 35721.8,
+   "generate_ms": 42752.5,
    "scores": {
     "mentioned": [
      "[TAITUNG] 台東高中",
@@ -3033,11 +3032,11 @@
    "generated": true,
    "reply": "康樂國小：台東市，容量 250 人，剩餘空位 250 人\n寶桑國小：台東市，容量 400 人，剩餘空位 400 人\n東海國小：台東市，容量 300 人，剩餘空位 300 人\n新生國小：台東市，容量 350 人，剩餘空位 350 人\n知本國小：台東市，容量 250 人，剩餘空位 250 人\n馬蘭國小：台東市，容量 300 人，剩餘空位 300 人",
    "context_chars": 616,
-   "latency_ms": 32269.6,
+   "latency_ms": 31071.7,
    "done_reason": "stop",
-   "prompt_tokens": 952,
+   "prompt_tokens": 982,
    "output_tokens": 167,
-   "generate_ms": 17190.2,
+   "generate_ms": 20171.5,
    "scores": {
     "mentioned": [
      "[TAITUNG] 康樂國小",
@@ -3075,11 +3074,11 @@
    "generated": true,
    "reply": "新生國中：台東市，容量 600 人，剩餘空位 600 人\n卑南國中：台東市，容量 400 人，剩餘空位 400 人\n東海國中：台東市，容量 500 人，剩餘空位 500 人\n寶桑國中：台東市，容量 450 人，剩餘空位 450 人",
    "context_chars": 419,
-   "latency_ms": 22546.8,
+   "latency_ms": 36372.6,
    "done_reason": "stop",
-   "prompt_tokens": 768,
+   "prompt_tokens": 798,
    "output_tokens": 111,
-   "generate_ms": 11355.1,
+   "generate_ms": 13491.1,
    "scores": {
     "mentioned": [
      "[TAITUNG] 新生國中",
@@ -3113,11 +3112,11 @@
    "generated": true,
    "reply": "台東縣立體育館：台東市，容量 2000 人，剩餘空位 2000 人\n台東縣立體場：台東市，容量 1500 人，剩餘空位 1500 人",
    "context_chars": 238,
-   "latency_ms": 14138.3,
+   "latency_ms": 32040.6,
    "done_reason": "stop",
-   "prompt_tokens": 597,
+   "prompt_tokens": 627,
    "output_tokens": 65,
-   "generate_ms": 6555.4,
+   "generate_ms": 7709.3,
    "scores": {
     "mentioned": [
      "[TAITUNG] 台東縣立體育館"
@@ -3159,11 +3158,11 @@
    "generated": true,
    "reply": "宜蘭國小：宜蘭市，容量 500 人，剩餘空位 500 人\n礁溪國中：礁溪鄉，容量 550 人，剩餘空位 550 人\n南山國小：大同鄉，容量 200 人，剩餘空位 200 人\n羅東國小：羅東鎮，容量 450 人，剩餘空位 450 人\n壯圍國小：壯圍鄉，容量 300 人，剩餘空位 300 人\n清溝國小：冬山鄉，容量 350 人，剩餘空位 350 人\n三星國中：三星鄉，容量 400 人，剩餘空位 400 人\n壯圍國中：壯圍鄉，容量 300 人，剩餘空位 300 人\n蘇澳國小：蘇澳鎮，容量 320 人，剩餘空位 320 人\n頭城國小：頭城鎮，容量 400 人，剩餘空位 400 人\n澳花國小：南澳鄉，容量 150 人，剩餘空位 150 人\n二城國小：頭城鎮，容量 300 人，剩餘空位 300 人\n中興國小附幼：五結鄉，容量 350 人，剩餘空位 350 人",
    "context_chars": 1304,
-   "latency_ms": 68460.0,
+   "latency_ms": 55245.5,
    "done_reason": "stop",
-   "prompt_tokens": 1597,
+   "prompt_tokens": 1627,
    "output_tokens": 364,
-   "generate_ms": 39427.0,
+   "generate_ms": 47485.2,
    "scores": {
     "mentioned": [
      "[YILAN] 宜蘭國小",
@@ -3214,11 +3213,11 @@
    "generated": true,
    "reply": "宜蘭國小：宜蘭市，容量 500 人，剩餘空位 500 人\n南山國小：大同鄉，容量 200 人，剩餘空位 200 人\n壯圍國小：壯圍鄉，容量 300 人，剩餘空位 300 人\n羅東國小：羅東鎮，容量 450 人，剩餘空位 450 人\n清溝國小：冬山鄉，容量 350 人，剩餘空位 350 人\n蘇澳國小：蘇澳鎮，容量 320 人，剩餘空位 320 人\n澳花國小：南澳鄉，容量 150 人，剩餘空位 150 人\n中興國小附幼：五結鄉，容量 350 人，剩餘空位 350 人\n頭城國小：頭城鎮，容量 400 人，剩餘空位 400 人\n二城國小：頭城鎮，容量 300 人，剩餘空位 300 人",
    "context_chars": 1004,
-   "latency_ms": 50847.8,
+   "latency_ms": 43503.3,
    "done_reason": "stop",
-   "prompt_tokens": 1320,
+   "prompt_tokens": 1350,
    "output_tokens": 282,
-   "generate_ms": 29945.9,
+   "generate_ms": 35896.3,
    "scores": {
     "mentioned": [
      "[YILAN] 宜蘭國小",
@@ -3259,11 +3258,11 @@
    "generated": true,
    "reply": "礁溪國中：礁溪鄉，容量 550 人，剩餘空位 550 人\n三星國中：三星鄉，容量 400 人，剩餘空位 400 人\n壯圍國中：壯圍鄉，容量 300 人，剩餘空位 300 人",
    "context_chars": 315,
-   "latency_ms": 17337.9,
+   "latency_ms": 35310.2,
    "done_reason": "stop",
-   "prompt_tokens": 670,
+   "prompt_tokens": 700,
    "output_tokens": 82,
-   "generate_ms": 8229.1,
+   "generate_ms": 9741.1,
    "scores": {
     "mentioned": [
      "[YILAN] 礁溪國中",
@@ -3300,11 +3299,11 @@
    "generated": true,
    "reply": "宜蘭運動公園體育館：宜蘭市，容量 350 人，剩餘空位 350 人\n宜蘭市國民運動中心：宜蘭市，容量 1200 人，剩餘空位 1200 人\n羅東鎮立體育館：羅東鎮，容量 800 人，剩餘空位 800 人\n蘇澳鎮立體育館：蘇澳鎮，容量 600 人，剩餘空位 600 人\n南澳鄉綜合體育場：南澳鄉，容量 550 人，剩餘空位 550 人\n三星鄉綜合運動場：三星鄉，容量 500 人，剩餘空位 500 人",
    "context_chars": 650,
-   "latency_ms": 28585.6,
+   "latency_ms": 39233.9,
    "done_reason": "stop",
-   "prompt_tokens": 978,
+   "prompt_tokens": 1008,
    "output_tokens": 185,
-   "generate_ms": 19243.1,
+   "generate_ms": 28916.5,
    "scores": {
     "mentioned": [
      "[YILAN] 宜蘭運動公園體育館",
@@ -3339,11 +3338,11 @@
    "generated": true,
    "reply": "花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 人。",
    "context_chars": 135,
-   "latency_ms": 9062.5,
+   "latency_ms": 41036.7,
    "done_reason": "stop",
-   "prompt_tokens": 505,
+   "prompt_tokens": 535,
    "output_tokens": 34,
-   "generate_ms": 3340.8,
+   "generate_ms": 3933.2,
    "scores": {
     "mentioned": [
      "[HUALIEN] 花蓮縣立體育館"
@@ -3373,13 +3372,13 @@
     "[HUALIEN] 花蓮縣立體育館"
    ],
    "generated": true,
-   "reply": "花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 人\n花蓮市中正體育館：花蓮市，容量 600 人，剩餘空位 600 人",
+   "reply": "花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 人\n\n花蓮市中正體育館：花蓮市，容量 600 人，剩餘空位 600 人",
    "context_chars": 237,
-   "latency_ms": 14317.8,
+   "latency_ms": 51835.1,
    "done_reason": "stop",
-   "prompt_tokens": 605,
+   "prompt_tokens": 635,
    "output_tokens": 65,
-   "generate_ms": 6535.7,
+   "generate_ms": 7658.1,
    "scores": {
     "mentioned": [
      "[HUALIEN] 花蓮縣立體育館",
@@ -3416,11 +3415,11 @@
    "generated": true,
    "reply": "花蓮市立圖書館：花蓮市，容量 150 人，剩餘空位 150 人\n信義國小：花蓮市，容量 200 人，剩餘空位 200 人\n花蓮市公所：花蓮市，容量 100 人，剩餘空位 100 人\n明廉國小：花蓮市，容量 300 人，剩餘空位 300 人\n濤強國小：花蓮市，容量 300 人，剩餘空位 300 人\n國風國中：花蓮市，容量 300 人，剩餘空位 300 人\n明禮國小：花蓮市，容量 250 人，剩餘空位 250 人",
    "context_chars": 712,
-   "latency_ms": 37845.6,
+   "latency_ms": 56968.8,
    "done_reason": "stop",
-   "prompt_tokens": 1047,
+   "prompt_tokens": 1077,
    "output_tokens": 201,
-   "generate_ms": 20923.6,
+   "generate_ms": 25495.7,
    "scores": {
     "mentioned": [
      "[HUALIEN] 花蓮市立圖書館",
@@ -3455,13 +3454,13 @@
     "[TAITUNG] 台東縣立體育館"
    ],
    "generated": true,
-   "reply": "台東縣立體育館：台東市，容量 2000 人，剩餘空位 2000 人\n台東縣立體育場：台東市，容量 1500 人，剩餘空位 1500 人",
+   "reply": "台東縣立體育館：台東市，容量 2000 人，剩餘空位 2000 人\n\n台東縣立體育場：台東市，容量 1500 人，剩餘空位 1500 人",
    "context_chars": 243,
-   "latency_ms": 14361.9,
+   "latency_ms": 38584.5,
    "done_reason": "stop",
-   "prompt_tokens": 601,
+   "prompt_tokens": 631,
    "output_tokens": 66,
-   "generate_ms": 6658.2,
+   "generate_ms": 7818.4,
    "scores": {
     "mentioned": [
      "[TAITUNG] 台東縣立體育館",
@@ -3494,11 +3493,11 @@
    "generated": true,
    "reply": "台東縣立體育場：台東市，容量 1500 人，剩餘空位 1500 人\n台東縣立體育館：台東市，容量 2000 人，剩餘空位 2000 人\n新生國中：台東市，容量 600 人，剩餘空位 600 人",
    "context_chars": 343,
-   "latency_ms": 19018.6,
+   "latency_ms": 42177.3,
    "done_reason": "stop",
-   "prompt_tokens": 697,
+   "prompt_tokens": 727,
    "output_tokens": 93,
-   "generate_ms": 9401.3,
+   "generate_ms": 11143.1,
    "scores": {
     "mentioned": [
      "[TAITUNG] 台東縣立體育場",
@@ -3535,11 +3534,11 @@
    "generated": true,
    "reply": "東海國小：台東市，容量 300 人，剩餘空位 300 人\n康樂國小：台東市，容量 250 人，剩餘空位 250 人\n台東市公所：台東市，容量 150 人，剩餘空位 150 人\n馬蘭國小：台東市，容量 300 人，剩餘空位 300 人\n知本國小：台東市，容量 250 人，剩餘空位 250 人\n台東市原住民文化會館：台東市，容量 250 人，剩餘空位 250 人",
    "context_chars": 624,
-   "latency_ms": 33494.6,
+   "latency_ms": 51131.4,
    "done_reason": "stop",
-   "prompt_tokens": 961,
+   "prompt_tokens": 991,
    "output_tokens": 174,
-   "generate_ms": 18301.8,
+   "generate_ms": 21329.9,
    "scores": {
     "mentioned": [
      "[TAITUNG] 東海國小",
@@ -3574,11 +3573,11 @@
    "generated": true,
    "reply": "宜蘭市國民運動中心：宜蘭市，容量 1200 人，剩餘空位 1200 人。",
    "context_chars": 134,
-   "latency_ms": 9878.9,
+   "latency_ms": 62916.7,
    "done_reason": "stop",
-   "prompt_tokens": 500,
+   "prompt_tokens": 530,
    "output_tokens": 34,
-   "generate_ms": 3638.7,
+   "generate_ms": 3963.2,
    "scores": {
     "mentioned": [
      "[YILAN] 宜蘭市國民運動中心"
@@ -3613,11 +3612,11 @@
    "generated": true,
    "reply": "宜蘭市國民運動中心：宜蘭市，容量 1200 人，剩餘空位 1200 人\n礁溪國中：礁溪鄉，容量 550 人，剩餘空位 550 人\n南澳鄉綜合體育場：南澳鄉，容量 550 人，剩餘空位 550 人\n羅東鎮立體育館：羅東鎮，容量 800 人，剩餘空位 800 人\n蘇澳鎮立體育館：蘇澳鎮，容量 600 人，剩餘空位 600 人",
    "context_chars": 539,
-   "latency_ms": 30933.9,
+   "latency_ms": 82532.0,
    "done_reason": "stop",
-   "prompt_tokens": 885,
+   "prompt_tokens": 915,
    "output_tokens": 154,
-   "generate_ms": 16901.3,
+   "generate_ms": 19407.7,
    "scores": {
     "mentioned": [
      "[YILAN] 宜蘭市國民運動中心",
@@ -3656,11 +3655,11 @@
    "generated": true,
    "reply": "壯圍國小：壯圍鄉，容量 300 人，剩餘空位 300 人\n南山國小：大同鄉，容量 200 人，剩餘空位 200 人\n壯圍國中：壯圍鄉，容量 300 人，剩餘空位 300 人\n澳花國小：南澳鄉，容量 150 人，剩餘空位 150 人\n二城國小：頭城鎮，容量 300 人，剩餘空位 300 人\n大同鄉公所：大同鄉，容量 150 人，剩餘空位 150 人",
    "context_chars": 616,
-   "latency_ms": 32935.5,
+   "latency_ms": 60287.4,
    "done_reason": "stop",
-   "prompt_tokens": 959,
+   "prompt_tokens": 989,
    "output_tokens": 168,
-   "generate_ms": 17469.9,
+   "generate_ms": 22049.3,
    "scores": {
     "mentioned": [
      "[YILAN] 壯圍國小",
@@ -3696,11 +3695,11 @@
    "generated": true,
    "reply": "花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 人\n台東縣立體育館：台東市，容量 2000 人，剩餘空位 2000 人\n台東縣立體育場：台東市，容量 1500 人，剩餘空位 1500 人\n羅東鎮立體育館：羅東鎮，容量 800 人，剩餘空位 800 人\n蘇澳鎮立體育館：蘇澳鎮，容量 600 人，剩餘空位 600 人\n宜蘭運動公園體育館：宜蘭市，容量 350 人，剩餘空位 350 人\n宜蘭市國民運動中心：宜蘭市，容量 1200 人，剩餘空位 1200 人\n花蓮市中正體育館：花蓮市，容量 600 人，剩餘空位 600 人\n三星鄉綜合運動場：三星鄉，容量 500 人，剩餘空位 500 人\n南澳鄉綜合體育場：南澳鄉，容量 550 人，剩餘空位 550 人",
    "context_chars": 1071,
-   "latency_ms": 57967.7,
+   "latency_ms": 42311.7,
    "done_reason": "stop",
-   "prompt_tokens": 1369,
+   "prompt_tokens": 1399,
    "output_tokens": 316,
-   "generate_ms": 33805.1,
+   "generate_ms": 41793.3,
    "scores": {
     "mentioned": [
      "[HUALIEN] 花蓮縣立體育館",
@@ -3738,13 +3737,13 @@
     "[HUALIEN] 花蓮縣立體育館"
    ],
    "generated": true,
-   "reply": "花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 個\n花蓮市中正體育館：花蓮市，容量 600 人，剩餘空位 600 個",
+   "reply": "花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 人\n花蓮市中正體育館：花蓮市，容量 600 人，剩餘空位 600 人",
    "context_chars": 233,
-   "latency_ms": 9854.9,
+   "latency_ms": 16828.0,
    "done_reason": "stop",
-   "prompt_tokens": 597,
-   "output_tokens": 67,
-   "generate_ms": 6707.0,
+   "prompt_tokens": 627,
+   "output_tokens": 65,
+   "generate_ms": 7694.7,
    "scores": {
     "mentioned": [
      "[HUALIEN] 花蓮縣立體育館",
@@ -3775,11 +3774,11 @@
    "generated": true,
    "reply": "中正體育館：花蓮市，容量 600 人，剩餘空位 600 人。",
    "context_chars": 1071,
-   "latency_ms": 27508.0,
+   "latency_ms": 4090.4,
    "done_reason": "stop",
-   "prompt_tokens": 1369,
+   "prompt_tokens": 1399,
    "output_tokens": 30,
-   "generate_ms": 3106.6,
+   "generate_ms": 3709.2,
    "scores": {
     "mentioned": [
      "[HUALIEN] 花蓮市中正體育館"
@@ -3807,13 +3806,13 @@
     "[TAITUNG] 台東縣立體育場"
    ],
    "generated": true,
-   "reply": "台東縣立體育場：台東市，容量 1500 人，剩餘空位 1500 人\n台東縣立體館：台東市，容量 2000 人，剩餘空位 2000 人",
+   "reply": "台東縣立體育場：台東市，容量 1500 人，剩餘空位 1500 人。",
    "context_chars": 238,
-   "latency_ms": 13631.6,
+   "latency_ms": 13078.4,
    "done_reason": "stop",
-   "prompt_tokens": 596,
-   "output_tokens": 65,
-   "generate_ms": 6554.7,
+   "prompt_tokens": 626,
+   "output_tokens": 34,
+   "generate_ms": 3981.8,
    "scores": {
     "mentioned": [
      "[TAITUNG] 台東縣立體育場"
@@ -3831,7 +3830,7 @@
     "false_abstain": 0.0,
     "unsupported_numbers": [],
     "numbers_supported": 1.0,
-    "numbers_checked": 2
+    "numbers_checked": 1
    }
   },
   {
@@ -3843,11 +3842,11 @@
    "generated": true,
    "reply": "羅東鎮立體育館：羅東鎮，容量 800 人，剩餘空位 800 人。",
    "context_chars": 124,
-   "latency_ms": 6225.4,
+   "latency_ms": 10636.6,
    "done_reason": "stop",
-   "prompt_tokens": 496,
+   "prompt_tokens": 526,
    "output_tokens": 32,
-   "generate_ms": 3128.7,
+   "generate_ms": 3687.8,
    "scores": {
     "mentioned": [
      "[YILAN] 羅東鎮立體育館"
@@ -3877,11 +3876,11 @@
    "generated": true,
    "reply": "蘇澳鎮立體育館：蘇澳鎮，容量 600 人，剩餘空位 600 人。",
    "context_chars": 121,
-   "latency_ms": 8615.6,
+   "latency_ms": 3982.2,
    "done_reason": "stop",
-   "prompt_tokens": 492,
+   "prompt_tokens": 522,
    "output_tokens": 32,
-   "generate_ms": 3133.9,
+   "generate_ms": 3651.0,
    "scores": {
     "mentioned": [
      "[YILAN] 蘇澳鎮立體育館"
@@ -3911,11 +3910,11 @@
    "generated": true,
    "reply": "宜蘭運動公園體育館：宜蘭市，容量 350 人，剩餘空位 350 人。",
    "context_chars": 650,
-   "latency_ms": 18709.2,
+   "latency_ms": 4127.5,
    "done_reason": "stop",
-   "prompt_tokens": 976,
+   "prompt_tokens": 1006,
    "output_tokens": 32,
-   "generate_ms": 3211.7,
+   "generate_ms": 3759.3,
    "scores": {
     "mentioned": [
      "[YILAN] 宜蘭運動公園體育館"
@@ -3943,21 +3942,16 @@
     "[YILAN] 宜蘭運動公園體育館"
    ],
    "generated": true,
-   "reply": "宜蘭運動公園體育館：宜蘭市，容量 350 人，剩餘空位 350 人\n宜蘭市國民運動中心：宜蘭市，容量 1200 人，剩餘空位 1200 人\n羅東鎮立體育館：羅東鎮，容量 800 人，剩餘空位 800 人\n三星鄉綜合運動場：三星鄉，容量 500 人，剩餘空位 500 人\n蘇澳鎮立體育館：蘇澳鎮，容量 600 人，剩餘空位 600 人\n南澳鄉綜合體育場：南澳鄉，容量 550 人，剩餘空位 550 人",
+   "reply": "宜蘭運動公園體育館：宜蘭市，容量 350 人，剩餘空位 350 人",
    "context_chars": 1071,
-   "latency_ms": 44011.0,
+   "latency_ms": 4231.1,
    "done_reason": "stop",
-   "prompt_tokens": 1370,
-   "output_tokens": 185,
-   "generate_ms": 19713.7,
+   "prompt_tokens": 1400,
+   "output_tokens": 31,
+   "generate_ms": 3829.0,
    "scores": {
     "mentioned": [
-     "[YILAN] 宜蘭運動公園體育館",
-     "[YILAN] 宜蘭市國民運動中心",
-     "[YILAN] 羅東鎮立體育館",
-     "[YILAN] 三星鄉綜合運動場",
-     "[YILAN] 蘇澳鎮立體育館",
-     "[YILAN] 南澳鄉綜合體育場"
+     "[YILAN] 宜蘭運動公園體育館"
     ],
     "invented": [],
     "abstained": false,
@@ -3965,14 +3959,14 @@
     "format_ok": 1.0,
     "truncated": 0.0,
     "answer_recall": 1.0,
-    "answer_precision": 0.16666666666666666,
+    "answer_precision": 1.0,
     "complete": 1.0,
     "unsupported_mentions": [],
     "hallucinated": 0.0,
     "false_abstain": 0.0,
     "unsupported_numbers": [],
     "numbers_supported": 1.0,
-    "numbers_checked": 6
+    "numbers_checked": 1
    }
   },
   {
@@ -3982,13 +3976,13 @@
     "[TAITUNG] 台東市原住民文化會館"
    ],
    "generated": true,
-   "reply": "台東市原住民文化會館：台東縣，容量 250 人，剩餘空位 250 人。",
+   "reply": "台東市原住民文化會館：台東市，容量 250 人，剩餘空位 250 人。",
    "context_chars": 119,
-   "latency_ms": 8779.5,
+   "latency_ms": 7939.4,
    "done_reason": "stop",
-   "prompt_tokens": 486,
+   "prompt_tokens": 516,
    "output_tokens": 34,
-   "generate_ms": 3343.8,
+   "generate_ms": 3886.1,
    "scores": {
     "mentioned": [
      "[TAITUNG] 台東市原住民文化會館"
@@ -4018,11 +4012,11 @@
    "generated": true,
    "reply": "台東市原住民文化會館：台東市，容量 250 人，剩餘空位 250 人。",
    "context_chars": 119,
-   "latency_ms": 6423.9,
+   "latency_ms": 7745.4,
    "done_reason": "stop",
-   "prompt_tokens": 487,
+   "prompt_tokens": 517,
    "output_tokens": 34,
-   "generate_ms": 3350.4,
+   "generate_ms": 3871.4,
    "scores": {
     "mentioned": [
      "[TAITUNG] 台東市原住民文化會館"
@@ -4052,11 +4046,11 @@
    "generated": true,
    "reply": "花蓮市公所：花蓮市，容量 100 人，剩餘空位 100 人。",
    "context_chars": 119,
-   "latency_ms": 8397.5,
+   "latency_ms": 10109.4,
    "done_reason": "stop",
-   "prompt_tokens": 492,
+   "prompt_tokens": 522,
    "output_tokens": 30,
-   "generate_ms": 2928.2,
+   "generate_ms": 3440.0,
    "scores": {
     "mentioned": [
      "[HUALIEN] 花蓮市公所"
@@ -4086,11 +4080,11 @@
    "generated": true,
    "reply": "台東市公所：台東市，容量 150 人，剩餘空位 150 人。",
    "context_chars": 119,
-   "latency_ms": 8368.5,
+   "latency_ms": 10044.6,
    "done_reason": "stop",
-   "prompt_tokens": 487,
+   "prompt_tokens": 517,
    "output_tokens": 30,
-   "generate_ms": 2952.0,
+   "generate_ms": 3497.5,
    "scores": {
     "mentioned": [
      "[TAITUNG] 台東市公所"
@@ -4120,11 +4114,11 @@
    "generated": true,
    "reply": "台東女中：台東市，容量 500 人，剩餘空位 500 人",
    "context_chars": 982,
-   "latency_ms": 25179.0,
+   "latency_ms": 3747.3,
    "done_reason": "stop",
-   "prompt_tokens": 1285,
+   "prompt_tokens": 1315,
    "output_tokens": 28,
-   "generate_ms": 2860.5,
+   "generate_ms": 3369.5,
    "scores": {
     "mentioned": [
      "[TAITUNG] 台東女中"
@@ -4155,11 +4149,11 @@
    "generated": true,
    "reply": "台東高中：台東市，容量 500 人，剩餘空位 500 人\n台東女中：台東市，容量 500 人，剩餘空位 500 人",
    "context_chars": 221,
-   "latency_ms": 12764.8,
+   "latency_ms": 16400.9,
    "done_reason": "stop",
-   "prompt_tokens": 579,
+   "prompt_tokens": 609,
    "output_tokens": 55,
-   "generate_ms": 5502.0,
+   "generate_ms": 6616.5,
    "scores": {
     "mentioned": [
      "[TAITUNG] 台東高中",
@@ -4190,11 +4184,11 @@
    "generated": true,
    "reply": "花蓮市立圖書館：花蓮市，容量 150 人，剩餘空位 150 人。",
    "context_chars": 120,
-   "latency_ms": 8588.5,
+   "latency_ms": 4147.8,
    "done_reason": "stop",
-   "prompt_tokens": 492,
+   "prompt_tokens": 522,
    "output_tokens": 32,
-   "generate_ms": 3122.6,
+   "generate_ms": 3806.6,
    "scores": {
     "mentioned": [
      "[HUALIEN] 花蓮市立圖書館"
@@ -4222,27 +4216,27 @@
     "[YILAN] 中興國小附幼"
    ],
    "generated": true,
-   "reply": "中興國小附幼：五結鄉，容量 350 人，剩餘空位 350 人。",
+   "reply": "中興國小：五結鄉，容量 350 人，剩餘空位 350 人。",
    "context_chars": 982,
-   "latency_ms": 25753.0,
+   "latency_ms": 3927.9,
    "done_reason": "stop",
-   "prompt_tokens": 1293,
-   "output_tokens": 31,
-   "generate_ms": 3228.4,
+   "prompt_tokens": 1323,
+   "output_tokens": 29,
+   "generate_ms": 3506.8,
    "scores": {
-    "mentioned": [
-     "[YILAN] 中興國小附幼"
+    "mentioned": [],
+    "invented": [
+     "中興國小"
     ],
-    "invented": [],
     "abstained": false,
     "format_issues": [],
     "format_ok": 1.0,
     "truncated": 0.0,
-    "answer_recall": 1.0,
-    "answer_precision": 1.0,
-    "complete": 1.0,
+    "answer_recall": 0.0,
+    "answer_precision": 0.0,
+    "complete": 0.0,
     "unsupported_mentions": [],
-    "hallucinated": 0.0,
+    "hallucinated": 1.0,
     "false_abstain": 0.0,
     "unsupported_numbers": [],
     "numbers_supported": 1.0,
@@ -4258,11 +4252,11 @@
    "generated": true,
    "reply": "知本國小：台東市，容量 250 人，剩餘空位 250 人。",
    "context_chars": 1004,
-   "latency_ms": 25936.5,
+   "latency_ms": 3942.2,
    "done_reason": "stop",
-   "prompt_tokens": 1307,
+   "prompt_tokens": 1337,
    "output_tokens": 29,
-   "generate_ms": 2965.1,
+   "generate_ms": 3512.4,
    "scores": {
     "mentioned": [
      "[TAITUNG] 知本國小"
@@ -4292,11 +4286,11 @@
    "generated": true,
    "reply": "馬蘭國小：台東市，容量 300 人，剩餘空位 300 人。",
    "context_chars": 991,
-   "latency_ms": 25873.6,
+   "latency_ms": 3966.5,
    "done_reason": "stop",
-   "prompt_tokens": 1303,
+   "prompt_tokens": 1333,
    "output_tokens": 29,
-   "generate_ms": 2990.8,
+   "generate_ms": 3529.7,
    "scores": {
     "mentioned": [
      "[TAITUNG] 馬蘭國小"
@@ -4326,11 +4320,11 @@
    "generated": true,
    "reply": "礁溪國中：礁溪鄉，容量 550 人，剩餘空位 550 人。",
    "context_chars": 116,
-   "latency_ms": 5834.2,
+   "latency_ms": 3664.8,
    "done_reason": "stop",
-   "prompt_tokens": 484,
+   "prompt_tokens": 514,
    "output_tokens": 29,
-   "generate_ms": 2812.1,
+   "generate_ms": 3294.5,
    "scores": {
     "mentioned": [
      "[YILAN] 礁溪國中"
@@ -4359,13 +4353,13 @@
     "[YILAN] 澳花國小"
    ],
    "generated": true,
-   "reply": "南澳鄉綜合體育場：南澳鄉，容量 550 人，剩餘空位 550 人\n澳花國小：南澳鄉，容量 150 人，剩餘空位 150 人",
+   "reply": "南澳鄉綜合體育場：南澳鄉，容量 550 人，剩餘空位 550 人\n\n澳花國小：南澳鄉，容量 150 人，剩餘空位 150 人",
    "context_chars": 220,
-   "latency_ms": 9143.4,
+   "latency_ms": 7176.2,
    "done_reason": "stop",
-   "prompt_tokens": 584,
+   "prompt_tokens": 614,
    "output_tokens": 59,
-   "generate_ms": 5919.6,
+   "generate_ms": 6813.7,
    "scores": {
     "mentioned": [
      "[YILAN] 南澳鄉綜合體育場",
@@ -4395,13 +4389,13 @@
     "[YILAN] 三星鄉綜合運動場"
    ],
    "generated": true,
-   "reply": "三星國中：三星鄉，容量 400 人，剩餘空位 400 人\n三星鄉綜合運動場：三星鄉，容量 500 人，剩餘空位 500 人",
+   "reply": "三星國中：三星鄉，容量 400 人，剩餘空位 400 人\n\n三星鄉綜合運動場：三星鄉，容量 500 人，剩餘空位 500 人",
    "context_chars": 221,
-   "latency_ms": 8983.8,
+   "latency_ms": 6850.5,
    "done_reason": "stop",
-   "prompt_tokens": 579,
+   "prompt_tokens": 609,
    "output_tokens": 54,
-   "generate_ms": 5523.8,
+   "generate_ms": 6422.9,
    "scores": {
     "mentioned": [
      "[YILAN] 三星國中",
@@ -4433,11 +4427,11 @@
    "generated": true,
    "reply": "頭城國小：頭城鎮，容量 400 人，剩餘空位 400 人\n二城國小：頭城鎮，容量 300 人，剩餘空位 300 人",
    "context_chars": 224,
-   "latency_ms": 13600.6,
+   "latency_ms": 7255.0,
    "done_reason": "stop",
-   "prompt_tokens": 588,
+   "prompt_tokens": 618,
    "output_tokens": 56,
-   "generate_ms": 5758.6,
+   "generate_ms": 6886.7,
    "scores": {
     "mentioned": [
      "[YILAN] 頭城國小",
@@ -4468,11 +4462,11 @@
    "generated": true,
    "reply": "清溝國小：冬山鄉，容量 350 人，剩餘空位 350 人。",
    "context_chars": 115,
-   "latency_ms": 6083.9,
+   "latency_ms": 4072.1,
    "done_reason": "stop",
-   "prompt_tokens": 484,
+   "prompt_tokens": 514,
    "output_tokens": 30,
-   "generate_ms": 2947.2,
+   "generate_ms": 3684.3,
    "scores": {
     "mentioned": [
      "[YILAN] 清溝國小"
@@ -4502,11 +4496,11 @@
    "generated": true,
    "reply": "中興國小附幼：五結鄉，容量 350 人，剩餘空位 350 人。",
    "context_chars": 118,
-   "latency_ms": 6081.4,
+   "latency_ms": 4299.8,
    "done_reason": "stop",
-   "prompt_tokens": 486,
+   "prompt_tokens": 516,
    "output_tokens": 31,
-   "generate_ms": 3054.6,
+   "generate_ms": 3879.6,
    "scores": {
     "mentioned": [
      "[YILAN] 中興國小附幼"
@@ -4535,13 +4529,13 @@
     "[YILAN] 壯圍國小"
    ],
    "generated": true,
-   "reply": "壯圍國中：壯圍鄉，容量 300 人，剩餘空位 300 人\n壯圍國小：壯圍鄉，容量 300 人，剩餘空位 300 人",
+   "reply": "壯圍國中：壯圍鄉，容量 300 人，剩餘空位 300 人\n\n壯圍國小：壯圍鄉，容量 300 人，剩餘空位 300 人",
    "context_chars": 212,
-   "latency_ms": 13082.2,
+   "latency_ms": 7479.9,
    "done_reason": "stop",
-   "prompt_tokens": 575,
+   "prompt_tokens": 605,
    "output_tokens": 56,
-   "generate_ms": 5734.8,
+   "generate_ms": 7065.1,
    "scores": {
     "mentioned": [
      "[YILAN] 壯圍國中",
@@ -4571,13 +4565,13 @@
     "[YILAN] 大同鄉公所"
    ],
    "generated": true,
-   "reply": "大同鄉公所：宜蘭縣大同鄉，容量 150 人，剩餘空位 150 人。\n\n南山國小：宜蘭縣大同鄉，容量 200 人，剩餘空位 200 人。",
+   "reply": "大同鄉公所：宜蘭，容量 150 人，剩餘空位 150 人\n南山國小：宜蘭，容量 200 人，剩餘空位 200 人",
    "context_chars": 214,
-   "latency_ms": 9700.6,
+   "latency_ms": 7196.0,
    "done_reason": "stop",
-   "prompt_tokens": 578,
-   "output_tokens": 63,
-   "generate_ms": 6429.3,
+   "prompt_tokens": 608,
+   "output_tokens": 54,
+   "generate_ms": 6735.9,
    "scores": {
     "mentioned": [
      "[YILAN] 大同鄉公所",
@@ -4608,11 +4602,11 @@
    "generated": true,
    "reply": "花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 人。",
    "context_chars": 1019,
-   "latency_ms": 27344.1,
+   "latency_ms": 4622.7,
    "done_reason": "stop",
-   "prompt_tokens": 1331,
+   "prompt_tokens": 1361,
    "output_tokens": 34,
-   "generate_ms": 3559.6,
+   "generate_ms": 4351.4,
    "scores": {
     "mentioned": [
      "[HUALIEN] 花蓮縣立體育館"
@@ -4644,11 +4638,11 @@
    "generated": true,
    "reply": "台東縣立體育館：台東市，容量 2000 人，剩餘空位 2000 人\n台東縣立體育場：台東市，容量 1500 人，剩餘空位 1500 人",
    "context_chars": 1043,
-   "latency_ms": 31604.8,
+   "latency_ms": 8847.1,
    "done_reason": "stop",
-   "prompt_tokens": 1345,
+   "prompt_tokens": 1375,
    "output_tokens": 66,
-   "generate_ms": 7617.0,
+   "generate_ms": 8569.3,
    "scores": {
     "mentioned": [
      "[TAITUNG] 台東縣立體育館",
@@ -4681,11 +4675,11 @@
    "generated": true,
    "reply": "宜蘭市國民運動中心：宜蘭市，容量 1200 人，剩餘空位 1200 人",
    "context_chars": 1036,
-   "latency_ms": 33702.6,
+   "latency_ms": 4379.3,
    "done_reason": "stop",
-   "prompt_tokens": 1340,
+   "prompt_tokens": 1370,
    "output_tokens": 33,
-   "generate_ms": 890193.7,
+   "generate_ms": 4124.9,
    "scores": {
     "mentioned": [
      "[YILAN] 宜蘭市國民運動中心"
@@ -4716,13 +4710,13 @@
     "[YILAN] 大同鄉公所"
    ],
    "generated": true,
-   "reply": "花蓮市公所：花蓮，容量 100 人，剩餘空位 100 人\n大同鄉公所：宜蘭，容量 150 人，剩餘空位 150 人\n台東市公所：台東，容量 150 人，剩餘空位 150 人",
+   "reply": "花蓮市公所：花蓮市，容量 100 人，剩餘空位 100 人\n大同鄉公所：大同鄉，容量 150 人，剩餘空位 150 人\n台東市公所：台東市，容量 150 人，剩餘空位 150 人",
    "context_chars": 312,
-   "latency_ms": 18904.1,
+   "latency_ms": 10604.1,
    "done_reason": "stop",
-   "prompt_tokens": 671,
-   "output_tokens": 84,
-   "generate_ms": 8347.1,
+   "prompt_tokens": 701,
+   "output_tokens": 87,
+   "generate_ms": 10215.0,
    "scores": {
     "mentioned": [
      "[HUALIEN] 花蓮市公所",
@@ -4753,33 +4747,31 @@
     "[TAITUNG] 台東縣立體育館"
    ],
    "generated": true,
-   "reply": "台東縣立體育館：台東市，容量 2000 人，剩餘空位 2000 人\n宜蘭市國民運動中心：宜蘭市，容量 1200 人，剩餘空位 1200 人\n台東縣立體育場：台東市，容量 1500 人，剩餘空位 1500 人",
-   "context_chars": 1020,
-   "latency_ms": 34334.7,
+   "reply": "台東縣立體育館：台東市，容量 2000 人，剩餘空位 2000 人。",
+   "context_chars": 1082,
+   "latency_ms": 4527.8,
    "done_reason": "stop",
-   "prompt_tokens": 1319,
-   "output_tokens": 99,
-   "generate_ms": 10292.7,
+   "prompt_tokens": 1390,
+   "output_tokens": 34,
+   "generate_ms": 4141.0,
    "scores": {
     "mentioned": [
-     "[TAITUNG] 台東縣立體育館",
-     "[YILAN] 宜蘭市國民運動中心",
-     "[TAITUNG] 台東縣立體育場"
+     "[TAITUNG] 台東縣立體育館"
     ],
     "invented": [],
     "abstained": false,
     "format_issues": [],
     "format_ok": 1.0,
     "truncated": 0.0,
-    "answer_recall": 1.0,
-    "answer_precision": 0.6666666666666666,
-    "complete": 1.0,
+    "answer_recall": 0.5,
+    "answer_precision": 1.0,
+    "complete": 0.0,
     "unsupported_mentions": [],
     "hallucinated": 0.0,
     "false_abstain": 0.0,
     "unsupported_numbers": [],
     "numbers_supported": 1.0,
-    "numbers_checked": 3
+    "numbers_checked": 1
    }
   },
   {
@@ -4790,17 +4782,16 @@
     "[TAITUNG] 東海國中"
    ],
    "generated": true,
-   "reply": "台東高中：台東市，容量 500 人，剩餘空位 500 人\n民義國小：花蓮市，容量 500 人，剩餘空位 500 人",
-   "context_chars": 986,
-   "latency_ms": 28118.7,
+   "reply": "東海國中：台東市，容量 500 人，剩餘空位 500 人。",
+   "context_chars": 1047,
+   "latency_ms": 3902.2,
    "done_reason": "stop",
-   "prompt_tokens": 1295,
-   "output_tokens": 55,
-   "generate_ms": 5771.9,
+   "prompt_tokens": 1367,
+   "output_tokens": 29,
+   "generate_ms": 3523.8,
    "scores": {
     "mentioned": [
-     "[TAITUNG] 台東高中",
-     "[HUALIEN] 民義國小"
+     "[TAITUNG] 東海國中"
     ],
     "invented": [],
     "abstained": false,
@@ -4808,7 +4799,7 @@
     "format_ok": 1.0,
     "truncated": 0.0,
     "answer_recall": 0.5,
-    "answer_precision": 0.5,
+    "answer_precision": 1.0,
     "complete": 0.0,
     "unsupported_mentions": [],
     "hallucinated": 0.0,
@@ -4826,20 +4817,23 @@
     "[TAITUNG] 新生國小"
    ],
    "generated": true,
-   "reply": "新生國小：台東市，容量 350 人，剩餘空位 350 人\n卑南國中：台東市，容量 400 人，剩餘空位 400 人\n台東女中：台東市，容量 500 人，剩餘空位 500 人\n新生國中：台東市，容量 600 人，剩餘空位 600 人\n知本國小：台東市，容量 250 人，剩餘空位 250 人\n台東市公所：台東市，容量 150 人，剩餘空位 150 人\n台東市原住民文化會館：台東市，容量 250 人，剩餘空位 250 人",
-   "context_chars": 993,
-   "latency_ms": 43358.6,
+   "reply": "新生國小：台東市，容量 350 人，剩餘空位 350 人\n\n卑南國中：台東市，容量 400 人，剩餘空位 400 人\n\n台東女中：台東市，容量 500 人，剩餘空位 500 人\n\n壯圍國小：壯圍鄉，容量 300 人，剩餘空位 300 人\n\n新生國中：台東市，容量 600 人，剩餘空位 600 人\n\n知本國小：台東市，容量 250 人，剩餘空位 250 人\n\n壯圍國中：壯圍鄉，容量 300 人，剩餘空位 300 人\n\n澳花國小：南澳鄉，容量 150 人，剩餘空位 150 人\n\n台東市公所：台東市，容量 150 人，剩餘空位 150 人\n\n台東市原住民文化會館：台東市，容量 250 人，剩餘空位 250 人",
+   "context_chars": 1054,
+   "latency_ms": 36303.2,
    "done_reason": "stop",
-   "prompt_tokens": 1298,
-   "output_tokens": 200,
-   "generate_ms": 20834.3,
+   "prompt_tokens": 1370,
+   "output_tokens": 284,
+   "generate_ms": 35906.9,
    "scores": {
     "mentioned": [
      "[TAITUNG] 新生國小",
      "[TAITUNG] 卑南國中",
      "[TAITUNG] 台東女中",
+     "[YILAN] 壯圍國小",
      "[TAITUNG] 新生國中",
      "[TAITUNG] 知本國小",
+     "[YILAN] 壯圍國中",
+     "[YILAN] 澳花國小",
      "[TAITUNG] 台東市公所",
      "[TAITUNG] 台東市原住民文化會館"
     ],
@@ -4849,14 +4843,14 @@
     "format_ok": 1.0,
     "truncated": 0.0,
     "answer_recall": 1.0,
-    "answer_precision": 0.2857142857142857,
+    "answer_precision": 0.2,
     "complete": 1.0,
     "unsupported_mentions": [],
     "hallucinated": 0.0,
     "false_abstain": 0.0,
     "unsupported_numbers": [],
     "numbers_supported": 1.0,
-    "numbers_checked": 6
+    "numbers_checked": 7
    }
   },
   {
@@ -4866,13 +4860,13 @@
     "[HUALIEN] 花蓮縣立體育館"
    ],
    "generated": true,
-   "reply": "花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 人\n\n濤強國小：花蓮市，容量 300 人，剩餘空位 300 人\n\n信義國小：花蓮市，容量 200 人，剩餘空位 200 人\n\n中原國小：花蓮市，容量 350 人，剩餘空位 350 人\n\n中正國小：花蓮市，容量 400 人，剩餘空位 400 人\n\n民義國小：花蓮市，容量 500 人，剩餘空位 500 人\n\n南山國小：大同鄉，容量 200 人，剩餘空位 200 人\n\n羅東國小：羅東鎮，容量 450 人，剩餘空位 450 人\n\n自強國中：花蓮市，容量 450 人，剩餘空位 450 人\n\n寶桑國小：台東市，容量 400 人，剩餘空位 400 人",
-   "context_chars": 984,
-   "latency_ms": 53062.0,
+   "reply": "花蓮縣立體育館：花蓮市，容量 1500 人，剩餘空位 1500 人\n濤強國小：花蓮市，容量 300 人，剩餘空位 300 人\n信義國小：花蓮市，容量 200 人，剩餘空位 200 人\n中原國小：花蓮市，容量 350 人，剩餘空位 350 人\n中正國小：花蓮市，容量 400 人，剩餘空位 400 人\n民義國小：花蓮市，容量 500 人，剩餘空位 500 人\n南山國小：大同鄉，容量 200 人，剩餘空位 200 人\n羅東國小：羅東鎮，容量 450 人，剩餘空位 450 人\n自強國中：花蓮市，容量 450 人，剩餘空位 450 人\n寶桑國小：台東市，容量 400 人，剩餘空位 400 人",
+   "context_chars": 1048,
+   "latency_ms": 36247.6,
    "done_reason": "stop",
-   "prompt_tokens": 1298,
+   "prompt_tokens": 1373,
    "output_tokens": 284,
-   "generate_ms": 30743.1,
+   "generate_ms": 35863.9,
    "scores": {
     "mentioned": [
      "[HUALIEN] 花蓮縣立體育館",
@@ -4910,18 +4904,17 @@
     "[TAITUNG] 寶桑國小"
    ],
    "generated": true,
-   "reply": "台東女中：台東市，容量 500 人，剩餘空位 500 人\n壯圍國小：壯圍鄉，容量 300 人，剩餘空位 300 人\n二城國小：頭城鎮，容量 300 人，剩餘空位 300 人\n寶桑國小：台東市，容量 400 人，剩餘空位 400 人",
-   "context_chars": 977,
-   "latency_ms": 33912.9,
+   "reply": "台東女中：台東市，容量 500 人，剩餘空位 500 人\n壯圍國小：壯圍鄉，容量 300 人，剩餘空位 300 人\n寶桑國小：台東市，容量 400 人，剩餘空位 400 人",
+   "context_chars": 1038,
+   "latency_ms": 10878.0,
    "done_reason": "stop",
-   "prompt_tokens": 1286,
-   "output_tokens": 112,
-   "generate_ms": 11746.6,
+   "prompt_tokens": 1358,
+   "output_tokens": 84,
+   "generate_ms": 10483.6,
    "scores": {
     "mentioned": [
      "[TAITUNG] 台東女中",
      "[YILAN] 壯圍國小",
-     "[YILAN] 二城國小",
      "[TAITUNG] 寶桑國小"
     ],
     "invented": [],
@@ -4930,7 +4923,7 @@
     "format_ok": 1.0,
     "truncated": 0.0,
     "answer_recall": 1.0,
-    "answer_precision": 0.5,
+    "answer_precision": 0.6666666666666666,
     "complete": 1.0,
     "unsupported_mentions": [],
     "hallucinated": 0.0,
@@ -4947,7 +4940,7 @@
    "generated": false,
    "reply": "本系統只涵蓋宜蘭、花蓮、台東三縣的避難所資料，目前沒有高雄的避難所資訊。請改問東部地區的避難所，或洽當地政府的災害應變中心。",
    "context_chars": 0,
-   "latency_ms": 0.0,
+   "latency_ms": 0.1,
    "scores": {
     "mentioned": [],
     "invented": [],
@@ -4980,33 +4973,18 @@
    "query": "今天天氣如何",
    "category": "negative",
    "relevant": [],
-   "generated": true,
-   "reply": "國風國中：花蓮市，容量 300 人，剩餘空位 300 人\n花蓮市立圖書館：花蓮市，容量 150 人，剩餘空位 150 人\n花蓮市公所：花蓮市，容量 100 人，剩餘空位 100 人\n台東市公所：台東市，容量 150 人，剩餘空位 150 人\n壯圍國小：壯圍鄉，容量 300 人，剩餘空位 300 人\n台東高中：台東市，容量 500 人，剩餘空位 500 人\n馬蘭國小：台東市，容量 300 人，剩餘空位 300 人\n二城國小：頭城鎮，容量 300 人，剩餘空位 300 人\n明禮國小：花蓮市，容量 250 人，剩餘空位 250 人\n東海國小：台東市，容量 300 人，剩餘空位 300 人",
-   "context_chars": 984,
-   "latency_ms": 51497.7,
-   "done_reason": "stop",
-   "prompt_tokens": 1291,
-   "output_tokens": 284,
-   "generate_ms": 29859.5,
+   "generated": false,
+   "reply": "目前沒有相關資料。本系統只回答宜蘭、花蓮、台東三縣的避難所資訊，請改問避難所的位置、容量或剩餘空位。",
+   "context_chars": 0,
+   "latency_ms": 130.0,
    "scores": {
-    "mentioned": [
-     "[HUALIEN] 國風國中",
-     "[HUALIEN] 花蓮市立圖書館",
-     "[HUALIEN] 花蓮市公所",
-     "[TAITUNG] 台東市公所",
-     "[YILAN] 壯圍國小",
-     "[TAITUNG] 台東高中",
-     "[TAITUNG] 馬蘭國小",
-     "[YILAN] 二城國小",
-     "[HUALIEN] 明禮國小",
-     "[TAITUNG] 東海國小"
-    ],
+    "mentioned": [],
     "invented": [],
-    "abstained": false,
+    "abstained": true,
     "format_issues": [],
     "format_ok": 1.0,
     "truncated": 0.0,
-    "abstain_correct": 0.0
+    "abstain_correct": 1.0
    }
   },
   {
@@ -5031,14 +5009,10 @@
    "query": "如何申請災害補助",
    "category": "negative",
    "relevant": [],
-   "generated": true,
-   "reply": "目前沒有相關資料。",
-   "context_chars": 982,
-   "latency_ms": 23656.7,
-   "done_reason": "stop",
-   "prompt_tokens": 1293,
-   "output_tokens": 6,
-   "generate_ms": 524.9,
+   "generated": false,
+   "reply": "目前沒有相關資料。本系統只回答宜蘭、花蓮、台東三縣的避難所資訊，請改問避難所的位置、容量或剩餘空位。",
+   "context_chars": 0,
+   "latency_ms": 127.3,
    "scores": {
     "mentioned": [],
     "invented": [],
@@ -5056,7 +5030,7 @@
    "generated": false,
    "reply": "本系統只涵蓋宜蘭、花蓮、台東三縣的避難所資料，目前沒有桃園的避難所資訊。請改問東部地區的避難所，或洽當地政府的災害應變中心。",
    "context_chars": 0,
-   "latency_ms": 0.0,
+   "latency_ms": 0.1,
    "scores": {
     "mentioned": [],
     "invented": [],
