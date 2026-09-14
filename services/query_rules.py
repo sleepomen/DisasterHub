@@ -56,6 +56,15 @@ CAP_AT_MOST = re.compile(r"(\d{2,6})\s*人?\s*(?:以下|以內|內)|(?:不到|�
 SUPERLATIVE = re.compile(r"最大|最多|容納最多|收最多|最能收|最寬敞|容量最高|容量排名|容量排序|由大到小|最小|容量最低|由小到大")
 ASCENDING = re.compile(r"最小|容量最低|由小到大")
 
+# 路名：「四維路」「中華路一段附近」「桂林北路的避難所」。向量距離對純路名很不敏感（同一條路的兩間學校
+# 在語意上毫無關係），所以抽出來做 metadata 精確篩選。字元類別排除行政區與助詞，「宜蘭市中山路」才會抽到「中山路」；
+# 後面必須接段 / 巷 / 號 / 助詞 / 句尾，「避難所路線」這種才不會被抽成「避難所路」
+ROAD_PATTERN = re.compile(
+    r"(?:(?![市鄉鎮縣的在有到去往])[一-鿿]){1,6}?(?:大路|大道|路|街)"
+    r"(?=$|[一二三四五六七八九十]段|巷|號|上|的|附近|一帶|旁|邊|口|周|那|這|有|哪|[\s，,。？?、])"
+)
+ROAD_BLOCKLIST = {"走路", "網路", "道路", "公路", "馬路", "逛街", "上街", "大路", "大道", "一路"}
+
 # 鄉鎮字尾；去掉字尾的「詞幹」也允許命中（「礁溪」→ 礁溪鄉），但這幾個詞幹太像一般用語，不做詞幹比對
 TOWNSHIP_SUFFIXES = ("市", "鄉", "鎮")
 STEM_BLOCKLIST = {"成功", "大同", "光復", "新城"}
@@ -86,6 +95,7 @@ def known_townships() -> dict[str, str]:
 class QueryPlan:
     region: str | None = None
     township: str | None = None
+    road: str | None = None
     facilities: list[str] = field(default_factory=list)
     capacity_min: int | None = None
     capacity_max: int | None = None
@@ -97,7 +107,7 @@ class QueryPlan:
     @property
     def has_filter(self) -> bool:
         return any([
-            self.region, self.township, self.facilities,
+            self.region, self.township, self.road, self.facilities,
             self.capacity_min is not None, self.capacity_max is not None, self.size_class,
         ])
 
@@ -108,6 +118,8 @@ class QueryPlan:
             clauses.append({"township": self.township})
         elif self.region:
             clauses.append({"region": self.region})
+        if self.road:
+            clauses.append({"road": self.road})
         if self.facilities:
             if len(self.facilities) == 1:
                 clauses.append({"facility": self.facilities[0]})
@@ -129,6 +141,8 @@ class QueryPlan:
             parts.append(self.township)
         elif self.region:
             parts.append(f"{self.region}地區")
+        if self.road:
+            parts.append(self.road)
         if self.facilities:
             parts.append("/".join(self.facilities))
         if self.capacity_min is not None:
@@ -161,6 +175,14 @@ def _find_township(query: str) -> tuple[str | None, str | None]:
         if stem in query:
             return name, towns[name]
     return None, None
+
+
+def _find_road(query: str) -> str | None:
+    for m in ROAD_PATTERN.finditer(query):
+        road = m.group(0)
+        if road not in ROAD_BLOCKLIST:
+            return road
+    return None
 
 
 def _find_facilities(query: str) -> list[str]:
@@ -212,6 +234,7 @@ def analyze(query: str) -> QueryPlan:
                 plan.out_of_scope = place
                 return plan
 
+    plan.road = _find_road(query)
     plan.facilities = _find_facilities(query)
     plan.capacity_min, plan.capacity_max = _find_capacity(query)
     plan.size_class = next((s for s in SIZE_CLASS_KEYWORDS if s in query), None)

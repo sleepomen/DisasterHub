@@ -74,6 +74,14 @@ def street_of(address: str) -> str:
     return m.group(1) if m else ""
 
 
+SECTION_SUFFIX = re.compile(r"[一二三四五六七八九十]段$")
+
+
+def road_of(address: str) -> str:
+    """路名去掉「段」：使用者問「四維路」時，四維路一段與二段的避難所都要對得上"""
+    return SECTION_SUFFIX.sub("", street_of(address))
+
+
 def facility_of(name: str) -> str:
     clean = strip_region_tag(name)
     return next((label for kw, label in FACILITY_RULES if kw in clean), "其他")
@@ -109,9 +117,11 @@ def aliases_of(name: str) -> list[str]:
     without_owner = OWNER_PREFIX.sub("", clean)
     add(without_owner)
 
+    # 去掉地名後如果只剩「立體育館」這種所有權字尾，再把「立」拿掉；
+    # 留著會變成好幾間共用的假別名，生成評測會把別間也算成有被提到
     stripped = LEADING_PLACE.sub("", clean)
     if stripped != clean:
-        add(stripped)
+        add(stripped.lstrip("立"))
 
     if "文化會館" in clean:
         add(clean.replace("文化會館", "會館"))
@@ -126,6 +136,7 @@ def profile(name: str, address: str, capacity: int) -> dict:
         "county": county_of(name),
         "township": township_of(address),
         "street": street_of(address),
+        "road": road_of(address),
         "facility": facility_of(name),
         "size_class": size_class_of(capacity),
         "aliases": aliases_of(name),
