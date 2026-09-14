@@ -1,123 +1,123 @@
-{"query": "花蓮縣立體育館", "relevant": ["[HUALIEN] 花蓮縣立體育館"], "category": "exact_name", "note": ""}
-{"query": "花蓮市立圖書館", "relevant": ["[HUALIEN] 花蓮市立圖書館"], "category": "exact_name", "note": ""}
-{"query": "民義國小", "relevant": ["[HUALIEN] 民義國小"], "category": "exact_name", "note": ""}
-{"query": "中正國小", "relevant": ["[HUALIEN] 中正國小"], "category": "exact_name", "note": ""}
-{"query": "明禮國小", "relevant": ["[HUALIEN] 明禮國小"], "category": "exact_name", "note": ""}
-{"query": "信義國小", "relevant": ["[HUALIEN] 信義國小"], "category": "exact_name", "note": ""}
-{"query": "台東縣立體育場", "relevant": ["[TAITUNG] 台東縣立體育場"], "category": "exact_name", "note": ""}
-{"query": "台東高中", "relevant": ["[TAITUNG] 台東高中"], "category": "exact_name", "note": ""}
-{"query": "新生國中", "relevant": ["[TAITUNG] 新生國中"], "category": "exact_name", "note": ""}
-{"query": "卑南國中", "relevant": ["[TAITUNG] 卑南國中"], "category": "exact_name", "note": ""}
-{"query": "東海國小", "relevant": ["[TAITUNG] 東海國小"], "category": "exact_name", "note": ""}
-{"query": "康樂國小", "relevant": ["[TAITUNG] 康樂國小"], "category": "exact_name", "note": ""}
-{"query": "宜蘭市國民運動中心", "relevant": ["[YILAN] 宜蘭市國民運動中心"], "category": "exact_name", "note": ""}
-{"query": "羅東鎮立體育館", "relevant": ["[YILAN] 羅東鎮立體育館"], "category": "exact_name", "note": ""}
-{"query": "蘇澳國小", "relevant": ["[YILAN] 蘇澳國小"], "category": "exact_name", "note": ""}
-{"query": "二城國小", "relevant": ["[YILAN] 二城國小"], "category": "exact_name", "note": ""}
-{"query": "壯圍國中", "relevant": ["[YILAN] 壯圍國中"], "category": "exact_name", "note": ""}
-{"query": "清溝國小", "relevant": ["[YILAN] 清溝國小"], "category": "exact_name", "note": ""}
-{"query": "三星鄉綜合運動場", "relevant": ["[YILAN] 三星鄉綜合運動場"], "category": "exact_name", "note": ""}
-{"query": "南山國小", "relevant": ["[YILAN] 南山國小"], "category": "exact_name", "note": ""}
-{"query": "花蓮市中正體育館的容量多少", "relevant": ["[HUALIEN] 花蓮市中正體育館"], "category": "name_variant", "note": ""}
-{"query": "自強國中目前收容幾人", "relevant": ["[HUALIEN] 自強國中"], "category": "name_variant", "note": ""}
-{"query": "中正國小還有空位嗎", "relevant": ["[HUALIEN] 中正國小"], "category": "name_variant", "note": ""}
-{"query": "濤強國小的容量多少", "relevant": ["[HUALIEN] 濤強國小"], "category": "name_variant", "note": ""}
-{"query": "台東縣立體育館目前收容幾人", "relevant": ["[TAITUNG] 台東縣立體育館"], "category": "name_variant", "note": ""}
-{"query": "台東高中還有空位嗎", "relevant": ["[TAITUNG] 台東高中"], "category": "name_variant", "note": ""}
-{"query": "東海國中的容量多少", "relevant": ["[TAITUNG] 東海國中"], "category": "name_variant", "note": ""}
-{"query": "新生國小目前收容幾人", "relevant": ["[TAITUNG] 新生國小"], "category": "name_variant", "note": ""}
-{"query": "康樂國小還有空位嗎", "relevant": ["[TAITUNG] 康樂國小"], "category": "name_variant", "note": ""}
-{"query": "宜蘭國小的容量多少", "relevant": ["[YILAN] 宜蘭國小"], "category": "name_variant", "note": ""}
-{"query": "蘇澳鎮立體育館目前收容幾人", "relevant": ["[YILAN] 蘇澳鎮立體育館"], "category": "name_variant", "note": ""}
-{"query": "二城國小還有空位嗎", "relevant": ["[YILAN] 二城國小"], "category": "name_variant", "note": ""}
-{"query": "宜蘭運動公園體育館的容量多少", "relevant": ["[YILAN] 宜蘭運動公園體育館"], "category": "name_variant", "note": ""}
-{"query": "三星國中目前收容幾人", "relevant": ["[YILAN] 三星國中"], "category": "name_variant", "note": ""}
-{"query": "南山國小還有空位嗎", "relevant": ["[YILAN] 南山國小"], "category": "name_variant", "note": ""}
-{"query": "花蓮有哪些避難所", "relevant": ["[HUALIEN] 中原國小", "[HUALIEN] 中正國小", "[HUALIEN] 中華國小", "[HUALIEN] 信義國小", "[HUALIEN] 國風國中", "[HUALIEN] 明廉國小", "[HUALIEN] 明禮國小", "[HUALIEN] 民義國小", "[HUALIEN] 濤強國小", "[HUALIEN] 自強國中", "[HUALIEN] 花蓮市中正體育館", "[HUALIEN] 花蓮市公所", "[HUALIEN] 花蓮市立圖書館", "[HUALIEN] 花蓮縣立體育館"], "category": "region", "note": "14 relevant"}
-{"query": "花蓮縣的避難所", "relevant": ["[HUALIEN] 中原國小", "[HUALIEN] 中正國小", "[HUALIEN] 中華國小", "[HUALIEN] 信義國小", "[HUALIEN] 國風國中", "[HUALIEN] 明廉國小", "[HUALIEN] 明禮國小", "[HUALIEN] 民義國小", "[HUALIEN] 濤強國小", "[HUALIEN] 自強國中", "[HUALIEN] 花蓮市中正體育館", "[HUALIEN] 花蓮市公所", "[HUALIEN] 花蓮市立圖書館", "[HUALIEN] 花蓮縣立體育館"], "category": "region", "note": "14 relevant"}
-{"query": "花蓮地區可以去哪裡避難", "relevant": ["[HUALIEN] 中原國小", "[HUALIEN] 中正國小", "[HUALIEN] 中華國小", "[HUALIEN] 信義國小", "[HUALIEN] 國風國中", "[HUALIEN] 明廉國小", "[HUALIEN] 明禮國小", "[HUALIEN] 民義國小", "[HUALIEN] 濤強國小", "[HUALIEN] 自強國中", "[HUALIEN] 花蓮市中正體育館", "[HUALIEN] 花蓮市公所", "[HUALIEN] 花蓮市立圖書館", "[HUALIEN] 花蓮縣立體育館"], "category": "region", "note": "14 relevant"}
-{"query": "台東有哪些避難所", "relevant": ["[TAITUNG] 卑南國中", "[TAITUNG] 台東女中", "[TAITUNG] 台東市公所", "[TAITUNG] 台東市原住民文化會館", "[TAITUNG] 台東縣立體育場", "[TAITUNG] 台東縣立體育館", "[TAITUNG] 台東高中", "[TAITUNG] 寶桑國中", "[TAITUNG] 寶桑國小", "[TAITUNG] 康樂國小", "[TAITUNG] 新生國中", "[TAITUNG] 新生國小", "[TAITUNG] 東海國中", "[TAITUNG] 東海國小", "[TAITUNG] 知本國小", "[TAITUNG] 馬蘭國小"], "category": "region", "note": "16 relevant"}
-{"query": "台東縣的避難所", "relevant": ["[TAITUNG] 卑南國中", "[TAITUNG] 台東女中", "[TAITUNG] 台東市公所", "[TAITUNG] 台東市原住民文化會館", "[TAITUNG] 台東縣立體育場", "[TAITUNG] 台東縣立體育館", "[TAITUNG] 台東高中", "[TAITUNG] 寶桑國中", "[TAITUNG] 寶桑國小", "[TAITUNG] 康樂國小", "[TAITUNG] 新生國中", "[TAITUNG] 新生國小", "[TAITUNG] 東海國中", "[TAITUNG] 東海國小", "[TAITUNG] 知本國小", "[TAITUNG] 馬蘭國小"], "category": "region", "note": "16 relevant"}
-{"query": "台東地區可以去哪裡避難", "relevant": ["[TAITUNG] 卑南國中", "[TAITUNG] 台東女中", "[TAITUNG] 台東市公所", "[TAITUNG] 台東市原住民文化會館", "[TAITUNG] 台東縣立體育場", "[TAITUNG] 台東縣立體育館", "[TAITUNG] 台東高中", "[TAITUNG] 寶桑國中", "[TAITUNG] 寶桑國小", "[TAITUNG] 康樂國小", "[TAITUNG] 新生國中", "[TAITUNG] 新生國小", "[TAITUNG] 東海國中", "[TAITUNG] 東海國小", "[TAITUNG] 知本國小", "[TAITUNG] 馬蘭國小"], "category": "region", "note": "16 relevant"}
-{"query": "宜蘭有哪些避難所", "relevant": ["[YILAN] 三星國中", "[YILAN] 三星鄉綜合運動場", "[YILAN] 中興國小附幼", "[YILAN] 二城國小", "[YILAN] 南山國小", "[YILAN] 南澳鄉綜合體育場", "[YILAN] 壯圍國中", "[YILAN] 壯圍國小", "[YILAN] 大同鄉公所", "[YILAN] 宜蘭國小", "[YILAN] 宜蘭市國民運動中心", "[YILAN] 宜蘭運動公園體育館", "[YILAN] 清溝國小", "[YILAN] 澳花國小", "[YILAN] 礁溪國中", "[YILAN] 羅東國小", "[YILAN] 羅東鎮立體育館", "[YILAN] 蘇澳國小", "[YILAN] 蘇澳鎮立體育館", "[YILAN] 頭城國小"], "category": "region", "note": "20 relevant"}
-{"query": "宜蘭縣的避難所", "relevant": ["[YILAN] 三星國中", "[YILAN] 三星鄉綜合運動場", "[YILAN] 中興國小附幼", "[YILAN] 二城國小", "[YILAN] 南山國小", "[YILAN] 南澳鄉綜合體育場", "[YILAN] 壯圍國中", "[YILAN] 壯圍國小", "[YILAN] 大同鄉公所", "[YILAN] 宜蘭國小", "[YILAN] 宜蘭市國民運動中心", "[YILAN] 宜蘭運動公園體育館", "[YILAN] 清溝國小", "[YILAN] 澳花國小", "[YILAN] 礁溪國中", "[YILAN] 羅東國小", "[YILAN] 羅東鎮立體育館", "[YILAN] 蘇澳國小", "[YILAN] 蘇澳鎮立體育館", "[YILAN] 頭城國小"], "category": "region", "note": "20 relevant"}
-{"query": "宜蘭地區可以去哪裡避難", "relevant": ["[YILAN] 三星國中", "[YILAN] 三星鄉綜合運動場", "[YILAN] 中興國小附幼", "[YILAN] 二城國小", "[YILAN] 南山國小", "[YILAN] 南澳鄉綜合體育場", "[YILAN] 壯圍國中", "[YILAN] 壯圍國小", "[YILAN] 大同鄉公所", "[YILAN] 宜蘭國小", "[YILAN] 宜蘭市國民運動中心", "[YILAN] 宜蘭運動公園體育館", "[YILAN] 清溝國小", "[YILAN] 澳花國小", "[YILAN] 礁溪國中", "[YILAN] 羅東國小", "[YILAN] 羅東鎮立體育館", "[YILAN] 蘇澳國小", "[YILAN] 蘇澳鎮立體育館", "[YILAN] 頭城國小"], "category": "region", "note": "20 relevant"}
-{"query": "三星鄉的避難所", "relevant": ["[YILAN] 三星國中", "[YILAN] 三星鄉綜合運動場"], "category": "township", "note": "2 relevant"}
-{"query": "三星鄉有哪裡可以避難", "relevant": ["[YILAN] 三星國中", "[YILAN] 三星鄉綜合運動場"], "category": "township", "note": "2 relevant"}
-{"query": "五結鄉的避難所", "relevant": ["[YILAN] 中興國小附幼"], "category": "township", "note": "1 relevant"}
-{"query": "冬山鄉的避難所", "relevant": ["[YILAN] 清溝國小"], "category": "township", "note": "1 relevant"}
-{"query": "冬山鄉有哪裡可以避難", "relevant": ["[YILAN] 清溝國小"], "category": "township", "note": "1 relevant"}
-{"query": "南澳鄉的避難所", "relevant": ["[YILAN] 南澳鄉綜合體育場", "[YILAN] 澳花國小"], "category": "township", "note": "2 relevant"}
-{"query": "台東市的避難所", "relevant": ["[TAITUNG] 卑南國中", "[TAITUNG] 台東女中", "[TAITUNG] 台東市公所", "[TAITUNG] 台東市原住民文化會館", "[TAITUNG] 台東縣立體育場", "[TAITUNG] 台東縣立體育館", "[TAITUNG] 台東高中", "[TAITUNG] 寶桑國中", "[TAITUNG] 寶桑國小", "[TAITUNG] 康樂國小", "[TAITUNG] 新生國中", "[TAITUNG] 新生國小", "[TAITUNG] 東海國中", "[TAITUNG] 東海國小", "[TAITUNG] 知本國小", "[TAITUNG] 馬蘭國小"], "category": "township", "note": "16 relevant"}
-{"query": "台東市有哪裡可以避難", "relevant": ["[TAITUNG] 卑南國中", "[TAITUNG] 台東女中", "[TAITUNG] 台東市公所", "[TAITUNG] 台東市原住民文化會館", "[TAITUNG] 台東縣立體育場", "[TAITUNG] 台東縣立體育館", "[TAITUNG] 台東高中", "[TAITUNG] 寶桑國中", "[TAITUNG] 寶桑國小", "[TAITUNG] 康樂國小", "[TAITUNG] 新生國中", "[TAITUNG] 新生國小", "[TAITUNG] 東海國中", "[TAITUNG] 東海國小", "[TAITUNG] 知本國小", "[TAITUNG] 馬蘭國小"], "category": "township", "note": "16 relevant"}
-{"query": "壯圍鄉的避難所", "relevant": ["[YILAN] 壯圍國中", "[YILAN] 壯圍國小"], "category": "township", "note": "2 relevant"}
-{"query": "大同鄉的避難所", "relevant": ["[YILAN] 南山國小", "[YILAN] 大同鄉公所"], "category": "township", "note": "2 relevant"}
-{"query": "大同鄉有哪裡可以避難", "relevant": ["[YILAN] 南山國小", "[YILAN] 大同鄉公所"], "category": "township", "note": "2 relevant"}
-{"query": "宜蘭市的避難所", "relevant": ["[YILAN] 宜蘭國小", "[YILAN] 宜蘭市國民運動中心", "[YILAN] 宜蘭運動公園體育館"], "category": "township", "note": "3 relevant"}
-{"query": "礁溪鄉的避難所", "relevant": ["[YILAN] 礁溪國中"], "category": "township", "note": "1 relevant"}
-{"query": "礁溪鄉有哪裡可以避難", "relevant": ["[YILAN] 礁溪國中"], "category": "township", "note": "1 relevant"}
-{"query": "羅東鎮的避難所", "relevant": ["[YILAN] 羅東國小", "[YILAN] 羅東鎮立體育館"], "category": "township", "note": "2 relevant"}
-{"query": "花蓮市的避難所", "relevant": ["[HUALIEN] 中原國小", "[HUALIEN] 中正國小", "[HUALIEN] 中華國小", "[HUALIEN] 信義國小", "[HUALIEN] 國風國中", "[HUALIEN] 明廉國小", "[HUALIEN] 明禮國小", "[HUALIEN] 民義國小", "[HUALIEN] 濤強國小", "[HUALIEN] 自強國中", "[HUALIEN] 花蓮市中正體育館", "[HUALIEN] 花蓮市公所", "[HUALIEN] 花蓮市立圖書館", "[HUALIEN] 花蓮縣立體育館"], "category": "township", "note": "14 relevant"}
-{"query": "花蓮市有哪裡可以避難", "relevant": ["[HUALIEN] 中原國小", "[HUALIEN] 中正國小", "[HUALIEN] 中華國小", "[HUALIEN] 信義國小", "[HUALIEN] 國風國中", "[HUALIEN] 明廉國小", "[HUALIEN] 明禮國小", "[HUALIEN] 民義國小", "[HUALIEN] 濤強國小", "[HUALIEN] 自強國中", "[HUALIEN] 花蓮市中正體育館", "[HUALIEN] 花蓮市公所", "[HUALIEN] 花蓮市立圖書館", "[HUALIEN] 花蓮縣立體育館"], "category": "township", "note": "14 relevant"}
-{"query": "蘇澳鎮的避難所", "relevant": ["[YILAN] 蘇澳國小", "[YILAN] 蘇澳鎮立體育館"], "category": "township", "note": "2 relevant"}
-{"query": "頭城鎮的避難所", "relevant": ["[YILAN] 二城國小", "[YILAN] 頭城國小"], "category": "township", "note": "2 relevant"}
-{"query": "頭城鎮有哪裡可以避難", "relevant": ["[YILAN] 二城國小", "[YILAN] 頭城國小"], "category": "township", "note": "2 relevant"}
-{"query": "花蓮有哪些學校可以避難", "relevant": ["[HUALIEN] 中原國小", "[HUALIEN] 中正國小", "[HUALIEN] 中華國小", "[HUALIEN] 信義國小", "[HUALIEN] 國風國中", "[HUALIEN] 明廉國小", "[HUALIEN] 明禮國小", "[HUALIEN] 民義國小", "[HUALIEN] 濤強國小", "[HUALIEN] 自強國中"], "category": "facility", "note": "10 relevant"}
-{"query": "花蓮的國小避難所", "relevant": ["[HUALIEN] 中原國小", "[HUALIEN] 中正國小", "[HUALIEN] 中華國小", "[HUALIEN] 信義國小", "[HUALIEN] 明廉國小", "[HUALIEN] 明禮國小", "[HUALIEN] 民義國小", "[HUALIEN] 濤強國小"], "category": "facility", "note": "8 relevant"}
-{"query": "花蓮的國中", "relevant": ["[HUALIEN] 國風國中", "[HUALIEN] 自強國中"], "category": "facility", "note": "2 relevant"}
-{"query": "花蓮的體育館", "relevant": ["[HUALIEN] 花蓮市中正體育館", "[HUALIEN] 花蓮縣立體育館"], "category": "facility", "note": "2 relevant"}
-{"query": "台東有哪些學校可以避難", "relevant": ["[TAITUNG] 卑南國中", "[TAITUNG] 台東女中", "[TAITUNG] 台東高中", "[TAITUNG] 寶桑國中", "[TAITUNG] 寶桑國小", "[TAITUNG] 康樂國小", "[TAITUNG] 新生國中", "[TAITUNG] 新生國小", "[TAITUNG] 東海國中", "[TAITUNG] 東海國小", "[TAITUNG] 知本國小", "[TAITUNG] 馬蘭國小"], "category": "facility", "note": "12 relevant"}
-{"query": "台東的國小避難所", "relevant": ["[TAITUNG] 寶桑國小", "[TAITUNG] 康樂國小", "[TAITUNG] 新生國小", "[TAITUNG] 東海國小", "[TAITUNG] 知本國小", "[TAITUNG] 馬蘭國小"], "category": "facility", "note": "6 relevant"}
-{"query": "台東的國中", "relevant": ["[TAITUNG] 卑南國中", "[TAITUNG] 寶桑國中", "[TAITUNG] 新生國中", "[TAITUNG] 東海國中"], "category": "facility", "note": "4 relevant"}
-{"query": "台東的體育館", "relevant": ["[TAITUNG] 台東縣立體育場", "[TAITUNG] 台東縣立體育館"], "category": "facility", "note": "2 relevant"}
-{"query": "宜蘭有哪些學校可以避難", "relevant": ["[YILAN] 三星國中", "[YILAN] 中興國小附幼", "[YILAN] 二城國小", "[YILAN] 南山國小", "[YILAN] 壯圍國中", "[YILAN] 壯圍國小", "[YILAN] 宜蘭國小", "[YILAN] 清溝國小", "[YILAN] 澳花國小", "[YILAN] 礁溪國中", "[YILAN] 羅東國小", "[YILAN] 蘇澳國小", "[YILAN] 頭城國小"], "category": "facility", "note": "13 relevant"}
-{"query": "宜蘭的國小避難所", "relevant": ["[YILAN] 中興國小附幼", "[YILAN] 二城國小", "[YILAN] 南山國小", "[YILAN] 壯圍國小", "[YILAN] 宜蘭國小", "[YILAN] 清溝國小", "[YILAN] 澳花國小", "[YILAN] 羅東國小", "[YILAN] 蘇澳國小", "[YILAN] 頭城國小"], "category": "facility", "note": "10 relevant"}
-{"query": "宜蘭的國中", "relevant": ["[YILAN] 三星國中", "[YILAN] 壯圍國中", "[YILAN] 礁溪國中"], "category": "facility", "note": "3 relevant"}
-{"query": "宜蘭的體育館", "relevant": ["[YILAN] 三星鄉綜合運動場", "[YILAN] 南澳鄉綜合體育場", "[YILAN] 宜蘭市國民運動中心", "[YILAN] 宜蘭運動公園體育館", "[YILAN] 羅東鎮立體育館", "[YILAN] 蘇澳鎮立體育館"], "category": "facility", "note": "6 relevant"}
-{"query": "花蓮能收上千人的地方", "relevant": ["[HUALIEN] 花蓮縣立體育館"], "category": "capacity", "note": "1 relevant"}
-{"query": "花蓮容量超過500人的避難所", "relevant": ["[HUALIEN] 花蓮市中正體育館", "[HUALIEN] 花蓮縣立體育館"], "category": "capacity", "note": "2 relevant"}
-{"query": "花蓮的小型避難所，容量300人以下", "relevant": ["[HUALIEN] 信義國小", "[HUALIEN] 國風國中", "[HUALIEN] 明廉國小", "[HUALIEN] 明禮國小", "[HUALIEN] 濤強國小", "[HUALIEN] 花蓮市公所", "[HUALIEN] 花蓮市立圖書館"], "category": "capacity", "note": "7 relevant"}
-{"query": "台東能收上千人的地方", "relevant": ["[TAITUNG] 台東縣立體育場", "[TAITUNG] 台東縣立體育館"], "category": "capacity", "note": "2 relevant"}
-{"query": "台東容量超過500人的避難所", "relevant": ["[TAITUNG] 台東縣立體育場", "[TAITUNG] 台東縣立體育館", "[TAITUNG] 新生國中"], "category": "capacity", "note": "3 relevant"}
-{"query": "台東的小型避難所，容量300人以下", "relevant": ["[TAITUNG] 台東市公所", "[TAITUNG] 台東市原住民文化會館", "[TAITUNG] 康樂國小", "[TAITUNG] 東海國小", "[TAITUNG] 知本國小", "[TAITUNG] 馬蘭國小"], "category": "capacity", "note": "6 relevant"}
-{"query": "宜蘭能收上千人的地方", "relevant": ["[YILAN] 宜蘭市國民運動中心"], "category": "capacity", "note": "1 relevant"}
-{"query": "宜蘭容量超過500人的避難所", "relevant": ["[YILAN] 南澳鄉綜合體育場", "[YILAN] 宜蘭市國民運動中心", "[YILAN] 礁溪國中", "[YILAN] 羅東鎮立體育館", "[YILAN] 蘇澳鎮立體育館"], "category": "capacity", "note": "5 relevant"}
-{"query": "宜蘭的小型避難所，容量300人以下", "relevant": ["[YILAN] 二城國小", "[YILAN] 南山國小", "[YILAN] 壯圍國中", "[YILAN] 壯圍國小", "[YILAN] 大同鄉公所", "[YILAN] 澳花國小"], "category": "capacity", "note": "6 relevant"}
-{"query": "縣立體育館", "relevant": ["[HUALIEN] 花蓮縣立體育館", "[TAITUNG] 台東縣立體育館"], "category": "alias", "note": ""}
-{"query": "花蓮體育館", "relevant": ["[HUALIEN] 花蓮市中正體育館", "[HUALIEN] 花蓮縣立體育館"], "category": "alias", "note": ""}
-{"query": "中正體育館", "relevant": ["[HUALIEN] 花蓮市中正體育館"], "category": "alias", "note": ""}
-{"query": "台東體育場", "relevant": ["[TAITUNG] 台東縣立體育場"], "category": "alias", "note": ""}
-{"query": "羅東體育館", "relevant": ["[YILAN] 羅東鎮立體育館"], "category": "alias", "note": ""}
-{"query": "蘇澳體育館", "relevant": ["[YILAN] 蘇澳鎮立體育館"], "category": "alias", "note": ""}
-{"query": "宜蘭運動中心", "relevant": ["[YILAN] 宜蘭市國民運動中心"], "category": "alias", "note": ""}
-{"query": "運動公園的體育館", "relevant": ["[YILAN] 宜蘭運動公園體育館"], "category": "alias", "note": ""}
-{"query": "原民會館", "relevant": ["[TAITUNG] 台東市原住民文化會館"], "category": "alias", "note": ""}
-{"query": "原住民文化館", "relevant": ["[TAITUNG] 台東市原住民文化會館"], "category": "alias", "note": ""}
-{"query": "花蓮市政府可以避難嗎", "relevant": ["[HUALIEN] 花蓮市公所"], "category": "alias", "note": ""}
-{"query": "台東市政府", "relevant": ["[TAITUNG] 台東市公所"], "category": "alias", "note": ""}
-{"query": "女子中學", "relevant": ["[TAITUNG] 台東女中"], "category": "alias", "note": ""}
-{"query": "台東的高中職", "relevant": ["[TAITUNG] 台東女中", "[TAITUNG] 台東高中"], "category": "alias", "note": ""}
-{"query": "圖書館可以避難嗎", "relevant": ["[HUALIEN] 花蓮市立圖書館"], "category": "alias", "note": ""}
-{"query": "有附設幼兒園的避難所", "relevant": ["[YILAN] 中興國小附幼"], "category": "alias", "note": ""}
-{"query": "知本附近", "relevant": ["[TAITUNG] 知本國小"], "category": "semantic", "note": ""}
-{"query": "馬蘭那邊有避難所嗎", "relevant": ["[TAITUNG] 馬蘭國小"], "category": "semantic", "note": ""}
-{"query": "礁溪", "relevant": ["[YILAN] 礁溪國中"], "category": "semantic", "note": ""}
-{"query": "南澳有哪裡可以躲", "relevant": ["[YILAN] 南澳鄉綜合體育場", "[YILAN] 澳花國小"], "category": "semantic", "note": ""}
-{"query": "三星鄉的收容地點", "relevant": ["[YILAN] 三星國中", "[YILAN] 三星鄉綜合運動場"], "category": "semantic", "note": ""}
-{"query": "頭城鎮附近的學校", "relevant": ["[YILAN] 二城國小", "[YILAN] 頭城國小"], "category": "semantic", "note": ""}
-{"query": "冬山", "relevant": ["[YILAN] 清溝國小"], "category": "semantic", "note": ""}
-{"query": "五結鄉", "relevant": ["[YILAN] 中興國小附幼"], "category": "semantic", "note": ""}
-{"query": "壯圍有哪些", "relevant": ["[YILAN] 壯圍國中", "[YILAN] 壯圍國小"], "category": "semantic", "note": ""}
-{"query": "大同鄉可以去哪", "relevant": ["[YILAN] 南山國小", "[YILAN] 大同鄉公所"], "category": "semantic", "note": ""}
-{"query": "花蓮市區最大的收容場所", "relevant": ["[HUALIEN] 花蓮縣立體育館"], "category": "semantic", "note": ""}
-{"query": "台東可以容納最多人的地方", "relevant": ["[TAITUNG] 台東縣立體育館"], "category": "semantic", "note": ""}
-{"query": "宜蘭最大的避難所", "relevant": ["[YILAN] 宜蘭市國民運動中心"], "category": "semantic", "note": ""}
-{"query": "鄉公所或市公所", "relevant": ["[HUALIEN] 花蓮市公所", "[TAITUNG] 台東市公所", "[YILAN] 大同鄉公所"], "category": "semantic", "note": ""}
-{"query": "桂林北路的避難所", "relevant": ["[TAITUNG] 台東縣立體育場", "[TAITUNG] 台東縣立體育館"], "category": "semantic", "note": ""}
-{"query": "中華路一段附近", "relevant": ["[TAITUNG] 台東高中", "[TAITUNG] 東海國中"], "category": "semantic", "note": ""}
-{"query": "更生路上", "relevant": ["[TAITUNG] 卑南國中", "[TAITUNG] 新生國小"], "category": "semantic", "note": ""}
-{"query": "達固湖灣大路", "relevant": ["[HUALIEN] 花蓮縣立體育館"], "category": "semantic", "note": ""}
-{"query": "四維路", "relevant": ["[TAITUNG] 台東女中", "[TAITUNG] 寶桑國小"], "category": "semantic", "note": ""}
+{"query": "花蓮縣立體育館", "relevant": ["[HUALIEN] 花蓮縣立體育館"], "category": "exact_name", "note": "", "expect": {"capacity": {"[HUALIEN] 花蓮縣立體育館": 1500}}}
+{"query": "花蓮市立圖書館", "relevant": ["[HUALIEN] 花蓮市立圖書館"], "category": "exact_name", "note": "", "expect": {"capacity": {"[HUALIEN] 花蓮市立圖書館": 150}}}
+{"query": "民義國小", "relevant": ["[HUALIEN] 民義國小"], "category": "exact_name", "note": "", "expect": {"capacity": {"[HUALIEN] 民義國小": 500}}}
+{"query": "中正國小", "relevant": ["[HUALIEN] 中正國小"], "category": "exact_name", "note": "", "expect": {"capacity": {"[HUALIEN] 中正國小": 400}}}
+{"query": "明禮國小", "relevant": ["[HUALIEN] 明禮國小"], "category": "exact_name", "note": "", "expect": {"capacity": {"[HUALIEN] 明禮國小": 250}}}
+{"query": "信義國小", "relevant": ["[HUALIEN] 信義國小"], "category": "exact_name", "note": "", "expect": {"capacity": {"[HUALIEN] 信義國小": 200}}}
+{"query": "台東縣立體育場", "relevant": ["[TAITUNG] 台東縣立體育場"], "category": "exact_name", "note": "", "expect": {"capacity": {"[TAITUNG] 台東縣立體育場": 1500}}}
+{"query": "台東高中", "relevant": ["[TAITUNG] 台東高中"], "category": "exact_name", "note": "", "expect": {"capacity": {"[TAITUNG] 台東高中": 500}}}
+{"query": "新生國中", "relevant": ["[TAITUNG] 新生國中"], "category": "exact_name", "note": "", "expect": {"capacity": {"[TAITUNG] 新生國中": 600}}}
+{"query": "卑南國中", "relevant": ["[TAITUNG] 卑南國中"], "category": "exact_name", "note": "", "expect": {"capacity": {"[TAITUNG] 卑南國中": 400}}}
+{"query": "東海國小", "relevant": ["[TAITUNG] 東海國小"], "category": "exact_name", "note": "", "expect": {"capacity": {"[TAITUNG] 東海國小": 300}}}
+{"query": "康樂國小", "relevant": ["[TAITUNG] 康樂國小"], "category": "exact_name", "note": "", "expect": {"capacity": {"[TAITUNG] 康樂國小": 250}}}
+{"query": "宜蘭市國民運動中心", "relevant": ["[YILAN] 宜蘭市國民運動中心"], "category": "exact_name", "note": "", "expect": {"capacity": {"[YILAN] 宜蘭市國民運動中心": 1200}}}
+{"query": "羅東鎮立體育館", "relevant": ["[YILAN] 羅東鎮立體育館"], "category": "exact_name", "note": "", "expect": {"capacity": {"[YILAN] 羅東鎮立體育館": 800}}}
+{"query": "蘇澳國小", "relevant": ["[YILAN] 蘇澳國小"], "category": "exact_name", "note": "", "expect": {"capacity": {"[YILAN] 蘇澳國小": 320}}}
+{"query": "二城國小", "relevant": ["[YILAN] 二城國小"], "category": "exact_name", "note": "", "expect": {"capacity": {"[YILAN] 二城國小": 300}}}
+{"query": "壯圍國中", "relevant": ["[YILAN] 壯圍國中"], "category": "exact_name", "note": "", "expect": {"capacity": {"[YILAN] 壯圍國中": 300}}}
+{"query": "清溝國小", "relevant": ["[YILAN] 清溝國小"], "category": "exact_name", "note": "", "expect": {"capacity": {"[YILAN] 清溝國小": 350}}}
+{"query": "三星鄉綜合運動場", "relevant": ["[YILAN] 三星鄉綜合運動場"], "category": "exact_name", "note": "", "expect": {"capacity": {"[YILAN] 三星鄉綜合運動場": 500}}}
+{"query": "南山國小", "relevant": ["[YILAN] 南山國小"], "category": "exact_name", "note": "", "expect": {"capacity": {"[YILAN] 南山國小": 200}}}
+{"query": "花蓮市中正體育館的容量多少", "relevant": ["[HUALIEN] 花蓮市中正體育館"], "category": "name_variant", "note": "", "expect": {"capacity": {"[HUALIEN] 花蓮市中正體育館": 600}}}
+{"query": "自強國中目前收容幾人", "relevant": ["[HUALIEN] 自強國中"], "category": "name_variant", "note": "", "expect": {"capacity": {"[HUALIEN] 自強國中": 450}}}
+{"query": "中正國小還有空位嗎", "relevant": ["[HUALIEN] 中正國小"], "category": "name_variant", "note": "", "expect": {"capacity": {"[HUALIEN] 中正國小": 400}}}
+{"query": "濤強國小的容量多少", "relevant": ["[HUALIEN] 濤強國小"], "category": "name_variant", "note": "", "expect": {"capacity": {"[HUALIEN] 濤強國小": 300}}}
+{"query": "台東縣立體育館目前收容幾人", "relevant": ["[TAITUNG] 台東縣立體育館"], "category": "name_variant", "note": "", "expect": {"capacity": {"[TAITUNG] 台東縣立體育館": 2000}}}
+{"query": "台東高中還有空位嗎", "relevant": ["[TAITUNG] 台東高中"], "category": "name_variant", "note": "", "expect": {"capacity": {"[TAITUNG] 台東高中": 500}}}
+{"query": "東海國中的容量多少", "relevant": ["[TAITUNG] 東海國中"], "category": "name_variant", "note": "", "expect": {"capacity": {"[TAITUNG] 東海國中": 500}}}
+{"query": "新生國小目前收容幾人", "relevant": ["[TAITUNG] 新生國小"], "category": "name_variant", "note": "", "expect": {"capacity": {"[TAITUNG] 新生國小": 350}}}
+{"query": "康樂國小還有空位嗎", "relevant": ["[TAITUNG] 康樂國小"], "category": "name_variant", "note": "", "expect": {"capacity": {"[TAITUNG] 康樂國小": 250}}}
+{"query": "宜蘭國小的容量多少", "relevant": ["[YILAN] 宜蘭國小"], "category": "name_variant", "note": "", "expect": {"capacity": {"[YILAN] 宜蘭國小": 500}}}
+{"query": "蘇澳鎮立體育館目前收容幾人", "relevant": ["[YILAN] 蘇澳鎮立體育館"], "category": "name_variant", "note": "", "expect": {"capacity": {"[YILAN] 蘇澳鎮立體育館": 600}}}
+{"query": "二城國小還有空位嗎", "relevant": ["[YILAN] 二城國小"], "category": "name_variant", "note": "", "expect": {"capacity": {"[YILAN] 二城國小": 300}}}
+{"query": "宜蘭運動公園體育館的容量多少", "relevant": ["[YILAN] 宜蘭運動公園體育館"], "category": "name_variant", "note": "", "expect": {"capacity": {"[YILAN] 宜蘭運動公園體育館": 350}}}
+{"query": "三星國中目前收容幾人", "relevant": ["[YILAN] 三星國中"], "category": "name_variant", "note": "", "expect": {"capacity": {"[YILAN] 三星國中": 400}}}
+{"query": "南山國小還有空位嗎", "relevant": ["[YILAN] 南山國小"], "category": "name_variant", "note": "", "expect": {"capacity": {"[YILAN] 南山國小": 200}}}
+{"query": "花蓮有哪些避難所", "relevant": ["[HUALIEN] 中原國小", "[HUALIEN] 中正國小", "[HUALIEN] 中華國小", "[HUALIEN] 信義國小", "[HUALIEN] 國風國中", "[HUALIEN] 明廉國小", "[HUALIEN] 明禮國小", "[HUALIEN] 民義國小", "[HUALIEN] 濤強國小", "[HUALIEN] 自強國中", "[HUALIEN] 花蓮市中正體育館", "[HUALIEN] 花蓮市公所", "[HUALIEN] 花蓮市立圖書館", "[HUALIEN] 花蓮縣立體育館"], "category": "region", "note": "14 relevant", "expect": {"capacity": {"[HUALIEN] 中原國小": 350, "[HUALIEN] 中正國小": 400, "[HUALIEN] 中華國小": 400, "[HUALIEN] 信義國小": 200, "[HUALIEN] 國風國中": 300, "[HUALIEN] 明廉國小": 300, "[HUALIEN] 明禮國小": 250, "[HUALIEN] 民義國小": 500, "[HUALIEN] 濤強國小": 300, "[HUALIEN] 自強國中": 450, "[HUALIEN] 花蓮市中正體育館": 600, "[HUALIEN] 花蓮市公所": 100, "[HUALIEN] 花蓮市立圖書館": 150, "[HUALIEN] 花蓮縣立體育館": 1500}}}
+{"query": "花蓮縣的避難所", "relevant": ["[HUALIEN] 中原國小", "[HUALIEN] 中正國小", "[HUALIEN] 中華國小", "[HUALIEN] 信義國小", "[HUALIEN] 國風國中", "[HUALIEN] 明廉國小", "[HUALIEN] 明禮國小", "[HUALIEN] 民義國小", "[HUALIEN] 濤強國小", "[HUALIEN] 自強國中", "[HUALIEN] 花蓮市中正體育館", "[HUALIEN] 花蓮市公所", "[HUALIEN] 花蓮市立圖書館", "[HUALIEN] 花蓮縣立體育館"], "category": "region", "note": "14 relevant", "expect": {"capacity": {"[HUALIEN] 中原國小": 350, "[HUALIEN] 中正國小": 400, "[HUALIEN] 中華國小": 400, "[HUALIEN] 信義國小": 200, "[HUALIEN] 國風國中": 300, "[HUALIEN] 明廉國小": 300, "[HUALIEN] 明禮國小": 250, "[HUALIEN] 民義國小": 500, "[HUALIEN] 濤強國小": 300, "[HUALIEN] 自強國中": 450, "[HUALIEN] 花蓮市中正體育館": 600, "[HUALIEN] 花蓮市公所": 100, "[HUALIEN] 花蓮市立圖書館": 150, "[HUALIEN] 花蓮縣立體育館": 1500}}}
+{"query": "花蓮地區可以去哪裡避難", "relevant": ["[HUALIEN] 中原國小", "[HUALIEN] 中正國小", "[HUALIEN] 中華國小", "[HUALIEN] 信義國小", "[HUALIEN] 國風國中", "[HUALIEN] 明廉國小", "[HUALIEN] 明禮國小", "[HUALIEN] 民義國小", "[HUALIEN] 濤強國小", "[HUALIEN] 自強國中", "[HUALIEN] 花蓮市中正體育館", "[HUALIEN] 花蓮市公所", "[HUALIEN] 花蓮市立圖書館", "[HUALIEN] 花蓮縣立體育館"], "category": "region", "note": "14 relevant", "expect": {"capacity": {"[HUALIEN] 中原國小": 350, "[HUALIEN] 中正國小": 400, "[HUALIEN] 中華國小": 400, "[HUALIEN] 信義國小": 200, "[HUALIEN] 國風國中": 300, "[HUALIEN] 明廉國小": 300, "[HUALIEN] 明禮國小": 250, "[HUALIEN] 民義國小": 500, "[HUALIEN] 濤強國小": 300, "[HUALIEN] 自強國中": 450, "[HUALIEN] 花蓮市中正體育館": 600, "[HUALIEN] 花蓮市公所": 100, "[HUALIEN] 花蓮市立圖書館": 150, "[HUALIEN] 花蓮縣立體育館": 1500}}}
+{"query": "台東有哪些避難所", "relevant": ["[TAITUNG] 卑南國中", "[TAITUNG] 台東女中", "[TAITUNG] 台東市公所", "[TAITUNG] 台東市原住民文化會館", "[TAITUNG] 台東縣立體育場", "[TAITUNG] 台東縣立體育館", "[TAITUNG] 台東高中", "[TAITUNG] 寶桑國中", "[TAITUNG] 寶桑國小", "[TAITUNG] 康樂國小", "[TAITUNG] 新生國中", "[TAITUNG] 新生國小", "[TAITUNG] 東海國中", "[TAITUNG] 東海國小", "[TAITUNG] 知本國小", "[TAITUNG] 馬蘭國小"], "category": "region", "note": "16 relevant", "expect": {"capacity": {"[TAITUNG] 卑南國中": 400, "[TAITUNG] 台東女中": 500, "[TAITUNG] 台東市公所": 150, "[TAITUNG] 台東市原住民文化會館": 250, "[TAITUNG] 台東縣立體育場": 1500, "[TAITUNG] 台東縣立體育館": 2000, "[TAITUNG] 台東高中": 500, "[TAITUNG] 寶桑國中": 450, "[TAITUNG] 寶桑國小": 400, "[TAITUNG] 康樂國小": 250, "[TAITUNG] 新生國中": 600, "[TAITUNG] 新生國小": 350, "[TAITUNG] 東海國中": 500, "[TAITUNG] 東海國小": 300, "[TAITUNG] 知本國小": 250, "[TAITUNG] 馬蘭國小": 300}}}
+{"query": "台東縣的避難所", "relevant": ["[TAITUNG] 卑南國中", "[TAITUNG] 台東女中", "[TAITUNG] 台東市公所", "[TAITUNG] 台東市原住民文化會館", "[TAITUNG] 台東縣立體育場", "[TAITUNG] 台東縣立體育館", "[TAITUNG] 台東高中", "[TAITUNG] 寶桑國中", "[TAITUNG] 寶桑國小", "[TAITUNG] 康樂國小", "[TAITUNG] 新生國中", "[TAITUNG] 新生國小", "[TAITUNG] 東海國中", "[TAITUNG] 東海國小", "[TAITUNG] 知本國小", "[TAITUNG] 馬蘭國小"], "category": "region", "note": "16 relevant", "expect": {"capacity": {"[TAITUNG] 卑南國中": 400, "[TAITUNG] 台東女中": 500, "[TAITUNG] 台東市公所": 150, "[TAITUNG] 台東市原住民文化會館": 250, "[TAITUNG] 台東縣立體育場": 1500, "[TAITUNG] 台東縣立體育館": 2000, "[TAITUNG] 台東高中": 500, "[TAITUNG] 寶桑國中": 450, "[TAITUNG] 寶桑國小": 400, "[TAITUNG] 康樂國小": 250, "[TAITUNG] 新生國中": 600, "[TAITUNG] 新生國小": 350, "[TAITUNG] 東海國中": 500, "[TAITUNG] 東海國小": 300, "[TAITUNG] 知本國小": 250, "[TAITUNG] 馬蘭國小": 300}}}
+{"query": "台東地區可以去哪裡避難", "relevant": ["[TAITUNG] 卑南國中", "[TAITUNG] 台東女中", "[TAITUNG] 台東市公所", "[TAITUNG] 台東市原住民文化會館", "[TAITUNG] 台東縣立體育場", "[TAITUNG] 台東縣立體育館", "[TAITUNG] 台東高中", "[TAITUNG] 寶桑國中", "[TAITUNG] 寶桑國小", "[TAITUNG] 康樂國小", "[TAITUNG] 新生國中", "[TAITUNG] 新生國小", "[TAITUNG] 東海國中", "[TAITUNG] 東海國小", "[TAITUNG] 知本國小", "[TAITUNG] 馬蘭國小"], "category": "region", "note": "16 relevant", "expect": {"capacity": {"[TAITUNG] 卑南國中": 400, "[TAITUNG] 台東女中": 500, "[TAITUNG] 台東市公所": 150, "[TAITUNG] 台東市原住民文化會館": 250, "[TAITUNG] 台東縣立體育場": 1500, "[TAITUNG] 台東縣立體育館": 2000, "[TAITUNG] 台東高中": 500, "[TAITUNG] 寶桑國中": 450, "[TAITUNG] 寶桑國小": 400, "[TAITUNG] 康樂國小": 250, "[TAITUNG] 新生國中": 600, "[TAITUNG] 新生國小": 350, "[TAITUNG] 東海國中": 500, "[TAITUNG] 東海國小": 300, "[TAITUNG] 知本國小": 250, "[TAITUNG] 馬蘭國小": 300}}}
+{"query": "宜蘭有哪些避難所", "relevant": ["[YILAN] 三星國中", "[YILAN] 三星鄉綜合運動場", "[YILAN] 中興國小附幼", "[YILAN] 二城國小", "[YILAN] 南山國小", "[YILAN] 南澳鄉綜合體育場", "[YILAN] 壯圍國中", "[YILAN] 壯圍國小", "[YILAN] 大同鄉公所", "[YILAN] 宜蘭國小", "[YILAN] 宜蘭市國民運動中心", "[YILAN] 宜蘭運動公園體育館", "[YILAN] 清溝國小", "[YILAN] 澳花國小", "[YILAN] 礁溪國中", "[YILAN] 羅東國小", "[YILAN] 羅東鎮立體育館", "[YILAN] 蘇澳國小", "[YILAN] 蘇澳鎮立體育館", "[YILAN] 頭城國小"], "category": "region", "note": "20 relevant", "expect": {"capacity": {"[YILAN] 三星國中": 400, "[YILAN] 三星鄉綜合運動場": 500, "[YILAN] 中興國小附幼": 350, "[YILAN] 二城國小": 300, "[YILAN] 南山國小": 200, "[YILAN] 南澳鄉綜合體育場": 550, "[YILAN] 壯圍國中": 300, "[YILAN] 壯圍國小": 300, "[YILAN] 大同鄉公所": 150, "[YILAN] 宜蘭國小": 500, "[YILAN] 宜蘭市國民運動中心": 1200, "[YILAN] 宜蘭運動公園體育館": 350, "[YILAN] 清溝國小": 350, "[YILAN] 澳花國小": 150, "[YILAN] 礁溪國中": 550, "[YILAN] 羅東國小": 450, "[YILAN] 羅東鎮立體育館": 800, "[YILAN] 蘇澳國小": 320, "[YILAN] 蘇澳鎮立體育館": 600, "[YILAN] 頭城國小": 400}}}
+{"query": "宜蘭縣的避難所", "relevant": ["[YILAN] 三星國中", "[YILAN] 三星鄉綜合運動場", "[YILAN] 中興國小附幼", "[YILAN] 二城國小", "[YILAN] 南山國小", "[YILAN] 南澳鄉綜合體育場", "[YILAN] 壯圍國中", "[YILAN] 壯圍國小", "[YILAN] 大同鄉公所", "[YILAN] 宜蘭國小", "[YILAN] 宜蘭市國民運動中心", "[YILAN] 宜蘭運動公園體育館", "[YILAN] 清溝國小", "[YILAN] 澳花國小", "[YILAN] 礁溪國中", "[YILAN] 羅東國小", "[YILAN] 羅東鎮立體育館", "[YILAN] 蘇澳國小", "[YILAN] 蘇澳鎮立體育館", "[YILAN] 頭城國小"], "category": "region", "note": "20 relevant", "expect": {"capacity": {"[YILAN] 三星國中": 400, "[YILAN] 三星鄉綜合運動場": 500, "[YILAN] 中興國小附幼": 350, "[YILAN] 二城國小": 300, "[YILAN] 南山國小": 200, "[YILAN] 南澳鄉綜合體育場": 550, "[YILAN] 壯圍國中": 300, "[YILAN] 壯圍國小": 300, "[YILAN] 大同鄉公所": 150, "[YILAN] 宜蘭國小": 500, "[YILAN] 宜蘭市國民運動中心": 1200, "[YILAN] 宜蘭運動公園體育館": 350, "[YILAN] 清溝國小": 350, "[YILAN] 澳花國小": 150, "[YILAN] 礁溪國中": 550, "[YILAN] 羅東國小": 450, "[YILAN] 羅東鎮立體育館": 800, "[YILAN] 蘇澳國小": 320, "[YILAN] 蘇澳鎮立體育館": 600, "[YILAN] 頭城國小": 400}}}
+{"query": "宜蘭地區可以去哪裡避難", "relevant": ["[YILAN] 三星國中", "[YILAN] 三星鄉綜合運動場", "[YILAN] 中興國小附幼", "[YILAN] 二城國小", "[YILAN] 南山國小", "[YILAN] 南澳鄉綜合體育場", "[YILAN] 壯圍國中", "[YILAN] 壯圍國小", "[YILAN] 大同鄉公所", "[YILAN] 宜蘭國小", "[YILAN] 宜蘭市國民運動中心", "[YILAN] 宜蘭運動公園體育館", "[YILAN] 清溝國小", "[YILAN] 澳花國小", "[YILAN] 礁溪國中", "[YILAN] 羅東國小", "[YILAN] 羅東鎮立體育館", "[YILAN] 蘇澳國小", "[YILAN] 蘇澳鎮立體育館", "[YILAN] 頭城國小"], "category": "region", "note": "20 relevant", "expect": {"capacity": {"[YILAN] 三星國中": 400, "[YILAN] 三星鄉綜合運動場": 500, "[YILAN] 中興國小附幼": 350, "[YILAN] 二城國小": 300, "[YILAN] 南山國小": 200, "[YILAN] 南澳鄉綜合體育場": 550, "[YILAN] 壯圍國中": 300, "[YILAN] 壯圍國小": 300, "[YILAN] 大同鄉公所": 150, "[YILAN] 宜蘭國小": 500, "[YILAN] 宜蘭市國民運動中心": 1200, "[YILAN] 宜蘭運動公園體育館": 350, "[YILAN] 清溝國小": 350, "[YILAN] 澳花國小": 150, "[YILAN] 礁溪國中": 550, "[YILAN] 羅東國小": 450, "[YILAN] 羅東鎮立體育館": 800, "[YILAN] 蘇澳國小": 320, "[YILAN] 蘇澳鎮立體育館": 600, "[YILAN] 頭城國小": 400}}}
+{"query": "三星鄉的避難所", "relevant": ["[YILAN] 三星國中", "[YILAN] 三星鄉綜合運動場"], "category": "township", "note": "2 relevant", "expect": {"capacity": {"[YILAN] 三星國中": 400, "[YILAN] 三星鄉綜合運動場": 500}}}
+{"query": "三星鄉有哪裡可以避難", "relevant": ["[YILAN] 三星國中", "[YILAN] 三星鄉綜合運動場"], "category": "township", "note": "2 relevant", "expect": {"capacity": {"[YILAN] 三星國中": 400, "[YILAN] 三星鄉綜合運動場": 500}}}
+{"query": "五結鄉的避難所", "relevant": ["[YILAN] 中興國小附幼"], "category": "township", "note": "1 relevant", "expect": {"capacity": {"[YILAN] 中興國小附幼": 350}}}
+{"query": "冬山鄉的避難所", "relevant": ["[YILAN] 清溝國小"], "category": "township", "note": "1 relevant", "expect": {"capacity": {"[YILAN] 清溝國小": 350}}}
+{"query": "冬山鄉有哪裡可以避難", "relevant": ["[YILAN] 清溝國小"], "category": "township", "note": "1 relevant", "expect": {"capacity": {"[YILAN] 清溝國小": 350}}}
+{"query": "南澳鄉的避難所", "relevant": ["[YILAN] 南澳鄉綜合體育場", "[YILAN] 澳花國小"], "category": "township", "note": "2 relevant", "expect": {"capacity": {"[YILAN] 南澳鄉綜合體育場": 550, "[YILAN] 澳花國小": 150}}}
+{"query": "台東市的避難所", "relevant": ["[TAITUNG] 卑南國中", "[TAITUNG] 台東女中", "[TAITUNG] 台東市公所", "[TAITUNG] 台東市原住民文化會館", "[TAITUNG] 台東縣立體育場", "[TAITUNG] 台東縣立體育館", "[TAITUNG] 台東高中", "[TAITUNG] 寶桑國中", "[TAITUNG] 寶桑國小", "[TAITUNG] 康樂國小", "[TAITUNG] 新生國中", "[TAITUNG] 新生國小", "[TAITUNG] 東海國中", "[TAITUNG] 東海國小", "[TAITUNG] 知本國小", "[TAITUNG] 馬蘭國小"], "category": "township", "note": "16 relevant", "expect": {"capacity": {"[TAITUNG] 卑南國中": 400, "[TAITUNG] 台東女中": 500, "[TAITUNG] 台東市公所": 150, "[TAITUNG] 台東市原住民文化會館": 250, "[TAITUNG] 台東縣立體育場": 1500, "[TAITUNG] 台東縣立體育館": 2000, "[TAITUNG] 台東高中": 500, "[TAITUNG] 寶桑國中": 450, "[TAITUNG] 寶桑國小": 400, "[TAITUNG] 康樂國小": 250, "[TAITUNG] 新生國中": 600, "[TAITUNG] 新生國小": 350, "[TAITUNG] 東海國中": 500, "[TAITUNG] 東海國小": 300, "[TAITUNG] 知本國小": 250, "[TAITUNG] 馬蘭國小": 300}}}
+{"query": "台東市有哪裡可以避難", "relevant": ["[TAITUNG] 卑南國中", "[TAITUNG] 台東女中", "[TAITUNG] 台東市公所", "[TAITUNG] 台東市原住民文化會館", "[TAITUNG] 台東縣立體育場", "[TAITUNG] 台東縣立體育館", "[TAITUNG] 台東高中", "[TAITUNG] 寶桑國中", "[TAITUNG] 寶桑國小", "[TAITUNG] 康樂國小", "[TAITUNG] 新生國中", "[TAITUNG] 新生國小", "[TAITUNG] 東海國中", "[TAITUNG] 東海國小", "[TAITUNG] 知本國小", "[TAITUNG] 馬蘭國小"], "category": "township", "note": "16 relevant", "expect": {"capacity": {"[TAITUNG] 卑南國中": 400, "[TAITUNG] 台東女中": 500, "[TAITUNG] 台東市公所": 150, "[TAITUNG] 台東市原住民文化會館": 250, "[TAITUNG] 台東縣立體育場": 1500, "[TAITUNG] 台東縣立體育館": 2000, "[TAITUNG] 台東高中": 500, "[TAITUNG] 寶桑國中": 450, "[TAITUNG] 寶桑國小": 400, "[TAITUNG] 康樂國小": 250, "[TAITUNG] 新生國中": 600, "[TAITUNG] 新生國小": 350, "[TAITUNG] 東海國中": 500, "[TAITUNG] 東海國小": 300, "[TAITUNG] 知本國小": 250, "[TAITUNG] 馬蘭國小": 300}}}
+{"query": "壯圍鄉的避難所", "relevant": ["[YILAN] 壯圍國中", "[YILAN] 壯圍國小"], "category": "township", "note": "2 relevant", "expect": {"capacity": {"[YILAN] 壯圍國中": 300, "[YILAN] 壯圍國小": 300}}}
+{"query": "大同鄉的避難所", "relevant": ["[YILAN] 南山國小", "[YILAN] 大同鄉公所"], "category": "township", "note": "2 relevant", "expect": {"capacity": {"[YILAN] 南山國小": 200, "[YILAN] 大同鄉公所": 150}}}
+{"query": "大同鄉有哪裡可以避難", "relevant": ["[YILAN] 南山國小", "[YILAN] 大同鄉公所"], "category": "township", "note": "2 relevant", "expect": {"capacity": {"[YILAN] 南山國小": 200, "[YILAN] 大同鄉公所": 150}}}
+{"query": "宜蘭市的避難所", "relevant": ["[YILAN] 宜蘭國小", "[YILAN] 宜蘭市國民運動中心", "[YILAN] 宜蘭運動公園體育館"], "category": "township", "note": "3 relevant", "expect": {"capacity": {"[YILAN] 宜蘭國小": 500, "[YILAN] 宜蘭市國民運動中心": 1200, "[YILAN] 宜蘭運動公園體育館": 350}}}
+{"query": "礁溪鄉的避難所", "relevant": ["[YILAN] 礁溪國中"], "category": "township", "note": "1 relevant", "expect": {"capacity": {"[YILAN] 礁溪國中": 550}}}
+{"query": "礁溪鄉有哪裡可以避難", "relevant": ["[YILAN] 礁溪國中"], "category": "township", "note": "1 relevant", "expect": {"capacity": {"[YILAN] 礁溪國中": 550}}}
+{"query": "羅東鎮的避難所", "relevant": ["[YILAN] 羅東國小", "[YILAN] 羅東鎮立體育館"], "category": "township", "note": "2 relevant", "expect": {"capacity": {"[YILAN] 羅東國小": 450, "[YILAN] 羅東鎮立體育館": 800}}}
+{"query": "花蓮市的避難所", "relevant": ["[HUALIEN] 中原國小", "[HUALIEN] 中正國小", "[HUALIEN] 中華國小", "[HUALIEN] 信義國小", "[HUALIEN] 國風國中", "[HUALIEN] 明廉國小", "[HUALIEN] 明禮國小", "[HUALIEN] 民義國小", "[HUALIEN] 濤強國小", "[HUALIEN] 自強國中", "[HUALIEN] 花蓮市中正體育館", "[HUALIEN] 花蓮市公所", "[HUALIEN] 花蓮市立圖書館", "[HUALIEN] 花蓮縣立體育館"], "category": "township", "note": "14 relevant", "expect": {"capacity": {"[HUALIEN] 中原國小": 350, "[HUALIEN] 中正國小": 400, "[HUALIEN] 中華國小": 400, "[HUALIEN] 信義國小": 200, "[HUALIEN] 國風國中": 300, "[HUALIEN] 明廉國小": 300, "[HUALIEN] 明禮國小": 250, "[HUALIEN] 民義國小": 500, "[HUALIEN] 濤強國小": 300, "[HUALIEN] 自強國中": 450, "[HUALIEN] 花蓮市中正體育館": 600, "[HUALIEN] 花蓮市公所": 100, "[HUALIEN] 花蓮市立圖書館": 150, "[HUALIEN] 花蓮縣立體育館": 1500}}}
+{"query": "花蓮市有哪裡可以避難", "relevant": ["[HUALIEN] 中原國小", "[HUALIEN] 中正國小", "[HUALIEN] 中華國小", "[HUALIEN] 信義國小", "[HUALIEN] 國風國中", "[HUALIEN] 明廉國小", "[HUALIEN] 明禮國小", "[HUALIEN] 民義國小", "[HUALIEN] 濤強國小", "[HUALIEN] 自強國中", "[HUALIEN] 花蓮市中正體育館", "[HUALIEN] 花蓮市公所", "[HUALIEN] 花蓮市立圖書館", "[HUALIEN] 花蓮縣立體育館"], "category": "township", "note": "14 relevant", "expect": {"capacity": {"[HUALIEN] 中原國小": 350, "[HUALIEN] 中正國小": 400, "[HUALIEN] 中華國小": 400, "[HUALIEN] 信義國小": 200, "[HUALIEN] 國風國中": 300, "[HUALIEN] 明廉國小": 300, "[HUALIEN] 明禮國小": 250, "[HUALIEN] 民義國小": 500, "[HUALIEN] 濤強國小": 300, "[HUALIEN] 自強國中": 450, "[HUALIEN] 花蓮市中正體育館": 600, "[HUALIEN] 花蓮市公所": 100, "[HUALIEN] 花蓮市立圖書館": 150, "[HUALIEN] 花蓮縣立體育館": 1500}}}
+{"query": "蘇澳鎮的避難所", "relevant": ["[YILAN] 蘇澳國小", "[YILAN] 蘇澳鎮立體育館"], "category": "township", "note": "2 relevant", "expect": {"capacity": {"[YILAN] 蘇澳國小": 320, "[YILAN] 蘇澳鎮立體育館": 600}}}
+{"query": "頭城鎮的避難所", "relevant": ["[YILAN] 二城國小", "[YILAN] 頭城國小"], "category": "township", "note": "2 relevant", "expect": {"capacity": {"[YILAN] 二城國小": 300, "[YILAN] 頭城國小": 400}}}
+{"query": "頭城鎮有哪裡可以避難", "relevant": ["[YILAN] 二城國小", "[YILAN] 頭城國小"], "category": "township", "note": "2 relevant", "expect": {"capacity": {"[YILAN] 二城國小": 300, "[YILAN] 頭城國小": 400}}}
+{"query": "花蓮有哪些學校可以避難", "relevant": ["[HUALIEN] 中原國小", "[HUALIEN] 中正國小", "[HUALIEN] 中華國小", "[HUALIEN] 信義國小", "[HUALIEN] 國風國中", "[HUALIEN] 明廉國小", "[HUALIEN] 明禮國小", "[HUALIEN] 民義國小", "[HUALIEN] 濤強國小", "[HUALIEN] 自強國中"], "category": "facility", "note": "10 relevant", "expect": {"capacity": {"[HUALIEN] 中原國小": 350, "[HUALIEN] 中正國小": 400, "[HUALIEN] 中華國小": 400, "[HUALIEN] 信義國小": 200, "[HUALIEN] 國風國中": 300, "[HUALIEN] 明廉國小": 300, "[HUALIEN] 明禮國小": 250, "[HUALIEN] 民義國小": 500, "[HUALIEN] 濤強國小": 300, "[HUALIEN] 自強國中": 450}}}
+{"query": "花蓮的國小避難所", "relevant": ["[HUALIEN] 中原國小", "[HUALIEN] 中正國小", "[HUALIEN] 中華國小", "[HUALIEN] 信義國小", "[HUALIEN] 明廉國小", "[HUALIEN] 明禮國小", "[HUALIEN] 民義國小", "[HUALIEN] 濤強國小"], "category": "facility", "note": "8 relevant", "expect": {"capacity": {"[HUALIEN] 中原國小": 350, "[HUALIEN] 中正國小": 400, "[HUALIEN] 中華國小": 400, "[HUALIEN] 信義國小": 200, "[HUALIEN] 明廉國小": 300, "[HUALIEN] 明禮國小": 250, "[HUALIEN] 民義國小": 500, "[HUALIEN] 濤強國小": 300}}}
+{"query": "花蓮的國中", "relevant": ["[HUALIEN] 國風國中", "[HUALIEN] 自強國中"], "category": "facility", "note": "2 relevant", "expect": {"capacity": {"[HUALIEN] 國風國中": 300, "[HUALIEN] 自強國中": 450}}}
+{"query": "花蓮的體育館", "relevant": ["[HUALIEN] 花蓮市中正體育館", "[HUALIEN] 花蓮縣立體育館"], "category": "facility", "note": "2 relevant", "expect": {"capacity": {"[HUALIEN] 花蓮市中正體育館": 600, "[HUALIEN] 花蓮縣立體育館": 1500}}}
+{"query": "台東有哪些學校可以避難", "relevant": ["[TAITUNG] 卑南國中", "[TAITUNG] 台東女中", "[TAITUNG] 台東高中", "[TAITUNG] 寶桑國中", "[TAITUNG] 寶桑國小", "[TAITUNG] 康樂國小", "[TAITUNG] 新生國中", "[TAITUNG] 新生國小", "[TAITUNG] 東海國中", "[TAITUNG] 東海國小", "[TAITUNG] 知本國小", "[TAITUNG] 馬蘭國小"], "category": "facility", "note": "12 relevant", "expect": {"capacity": {"[TAITUNG] 卑南國中": 400, "[TAITUNG] 台東女中": 500, "[TAITUNG] 台東高中": 500, "[TAITUNG] 寶桑國中": 450, "[TAITUNG] 寶桑國小": 400, "[TAITUNG] 康樂國小": 250, "[TAITUNG] 新生國中": 600, "[TAITUNG] 新生國小": 350, "[TAITUNG] 東海國中": 500, "[TAITUNG] 東海國小": 300, "[TAITUNG] 知本國小": 250, "[TAITUNG] 馬蘭國小": 300}}}
+{"query": "台東的國小避難所", "relevant": ["[TAITUNG] 寶桑國小", "[TAITUNG] 康樂國小", "[TAITUNG] 新生國小", "[TAITUNG] 東海國小", "[TAITUNG] 知本國小", "[TAITUNG] 馬蘭國小"], "category": "facility", "note": "6 relevant", "expect": {"capacity": {"[TAITUNG] 寶桑國小": 400, "[TAITUNG] 康樂國小": 250, "[TAITUNG] 新生國小": 350, "[TAITUNG] 東海國小": 300, "[TAITUNG] 知本國小": 250, "[TAITUNG] 馬蘭國小": 300}}}
+{"query": "台東的國中", "relevant": ["[TAITUNG] 卑南國中", "[TAITUNG] 寶桑國中", "[TAITUNG] 新生國中", "[TAITUNG] 東海國中"], "category": "facility", "note": "4 relevant", "expect": {"capacity": {"[TAITUNG] 卑南國中": 400, "[TAITUNG] 寶桑國中": 450, "[TAITUNG] 新生國中": 600, "[TAITUNG] 東海國中": 500}}}
+{"query": "台東的體育館", "relevant": ["[TAITUNG] 台東縣立體育場", "[TAITUNG] 台東縣立體育館"], "category": "facility", "note": "2 relevant", "expect": {"capacity": {"[TAITUNG] 台東縣立體育場": 1500, "[TAITUNG] 台東縣立體育館": 2000}}}
+{"query": "宜蘭有哪些學校可以避難", "relevant": ["[YILAN] 三星國中", "[YILAN] 中興國小附幼", "[YILAN] 二城國小", "[YILAN] 南山國小", "[YILAN] 壯圍國中", "[YILAN] 壯圍國小", "[YILAN] 宜蘭國小", "[YILAN] 清溝國小", "[YILAN] 澳花國小", "[YILAN] 礁溪國中", "[YILAN] 羅東國小", "[YILAN] 蘇澳國小", "[YILAN] 頭城國小"], "category": "facility", "note": "13 relevant", "expect": {"capacity": {"[YILAN] 三星國中": 400, "[YILAN] 中興國小附幼": 350, "[YILAN] 二城國小": 300, "[YILAN] 南山國小": 200, "[YILAN] 壯圍國中": 300, "[YILAN] 壯圍國小": 300, "[YILAN] 宜蘭國小": 500, "[YILAN] 清溝國小": 350, "[YILAN] 澳花國小": 150, "[YILAN] 礁溪國中": 550, "[YILAN] 羅東國小": 450, "[YILAN] 蘇澳國小": 320, "[YILAN] 頭城國小": 400}}}
+{"query": "宜蘭的國小避難所", "relevant": ["[YILAN] 中興國小附幼", "[YILAN] 二城國小", "[YILAN] 南山國小", "[YILAN] 壯圍國小", "[YILAN] 宜蘭國小", "[YILAN] 清溝國小", "[YILAN] 澳花國小", "[YILAN] 羅東國小", "[YILAN] 蘇澳國小", "[YILAN] 頭城國小"], "category": "facility", "note": "10 relevant", "expect": {"capacity": {"[YILAN] 中興國小附幼": 350, "[YILAN] 二城國小": 300, "[YILAN] 南山國小": 200, "[YILAN] 壯圍國小": 300, "[YILAN] 宜蘭國小": 500, "[YILAN] 清溝國小": 350, "[YILAN] 澳花國小": 150, "[YILAN] 羅東國小": 450, "[YILAN] 蘇澳國小": 320, "[YILAN] 頭城國小": 400}}}
+{"query": "宜蘭的國中", "relevant": ["[YILAN] 三星國中", "[YILAN] 壯圍國中", "[YILAN] 礁溪國中"], "category": "facility", "note": "3 relevant", "expect": {"capacity": {"[YILAN] 三星國中": 400, "[YILAN] 壯圍國中": 300, "[YILAN] 礁溪國中": 550}}}
+{"query": "宜蘭的體育館", "relevant": ["[YILAN] 三星鄉綜合運動場", "[YILAN] 南澳鄉綜合體育場", "[YILAN] 宜蘭市國民運動中心", "[YILAN] 宜蘭運動公園體育館", "[YILAN] 羅東鎮立體育館", "[YILAN] 蘇澳鎮立體育館"], "category": "facility", "note": "6 relevant", "expect": {"capacity": {"[YILAN] 三星鄉綜合運動場": 500, "[YILAN] 南澳鄉綜合體育場": 550, "[YILAN] 宜蘭市國民運動中心": 1200, "[YILAN] 宜蘭運動公園體育館": 350, "[YILAN] 羅東鎮立體育館": 800, "[YILAN] 蘇澳鎮立體育館": 600}}}
+{"query": "花蓮能收上千人的地方", "relevant": ["[HUALIEN] 花蓮縣立體育館"], "category": "capacity", "note": "1 relevant", "expect": {"capacity": {"[HUALIEN] 花蓮縣立體育館": 1500}}}
+{"query": "花蓮容量超過500人的避難所", "relevant": ["[HUALIEN] 花蓮市中正體育館", "[HUALIEN] 花蓮縣立體育館"], "category": "capacity", "note": "2 relevant", "expect": {"capacity": {"[HUALIEN] 花蓮市中正體育館": 600, "[HUALIEN] 花蓮縣立體育館": 1500}}}
+{"query": "花蓮的小型避難所，容量300人以下", "relevant": ["[HUALIEN] 信義國小", "[HUALIEN] 國風國中", "[HUALIEN] 明廉國小", "[HUALIEN] 明禮國小", "[HUALIEN] 濤強國小", "[HUALIEN] 花蓮市公所", "[HUALIEN] 花蓮市立圖書館"], "category": "capacity", "note": "7 relevant", "expect": {"capacity": {"[HUALIEN] 信義國小": 200, "[HUALIEN] 國風國中": 300, "[HUALIEN] 明廉國小": 300, "[HUALIEN] 明禮國小": 250, "[HUALIEN] 濤強國小": 300, "[HUALIEN] 花蓮市公所": 100, "[HUALIEN] 花蓮市立圖書館": 150}}}
+{"query": "台東能收上千人的地方", "relevant": ["[TAITUNG] 台東縣立體育場", "[TAITUNG] 台東縣立體育館"], "category": "capacity", "note": "2 relevant", "expect": {"capacity": {"[TAITUNG] 台東縣立體育場": 1500, "[TAITUNG] 台東縣立體育館": 2000}}}
+{"query": "台東容量超過500人的避難所", "relevant": ["[TAITUNG] 台東縣立體育場", "[TAITUNG] 台東縣立體育館", "[TAITUNG] 新生國中"], "category": "capacity", "note": "3 relevant", "expect": {"capacity": {"[TAITUNG] 台東縣立體育場": 1500, "[TAITUNG] 台東縣立體育館": 2000, "[TAITUNG] 新生國中": 600}}}
+{"query": "台東的小型避難所，容量300人以下", "relevant": ["[TAITUNG] 台東市公所", "[TAITUNG] 台東市原住民文化會館", "[TAITUNG] 康樂國小", "[TAITUNG] 東海國小", "[TAITUNG] 知本國小", "[TAITUNG] 馬蘭國小"], "category": "capacity", "note": "6 relevant", "expect": {"capacity": {"[TAITUNG] 台東市公所": 150, "[TAITUNG] 台東市原住民文化會館": 250, "[TAITUNG] 康樂國小": 250, "[TAITUNG] 東海國小": 300, "[TAITUNG] 知本國小": 250, "[TAITUNG] 馬蘭國小": 300}}}
+{"query": "宜蘭能收上千人的地方", "relevant": ["[YILAN] 宜蘭市國民運動中心"], "category": "capacity", "note": "1 relevant", "expect": {"capacity": {"[YILAN] 宜蘭市國民運動中心": 1200}}}
+{"query": "宜蘭容量超過500人的避難所", "relevant": ["[YILAN] 南澳鄉綜合體育場", "[YILAN] 宜蘭市國民運動中心", "[YILAN] 礁溪國中", "[YILAN] 羅東鎮立體育館", "[YILAN] 蘇澳鎮立體育館"], "category": "capacity", "note": "5 relevant", "expect": {"capacity": {"[YILAN] 南澳鄉綜合體育場": 550, "[YILAN] 宜蘭市國民運動中心": 1200, "[YILAN] 礁溪國中": 550, "[YILAN] 羅東鎮立體育館": 800, "[YILAN] 蘇澳鎮立體育館": 600}}}
+{"query": "宜蘭的小型避難所，容量300人以下", "relevant": ["[YILAN] 二城國小", "[YILAN] 南山國小", "[YILAN] 壯圍國中", "[YILAN] 壯圍國小", "[YILAN] 大同鄉公所", "[YILAN] 澳花國小"], "category": "capacity", "note": "6 relevant", "expect": {"capacity": {"[YILAN] 二城國小": 300, "[YILAN] 南山國小": 200, "[YILAN] 壯圍國中": 300, "[YILAN] 壯圍國小": 300, "[YILAN] 大同鄉公所": 150, "[YILAN] 澳花國小": 150}}}
+{"query": "縣立體育館", "relevant": ["[HUALIEN] 花蓮縣立體育館", "[TAITUNG] 台東縣立體育館"], "category": "alias", "note": "", "expect": {"capacity": {"[HUALIEN] 花蓮縣立體育館": 1500, "[TAITUNG] 台東縣立體育館": 2000}}}
+{"query": "花蓮體育館", "relevant": ["[HUALIEN] 花蓮市中正體育館", "[HUALIEN] 花蓮縣立體育館"], "category": "alias", "note": "", "expect": {"capacity": {"[HUALIEN] 花蓮市中正體育館": 600, "[HUALIEN] 花蓮縣立體育館": 1500}}}
+{"query": "中正體育館", "relevant": ["[HUALIEN] 花蓮市中正體育館"], "category": "alias", "note": "", "expect": {"capacity": {"[HUALIEN] 花蓮市中正體育館": 600}}}
+{"query": "台東體育場", "relevant": ["[TAITUNG] 台東縣立體育場"], "category": "alias", "note": "", "expect": {"capacity": {"[TAITUNG] 台東縣立體育場": 1500}}}
+{"query": "羅東體育館", "relevant": ["[YILAN] 羅東鎮立體育館"], "category": "alias", "note": "", "expect": {"capacity": {"[YILAN] 羅東鎮立體育館": 800}}}
+{"query": "蘇澳體育館", "relevant": ["[YILAN] 蘇澳鎮立體育館"], "category": "alias", "note": "", "expect": {"capacity": {"[YILAN] 蘇澳鎮立體育館": 600}}}
+{"query": "宜蘭運動中心", "relevant": ["[YILAN] 宜蘭市國民運動中心"], "category": "alias", "note": "", "expect": {"capacity": {"[YILAN] 宜蘭市國民運動中心": 1200}}}
+{"query": "運動公園的體育館", "relevant": ["[YILAN] 宜蘭運動公園體育館"], "category": "alias", "note": "", "expect": {"capacity": {"[YILAN] 宜蘭運動公園體育館": 350}}}
+{"query": "原民會館", "relevant": ["[TAITUNG] 台東市原住民文化會館"], "category": "alias", "note": "", "expect": {"capacity": {"[TAITUNG] 台東市原住民文化會館": 250}}}
+{"query": "原住民文化館", "relevant": ["[TAITUNG] 台東市原住民文化會館"], "category": "alias", "note": "", "expect": {"capacity": {"[TAITUNG] 台東市原住民文化會館": 250}}}
+{"query": "花蓮市政府可以避難嗎", "relevant": ["[HUALIEN] 花蓮市公所"], "category": "alias", "note": "", "expect": {"capacity": {"[HUALIEN] 花蓮市公所": 100}}}
+{"query": "台東市政府", "relevant": ["[TAITUNG] 台東市公所"], "category": "alias", "note": "", "expect": {"capacity": {"[TAITUNG] 台東市公所": 150}}}
+{"query": "女子中學", "relevant": ["[TAITUNG] 台東女中"], "category": "alias", "note": "", "expect": {"capacity": {"[TAITUNG] 台東女中": 500}}}
+{"query": "台東的高中職", "relevant": ["[TAITUNG] 台東女中", "[TAITUNG] 台東高中"], "category": "alias", "note": "", "expect": {"capacity": {"[TAITUNG] 台東女中": 500, "[TAITUNG] 台東高中": 500}}}
+{"query": "圖書館可以避難嗎", "relevant": ["[HUALIEN] 花蓮市立圖書館"], "category": "alias", "note": "", "expect": {"capacity": {"[HUALIEN] 花蓮市立圖書館": 150}}}
+{"query": "有附設幼兒園的避難所", "relevant": ["[YILAN] 中興國小附幼"], "category": "alias", "note": "", "expect": {"capacity": {"[YILAN] 中興國小附幼": 350}}}
+{"query": "知本附近", "relevant": ["[TAITUNG] 知本國小"], "category": "semantic", "note": "", "expect": {"capacity": {"[TAITUNG] 知本國小": 250}}}
+{"query": "馬蘭那邊有避難所嗎", "relevant": ["[TAITUNG] 馬蘭國小"], "category": "semantic", "note": "", "expect": {"capacity": {"[TAITUNG] 馬蘭國小": 300}}}
+{"query": "礁溪", "relevant": ["[YILAN] 礁溪國中"], "category": "semantic", "note": "", "expect": {"capacity": {"[YILAN] 礁溪國中": 550}}}
+{"query": "南澳有哪裡可以躲", "relevant": ["[YILAN] 南澳鄉綜合體育場", "[YILAN] 澳花國小"], "category": "semantic", "note": "", "expect": {"capacity": {"[YILAN] 南澳鄉綜合體育場": 550, "[YILAN] 澳花國小": 150}}}
+{"query": "三星鄉的收容地點", "relevant": ["[YILAN] 三星國中", "[YILAN] 三星鄉綜合運動場"], "category": "semantic", "note": "", "expect": {"capacity": {"[YILAN] 三星國中": 400, "[YILAN] 三星鄉綜合運動場": 500}}}
+{"query": "頭城鎮附近的學校", "relevant": ["[YILAN] 二城國小", "[YILAN] 頭城國小"], "category": "semantic", "note": "", "expect": {"capacity": {"[YILAN] 二城國小": 300, "[YILAN] 頭城國小": 400}}}
+{"query": "冬山", "relevant": ["[YILAN] 清溝國小"], "category": "semantic", "note": "", "expect": {"capacity": {"[YILAN] 清溝國小": 350}}}
+{"query": "五結鄉", "relevant": ["[YILAN] 中興國小附幼"], "category": "semantic", "note": "", "expect": {"capacity": {"[YILAN] 中興國小附幼": 350}}}
+{"query": "壯圍有哪些", "relevant": ["[YILAN] 壯圍國中", "[YILAN] 壯圍國小"], "category": "semantic", "note": "", "expect": {"capacity": {"[YILAN] 壯圍國中": 300, "[YILAN] 壯圍國小": 300}}}
+{"query": "大同鄉可以去哪", "relevant": ["[YILAN] 南山國小", "[YILAN] 大同鄉公所"], "category": "semantic", "note": "", "expect": {"capacity": {"[YILAN] 南山國小": 200, "[YILAN] 大同鄉公所": 150}}}
+{"query": "花蓮市區最大的收容場所", "relevant": ["[HUALIEN] 花蓮縣立體育館"], "category": "semantic", "note": "", "expect": {"capacity": {"[HUALIEN] 花蓮縣立體育館": 1500}, "top1": "[HUALIEN] 花蓮縣立體育館"}}
+{"query": "台東可以容納最多人的地方", "relevant": ["[TAITUNG] 台東縣立體育館"], "category": "semantic", "note": "", "expect": {"capacity": {"[TAITUNG] 台東縣立體育館": 2000}, "top1": "[TAITUNG] 台東縣立體育館"}}
+{"query": "宜蘭最大的避難所", "relevant": ["[YILAN] 宜蘭市國民運動中心"], "category": "semantic", "note": "", "expect": {"capacity": {"[YILAN] 宜蘭市國民運動中心": 1200}, "top1": "[YILAN] 宜蘭市國民運動中心"}}
+{"query": "鄉公所或市公所", "relevant": ["[HUALIEN] 花蓮市公所", "[TAITUNG] 台東市公所", "[YILAN] 大同鄉公所"], "category": "semantic", "note": "", "expect": {"capacity": {"[HUALIEN] 花蓮市公所": 100, "[TAITUNG] 台東市公所": 150, "[YILAN] 大同鄉公所": 150}}}
+{"query": "桂林北路的避難所", "relevant": ["[TAITUNG] 台東縣立體育場", "[TAITUNG] 台東縣立體育館"], "category": "semantic", "note": "", "expect": {"capacity": {"[TAITUNG] 台東縣立體育場": 1500, "[TAITUNG] 台東縣立體育館": 2000}}}
+{"query": "中華路一段附近", "relevant": ["[TAITUNG] 台東高中", "[TAITUNG] 東海國中"], "category": "semantic", "note": "", "expect": {"capacity": {"[TAITUNG] 台東高中": 500, "[TAITUNG] 東海國中": 500}}}
+{"query": "更生路上", "relevant": ["[TAITUNG] 卑南國中", "[TAITUNG] 新生國小"], "category": "semantic", "note": "", "expect": {"capacity": {"[TAITUNG] 卑南國中": 400, "[TAITUNG] 新生國小": 350}}}
+{"query": "達固湖灣大路", "relevant": ["[HUALIEN] 花蓮縣立體育館"], "category": "semantic", "note": "", "expect": {"capacity": {"[HUALIEN] 花蓮縣立體育館": 1500}}}
+{"query": "四維路", "relevant": ["[TAITUNG] 台東女中", "[TAITUNG] 寶桑國小"], "category": "semantic", "note": "", "expect": {"capacity": {"[TAITUNG] 台東女中": 500, "[TAITUNG] 寶桑國小": 400}}}
 {"query": "高雄的避難所", "relevant": [], "category": "negative", "note": ""}
 {"query": "台北車站附近哪裡可以避難", "relevant": [], "category": "negative", "note": ""}
 {"query": "今天天氣如何", "relevant": [], "category": "negative", "note": ""}

@@ -166,6 +166,26 @@ def manual_cases(rows):
     return out
 
 
+SUPERLATIVE_WORDS = ("最大", "最多", "容納最多")
+
+
+def attach_expectations(cases, rows):
+    """
+    生成端評測用的關鍵事實，直接從來源資料算：
+    每個相關避難所的容量（數字忠實度、單一避難所題目要講出容量），
+    以及「最大 / 最多」排名題應該排第一的那間。
+    """
+    capacity = {r["id"]: r["capacity"] for r in rows}
+    for c in cases:
+        if not c["relevant"]:
+            continue
+        expect = {"capacity": {rid: capacity[rid] for rid in c["relevant"]}}
+        if any(word in c["query"] for word in SUPERLATIVE_WORDS):
+            expect["top1"] = max(c["relevant"], key=lambda rid: capacity[rid])
+        c["expect"] = expect
+    return cases
+
+
 def build():
     rows = load_shelters()
     cases = (
@@ -184,7 +204,7 @@ def build():
             continue
         seen.add(c["query"])
         unique.append(c)
-    return unique
+    return attach_expectations(unique, rows)
 
 
 if __name__ == "__main__":
