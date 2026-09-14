@@ -3,21 +3,36 @@ import re
 import logging
 import threading
 import requests
-from services.vector_store import VectorStore
+from services.vector_store import VectorStore, NO_DATA, NO_MATCH
 from services import query_rules
 import config
 
 logger = logging.getLogger(__name__)
 
-SYSTEM_PROMPT = """你是台灣東部災害避難所管理系統的 AI 決策助手。
-你只能使用繁體中文回答，嚴格禁止使用任何英文單字、簡體中文或其他語言。
-你只能根據提供的資料回答，不可以自行推測或編造資訊。
-如果資料中沒有相關資訊，請說「目前沒有相關資料」。
-回答要簡潔、務實，重點放在疏散建議與避難所資訊。
-不要使用任何符號裝飾，不要使用 emoji。"""
+# 生成評測（evals/run_gen_eval.py）發現小模型最常見的錯誤是「資料就在眼前卻回沒有資料」，
+# 所以這裡把「資料是系統篩好的、直接用」講得很明確，拒答只留給資料區真的空白或問題與避難所無關的情況
+SYSTEM_PROMPT = """你是台灣東部（宜蘭、花蓮、台東）災害避難所管理系統的決策助手。
+規則：
+1. 只能使用繁體中文，不可以出現任何英文單字、簡體中文或 emoji，也不要用符號裝飾。
+2. 只能根據【避難所資料】回答，不可以推測或編造。資料裡的名稱與數字要原樣引用，不可改寫或自行計算。
+3. 【避難所資料】是系統依照問題篩選出來的相關資料。只要裡面列有避難所，就直接用它回答，不可以說沒有資料。
+4. 只有在【避難所資料】明確寫著沒有資料，或問題與避難所完全無關（例如天氣、補助申請）時，才回答「目前沒有相關資料」。
+5. 回答要簡潔務實，重點放在避難所名稱、地點、容量與剩餘空位。
+6. 不要自我介紹、不要寒暄、不要反問，直接回答。"""
+
+# 檢索層判定沒有相關資料（索引空的、或最接近的文件也離得太遠）時的固定回覆，不必打 LLM
+NO_RELEVANT_REPLY = "目前沒有相關資料。本系統只回答宜蘭、花蓮、台東三縣的避難所資訊，請改問避難所的位置、容量或剩餘空位。"
 
 # 觸發地理搜尋的關鍵字
 GEO_KEYWORDS = ["最近", "附近", "離我最近", "最靠近", "距離最近", "哪裡最近", "近的"]
+
+# 地理問句去掉關鍵字與這些泛用詞之後還有東西（地名、路名、鄉鎮），就代表使用者已經說了地點，
+# 該走檢索而不是回頭要座標；「離我最近的避難所」去完就空了，才需要座標
+GEO_GENERIC_WORDS = [
+    "避難所", "收容所", "收容", "空間", "空位", "還有", "有沒有", "有什麼", "有哪些", "哪些", "哪裡", "哪間", "哪個",
+    "在哪", "可以", "能", "去", "到", "的", "嗎", "呢", "我", "這裡", "這邊", "那邊", "學校", "地方", "請問", "想", "要",
+    "找", "查", "一下", "是", "有", "？", "?", "，", "。", " ",
+]
 
 # 觸發模擬結果查詢的關鍵字
 SIMULATION_KEYWORDS = ["哪些受影響", "受影響的避難所", "哪些避難所受", "模擬結果", "影響範圍", "受災避難所", "哪些被影響"]
@@ -155,6 +170,14 @@ class ChatService:
     def _is_geo_query(self, message: str) -> bool:
         return any(kw in message for kw in GEO_KEYWORDS)
 
+    @staticmethod
+    def _needs_coordinates(message: str) -> bool:
+        """地理問句裡沒有任何地點線索時才需要座標"""
+        rest = message
+        for word in GEO_KEYWORDS + GEO_GENERIC_WORDS:
+            rest = rest.replace(word, "")
+        return len(rest.strip()) < 2
+
     def _is_explicit_simulation_query(self, message: str) -> bool:
         return any(kw in message for kw in SIMULATION_KEYWORDS)
 
@@ -248,7 +271,8 @@ class ChatService:
         根據問題類型選擇對應查詢方式，回傳 (context, early_reply)。判斷順序：
         1. 範圍外縣市 → 直接拒答，不管有沒有模擬在跑
         2. 明確問模擬結果 → 直接讀模擬快照（最精確）
-        3. 有座標的地理距離查詢 → PostGIS ST_Distance
+        3. 有座標的地理距離查詢 → PostGIS ST_Distance；沒座標也沒地名才回頭要座標，
+           「知本附近」「中華路一段附近」這種有地點線索的交給檢索
         4. 模擬進行中的追問（建議 / 空間 / 缺口）→ 模擬快照
         5. 沒模擬卻要疏散建議 → 請先跑模擬
         6. 其餘 → 規則層篩選 + ChromaDB 語意檢索（容量排名也走這裡）
@@ -265,7 +289,7 @@ class ChatService:
             if coords is not None:
                 lat, lon = coords
                 return self._get_nearest_context(lat, lon), None
-            if not self._is_simulation_followup(user_message):
+            if not self._is_simulation_followup(user_message) and self._needs_coordinates(user_message):
                 return None, "請提供您的座標以便查詢最近的避難所。例如：緯度 23.99 經度 121.60"
 
         if self._is_simulation_followup(user_message):
@@ -277,10 +301,13 @@ class ChatService:
         # 查詢向量要打 Ollama embedding，Ollama 掛掉時這裡會先炸；
         # 要回跟生成失敗一樣的降級訊息，而不是讓 /api/chat 變成 500
         try:
-            return self.vector_store.search(user_message, plan=plan), None
+            context = self.vector_store.search(user_message, plan=plan)
         except Exception:
             logger.exception("向量檢索失敗")
             return None, AI_UNAVAILABLE
+        if context in (NO_DATA, NO_MATCH):
+            return None, NO_RELEVANT_REPLY
+        return context, None
 
     def build_prompt(self, user_message: str, shelter_context: str) -> str:
         full_context = f"【避難所資料】\n{shelter_context}"
@@ -288,14 +315,17 @@ class ChatService:
         if summary:
             full_context += f"\n\n【目前災害模擬結果】\n{summary}"
 
+        # 列舉題（一個縣 20 筆）要能在 num_predict 內列完，所以規定每間一行、只講關鍵欄位
         return f"""{full_context}
 
 【使用者問題】
 {user_message}
 
-注意：
-1. 如果沒有相關資料或語意不符就說 沒有相關資料。
-2. 請用繁體中文回答，不得使用任何英文。"""
+回答要求：
+1. 直接用上面的資料回答，回答時先寫出避難所名稱。問某一間避難所時只回答那一間，引用該筆的地址、容量、目前收容人數與剩餘空位。
+2. 列舉多間避難所時每間一行，格式「名稱：鄉鎮，容量 N 人，剩餘空位 M 人」，把資料裡符合的全部列完，不要省略。
+3. 資料裡的數字原樣引用，不要自行加總或改寫。
+4. 只能用繁體中文，不得出現英文。"""
 
     def chat(self, user_message: str) -> str:
         try:
@@ -310,25 +340,31 @@ class ChatService:
         prompt = self.build_prompt(user_message, shelter_context)
 
         try:
-            response = requests.post(
-                f"{config.OLLAMA_HOST}/api/generate",
-                json={
-                    "model": config.OLLAMA_MODEL,
-                    "system": SYSTEM_PROMPT,
-                    "prompt": prompt,
-                    "stream": False,
-                    "options": {
-                        "temperature": config.OLLAMA_TEMPERATURE,
-                        "num_predict": config.OLLAMA_NUM_PREDICT,
-                        "num_ctx": config.OLLAMA_NUM_CTX,
-                    }
-                },
-                timeout=config.OLLAMA_TIMEOUT
-            )
-            response.raise_for_status()
-            result = response.json()
+            result = self.generate(prompt)
             return result.get("response", AI_UNAVAILABLE).strip()
-
         except Exception:
             logger.exception("Ollama 呼叫失敗")
             return AI_UNAVAILABLE
+
+    def generate(self, prompt: str) -> dict:
+        """
+        打 Ollama 生成，回傳完整的 JSON（response、done_reason、eval_count …）。
+        拆出來是為了讓生成端評測拿得到 token 數與截斷原因；失敗直接拋例外由呼叫端處理。
+        """
+        response = requests.post(
+            f"{config.OLLAMA_HOST}/api/generate",
+            json={
+                "model": config.OLLAMA_MODEL,
+                "system": SYSTEM_PROMPT,
+                "prompt": prompt,
+                "stream": False,
+                "options": {
+                    "temperature": config.OLLAMA_TEMPERATURE,
+                    "num_predict": config.OLLAMA_NUM_PREDICT,
+                    "num_ctx": config.OLLAMA_NUM_CTX,
+                },
+            },
+            timeout=config.OLLAMA_TIMEOUT,
+        )
+        response.raise_for_status()
+        return response.json()
