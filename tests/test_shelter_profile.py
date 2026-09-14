@@ -73,6 +73,27 @@ def test_aliases_strip_owner_and_place():
     assert "台東體育場" in aliases_of("[TAITUNG] 台東縣立體育場")
 
 
+@pytest.mark.parametrize("address,road", [
+    ("台東縣台東市四維路一段690號", "四維路"),
+    ("台東縣台東市四維路二段23號", "四維路"),
+    ("台東縣台東市桂林北路52巷120號", "桂林北路"),
+    ("花蓮縣花蓮市國聯一路170號", "國聯一路"),
+    ("花蓮縣花蓮市達固湖灣大路23號", "達固湖灣大路"),
+    ("宜蘭縣大同鄉朝陽巷37號", ""),
+    ("", ""),
+])
+def test_road_of_drops_section(address, road):
+    from services.shelter_profile import road_of
+    assert road_of(address) == road
+
+
+def test_aliases_do_not_keep_bare_ownership_suffix():
+    # 「花蓮縣立體育館」去掉地名剩「立體育館」，這不是別名，會跟好幾間撞在一起
+    for name in ["[HUALIEN] 花蓮縣立體育館", "[HUALIEN] 花蓮市立圖書館", "[YILAN] 羅東鎮立體育館", "[TAITUNG] 台東縣立體育場"]:
+        for alias in aliases_of(name):
+            assert not alias.startswith("立"), (name, alias)
+
+
 def test_aliases_long_forms():
     assert aliases_of("[HUALIEN] 民義國小") == ["民義國民小學"]
     assert "台東女子高級中學" in aliases_of("[TAITUNG] 台東女中")
@@ -102,6 +123,7 @@ def test_profile_bundle():
         "county": "宜蘭縣",
         "township": "礁溪鄉",
         "street": "礁溪路四段",
+        "road": "礁溪路",
         "facility": "國中",
         "size_class": "中型",
         "aliases": ["礁溪國民中學"],
