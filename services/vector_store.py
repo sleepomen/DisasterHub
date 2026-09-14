@@ -1,6 +1,7 @@
 import hashlib
 import json
 import logging
+import re
 import threading
 from dataclasses import dataclass
 from pathlib import Path
@@ -18,6 +19,10 @@ REBUILD_SUFFIX = "__rebuild"
 
 # 拿來分隔文件，避免不同切分方式算出相同指紋
 SEPARATOR = b"|--|"
+# build_document 裡的「（別名：…）」段落
+ALIAS_PATTERN = re.compile(r"（別名：[^）]*）")
+# build_metadata 的欄位版本：新增或改動欄位時加一，落地的舊索引才會重建
+METADATA_VERSION = 2
 
 
 @dataclass
@@ -30,11 +35,17 @@ class Hit:
 
 @dataclass
 class PlannedResult:
-    """規則層檢索的結果，附帶「有沒有用篩選、篩選有沒有落空、是不是容量排名」給 prompt 用"""
+    """規則層檢索的結果，附帶「有沒有用篩選、篩選有沒有落空、是不是容量排名、是不是點名」給 prompt 用"""
     hits: list
     filtered: bool = False
     fell_back: bool = False
     ranked: bool = False
+    named: bool = False
+
+
+# search() 在沒有東西可給模型時回的固定句子；chat_service 看到就直接回「沒有相關資料」，不必再打 LLM
+NO_DATA = "目前沒有避難所資料。"
+NO_MATCH = "找不到相關避難所資料。"
 
 
 class VectorStore:
@@ -88,6 +99,8 @@ class VectorStore:
         # 換 embedding 模型也要重建，所以把模型名一起算進去；
         # 文件先排序，資料庫回傳順序不同不會被誤判成資料變了
         digest = hashlib.sha256(self._ef_name().encode("utf-8"))
+        # metadata 欄位改了（例如新增 road）文件內容不會變，靠版本號讓落地的索引重建
+        digest.update(f"metadata-v{METADATA_VERSION}".encode("utf-8"))
         for doc in sorted(documents):
             digest.update(SEPARATOR)
             digest.update(doc.encode("utf-8"))
@@ -146,6 +159,7 @@ class VectorStore:
             "region": p["region"],
             "county": p["county"],
             "township": p["township"],
+            "road": p["road"],
             "facility": p["facility"],
             "size_class": p["size_class"],
             "address": s.address,
@@ -290,6 +304,11 @@ class VectorStore:
         if not hits:
             fell_back = where is not None
             hits = self.retrieve(query, n_results)
+        # 使用者直接點名某間避難所（「中正國小還有空位嗎」）：只留那幾筆。
+        # 不然小模型會把 top-k 的十筆全部列出來，答非所問還會超過輸出長度
+        named = [h for h in hits if strip_region_tag(h.name) in query]
+        if named:
+            return PlannedResult(named, filtered=where is not None and not fell_back, fell_back=fell_back, named=True)
         return PlannedResult(hits, filtered=where is not None and not fell_back, fell_back=fell_back)
 
     def retrieve_planned(self, query: str, plan: QueryPlan, n_results: int | None = None) -> list[Hit]:
@@ -299,6 +318,8 @@ class VectorStore:
     def _planned_header(plan: QueryPlan, result: PlannedResult) -> str | None:
         order = "由小到大" if plan.capacity_order == "asc" else "由大到小"
         condition = plan.describe()
+        if result.named:
+            return f"使用者詢問的避難所資料如下（共 {len(result.hits)} 筆），請只回答這幾間："
         if result.fell_back:
             return (
                 f"沒有找到符合「{condition}」條件的避難所。"
@@ -318,17 +339,25 @@ class VectorStore:
         有規則層計畫時在前面加一行說明篩選條件與結果狀態。
         """
         if self.count() == 0:
-            return "目前沒有避難所資料。"
+            return NO_DATA
 
         header = None
+        unfiltered = True
         if plan is not None:
             result = self.plan_retrieve(query, plan, n_results)
             hits = result.hits
             header = self._planned_header(plan, result)
+            unfiltered = not (result.filtered or result.fell_back or result.ranked or result.named)
         else:
             hits = self.retrieve(query, n_results)
         if not hits:
-            return "找不到相關避難所資料。"
+            return NO_MATCH
+        # 純語意檢索永遠會回 top-k，「今天天氣如何」也會撈到十筆避難所；
+        # 最接近的一筆都離得很遠時就當成沒有相關資料，模型才不會拿不相干的資料硬答。
+        # 有 metadata 篩選的路徑不套用：篩選命中本身就是相關的證據
+        if unfiltered and hits[0].distance > config.RAG_MAX_DISTANCE:
+            return NO_MATCH
 
-        body = "\n".join(f"- {h.document}" for h in hits)
+        # 別名只是給 embedding 用的，餵給模型反而會被照抄成「宜蘭國小（宜蘭國民小學）」，所以從 prompt 文字裡拿掉
+        body = "\n".join(f"- {ALIAS_PATTERN.sub('', h.document)}" for h in hits)
         return f"{header}\n{body}" if header else body
