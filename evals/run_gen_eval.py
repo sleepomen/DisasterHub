@@ -2,10 +2,15 @@
 生成端評測：每一題真的走 ChatService（規則層 → 檢索 → 組 prompt → Ollama 生成），
 用 evals/gen_metrics.py 的規則對最終回覆評分。
 
+跑完 130 題要半小時到一小時，中途斷電或被中止不該從頭再來，
+所以每答完一題就把結果附加寫進 <out>.progress.jsonl 並 fsync 落地，
+再跑同一組設定時自動讀回已完成的題目直接略過，最後成功寫出結果才刪掉進度檔。
+
 用法（容器內）：
     python evals/run_gen_eval.py --embedder ollama:bge-m3 --model llama3.2:3b --label llama3.2-3b
     python evals/run_gen_eval.py --embedder ollama:bge-m3 --model qwen2.5:7b --label qwen2.5-7b
     python evals/run_gen_eval.py --limit 10 --category region      # 快速抽查
+    python evals/run_gen_eval.py --model qwen2.5:7b --fresh        # 不接續，重頭跑
 """
 import argparse
 import json
@@ -22,15 +27,59 @@ from evals.metrics import percentile  # noqa: E402
 from evals.run_rag_eval import build_store, load_cases, DEFAULT_CASES, RESULTS_DIR  # noqa: E402
 
 
-def run(cases, store, shelters, model_label):
+def progress_path_for(out: str) -> str:
+    return out + ".progress.jsonl"
+
+
+def _append_line(handle, obj: dict) -> None:
+    """寫一行就落地。斷電時最多丟掉正在寫的那一行，前面的題目都保得住"""
+    handle.write(json.dumps(obj, ensure_ascii=False) + "\n")
+    handle.flush()
+    os.fsync(handle.fileno())
+
+
+def load_progress(path: str, signature: dict) -> dict:
+    """
+    讀回上次中斷前已完成的題目，回傳 {query: row}。
+    第一行是設定簽章，換模型或改參數就不沿用，避免把不同設定的結果混在一起。
+    斷電可能讓最後一行只寫一半，解析不了的行直接丟掉。
+    """
+    if not os.path.exists(path):
+        return {}
+    done = {}
+    with open(path, encoding="utf-8") as f:
+        for i, line in enumerate(f):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                obj = json.loads(line)
+            except ValueError:
+                continue
+            if i == 0:
+                if obj.get("signature") != signature:
+                    return {}
+                continue
+            if "query" in obj:
+                done[obj["query"]] = obj
+    return done
+
+
+def run(cases, store, shelters, progress_handle=None, done=None):
     import config
     from services.chat_service import ChatService
 
     catalog = build_catalog(shelters)
     svc = ChatService(vector_store=store, repo=None)
+    done = done or {}
     rows = []
     total = len(cases)
     for i, c in enumerate(cases, 1):
+        cached = done.get(c["query"])
+        if cached is not None:
+            rows.append(cached)
+            print(f"[{i:>3}/{total}] {c['category']:<12}   略過  {c['query']}（已完成）", flush=True)
+            continue
         t0 = time.perf_counter()
         context, early = svc.build_context(c["query"])
         meta = {}
@@ -53,7 +102,7 @@ def run(cases, store, shelters, model_label):
             expect=c.get("expect"), truncated=(meta.get("done_reason") == "length"),
             query=c["query"], check_capacity=asks_capacity(c["query"], c["category"]),
         )
-        rows.append({
+        row = {
             "query": c["query"],
             "category": c["category"],
             "relevant": c["relevant"],
@@ -63,7 +112,10 @@ def run(cases, store, shelters, model_label):
             "latency_ms": round(latency_ms, 1),
             **meta,
             "scores": scores,
-        })
+        }
+        rows.append(row)
+        if progress_handle is not None:
+            _append_line(progress_handle, row)
         flag = "" if scores.get("answer_recall", scores.get("abstain_correct", 1.0)) >= 1.0 else "  <-- "
         print(f"[{i:>3}/{total}] {c['category']:<12} {latency_ms / 1000:5.1f}s  {c['query']}{flag}", flush=True)
     return rows
@@ -188,6 +240,7 @@ def main():
     parser.add_argument("--limit", type=int, default=None, help="只跑前 N 題（抽查用）")
     parser.add_argument("--show-failures", type=int, default=20)
     parser.add_argument("--out", default=None)
+    parser.add_argument("--fresh", action="store_true", help="不接續上次的進度檔，整組重跑")
     args = parser.parse_args()
 
     import config
@@ -205,11 +258,30 @@ def main():
         cases = cases[: args.limit]
     label = args.label or f"gen_{config.OLLAMA_MODEL.replace(':', '-')}"
 
+    out = args.out or os.path.join(RESULTS_DIR, f"{label}.json")
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+
+    # 換模型、改生成參數或換題庫都會讓簽章變動，進度檔就不沿用
+    signature = {
+        "model": config.OLLAMA_MODEL, "embedder": args.embedder,
+        "num_predict": config.OLLAMA_NUM_PREDICT, "temperature": config.OLLAMA_TEMPERATURE,
+        "num_ctx": config.OLLAMA_NUM_CTX, "cases": args.cases,
+        "category": args.category, "limit": args.limit,
+    }
+    progress_path = progress_path_for(out)
+    done = {} if args.fresh else load_progress(progress_path, signature)
+    if done:
+        print(f"接續上次進度：{len(done)} / {len(cases)} 題已完成（{progress_path}）", flush=True)
+
     from services.data_fetcher import DataFetcher
     shelters = DataFetcher().get_shelters()
     store, docs, build_s = build_store(args.embedder, label)
 
-    rows = run(cases, store, shelters, config.OLLAMA_MODEL)
+    with open(progress_path, "a" if done else "w", encoding="utf-8") as progress_handle:
+        if not done:
+            _append_line(progress_handle, {"signature": signature})
+        rows = run(cases, store, shelters, progress_handle=progress_handle, done=done)
+
     summary = summarize(rows)
     meta = {
         "label": label, "model": config.OLLAMA_MODEL, "embedder": args.embedder,
@@ -219,11 +291,11 @@ def main():
     print_report(summary, meta)
     print_failures(rows, args.show_failures)
 
-    out = args.out or os.path.join(RESULTS_DIR, f"{label}.json")
-    os.makedirs(os.path.dirname(out), exist_ok=True)
     with open(out, "w", encoding="utf-8") as f:
         json.dump({"meta": meta, "summary": summary, "rows": rows}, f, ensure_ascii=False, indent=1)
     print(f"\nsaved {out}")
+    # 完整結果已經落地，進度檔功成身退
+    os.remove(progress_path)
 
 
 if __name__ == "__main__":
