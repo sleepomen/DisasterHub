@@ -71,6 +71,11 @@ RAG_MAX_DISTANCE = _env_float("RAG_MAX_DISTANCE", 0.56)
 # 同時進行的 LLM 生成上限。每次生成最長 OLLAMA_TIMEOUT 秒，佔用一條工作執行緒；
 # 不設上限的話幾個人同時發問就會把執行緒池吃光，地圖載入與 readiness 一起卡住
 CHAT_MAX_CONCURRENT = _env_int("CHAT_MAX_CONCURRENT", 2)
+# /api/chat 沒有登入保護，而每一題都要吃一次 LLM 生成。併發名額只擋「同時幾個」，
+# 擋不住同一個人連續問不停，所以再加一層單一來源的用量上限。設 0 可停用。
+# 一題生成本來就要 10 至 60 秒、前端送出後也會鎖住輸入，正常使用碰不到 15 次／分鐘
+CHAT_RATE_LIMIT = _env_int("CHAT_RATE_LIMIT", 15)
+CHAT_RATE_WINDOW = _env_int("CHAT_RATE_WINDOW", 60)
 # 只有在前面確定有反向代理時才信任 X-Forwarded-For / X-Forwarded-Proto；
 # 直接對外時這兩個 header 任何人都能自己帶，用來繞過登入節流
 TRUST_PROXY_HEADERS = _env_bool("TRUST_PROXY_HEADERS", False)
@@ -113,6 +118,8 @@ def _bounds_errors() -> list[str]:
         ("RAG_TOP_K", RAG_TOP_K, RAG_TOP_K >= 1, "至少要 1"),
         ("RAG_MAX_DISTANCE", RAG_MAX_DISTANCE, 0 < RAG_MAX_DISTANCE <= 2, "必須介於 0 到 2（cosine 距離）"),
         ("CHAT_MAX_CONCURRENT", CHAT_MAX_CONCURRENT, CHAT_MAX_CONCURRENT >= 1, "至少要 1"),
+        ("CHAT_RATE_LIMIT", CHAT_RATE_LIMIT, CHAT_RATE_LIMIT >= 0, "不能是負數（0 代表停用）"),
+        ("CHAT_RATE_WINDOW", CHAT_RATE_WINDOW, CHAT_RATE_WINDOW >= 1, "至少要 1 秒"),
         ("OLLAMA_TIMEOUT", OLLAMA_TIMEOUT, OLLAMA_TIMEOUT >= 1, "至少要 1 秒"),
         ("EMBEDDING_TIMEOUT", EMBEDDING_TIMEOUT, EMBEDDING_TIMEOUT >= 1, "至少要 1 秒"),
         ("OLLAMA_NUM_CTX", OLLAMA_NUM_CTX, OLLAMA_NUM_CTX >= 1024, "至少要 1024，否則系統提示加資料就放不下"),
@@ -154,6 +161,8 @@ def validate() -> list[str]:
         warnings.append("SESSION_SECRET 仍是 .env.example 的預設值，請改成隨機長字串")
     if WRITE_API_KEY in PLACEHOLDERS:
         warnings.append("WRITE_API_KEY 仍是 .env.example 的預設值，請改成隨機長字串或留空停用")
+    if CHAT_RATE_LIMIT <= 0:
+        warnings.append("CHAT_RATE_LIMIT 設為 0，/api/chat 沒有來源用量上限，任何人都能無限呼叫 LLM")
     if not CHROMA_PATH:
         warnings.append("未設定 CHROMA_PATH，向量索引只存在記憶體，每次重啟都要重新 embedding")
     return warnings
