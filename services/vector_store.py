@@ -37,6 +37,9 @@ class Hit:
 class PlannedResult:
     """規則層檢索的結果，附帶「有沒有用篩選、篩選有沒有落空、是不是容量排名、是不是點名」給 prompt 用"""
     hits: list
+    # 符合條件的文件總數。hits 會被 MAX_FILTERED_RESULTS / MAX_RANKED_RESULTS 截斷，
+    # 標頭要靠這個數字照實說「共幾筆、以下列幾筆」，不能讓模型把看到的筆數當成全部
+    total: int = 0
     filtered: bool = False
     fell_back: bool = False
     ranked: bool = False
@@ -223,9 +226,13 @@ class VectorStore:
         """
         if not shelters:
             return 0
+        documents = [self.build_document(s) for s in shelters]
+        # embedding 要打 Ollama，持鎖做會把查詢與 readiness 的 count() 一起擋住
+        embeddings = self.ef(documents)
         with self._lock:
             self.collection.upsert(
-                documents=[self.build_document(s) for s in shelters],
+                documents=documents,
+                embeddings=embeddings,
                 metadatas=[self.build_metadata(s) for s in shelters],
                 ids=[self.doc_id(s.name) for s in shelters],
             )
@@ -243,21 +250,42 @@ class VectorStore:
                 return self.collection.count()
             return len(self.collection.get(where=where, include=[])["ids"])
 
-    def retrieve(self, query: str, n_results: int | None = None, where: dict | None = None) -> list[Hit]:
+    def embed_query(self, query: str):
         """
-        語意檢索。給 where 時只在符合 metadata 條件的文件裡找，
+        算查詢向量。故意不持鎖：這一步要打 Ollama embedding，是整條檢索裡最慢的一段
+        （最久 EMBEDDING_TIMEOUT 秒），包進鎖裡會連 count() 都排不進去。
+        """
+        vectors = self.ef([query])
+        if vectors is None or len(vectors) == 0:
+            raise RuntimeError("embedding 沒有回傳查詢向量")
+        return vectors[0]
+
+    def retrieve(self, query: str, n_results: int | None = None, where: dict | None = None) -> list[Hit]:
+        return self.retrieve_with_total(query, n_results, where)[0]
+
+    def retrieve_with_total(
+        self, query: str, n_results: int | None = None, where: dict | None = None
+    ) -> tuple[list[Hit], int]:
+        """
+        語意檢索，另外回傳符合條件的文件總數。給 where 時只在符合 metadata 條件的文件裡找，
         而且預設把符合的全部回傳（上限 MAX_FILTERED_RESULTS），
-        「宜蘭有哪些避難所」這種列舉題才不會被 top-k 截掉。
+        「宜蘭有哪些避難所」這種列舉題才不會被 top-k 截掉；真的超過上限時 hits 會少於總數，
+        標頭要照實講，不能讓模型把看到的筆數當成全部。
+
+        鎖只包住真正讀索引的那兩段，查詢向量在鎖外面算：embedding 慢的時候
+        連 readiness 走的 count() 都會被擋住，容器的 healthcheck 10 秒就判 unhealthy。
         """
         with self._lock:
             total = self.count_where(where)
-            if total == 0:
-                return []
+        if total == 0:
+            return [], 0
 
-            default_n = MAX_FILTERED_RESULTS if where is not None else config.RAG_TOP_K
-            n = min(n_results or default_n, total)
+        default_n = MAX_FILTERED_RESULTS if where is not None else config.RAG_TOP_K
+        n = min(n_results or default_n, total)
+        query_embedding = self.embed_query(query)
+        with self._lock:
             results = self.collection.query(
-                query_texts=[query],
+                query_embeddings=[query_embedding],
                 n_results=n,
                 where=where,
                 include=["documents", "metadatas", "distances"],
@@ -265,15 +293,17 @@ class VectorStore:
         docs = results.get("documents", [[]])[0]
         metas = results.get("metadatas", [[]])[0]
         dists = results.get("distances", [[]])[0]
-        return [
+        hits = [
             Hit(name=meta["name"], document=doc, distance=float(dist), metadata=meta)
             for doc, meta, dist in zip(docs, metas, dists)
         ]
+        return hits, total
 
-    def rank_by_capacity(self, where: dict | None, n_results: int | None = None, descending: bool = True) -> list[Hit]:
+    def rank_by_capacity(self, where: dict | None, descending: bool = True) -> list[Hit]:
         """
         「哪間最大 / 容量排名」不該靠語意 top-k 再排序，top-k 裡未必有真正最大的那間；
         這裡直接把符合條件的全部拿出來依 metadata 的容量排，結果才是精確的。
+        回傳完整排序不截斷，要列幾筆、總共幾筆由呼叫端決定（標頭要用到總數）。
         """
         with self._lock:
             stored = self.collection.get(where=where, include=["documents", "metadatas"])
@@ -281,7 +311,7 @@ class VectorStore:
         metas = stored.get("metadatas") or []
         hits = [Hit(name=meta["name"], document=doc, distance=0.0, metadata=meta) for doc, meta in zip(docs, metas)]
         hits.sort(key=lambda h: h.metadata.get("capacity", 0), reverse=descending)
-        return hits[: (n_results or MAX_RANKED_RESULTS)]
+        return hits
 
     def plan_retrieve(self, query: str, plan: QueryPlan, n_results: int | None = None) -> PlannedResult:
         """
@@ -292,24 +322,36 @@ class VectorStore:
         where = plan.to_where()
         descending = plan.capacity_order != "asc"
         if plan.order_by_capacity:
-            hits = self.rank_by_capacity(where, n_results, descending)
+            ranked = self.rank_by_capacity(where, descending)
             fell_back = False
-            if not hits and where is not None:
-                hits = self.rank_by_capacity(None, n_results, descending)
+            if not ranked and where is not None:
+                ranked = self.rank_by_capacity(None, descending)
                 fell_back = True
-            return PlannedResult(hits, filtered=where is not None and not fell_back, fell_back=fell_back, ranked=True)
+            return PlannedResult(
+                ranked[: (n_results or MAX_RANKED_RESULTS)],
+                total=len(ranked),
+                filtered=where is not None and not fell_back,
+                fell_back=fell_back,
+                ranked=True,
+            )
 
-        hits = self.retrieve(query, n_results, where=where) if where is not None else []
+        hits, total = self.retrieve_with_total(query, n_results, where=where) if where is not None else ([], 0)
         fell_back = False
         if not hits:
             fell_back = where is not None
-            hits = self.retrieve(query, n_results)
+            hits, total = self.retrieve_with_total(query, n_results)
         # 使用者直接點名某間避難所（「中正國小還有空位嗎」）：只留那幾筆。
         # 不然小模型會把 top-k 的十筆全部列出來，答非所問還會超過輸出長度
         named = [h for h in hits if strip_region_tag(h.name) in query]
         if named:
-            return PlannedResult(named, filtered=where is not None and not fell_back, fell_back=fell_back, named=True)
-        return PlannedResult(hits, filtered=where is not None and not fell_back, fell_back=fell_back)
+            return PlannedResult(
+                named, total=len(named),
+                filtered=where is not None and not fell_back, fell_back=fell_back, named=True,
+            )
+        return PlannedResult(
+            hits, total=total,
+            filtered=where is not None and not fell_back, fell_back=fell_back,
+        )
 
     def retrieve_planned(self, query: str, plan: QueryPlan, n_results: int | None = None) -> list[Hit]:
         return self.plan_retrieve(query, plan, n_results).hits
@@ -318,19 +360,30 @@ class VectorStore:
     def _planned_header(plan: QueryPlan, result: PlannedResult) -> str | None:
         order = "由小到大" if plan.capacity_order == "asc" else "由大到小"
         condition = plan.describe()
+        shown = len(result.hits)
+        # 符合的筆數超過上限時只會送前幾筆進 prompt；標頭要同時講總數與列出的筆數，
+        # 不然模型會照抄「共 30 筆」當成全部，而實際上可能有 80 間
+        truncated = result.total > shown
         if result.named:
-            return f"使用者詢問的避難所資料如下（共 {len(result.hits)} 筆），請只回答這幾間："
+            return f"使用者詢問的避難所資料如下（共 {shown} 筆），請只回答這幾間："
         if result.fell_back:
             return (
                 f"沒有找到符合「{condition}」條件的避難所。"
                 "以下是最接近的其他資料，僅供參考；回答時請先明確告知使用者沒有完全符合條件的避難所。"
             )
         if result.filtered and result.ranked:
-            return f"符合「{condition}」的避難所依容量{order}排序（共 {len(result.hits)} 筆）："
+            if truncated:
+                return (
+                    f"符合「{condition}」的避難所共 {result.total} 筆，"
+                    f"以下是依容量{order}排序的前 {shown} 筆："
+                )
+            return f"符合「{condition}」的避難所依容量{order}排序（共 {shown} 筆）："
         if result.filtered:
-            return f"符合「{condition}」的避難所共 {len(result.hits)} 筆："
+            if truncated:
+                return f"符合「{condition}」的避難所共 {result.total} 筆，以下列出最相關的 {shown} 筆："
+            return f"符合「{condition}」的避難所共 {shown} 筆："
         if result.ranked:
-            return f"全東部避難所依容量{order}排序（前 {len(result.hits)} 筆）："
+            return f"全東部避難所依容量{order}排序（前 {shown} 筆）："
         return None
 
     def search(self, query: str, n_results: int | None = None, plan: QueryPlan | None = None) -> str:
