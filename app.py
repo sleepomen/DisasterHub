@@ -3,7 +3,7 @@ import json
 import logging
 import secrets
 import threading
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 from fastapi import FastAPI, Header, HTTPException, Request, Response
 from fastapi.responses import FileResponse, StreamingResponse
@@ -17,6 +17,7 @@ from services.vector_store import VectorStore
 from services.population_service import PopulationModel
 from services import health
 from services import auth
+from services.rate_limit import RateLimiter
 import config
 import uvicorn
 
@@ -46,6 +47,9 @@ login_throttle = auth.LoginThrottle()
 # 不排隊、不佔執行緒，地圖與 readiness 才不會跟著 Ollama 一起卡住
 chat_slots = threading.BoundedSemaphore(config.CHAT_MAX_CONCURRENT)
 AI_BUSY = "AI 助手正在回答其他問題，請稍後再試。"
+# 單一來源的用量上限。/api/chat 不需要登入（災時任何人都要問得到），
+# 但也因此沒有任何東西擋住有人拿它當免費 LLM 用，所以按來源限流
+chat_limiter = RateLimiter(config.CHAT_RATE_LIMIT, config.CHAT_RATE_WINDOW)
 
 # 列舉題（一個縣 20 至 30 筆）生成要 1 分鐘以上，一次給完的話使用者只能看著轉圈等，
 # 所以改用 SSE 邊生成邊送。no-cache / X-Accel-Buffering 是給前面的反向代理看的：
@@ -86,15 +90,43 @@ def apply_occupancy(occupancy: dict[str, int]) -> dict:
     }
 
 
+# 啟動同步失敗後的重試間隔（秒）。資料庫還沒起來、Ollama 還在載 embedding 模型都是
+# 幾十秒就會好的暫時狀況，但索引空著 readiness 就一直回 503，容器也一直 unhealthy。
+# 自己退避重試，不要求人剛好在線上去呼叫 /api/sync
+STARTUP_RETRY_DELAYS = (5, 15, 30, 60, 120, 300)
+
+
+async def retry_startup_sync() -> None:
+    for delay in STARTUP_RETRY_DELAYS:
+        await asyncio.sleep(delay)
+        try:
+            count = await asyncio.to_thread(sync_and_reindex)
+        except Exception as e:
+            logger.warning("啟動同步重試失敗（間隔 %d 秒的那次）：%s", delay, e)
+            continue
+        logger.info("啟動同步重試成功，共載入 %d 筆避難所", count)
+        return
+    logger.error(
+        "啟動同步重試全部失敗，索引仍是空的，readiness 會持續回 503。"
+        "請修好資料庫或 Ollama 之後呼叫 /api/sync，或重啟服務"
+    )
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     logger.info("啟動時執行資料同步與向量索引建立...")
+    retry_task = None
     try:
         count = await asyncio.to_thread(sync_and_reindex)
         logger.info("啟動完成，共載入 %d 筆避難所", count)
     except Exception:
-        logger.exception("啟動同步失敗，服務仍會啟動，可稍後呼叫 /api/sync 重試")
+        logger.exception("啟動同步失敗，服務仍會啟動，接下來會在背景自動重試")
+        retry_task = asyncio.create_task(retry_startup_sync())
     yield
+    if retry_task is not None:
+        retry_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await retry_task
 
 
 app = FastAPI(lifespan=lifespan)
@@ -168,15 +200,23 @@ class LoginRequest(BaseModel):
     password: str = Field(..., min_length=1, max_length=200)
 
 
-def require_api_key(provided: str, expected: str, setting: str, feature: str) -> None:
+def require_sync_access(http_request: Request, x_api_key: str) -> None:
     """
-    只靠金鑰的端點（/api/sync）：伺服器沒設金鑰就整個停用（503）而不是放行，
-    設定漏掉時才不會變成人人可寫。
+    /api/sync 的三種通行方式：SYNC_API_KEY、登入的 session、或寫入金鑰 WRITE_API_KEY。
+    只認 SYNC_API_KEY 的話，沒設這個變數的部署在啟動同步失敗後就只剩重啟容器一條路
+    （索引空的時候 readiness 一直是 503），操作員要能自己把資料同步回來。
     """
-    if not expected:
-        raise HTTPException(status_code=503, detail=f"伺服器未設定 {setting}，{feature}已停用")
-    if not secrets.compare_digest(provided, expected):
-        raise HTTPException(status_code=401, detail="API key 無效")
+    for expected in (config.SYNC_API_KEY, config.WRITE_API_KEY):
+        if expected and x_api_key and secrets.compare_digest(x_api_key, expected):
+            return
+    if current_user(http_request):
+        return
+    if not (config.SYNC_API_KEY or config.WRITE_API_KEY or auth.credentials_configured()):
+        raise HTTPException(
+            status_code=503,
+            detail="伺服器未設定 SYNC_API_KEY / WRITE_API_KEY / ADMIN_USERNAME，手動同步已停用",
+        )
+    raise HTTPException(status_code=401, detail="請先登入或提供有效的 API key")
 
 
 def current_user(http_request: Request) -> str | None:
@@ -266,8 +306,8 @@ async def me(http_request: Request):
 #sync_service.sync() 讀取json檔案寫入pgSQL
 #vector_store.build_index()重建chromadb向量索引
 @app.post("/api/sync")
-async def manual_sync(x_api_key: str = Header(default="")):
-    require_api_key(x_api_key, config.SYNC_API_KEY, "SYNC_API_KEY", "手動同步")
+async def manual_sync(http_request: Request, x_api_key: str = Header(default="")):
+    require_sync_access(http_request, x_api_key)
     count = await asyncio.to_thread(sync_and_reindex, True)
     return {"status": "success", "message": "資料同步與索引重建完成", "count": count}
 
@@ -366,7 +406,15 @@ async def nearest_shelter(request: NearestRequest):
 #chatservice依問題類型查 DB / chromadb，組合 prompt 後透過 http 呼叫 ollama
 #llm 的回答以 SSE 逐段送回前端，每個事件是一個 {"type": "delta"|"error"|"done", "text": ...}
 @app.post("/api/chat")
-async def chat(request: ChatRequest):
+async def chat(request: ChatRequest, http_request: Request):
+    # 來源用量先看：被限流的請求不該佔用生成名額
+    wait = chat_limiter.hit(client_key(http_request))
+    if wait > 0:
+        raise HTTPException(
+            status_code=429,
+            detail=f"提問太頻繁，請 {wait} 秒後再試。",
+            headers={"Retry-After": str(wait)},
+        )
     # 名額要在開始串流前就拿到，拿不到才有機會回 429；
     # 串流一開始送出，狀態碼就定了，之後的錯誤只能以 error 事件表達
     if not chat_slots.acquire(blocking=False):
