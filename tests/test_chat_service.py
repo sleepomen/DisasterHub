@@ -142,7 +142,8 @@ def test_prompt_tells_model_data_is_prefiltered(svc):
 
 
 def test_nearest_context_has_no_region_tag(svc):
-    ctx = svc._get_nearest_context(23.99, 121.6)
+    ctx, early = svc._get_nearest_context(23.99, 121.6)
+    assert early is None
     assert "花蓮縣立體育館" in ctx
     assert "HUALIEN" not in ctx
     assert "1.2 公里" in ctx
@@ -164,16 +165,20 @@ def test_capacity_ranking_goes_through_rules_layer(svc):
 def test_simulation_context_includes_remaining(svc):
     svc.set_simulation({"type": "flood", "radius_km": 10, "impacted_count": 1, "impacted_shelters": [
         {"name": "[TAITUNG] 丙", "capacity": 200, "current_ppl": 50, "remaining": 150}]})
-    ctx = svc._get_simulation_context()
+    ctx, early = svc._get_simulation_context()
+    assert early is None
     assert "淹水" in ctx
     assert "剩餘空間 150 人" in ctx
     assert "TAITUNG" not in ctx
 
 
-def test_simulation_context_when_none(svc):
-    assert "尚未執行" in svc._get_simulation_context()
+def test_simulation_with_nothing_to_report_answers_without_the_llm(svc):
+    # 「尚未執行模擬」這種句子本身就是答案，當成【避難所資料】餵進去只是多等一次生成
+    ctx, early = svc._get_simulation_context()
+    assert ctx is None and "尚未執行" in early
     svc.set_simulation({"type": "fire", "impacted_shelters": []})
-    assert "沒有受影響" in svc._get_simulation_context()
+    ctx, early = svc._get_simulation_context()
+    assert ctx is None and "沒有受影響" in early
 
 
 def test_prompt_includes_simulation_summary(svc):
@@ -187,7 +192,7 @@ def test_prompt_includes_simulation_summary(svc):
 
 def test_errors_do_not_leak_details():
     svc = ChatService(MagicMock(), BrokenRepo())
-    assert svc._get_nearest_context(23.9, 121.6) == GENERIC_ERROR
+    assert svc._get_nearest_context(23.9, 121.6) == (None, GENERIC_ERROR)
 
 
 def test_chat_stream_yields_ollama_chunks(svc):
@@ -278,7 +283,7 @@ def test_refresh_occupancy_updates_simulation_snapshot(svc):
     svc.set_simulation({"type": "flood", "radius_km": 10, "impacted_count": 1, "impacted_shelters": [
         {"name": "[TAITUNG] 丙", "capacity": 200, "current_ppl": 50, "remaining": 150}]})
     svc.refresh_occupancy([Shelter("[TAITUNG] 丙", 200, 22.7, 121.1, 190)])
-    ctx = svc._get_simulation_context()
+    ctx, _ = svc._get_simulation_context()
     assert "目前收容 190 人" in ctx
     assert "剩餘空間 10 人" in ctx
 
@@ -309,7 +314,7 @@ def test_refresh_occupancy_recomputes_population_totals(svc):
     assert pop["placed"] == 240
     assert pop["placeable"] == 250 and pop["shortfall"] == 150
 
-    ctx = svc._get_simulation_context()
+    ctx, _ = svc._get_simulation_context()
     assert "模擬當下範圍內避難所剩餘空間合計約 250 人" in ctx
     assert "疏散已安置約 240 人" in ctx
     assert "目前範圍內避難所剩餘空間合計約 10 人" in ctx
@@ -349,7 +354,7 @@ def test_simulation_summary_and_context_include_population(svc):
     assert "預估需疏散約 2.1 萬人" in summary
     assert "12% 比例" in summary
     assert "收容缺口約 2.1 萬人" in summary
-    ctx = svc._get_simulation_context()
+    ctx, _ = svc._get_simulation_context()
     assert "約 17.5 萬人" in ctx
     assert "受影響避難所共 1 個" in ctx
 
@@ -470,3 +475,36 @@ def test_no_match_from_retrieval_becomes_fixed_reply_without_llm(svc):
             assert svc.chat("今天天氣如何") == NO_RELEVANT_REPLY
         post.assert_not_called()
     svc.vector_store.search.return_value = "RAG 結果"
+
+
+@pytest.mark.parametrize("msg,expected", [
+    ("哪些避難所受到影響？", "尚未執行"),
+    ("模擬結果如何", "尚未執行"),
+])
+def test_simulation_query_without_simulation_never_calls_ollama(svc, msg, expected):
+    with patch("services.chat_service.requests.post") as post:
+        events = list(svc.chat_stream(msg))
+    assert post.call_count == 0
+    assert len(events) == 1 and expected in events[0]["text"]
+
+
+def test_nearest_query_failure_is_not_fed_to_the_model():
+    # 以前查詢失敗的訊息會被當成【避難所資料】送進 prompt，模型只能對著一句錯誤訊息作文
+    svc = ChatService(MagicMock(), BrokenRepo())
+    with patch("services.chat_service.requests.post") as post:
+        events = list(svc.chat_stream("離我最近的避難所 緯度 23.99 經度 121.60"))
+    assert post.call_count == 0
+    # 走的是檢索層的 early reply，所以型態是 delta；重點是它沒有進 prompt、也沒打 LLM
+    assert events == [{"type": "delta", "text": GENERIC_ERROR}]
+
+
+def test_nearest_query_with_no_results_replies_directly():
+    class EmptyRepo:
+        def get_nearest_shelters(self, lat, lon, limit=5):
+            return []
+
+    svc = ChatService(MagicMock(), EmptyRepo())
+    with patch("services.chat_service.requests.post") as post:
+        events = list(svc.chat_stream("離我最近的避難所 緯度 23.99 經度 121.60"))
+    assert post.call_count == 0
+    assert len(events) == 1 and "附近沒有找到" in events[0]["text"]

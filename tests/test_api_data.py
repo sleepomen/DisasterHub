@@ -1,3 +1,4 @@
+import asyncio
 import json
 from unittest.mock import patch
 import pytest
@@ -48,8 +49,10 @@ def client():
         import app as app_module
         with TestClient(app_module.app) as c:
             yield c
-        # 登入失敗節流是 process 全域狀態，別讓一個測試的失敗鎖住下一個
+        # 登入節流與聊天用量都是 process 全域狀態，別讓一個測試的紀錄影響下一個：
+        # 整個 session 的 /api/chat 會累加在同一個視窗裡，不清就會莫名收到 429
         app_module.login_throttle.reset("testclient")
+        app_module.chat_limiter.reset("testclient")
 
 
 def login(client, **overrides):
@@ -207,9 +210,22 @@ def test_sync_requires_api_key(client):
         assert client.post("/api/sync", headers={"X-API-Key": "wrong"}).status_code == 401
 
 
-def test_sync_disabled_without_key(client):
-    with patch("config.SYNC_API_KEY", ""):
-        assert client.post("/api/sync", headers={"X-API-Key": "x"}).status_code == 503
+def test_sync_accepts_write_credentials_as_recovery_path(client):
+    # 啟動同步失敗時索引是空的、readiness 一直 503；沒設 SYNC_API_KEY 的部署
+    # 也要能讓操作員自己把資料同步回來，而不是只剩重啟容器
+    with patch("config.SYNC_API_KEY", ""), patch("app.sync_and_reindex", return_value=2) as sync:
+        assert client.post("/api/sync", headers={"X-API-Key": "x"}).status_code == 401
+        assert client.post("/api/sync", headers=WRITE_HEADERS).status_code == 200
+        login(client)
+        assert client.post("/api/sync").status_code == 200
+    assert sync.call_count == 2
+
+
+def test_sync_disabled_when_nothing_is_configured(client):
+    with patch("config.SYNC_API_KEY", ""), patch("config.WRITE_API_KEY", ""),          patch("config.ADMIN_USERNAME", ""), patch("config.ADMIN_PASSWORD", ""):
+        res = client.post("/api/sync", headers={"X-API-Key": "x"})
+    assert res.status_code == 503
+    assert "SYNC_API_KEY" in res.json()["detail"]
 
 
 def test_index_served(client):
@@ -388,3 +404,57 @@ def test_chat_slot_is_released_when_generation_raises(client):
         with pytest.raises(RuntimeError):
             client.post("/api/chat", json={"message": "x"})
     assert app_module.chat_slots._value == before
+
+
+def test_chat_is_rate_limited_per_source(client):
+    import app as app_module
+    # /api/chat 不需要登入（災時任何人都要問得到），所以用量上限是唯一擋得住
+    # 「拿它當免費 LLM 無限打」的東西
+    with patch("app.chat_service.chat_stream", side_effect=fake_chat_stream) as chat, \
+         patch.object(app_module.chat_limiter, "max_requests", 2):
+        assert client.post("/api/chat", json={"message": "x"}).status_code == 200
+        assert client.post("/api/chat", json={"message": "x"}).status_code == 200
+        res = client.post("/api/chat", json={"message": "x"})
+    assert res.status_code == 429
+    assert "太頻繁" in res.json()["detail"]
+    assert int(res.headers["retry-after"]) > 0
+    # 被限流的請求不該碰到生成，也不該佔用生成名額
+    assert chat.call_count == 2
+    assert app_module.chat_slots._value == app_module.config.CHAT_MAX_CONCURRENT
+
+
+def test_chat_rate_limit_can_be_disabled(client):
+    import app as app_module
+    with patch("app.chat_service.chat_stream", side_effect=fake_chat_stream), \
+         patch.object(app_module.chat_limiter, "max_requests", 0):
+        codes = [client.post("/api/chat", json={"message": "x"}).status_code for _ in range(5)]
+    assert codes == [200] * 5
+
+
+def test_startup_sync_retries_in_the_background_until_it_succeeds():
+    # 啟動同步失敗的常見原因（資料庫還沒起來、Ollama 還在載模型）都是暫時的，
+    # 但索引空著 readiness 就一直 503，所以要自己重試而不是等人來呼叫 /api/sync
+    import app as app_module
+    calls = []
+
+    def flaky(force=False):
+        calls.append(force)
+        if len(calls) < 3:
+            raise RuntimeError("db not ready")
+        return 7
+
+    with patch("app.STARTUP_RETRY_DELAYS", (0, 0, 0, 0)), patch("app.sync_and_reindex", flaky):
+        asyncio.run(app_module.retry_startup_sync())
+    # 重試不帶 force：只有手動同步才強制重建整個索引
+    assert calls == [False, False, False]
+
+
+def test_startup_sync_retry_gives_up_after_the_last_delay(caplog):
+    import logging
+    import app as app_module
+    with patch("app.STARTUP_RETRY_DELAYS", (0, 0)), \
+         patch("app.sync_and_reindex", side_effect=RuntimeError("down")) as sync:
+        with caplog.at_level(logging.ERROR, logger="app"):
+            asyncio.run(app_module.retry_startup_sync())
+    assert sync.call_count == 2
+    assert "/api/sync" in caplog.text
