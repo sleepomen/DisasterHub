@@ -1,11 +1,12 @@
 import asyncio
+import json
 import logging
 import secrets
 import threading
 from contextlib import asynccontextmanager
 from pathlib import Path
 from fastapi import FastAPI, Header, HTTPException, Request, Response
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 from repositories.shelter_repository import ShelterRepository
@@ -45,6 +46,18 @@ login_throttle = auth.LoginThrottle()
 # 不排隊、不佔執行緒，地圖與 readiness 才不會跟著 Ollama 一起卡住
 chat_slots = threading.BoundedSemaphore(config.CHAT_MAX_CONCURRENT)
 AI_BUSY = "AI 助手正在回答其他問題，請稍後再試。"
+
+# 列舉題（一個縣 20 至 30 筆）生成要 1 分鐘以上，一次給完的話使用者只能看著轉圈等，
+# 所以改用 SSE 邊生成邊送。no-cache / X-Accel-Buffering 是給前面的反向代理看的：
+# nginx 預設會把整個回應緩衝起來再轉出，串流會整段失效
+SSE_HEADERS = {
+    "Cache-Control": "no-cache",
+    "X-Accel-Buffering": "no",
+}
+
+
+def sse_event(payload: dict) -> str:
+    return f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
 
 
 def sync_and_reindex(force: bool = False) -> int:
@@ -349,18 +362,27 @@ async def nearest_shelter(request: NearestRequest):
         "shelters": results
     }
 
-#呼叫 chat_service.chat() 傳入問題
+#呼叫 chat_service.chat_stream() 傳入問題
 #chatservice依問題類型查 DB / chromadb，組合 prompt 後透過 http 呼叫 ollama
-#llm回答回傳前端
+#llm 的回答以 SSE 逐段送回前端，每個事件是一個 {"type": "delta"|"error"|"done", "text": ...}
 @app.post("/api/chat")
 async def chat(request: ChatRequest):
+    # 名額要在開始串流前就拿到，拿不到才有機會回 429；
+    # 串流一開始送出，狀態碼就定了，之後的錯誤只能以 error 事件表達
     if not chat_slots.acquire(blocking=False):
         raise HTTPException(status_code=429, detail=AI_BUSY)
-    try:
-        reply = await asyncio.to_thread(chat_service.chat, request.message)
-    finally:
-        chat_slots.release()
-    return {"status": "success", "reply": reply}
+
+    def stream():
+        # 同步產生器由 Starlette 丟到執行緒池逐段取，阻塞的 requests 呼叫不會卡住事件迴圈。
+        # 名額撐到整段結束（含使用者中途關掉頁面）才還，否則併發上限等於沒設
+        try:
+            for event in chat_service.chat_stream(request.message):
+                yield sse_event(event)
+            yield sse_event({"type": "done"})
+        finally:
+            chat_slots.release()
+
+    return StreamingResponse(stream(), media_type="text/event-stream", headers=SSE_HEADERS)
 
 # 渲染首頁
 @app.get("/", response_class=FileResponse)
