@@ -687,32 +687,72 @@
         if (!busy && input) input.focus();
     }
 
+    // 讀後端的 SSE：每個事件是一行 data: {json}，事件之間以空白行分隔。
+    // 跨 chunk 的半個事件要留在 buffer 裡等下一段，不能直接丟掉
+    async function* readChatEvents(body) {
+        const reader = body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        for (;;) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            let cut;
+            while ((cut = buffer.indexOf('\n\n')) !== -1) {
+                const frame = buffer.slice(0, cut);
+                buffer = buffer.slice(cut + 2);
+                for (const line of frame.split('\n')) {
+                    if (!line.startsWith('data:')) continue;
+                    try {
+                        yield JSON.parse(line.slice(5));
+                    } catch {
+                        console.error('無法解析的 SSE 事件', line);
+                    }
+                }
+            }
+        }
+    }
+
+    // 列舉題生成要一分鐘以上，所以邊收邊貼：第一個字到了就把「思考中」換成答案泡泡
     window.sendChat = async function(v) {
         v = (v || '').trim();
         if (!v || chatPending) return;
         setChatBusy(true);
         addChat(v, 'user');
         document.getElementById('user-input').value = '';
+        const container = document.getElementById('chat-container');
         const loadingEl = addChat('AI 思考中…', 'loading');
+        let bubble = null;
         try {
             const res = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: v })
             });
-            const data = await res.json().catch(() => ({}));
-            loadingEl.remove();
             if (res.status === 429) {
                 // 後端的生成名額滿了（別人正在問），不是連線問題
+                const data = await res.json().catch(() => ({}));
                 addChat(typeof data.detail === 'string' ? data.detail : 'AI 助手正在回答其他問題，請稍後再試。', 'ai');
                 return;
             }
-            if (!res.ok) throw new Error('HTTP ' + res.status);
-            addChat(data.reply, 'ai');
+            if (!res.ok || !res.body) throw new Error('HTTP ' + res.status);
+            for await (const event of readChatEvents(res.body)) {
+                if (event.type === 'done') break;
+                if (!event.text) continue;
+                if (!bubble) {
+                    loadingEl.remove();
+                    bubble = addChat('', 'ai');
+                }
+                bubble.textContent += event.text;
+                container.scrollTop = container.scrollHeight;
+            }
+            if (!bubble) addChat('AI 沒有回應，請稍後再試', 'ai');
         } catch {
-            loadingEl.remove();
-            addChat('連線失敗，請稍後再試', 'ai');
+            // 串流中途斷線：已經收到的文字留在畫面上，後面補一句說明
+            if (bubble) bubble.textContent += '（連線中斷）';
+            else addChat('連線失敗，請稍後再試', 'ai');
         } finally {
+            loadingEl.remove();
             setChatBusy(false);
         }
     };
