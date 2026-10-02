@@ -1,7 +1,9 @@
 import copy
+import json
 import re
 import logging
 import threading
+import time
 import requests
 from services.vector_store import VectorStore, NO_DATA, NO_MATCH
 from services import query_rules
@@ -58,6 +60,12 @@ COORD_PATTERNS = [
 ]
 GENERIC_ERROR = "查詢避難所資料時發生錯誤，請稍後再試。"
 AI_UNAVAILABLE = "AI 服務目前無法使用，請稍後再試。"
+# 串流中途斷掉：前面已經吐出來的文字留著，後面補一句讓使用者知道答案沒講完
+STREAM_INTERRUPTED = "（回答中斷，請稍後再試。）"
+
+
+class GenerationTimeout(RuntimeError):
+    """整段生成超過 OLLAMA_TIMEOUT，串流已中止"""
 
 
 def display_name(name: str) -> str:
@@ -327,44 +335,101 @@ class ChatService:
 3. 資料裡的數字原樣引用，不要自行加總或改寫。
 4. 只能用繁體中文，不得出現英文。"""
 
-    def chat(self, user_message: str) -> str:
+    def chat_stream(self, user_message: str):
+        """
+        串流回答：逐段 yield 事件 dict，type 有 delta（文字片段）與 error（固定錯誤句）。
+        跟 chat() 一樣不對外拋例外，所有錯誤都轉成使用者看得懂的訊息，
+        呼叫端只負責把 text 接起來或往下送。
+        """
         try:
             shelter_context, early_reply = self.build_context(user_message)
         except Exception:
             # 任何查詢層的例外都不該變成 500；細節只進 log，不回給使用者
             logger.exception("建立查詢內容失敗")
-            return GENERIC_ERROR
+            yield {"type": "error", "text": GENERIC_ERROR}
+            return
         if early_reply:
-            return early_reply
+            # 檢索層就答得出來（範圍外、要座標、沒有相關資料），不必打 LLM，一次給完
+            yield {"type": "delta", "text": early_reply}
+            return
 
         prompt = self.build_prompt(user_message, shelter_context)
-
+        emitted = False
         try:
-            result = self.generate(prompt)
-            return result.get("response", AI_UNAVAILABLE).strip()
+            for chunk in self.generate_stream(prompt):
+                emitted = True
+                yield {"type": "delta", "text": chunk}
         except Exception:
-            logger.exception("Ollama 呼叫失敗")
-            return AI_UNAVAILABLE
+            logger.exception("Ollama 串流生成失敗")
+            yield {"type": "error", "text": STREAM_INTERRUPTED if emitted else AI_UNAVAILABLE}
+            return
+        if not emitted:
+            # 連線沒問題但模型一個字都沒給：不要讓前端收到空白泡泡
+            logger.warning("Ollama 串流沒有產生任何文字")
+            yield {"type": "error", "text": AI_UNAVAILABLE}
+
+    def chat(self, user_message: str) -> str:
+        """非串流版：把 chat_stream() 的片段接起來，給不吃 SSE 的呼叫端（腳本、測試）用"""
+        return "".join(event["text"] for event in self.chat_stream(user_message)).strip()
+
+    def _payload(self, prompt: str, stream: bool) -> dict:
+        """生成請求的內容。串流與非串流共用同一份，評測量到的才跟線上同一個模型設定"""
+        return {
+            "model": config.OLLAMA_MODEL,
+            "system": SYSTEM_PROMPT,
+            "prompt": prompt,
+            "stream": stream,
+            "options": {
+                "temperature": config.OLLAMA_TEMPERATURE,
+                "num_predict": config.OLLAMA_NUM_PREDICT,
+                "num_ctx": config.OLLAMA_NUM_CTX,
+            },
+        }
 
     def generate(self, prompt: str) -> dict:
         """
-        打 Ollama 生成，回傳完整的 JSON（response、done_reason、eval_count …）。
-        拆出來是為了讓生成端評測拿得到 token 數與截斷原因；失敗直接拋例外由呼叫端處理。
+        打 Ollama 生成，一次拿完整的 JSON（response、done_reason、eval_count …）。
+        生成端評測要靠它拿 token 數與截斷原因；失敗直接拋例外由呼叫端處理。
         """
         response = requests.post(
             f"{config.OLLAMA_HOST}/api/generate",
-            json={
-                "model": config.OLLAMA_MODEL,
-                "system": SYSTEM_PROMPT,
-                "prompt": prompt,
-                "stream": False,
-                "options": {
-                    "temperature": config.OLLAMA_TEMPERATURE,
-                    "num_predict": config.OLLAMA_NUM_PREDICT,
-                    "num_ctx": config.OLLAMA_NUM_CTX,
-                },
-            },
+            json=self._payload(prompt, False),
             timeout=config.OLLAMA_TIMEOUT,
         )
         response.raise_for_status()
         return response.json()
+
+    def generate_stream(self, prompt: str):
+        """
+        串流生成：逐段 yield 文字。Ollama 的 /api/generate 在 stream=True 下回 NDJSON，
+        一行一個片段，最後一行帶 done。
+
+        requests 的 timeout 在串流模式只管「單次讀取」要等多久，整段時間不受它約束，
+        所以另外用 deadline 擋：一次生成仍然最長 OLLAMA_TIMEOUT 秒，app.py 的併發名額才算得準。
+        超時與 Ollama 回報的錯誤都拋例外，由 chat_stream 轉成使用者訊息。
+        """
+        deadline = time.monotonic() + config.OLLAMA_TIMEOUT
+        with requests.post(
+            f"{config.OLLAMA_HOST}/api/generate",
+            json=self._payload(prompt, True),
+            timeout=config.OLLAMA_TIMEOUT,
+            stream=True,
+        ) as response:
+            response.raise_for_status()
+            for line in response.iter_lines():
+                if not line:
+                    continue
+                try:
+                    data = json.loads(line)
+                except ValueError:
+                    logger.warning("Ollama 串流有一行無法解析，已略過")
+                    continue
+                if data.get("error"):
+                    raise RuntimeError(f"Ollama 回報錯誤：{data['error']}")
+                chunk = data.get("response") or ""
+                if chunk:
+                    yield chunk
+                if data.get("done"):
+                    return
+                if time.monotonic() >= deadline:
+                    raise GenerationTimeout(f"生成超過 {config.OLLAMA_TIMEOUT} 秒，已中止串流")
