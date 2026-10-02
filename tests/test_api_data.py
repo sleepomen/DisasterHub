@@ -1,3 +1,4 @@
+import json
 from unittest.mock import patch
 import pytest
 from models.shelter import Shelter
@@ -334,9 +335,32 @@ def test_simulate_includes_population_estimate(client):
     assert app_module.chat_service.latest_simulation["population"] == pop
 
 
+def sse_frames(res):
+    return [json.loads(line[len("data:"):]) for line in res.text.splitlines() if line.startswith("data:")]
+
+
+def fake_chat_stream(_message):
+    yield {"type": "delta", "text": "甲避難所"}
+    yield {"type": "delta", "text": "：剩餘 90 人"}
+
+
+def test_chat_streams_sse_events(client):
+    with patch("app.chat_service.chat_stream", side_effect=fake_chat_stream):
+        res = client.post("/api/chat", json={"message": "宜蘭有哪些避難所"})
+    assert res.status_code == 200
+    assert res.headers["content-type"].startswith("text/event-stream")
+    # 反向代理把回應整段緩衝起來的話串流就沒意義了
+    assert res.headers["x-accel-buffering"] == "no"
+    assert sse_frames(res) == [
+        {"type": "delta", "text": "甲避難所"},
+        {"type": "delta", "text": "：剩餘 90 人"},
+        {"type": "done"},
+    ]
+
+
 def test_chat_returns_429_when_all_slots_are_busy(client):
     import app as app_module
-    with patch("app.chat_service.chat", return_value="ok") as chat:
+    with patch("app.chat_service.chat_stream", side_effect=fake_chat_stream) as chat:
         assert client.post("/api/chat", json={"message": "宜蘭有哪些避難所"}).status_code == 200
         # 把所有生成名額佔住：下一個問題要立刻被拒絕，而不是排隊或碰到 Ollama
         held = 0
@@ -351,16 +375,16 @@ def test_chat_returns_429_when_all_slots_are_busy(client):
     assert res.status_code == 429
     assert "稍後再試" in res.json()["detail"]
     assert chat.call_count == 1
-    # 名額釋放後恢復正常
-    with patch("app.chat_service.chat", return_value="ok"):
+    # 名額釋放後恢復正常；串流結束就要把名額還回去，不然問幾題之後整個聊天就永久 429
+    with patch("app.chat_service.chat_stream", side_effect=fake_chat_stream):
         assert client.post("/api/chat", json={"message": "宜蘭有哪些避難所"}).status_code == 200
 
 
-def test_chat_slot_is_released_when_chat_raises(client):
+def test_chat_slot_is_released_when_generation_raises(client):
     # TestClient 會把伺服器端的例外原樣丟回來；重點是名額要還回去
     import app as app_module
     before = app_module.chat_slots._value
-    with patch("app.chat_service.chat", side_effect=RuntimeError("boom")):
+    with patch("app.chat_service.chat_stream", side_effect=RuntimeError("boom")):
         with pytest.raises(RuntimeError):
             client.post("/api/chat", json={"message": "x"})
     assert app_module.chat_slots._value == before

@@ -1,7 +1,48 @@
+import json
 from unittest.mock import MagicMock, patch
 import pytest
 from models.shelter import Shelter
-from services.chat_service import ChatService, display_name, GENERIC_ERROR, AI_UNAVAILABLE
+from services.chat_service import (
+    ChatService,
+    display_name,
+    GenerationTimeout,
+    GENERIC_ERROR,
+    AI_UNAVAILABLE,
+    STREAM_INTERRUPTED,
+)
+
+
+class FakeStream:
+    """模擬 requests 的串流回應：可以當 context manager，iter_lines() 吐 NDJSON 位元組"""
+
+    def __init__(self, lines, error=None):
+        self.lines = lines
+        self.error = error
+        self.closed = False
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        self.closed = True
+        return False
+
+    def raise_for_status(self):
+        pass
+
+    def iter_lines(self):
+        for line in self.lines:
+            yield line.encode("utf-8") if isinstance(line, str) else line
+        if self.error:
+            raise self.error
+
+
+def ndjson(*chunks, done=True):
+    """Ollama 串流的樣子：一行一個片段，最後一行帶 done"""
+    lines = [json.dumps({"response": c, "done": False}, ensure_ascii=False) for c in chunks]
+    if done:
+        lines.append(json.dumps({"response": "", "done": True}))
+    return lines
 
 
 class FakeRepo:
@@ -149,23 +190,88 @@ def test_errors_do_not_leak_details():
     assert svc._get_nearest_context(23.9, 121.6) == GENERIC_ERROR
 
 
-def test_chat_calls_ollama_and_returns_response(svc):
-    with patch("services.chat_service.requests.post") as post:
-        post.return_value.json.return_value = {"response": " 建議前往乙 "}
-        post.return_value.raise_for_status.return_value = None
+def test_chat_stream_yields_ollama_chunks(svc):
+    with patch("services.chat_service.requests.post", return_value=FakeStream(ndjson("建議前往", "乙避難所"))) as post:
+        events = list(svc.chat_stream("避難所有提供飲水嗎"))
+    assert events == [
+        {"type": "delta", "text": "建議前往"},
+        {"type": "delta", "text": "乙避難所"},
+    ]
+    body = post.call_args.kwargs["json"]
+    assert "RAG 結果" in body["prompt"]
+    # 串流要同時開在請求參數與 payload 上，少一邊 Ollama 就會整段等生成完才回
+    assert body["stream"] is True
+    assert post.call_args.kwargs["stream"] is True
+    # 列舉題一次會塞 20 至 30 筆文件，沒設 num_ctx 會被 Ollama 預設值靜默截斷
+    import config
+    assert body["options"]["num_ctx"] == config.OLLAMA_NUM_CTX
+    assert body["options"]["num_predict"] == config.OLLAMA_NUM_PREDICT
+
+
+def test_chat_joins_stream_for_non_streaming_callers(svc):
+    with patch("services.chat_service.requests.post", return_value=FakeStream(ndjson(" 建議前往", "乙 "))):
         assert svc.chat("避難所有提供飲水嗎") == "建議前往乙"
-        body = post.call_args.kwargs["json"]
-        assert "RAG 結果" in body["prompt"]
-        assert body["stream"] is False
-        # 列舉題一次會塞 20 至 30 筆文件，沒設 num_ctx 會被 Ollama 預設值靜默截斷
-        import config
-        assert body["options"]["num_ctx"] == config.OLLAMA_NUM_CTX
-        assert body["options"]["num_predict"] == config.OLLAMA_NUM_PREDICT
+
+
+def test_stream_and_non_stream_send_the_same_options(svc):
+    # 評測走 generate()、線上走 generate_stream()，模型設定一旦漂掉評測數字就不代表線上
+    stream_payload = svc._payload("p", True)
+    assert svc._payload("p", False) == {**stream_payload, "stream": False}
+
+
+def test_early_reply_does_not_call_ollama(svc):
+    with patch("services.chat_service.requests.post") as post:
+        events = list(svc.chat_stream("高雄有哪些避難所"))
+    assert post.call_count == 0
+    assert len(events) == 1
+    assert events[0]["type"] == "delta" and "高雄" in events[0]["text"]
 
 
 def test_chat_handles_ollama_failure(svc):
     with patch("services.chat_service.requests.post", side_effect=ConnectionError("down")):
+        events = list(svc.chat_stream("避難所有提供飲水嗎"))
+    assert events == [{"type": "error", "text": AI_UNAVAILABLE}]
+    with patch("services.chat_service.requests.post", side_effect=ConnectionError("down")):
         assert svc.chat("避難所有提供飲水嗎") == AI_UNAVAILABLE
+
+
+def test_stream_broken_midway_keeps_text_and_adds_notice(svc):
+    # 已經吐出去的字收不回來，所以保留並在後面補一句，而不是整段換成錯誤訊息
+    stream = FakeStream(ndjson("甲避難所：剩餘 90 人", done=False), error=ConnectionError("斷線"))
+    with patch("services.chat_service.requests.post", return_value=stream):
+        events = list(svc.chat_stream("避難所有提供飲水嗎"))
+    assert events[0] == {"type": "delta", "text": "甲避難所：剩餘 90 人"}
+    assert events[-1] == {"type": "error", "text": STREAM_INTERRUPTED}
+
+
+def test_stream_skips_unparsable_lines_and_surfaces_ollama_error(svc):
+    stream = FakeStream([
+        "這一行不是 JSON",
+        json.dumps({"response": "甲", "done": False}),
+        json.dumps({"error": "model not found"}),
+    ])
+    with patch("services.chat_service.requests.post", return_value=stream):
+        events = list(svc.chat_stream("避難所有提供飲水嗎"))
+    assert events[0] == {"type": "delta", "text": "甲"}
+    assert events[-1] == {"type": "error", "text": STREAM_INTERRUPTED}
+
+
+def test_stream_without_any_text_reports_unavailable(svc):
+    with patch("services.chat_service.requests.post", return_value=FakeStream(ndjson())):
+        assert list(svc.chat_stream("避難所有提供飲水嗎")) == [{"type": "error", "text": AI_UNAVAILABLE}]
+
+
+def test_stream_stops_at_deadline(svc):
+    # done 永遠不來時整段時間要被 OLLAMA_TIMEOUT 擋住，生成名額才不會被永久佔住
+    endless = [json.dumps({"response": "字", "done": False}) for _ in range(5)]
+    stream = FakeStream(endless)
+    with patch("config.OLLAMA_TIMEOUT", 0),          patch("services.chat_service.requests.post", return_value=stream):
+        with pytest.raises(GenerationTimeout):
+            list(svc.generate_stream("prompt"))
+        events = list(svc.chat_stream("避難所有提供飲水嗎"))
+    assert events == [{"type": "delta", "text": "字"}, {"type": "error", "text": STREAM_INTERRUPTED}]
+    # 連線要關掉，不能把 socket 留給下一次生成
+    assert stream.closed
 
 
 def test_refresh_occupancy_updates_simulation_snapshot(svc):

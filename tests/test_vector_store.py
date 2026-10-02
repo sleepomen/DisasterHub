@@ -1,3 +1,4 @@
+import threading
 from unittest.mock import patch
 import pytest
 from models.shelter import Shelter
@@ -415,3 +416,123 @@ def test_far_semantic_hits_are_treated_as_no_match(store):
     # 門檻放寬到最大時，同一個問題就會回資料
     with patch("config.RAG_MAX_DISTANCE", 2.0):
         assert store.search("今天天氣如何", plan=analyze("今天天氣如何")) != NO_MATCH
+
+
+def lock_is_free(store) -> bool:
+    """
+    從另一條執行緒看 store 的鎖現在是不是空的。
+    _lock 是 RLock，同一條執行緒可以重入，所以在原執行緒上測不出有沒有被持有。
+    """
+    got = []
+
+    def probe():
+        acquired = store._lock.acquire(blocking=False)
+        got.append(acquired)
+        if acquired:
+            store._lock.release()
+
+    t = threading.Thread(target=probe)
+    t.start()
+    t.join()
+    return got[0]
+
+
+def watch_embedding_lock(store, seen: list):
+    """把 store.ef 換成會在算 embedding 時記下鎖狀態的版本"""
+    base = store.ef
+
+    class ProbingEmbedding:
+        def __call__(self, input):
+            seen.append(lock_is_free(store))
+            return base(input)
+
+        def name(self):
+            return base.name()
+
+    store.ef = ProbingEmbedding()
+
+
+def test_query_embedding_runs_outside_the_lock(store):
+    # 查詢 embedding 要打 Ollama（最久 EMBEDDING_TIMEOUT 秒）。持鎖做的話，
+    # 同一把鎖上的 count() 會跟著排隊，readiness 與容器 healthcheck 一起被拖垮
+    seen = []
+    watch_embedding_lock(store, seen)
+    hits = store.retrieve("宜蘭 國小", n_results=2)
+    assert len(hits) == 2
+    assert seen == [True]
+
+
+def test_upsert_embedding_runs_outside_the_lock(store):
+    seen = []
+    watch_embedding_lock(store, seen)
+    updated = Shelter("[HUALIEN] 中正國小", 400, 23.9, 121.6, 380, "花蓮縣花蓮市中正路210號")
+    assert store.upsert_shelters([updated]) == 1
+    assert seen == [True]
+    # 文件與向量還是要真的換掉
+    assert store.retrieve("中正國小", n_results=1)[0].metadata["current_people"] == 380
+
+
+def test_plan_retrieve_reports_total_even_when_truncated(store):
+    plan = analyze("宜蘭的避難所")
+    result = store.plan_retrieve("宜蘭的避難所", plan)
+    assert (len(result.hits), result.total) == (2, 2)
+    with patch("services.vector_store.MAX_FILTERED_RESULTS", 1):
+        result = store.plan_retrieve("宜蘭的避難所", plan)
+    assert (len(result.hits), result.total) == (1, 2)
+
+
+def test_header_reports_total_not_just_what_fits(store):
+    # 送進 prompt 的筆數被上限截掉時，標頭說「共 1 筆」等於叫模型回答錯的總數
+    with patch("services.vector_store.MAX_FILTERED_RESULTS", 1):
+        text = store.search("宜蘭的避難所", plan=analyze("宜蘭的避難所"))
+    assert text.startswith("符合「宜蘭地區」的避難所共 2 筆，以下列出最相關的 1 筆：")
+    assert text.count("\n") == 1
+
+
+def test_ranked_header_reports_total_not_just_what_fits(store):
+    with patch("services.vector_store.MAX_RANKED_RESULTS", 1):
+        text = store.search("宜蘭最大的避難所", plan=analyze("宜蘭最大的避難所"))
+    assert text.startswith("符合「宜蘭地區」的避難所共 2 筆，以下是依容量由大到小排序的前 1 筆：")
+    assert "羅東鎮立體育館" in text
+    assert text.count("\n") == 1
+
+
+def test_slow_embedding_does_not_block_readiness_count(store):
+    """
+    readiness 檢查索引走的是 count()。embedding 卡在 Ollama 上時它必須還能回答，
+    否則容器 healthcheck 的 10 秒會在 Ollama 一慢就把服務判成 unhealthy。
+    """
+    embedding_started = threading.Event()
+    release_embedding = threading.Event()
+    base = store.ef
+
+    class BlockingEmbedding:
+        def __call__(self, input):
+            embedding_started.set()
+            assert release_embedding.wait(timeout=10), "測試自己卡住了"
+            return base(input)
+
+        def name(self):
+            return base.name()
+
+    store.ef = BlockingEmbedding()
+    retrieved = []
+    searcher = threading.Thread(target=lambda: retrieved.append(len(store.retrieve("宜蘭 國小", n_results=2))))
+    searcher.start()
+    try:
+        assert embedding_started.wait(timeout=10)
+        # count() 另開執行緒跑：萬一 embedding 又被包回鎖裡，這裡要是失敗而不是整個卡死
+        counted = []
+        done = threading.Event()
+
+        def counter():
+            counted.append(store.count())
+            done.set()
+
+        threading.Thread(target=counter, daemon=True).start()
+        assert done.wait(timeout=5), "embedding 還在跑的時候 count() 被鎖住了"
+        assert counted == [len(SHELTERS)]
+    finally:
+        release_embedding.set()
+        searcher.join(timeout=10)
+    assert retrieved == [2]
