@@ -83,6 +83,7 @@ Edit `.env`:
 | `TRUST_PROXY_HEADERS` | Set to `true` only when a reverse proxy (Caddy / nginx) sits in front. Then the login throttle keys on the real client IP from `X-Forwarded-For` and the cookie is marked `Secure` behind HTTPS. Leave `false` when the app is exposed directly, otherwise anyone can bypass the throttle by sending the header themselves |
 | `APP_BIND` | Host address the container port is published on, default `127.0.0.1` so only the reverse proxy on the same machine can reach it. Set `0.0.0.0` if there is no proxy and other machines on the LAN must connect directly |
 | `CHAT_MAX_CONCURRENT` | How many LLM generations may run at once, default 2. Extra questions get an immediate 429 instead of queueing, so the map and readiness never wait on Ollama |
+| `CHAT_RATE_LIMIT` / `CHAT_RATE_WINDOW` | How many `/api/chat` questions one source may ask per window, default 15 per 60 s. The concurrency cap only limits how many run at once; this limits how many one client can ask at all, because chat needs no login. Set `CHAT_RATE_LIMIT=0` to disable |
 | `DB_CONNECT_TIMEOUT` / `DB_STATEMENT_TIMEOUT_MS` | Database connect timeout (seconds, default 5) and per-statement timeout (milliseconds, default 15000), so a hung database fails requests within seconds instead of blocking every worker thread |
 
 Optional variables: `OLLAMA_MODEL` (default `llama3.2:3b`), `OLLAMA_TEMPERATURE`, `OLLAMA_NUM_CTX` (default 8192 — must hold the 20–30 shelter documents a list-style query retrieves), `OLLAMA_NUM_PREDICT` (default 800), `OLLAMA_TIMEOUT`, `EMBEDDING_PROVIDER` (`ollama` or `minilm`), `EMBEDDING_MODEL` (default `bge-m3`), `EMBEDDING_TIMEOUT`, `RAG_TOP_K`, `RAG_MAX_DISTANCE` (default 0.56 — cosine distance above which a plain semantic search is treated as "no relevant data"; questions about the weather or subsidies then get a fixed reply instead of ten unrelated shelters), `DB_POOL_MIN` / `DB_POOL_MAX` (default 1 / 10).
@@ -147,6 +148,7 @@ Disaster_Hub/
 ├── services/
 │   ├── data_fetcher.py         # Reads the JSON data
 │   ├── map_service.py          # Map data formatting
+│   ├── rate_limit.py           # Per-source sliding-window request limit (chat)
 │   ├── sync_service.py         # Data synchronization
 │   ├── chat_service.py         # Intent detection + RAG + LLM
 │   ├── query_rules.py          # Query rules layer: region / township / facility / capacity → metadata filters, out-of-scope rejection
@@ -172,6 +174,7 @@ Disaster_Hub/
 └── tests/
     ├── test_shelter_model.py
     ├── test_map_service.py
+    ├── test_rate_limit.py
     ├── test_data_fetcher2.py
     ├── test_shelter_profile.py
     ├── test_shelter_repository.py
@@ -205,9 +208,9 @@ Disaster_Hub/
 | POST | `/api/reset_simulation` | Clear the simulation state and restore occupancy to the initial values from the source data (requires login, or `X-API-Key`) |
 | POST | `/api/nearest_shelter` | Find the nearest shelters (PostGIS distance ordering) |
 | POST | `/api/chat` | AI decision assistant. Streams the answer back as Server-Sent Events. Returns 429 when all `CHAT_MAX_CONCURRENT` generation slots are busy |
-| POST | `/api/sync` | Trigger a data sync manually (requires the `X-API-Key` header). The index is rebuilt into a staging collection and swapped in atomically, so chat keeps answering from the old index while embeddings are recomputed |
+| POST | `/api/sync` | Trigger a data sync manually. Accepts `SYNC_API_KEY`, a logged-in session, or `WRITE_API_KEY` — the startup sync can fail, and an operator must be able to recover without restarting the container. The index is rebuilt into a staging collection and swapped in atomically, so chat keeps answering from the old index while embeddings are recomputed |
 
-`/health/ready` treats the database and the vector index as hard requirements — restarting the container can recover them. Ollama is only reported, never decisive, because it runs on the host and restarting the container cannot fix it. The container `HEALTHCHECK` hits this endpoint. Readiness also stays answerable while Ollama is slow: query and document embeddings are computed outside the index lock, so a stalled embedding call cannot block the `count()` the index check performs.
+`/health/ready` treats the database and the vector index as hard requirements — restarting the container can recover them. Ollama is only reported, never decisive, because it runs on the host and restarting the container cannot fix it. The container `HEALTHCHECK` hits this endpoint. Readiness also stays answerable while Ollama is slow: query and document embeddings are computed outside the index lock, so a stalled embedding call cannot block the `count()` the index check performs. If the sync at startup fails the service still starts and retries it in the background with backoff (5 s, 15 s, 30 s, 60 s, 120 s, 300 s) until it succeeds — a database that was not up yet, or an Ollama still loading the embedding model, fixes itself inside that window; until then readiness stays 503.
 
 Manual sync example:
 
@@ -498,6 +501,7 @@ cp .env.example .env
 | `TRUST_PROXY_HEADERS` | 前面有反向代理（Caddy / nginx）時才設 `true`：登入節流會改用 `X-Forwarded-For` 裡的真實來源 IP，走 HTTPS 時 cookie 會標記 `Secure`。直接對外時保持 `false`，否則任何人自己帶這個 header 就能繞過登入節流 |
 | `APP_BIND` | 容器對外發布的宿主機位址，預設 `127.0.0.1`，只有同一台機器上的反向代理連得到。沒有代理、要讓區網其他機器直接連時改 `0.0.0.0` |
 | `CHAT_MAX_CONCURRENT` | 同時進行的 LLM 生成上限，預設 2。超出的問題立刻回 429 而不是排隊，地圖與 readiness 才不會跟著 Ollama 一起等 |
+| `CHAT_RATE_LIMIT` / `CHAT_RATE_WINDOW` | 單一來源在一段時間內最多能問幾題 `/api/chat`，預設 60 秒 15 題。併發上限只擋「同時幾個」，這個擋的是「同一個人總共能問幾次」——聊天端點不需要登入，不然任何人都能拿它當免費 LLM。設 `CHAT_RATE_LIMIT=0` 可停用 |
 | `DB_CONNECT_TIMEOUT` / `DB_STATEMENT_TIMEOUT_MS` | 資料庫連線逾時（秒，預設 5）與單一 SQL 逾時（毫秒，預設 15000），資料庫卡住時請求會在幾秒內失敗，不會把所有工作執行緒一起卡死 |
 
 可選變數：`OLLAMA_MODEL`（預設 `llama3.2:3b`）、`OLLAMA_TEMPERATURE`、`OLLAMA_NUM_CTX`（預設 8192，要放得下列舉題一次撈出的 20 至 30 筆避難所文件）、`OLLAMA_NUM_PREDICT`（預設 800）、`OLLAMA_TIMEOUT`、`EMBEDDING_PROVIDER`（`ollama` 或 `minilm`）、`EMBEDDING_MODEL`（預設 `bge-m3`）、`EMBEDDING_TIMEOUT`、`RAG_TOP_K`、`RAG_MAX_DISTANCE`（預設 0.56，純語意檢索的 cosine 距離超過此值就視為沒有相關資料，天氣、補助這類問題會得到固定回覆而不是十筆不相干的避難所）、`DB_POOL_MIN` / `DB_POOL_MAX`（預設 1 / 10）。
@@ -562,6 +566,7 @@ Disaster_Hub/
 ├── services/
 │   ├── data_fetcher.py         # 讀取 JSON 資料
 │   ├── map_service.py          # 地圖資料格式化
+│   ├── rate_limit.py           # 按來源的滑動視窗用量上限（聊天）
 │   ├── sync_service.py         # 資料同步
 │   ├── chat_service.py         # 意圖判斷 + RAG + LLM
 │   ├── query_rules.py          # 查詢規則層：地區 / 鄉鎮 / 設施 / 容量 → metadata 篩選，範圍外拒答
@@ -587,6 +592,7 @@ Disaster_Hub/
 └── tests/
     ├── test_shelter_model.py
     ├── test_map_service.py
+    ├── test_rate_limit.py
     ├── test_data_fetcher2.py
     ├── test_shelter_profile.py
     ├── test_shelter_repository.py
@@ -619,9 +625,9 @@ Disaster_Hub/
 | POST | `/api/reset_simulation` | 清除模擬狀態，並把收容人數還原成來源資料的初始值（需登入，或帶 `X-API-Key`）|
 | POST | `/api/nearest_shelter` | 查詢最近避難所（PostGIS 距離排序）|
 | POST | `/api/chat` | AI 決策助手，回答以 Server-Sent Events 逐段串流。`CHAT_MAX_CONCURRENT` 個生成名額都在忙時回 429 |
-| POST | `/api/sync` | 手動觸發資料同步（需 `X-API-Key` header）。索引會先建到暫存 collection 再整個換過去，重算 embedding 期間問答仍用舊索引回答 |
+| POST | `/api/sync` | 手動觸發資料同步。`SYNC_API_KEY`、登入的 session、`WRITE_API_KEY` 三者任一即可——啟動同步是會失敗的，操作員要能不重啟容器就把資料救回來。索引會先建到暫存 collection 再整個換過去，重算 embedding 期間問答仍用舊索引回答 |
 
-`/health/ready` 把資料庫與向量索引視為必要條件（重啟容器可以恢復），Ollama 只回報狀態不影響判定（它跑在宿主機，重啟容器救不了）。容器的 `HEALTHCHECK` 打的是這支端點。Ollama 變慢時 readiness 也仍然答得出來：查詢與文件的 embedding 都在索引鎖外面算，卡住的 embedding 不會擋住索引檢查用的 `count()`。
+`/health/ready` 把資料庫與向量索引視為必要條件（重啟容器可以恢復），Ollama 只回報狀態不影響判定（它跑在宿主機，重啟容器救不了）。容器的 `HEALTHCHECK` 打的是這支端點。Ollama 變慢時 readiness 也仍然答得出來：查詢與文件的 embedding 都在索引鎖外面算，卡住的 embedding 不會擋住索引檢查用的 `count()`。啟動時的同步失敗不會讓服務起不來，而且會在背景依 5、15、30、60、120、300 秒退避重試直到成功——資料庫還沒起來、Ollama 還在載 embedding 模型都會在這段時間內自己好；在那之前 readiness 會持續回 503。
 
 手動同步範例：
 
