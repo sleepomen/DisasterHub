@@ -204,16 +204,40 @@ Disaster_Hub/
 | POST | `/api/occupancy` | Write back each shelter's current occupancy (called by the frontend once the evacuation animation ends); only the changed vector documents are recomputed (requires login, or `X-API-Key`) |
 | POST | `/api/reset_simulation` | Clear the simulation state and restore occupancy to the initial values from the source data (requires login, or `X-API-Key`) |
 | POST | `/api/nearest_shelter` | Find the nearest shelters (PostGIS distance ordering) |
-| POST | `/api/chat` | AI decision assistant. Returns 429 when all `CHAT_MAX_CONCURRENT` generation slots are busy |
+| POST | `/api/chat` | AI decision assistant. Streams the answer back as Server-Sent Events. Returns 429 when all `CHAT_MAX_CONCURRENT` generation slots are busy |
 | POST | `/api/sync` | Trigger a data sync manually (requires the `X-API-Key` header). The index is rebuilt into a staging collection and swapped in atomically, so chat keeps answering from the old index while embeddings are recomputed |
 
-`/health/ready` treats the database and the vector index as hard requirements — restarting the container can recover them. Ollama is only reported, never decisive, because it runs on the host and restarting the container cannot fix it. The container `HEALTHCHECK` hits this endpoint.
+`/health/ready` treats the database and the vector index as hard requirements — restarting the container can recover them. Ollama is only reported, never decisive, because it runs on the host and restarting the container cannot fix it. The container `HEALTHCHECK` hits this endpoint. Readiness also stays answerable while Ollama is slow: query and document embeddings are computed outside the index lock, so a stalled embedding call cannot block the `count()` the index check performs.
 
 Manual sync example:
 
 ```bash
 curl -X POST http://localhost:8501/api/sync -H "X-API-Key: $SYNC_API_KEY"
 ```
+
+### Streaming the Chat Answer
+
+`/api/chat` replies with `text/event-stream` rather than one JSON body. A county-wide listing takes the model about a minute (`region` p50 is roughly 60 s on llama3.2:3b and 80 s on qwen2.5:7b), and a spinner that long is indistinguishable from a hang. Each event is one JSON object on a `data:` line:
+
+```
+data: {"type": "delta", "text": "甲避難所：容量 100 人"}
+data: {"type": "delta", "text": "、乙避難所：容量 300 人"}
+data: {"type": "done"}
+```
+
+- `delta` — a fragment of the answer; append it as it arrives. Replies the retrieval layer can produce on its own (out of scope, "please give me your coordinates", no relevant data) arrive as a single `delta` without the LLM being called at all.
+- `error` — a message meant for the user. If `delta` events were already sent, the stream was cut mid-answer: the text already on screen stays and the notice is appended. If it is the first event, generation never produced anything.
+- `done` — end of stream.
+
+A generation slot is held for the whole stream, including when the client closes the tab, so `CHAT_MAX_CONCURRENT` still bounds concurrent generations. One generation is still capped at `OLLAMA_TIMEOUT` seconds, now enforced by a deadline inside the stream loop — in streaming mode a read timeout only limits the gap between two chunks, not the total.
+
+```bash
+curl -N -X POST http://localhost:8501/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "宜蘭有哪些避難所"}'
+```
+
+Behind a reverse proxy, response buffering has to be off or the stream is pointless: the endpoint sends `X-Accel-Buffering: no` for nginx, and Caddy does not buffer by default.
 
 ### Simulation State and Occupancy
 
@@ -594,16 +618,40 @@ Disaster_Hub/
 | POST | `/api/occupancy` | 回寫各避難所目前收容人數（疏散動畫結束後由前端呼叫），只重算有變動的向量文件（需登入，或帶 `X-API-Key`）|
 | POST | `/api/reset_simulation` | 清除模擬狀態，並把收容人數還原成來源資料的初始值（需登入，或帶 `X-API-Key`）|
 | POST | `/api/nearest_shelter` | 查詢最近避難所（PostGIS 距離排序）|
-| POST | `/api/chat` | AI 決策助手。`CHAT_MAX_CONCURRENT` 個生成名額都在忙時回 429 |
+| POST | `/api/chat` | AI 決策助手，回答以 Server-Sent Events 逐段串流。`CHAT_MAX_CONCURRENT` 個生成名額都在忙時回 429 |
 | POST | `/api/sync` | 手動觸發資料同步（需 `X-API-Key` header）。索引會先建到暫存 collection 再整個換過去，重算 embedding 期間問答仍用舊索引回答 |
 
-`/health/ready` 把資料庫與向量索引視為必要條件（重啟容器可以恢復），Ollama 只回報狀態不影響判定（它跑在宿主機，重啟容器救不了）。容器的 `HEALTHCHECK` 打的是這支端點。
+`/health/ready` 把資料庫與向量索引視為必要條件（重啟容器可以恢復），Ollama 只回報狀態不影響判定（它跑在宿主機，重啟容器救不了）。容器的 `HEALTHCHECK` 打的是這支端點。Ollama 變慢時 readiness 也仍然答得出來：查詢與文件的 embedding 都在索引鎖外面算，卡住的 embedding 不會擋住索引檢查用的 `count()`。
 
 手動同步範例：
 
 ```bash
 curl -X POST http://localhost:8501/api/sync -H "X-API-Key: $SYNC_API_KEY"
 ```
+
+### 聊天回答的串流
+
+`/api/chat` 回的是 `text/event-stream`，不是一包 JSON。列舉一個縣的避難所，模型要吐將近一分鐘（`region` 類別 p50 在 llama3.2:3b 約 60 秒、qwen2.5:7b 約 80 秒），讓使用者對著轉圈等這麼久跟當掉沒有區別。每個事件是一行 `data:` 加一個 JSON 物件：
+
+```
+data: {"type": "delta", "text": "甲避難所：容量 100 人"}
+data: {"type": "delta", "text": "、乙避難所：容量 300 人"}
+data: {"type": "done"}
+```
+
+- `delta`：答案的片段，收到就往後接。檢索層自己就答得出來的情況（範圍外、請提供座標、沒有相關資料）會以單一個 `delta` 回來，完全不會呼叫 LLM。
+- `error`：給使用者看的訊息。前面已經送過 `delta` 代表串流中途斷了，畫面上的文字會留著並在後面補一句說明；如果它是第一個事件，表示生成從頭到尾沒有產出。
+- `done`：串流結束。
+
+生成名額會撐到整段串流結束（包含使用者中途關掉頁面）才歸還，所以 `CHAT_MAX_CONCURRENT` 仍然管得住同時生成的數量；單次生成也仍然最長 `OLLAMA_TIMEOUT` 秒，改由串流迴圈裡的 deadline 執行——串流模式下 requests 的 timeout 只管兩個片段之間的間隔，管不到整段時間。
+
+```bash
+curl -N -X POST http://localhost:8501/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "宜蘭有哪些避難所"}'
+```
+
+前面有反向代理時要關掉回應緩衝，否則串流等於沒做：這支端點會送 `X-Accel-Buffering: no` 給 nginx 看，Caddy 預設不緩衝。
 
 ### 模擬狀態與收容人數
 
