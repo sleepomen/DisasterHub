@@ -50,6 +50,15 @@ NO_SIMULATION_REPLY = (
     "請先在左側設定模擬中心、災害類型與受災半徑並執行空間模擬，我會依受影響避難所的容量與人口估算提供建議。"
 )
 
+# 這三句本身就是答案，不是檢索結果。以前它們被當成【避難所資料】塞進 prompt，
+# 等於多花一次生成讓模型把一句話照抄一遍，還給了它在空資料上編造的機會
+NOT_SIMULATED_REPLY = (
+    "目前尚未執行災害模擬，沒有受影響的避難所可以回報。"
+    "請先在左側設定模擬中心、災害類型與受災半徑並執行空間模擬。"
+)
+NO_IMPACTED_REPLY = "目前模擬範圍內沒有受影響的避難所。可以擴大受災半徑重新模擬，或改問其他地區的避難所。"
+NO_NEARBY_REPLY = "附近沒有找到避難所資料。本系統只涵蓋宜蘭、花蓮、台東三縣，請確認座標是否落在這三個縣內。"
+
 DISASTER_TYPE_LABELS = {"earthquake": "強震", "flood": "淹水", "fire": "火災"}
 
 REGION_TAG_PATTERN = re.compile(r"^\[[A-Z]+\]\s*")
@@ -211,15 +220,19 @@ class ChatService:
             summary += "\n" + "\n".join(extra)
         return summary
 
-    def _get_simulation_context(self) -> str:
+    def _get_simulation_context(self) -> tuple[str | None, str | None]:
+        """
+        回傳 (context, early_reply)，跟 build_context 同一個形狀。
+        沒有模擬、或範圍內沒有受影響的避難所時，答案就是那一句固定回覆，
+        不必當成資料餵給 LLM 再等它抄一遍。
+        """
         sim = self._snapshot()
         if not sim:
-            return "目前尚未執行任何災害模擬。"
+            return None, NOT_SIMULATED_REPLY
 
         impacted = sim.get("impacted_shelters", [])
-
         if not impacted:
-            return "目前模擬範圍內沒有受影響的避難所。"
+            return None, NO_IMPACTED_REPLY
 
         sim_type = DISASTER_TYPE_LABELS.get(sim.get("type", ""), sim.get("type", ""))
 
@@ -238,7 +251,7 @@ class ChatService:
                 f"目前收容 {current} 人，剩餘空間 {remaining} 人"
             )
 
-        return "\n".join(lines)
+        return "\n".join(lines), None
 
     def _extract_coords(self, message: str):
         for i, pat in enumerate(COORD_PATTERNS):
@@ -254,13 +267,15 @@ class ChatService:
                 return lat, lon
         return None
 
-    def _get_nearest_context(self, lat: float, lon: float) -> str:
+    def _get_nearest_context(self, lat: float, lon: float) -> tuple[str | None, str | None]:
+        """回傳 (context, early_reply)。查不到或查壞了都是固定回覆，不能當成資料送進 prompt"""
         if self.repo is None:
-            return "無法取得避難所資料（repo 未初始化）。"
+            logger.error("地理查詢無法進行：repo 未初始化")
+            return None, GENERIC_ERROR
         try:
             results = self.repo.get_nearest_shelters(lat, lon, limit=5)
             if not results:
-                return "附近沒有找到避難所資料。"
+                return None, NO_NEARBY_REPLY
 
             lines = [f"使用者位置：緯度 {lat}、經度 {lon}"]
             lines.append("距離最近的避難所（依距離由近到遠排序）：")
@@ -269,10 +284,10 @@ class ChatService:
                     f"{i}. {display_name(s['name'])}：距離 {s['distance_km']} 公里，"
                     f"容量 {s['capacity']} 人，剩餘空間 {s['remaining']} 人"
                 )
-            return "\n".join(lines)
+            return "\n".join(lines), None
         except Exception:
             logger.exception("地理查詢失敗")
-            return GENERIC_ERROR
+            return None, GENERIC_ERROR
 
     def build_context(self, user_message: str):
         """
@@ -290,18 +305,17 @@ class ChatService:
             return None, query_rules.out_of_scope_reply(plan.out_of_scope)
 
         if self._is_explicit_simulation_query(user_message):
-            return self._get_simulation_context(), None
+            return self._get_simulation_context()
 
         if self._is_geo_query(user_message):
             coords = self._extract_coords(user_message)
             if coords is not None:
-                lat, lon = coords
-                return self._get_nearest_context(lat, lon), None
+                return self._get_nearest_context(*coords)
             if not self._is_simulation_followup(user_message) and self._needs_coordinates(user_message):
                 return None, "請提供您的座標以便查詢最近的避難所。例如：緯度 23.99 經度 121.60"
 
         if self._is_simulation_followup(user_message):
-            return self._get_simulation_context(), None
+            return self._get_simulation_context()
 
         if any(kw in user_message for kw in EVACUATION_ADVICE_KEYWORDS):
             return None, NO_SIMULATION_REPLY
