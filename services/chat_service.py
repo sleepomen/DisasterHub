@@ -7,6 +7,7 @@ import time
 import requests
 from services.vector_store import VectorStore, NO_DATA, NO_MATCH
 from services import query_rules
+from services.metrics import metrics
 import config
 
 logger = logging.getLogger(__name__)
@@ -58,6 +59,28 @@ NOT_SIMULATED_REPLY = (
 )
 NO_IMPACTED_REPLY = "目前模擬範圍內沒有受影響的避難所。可以擴大受災半徑重新模擬，或改問其他地區的避難所。"
 NO_NEARBY_REPLY = "附近沒有找到避難所資料。本系統只涵蓋宜蘭、花蓮、台東三縣，請確認座標是否落在這三個縣內。"
+
+# 問句被導到哪條路。線上分布跟評測題庫的分布不會一樣，而「使用者實際問什麼」
+# 只有這裡量得到：例如 needs_coords 偏高就表示很多人問「最近的避難所」卻沒有座標可用
+ROUTE_COUNTERS = (
+    "chat.route.out_of_scope",
+    "chat.route.simulation",
+    "chat.route.nearest",
+    "chat.route.needs_coords",
+    "chat.route.no_simulation_advice",
+    "chat.route.rag",
+    "chat.route.context_error",
+)
+# 答案從哪裡來，以及生成的結局
+OUTCOME_COUNTERS = (
+    "chat.answer.early_reply",
+    "chat.answer.generated",
+    "chat.generation.ok",
+    "chat.generation.interrupted",
+    "chat.generation.unavailable",
+    "chat.generation.empty",
+)
+metrics.register(*ROUTE_COUNTERS, *OUTCOME_COUNTERS)
 
 DISASTER_TYPE_LABELS = {"earthquake": "強震", "flood": "淹水", "fire": "火災"}
 
@@ -302,26 +325,33 @@ class ChatService:
         """
         plan = query_rules.analyze(user_message)
         if plan.out_of_scope:
+            metrics.route("out_of_scope")
             return None, query_rules.out_of_scope_reply(plan.out_of_scope)
 
         if self._is_explicit_simulation_query(user_message):
+            metrics.route("simulation")
             return self._get_simulation_context()
 
         if self._is_geo_query(user_message):
             coords = self._extract_coords(user_message)
             if coords is not None:
+                metrics.route("nearest")
                 return self._get_nearest_context(*coords)
             if not self._is_simulation_followup(user_message) and self._needs_coordinates(user_message):
+                metrics.route("needs_coords")
                 return None, "請提供您的座標以便查詢最近的避難所。例如：緯度 23.99 經度 121.60"
 
         if self._is_simulation_followup(user_message):
+            metrics.route("simulation")
             return self._get_simulation_context()
 
         if any(kw in user_message for kw in EVACUATION_ADVICE_KEYWORDS):
+            metrics.route("no_simulation_advice")
             return None, NO_SIMULATION_REPLY
 
         # 查詢向量要打 Ollama embedding，Ollama 掛掉時這裡會先炸；
         # 要回跟生成失敗一樣的降級訊息，而不是讓 /api/chat 變成 500
+        metrics.route("rag")
         try:
             context = self.vector_store.search(user_message, plan=plan)
         except Exception:
@@ -355,32 +385,61 @@ class ChatService:
         跟 chat() 一樣不對外拋例外，所有錯誤都轉成使用者看得懂的訊息，
         呼叫端只負責把 text 接起來或往下送。
         """
+        started = time.monotonic()
         try:
             shelter_context, early_reply = self.build_context(user_message)
         except Exception:
             # 任何查詢層的例外都不該變成 500；細節只進 log，不回給使用者
+            metrics.route("context_error")
             logger.exception("建立查詢內容失敗")
+            self._log_summary("early_reply", "context_error", 0, len(GENERIC_ERROR), started)
             yield {"type": "error", "text": GENERIC_ERROR}
             return
         if early_reply:
             # 檢索層就答得出來（範圍外、要座標、沒有相關資料），不必打 LLM，一次給完
+            metrics.incr("chat.answer.early_reply")
+            self._log_summary("early_reply", "ok", 0, len(early_reply), started)
             yield {"type": "delta", "text": early_reply}
             return
 
+        metrics.incr("chat.answer.generated")
         prompt = self.build_prompt(user_message, shelter_context)
-        emitted = False
+        reply_chars = 0
         try:
             for chunk in self.generate_stream(prompt):
-                emitted = True
+                reply_chars += len(chunk)
                 yield {"type": "delta", "text": chunk}
         except Exception:
+            # 已經吐出文字才斷掉是「中斷」，一個字都沒吐出來是「服務不可用」，兩者要分開看
+            outcome = "interrupted" if reply_chars else "unavailable"
+            metrics.incr("chat.generation." + outcome)
             logger.exception("Ollama 串流生成失敗")
-            yield {"type": "error", "text": STREAM_INTERRUPTED if emitted else AI_UNAVAILABLE}
+            self._log_summary("generated", outcome, len(shelter_context), reply_chars, started)
+            yield {"type": "error", "text": STREAM_INTERRUPTED if reply_chars else AI_UNAVAILABLE}
             return
-        if not emitted:
+        if not reply_chars:
             # 連線沒問題但模型一個字都沒給：不要讓前端收到空白泡泡
+            metrics.incr("chat.generation.empty")
             logger.warning("Ollama 串流沒有產生任何文字")
+            self._log_summary("generated", "empty", len(shelter_context), 0, started)
             yield {"type": "error", "text": AI_UNAVAILABLE}
+            return
+        metrics.incr("chat.generation.ok")
+        self._log_summary("generated", "ok", len(shelter_context), reply_chars, started)
+
+    @staticmethod
+    def _log_summary(source: str, outcome: str, context_chars: int, reply_chars: int, started: float) -> None:
+        """
+        每次問答結束留一行 key=value 摘要，並把延遲記進取樣。
+        離線評測量的是那 130 道題，這一行量的是真實流量；兩邊對不上時從這裡開始查。
+        失敗的生成也要進取樣，不然 p95 會被偷偷修掉。
+        """
+        elapsed_ms = (time.monotonic() - started) * 1000
+        metrics.observe("chat." + source, elapsed_ms)
+        logger.info(
+            "chat route=%s source=%s outcome=%s context_chars=%d reply_chars=%d ms=%d",
+            metrics.last_route(), source, outcome, context_chars, reply_chars, round(elapsed_ms),
+        )
 
     def chat(self, user_message: str) -> str:
         """非串流版：把 chat_stream() 的片段接起來，給不吃 SSE 的呼叫端（腳本、測試）用"""

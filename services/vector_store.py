@@ -8,6 +8,7 @@ from pathlib import Path
 import chromadb
 import config
 from services.embeddings import build_embedding_function
+from services.metrics import metrics
 from services.shelter_profile import profile, strip_region_tag
 from services.query_rules import QueryPlan, MAX_FILTERED_RESULTS, MAX_RANKED_RESULTS
 
@@ -45,6 +46,20 @@ class PlannedResult:
     ranked: bool = False
     named: bool = False
 
+
+# 檢索結果的形狀：規則層篩選命中、篩選落空退回、容量排名、點名、無篩選的純語意，
+# 以及被距離門檻擋掉。評測量的是這些路徑「應該」怎麼走，這裡量的是線上實際怎麼走
+RETRIEVAL_COUNTERS = (
+    "retrieval.filtered",
+    "retrieval.fell_back",
+    "retrieval.ranked",
+    "retrieval.named",
+    "retrieval.unfiltered",
+    "retrieval.truncated",
+    "retrieval.no_data",
+    "retrieval.no_match",
+)
+metrics.register(*RETRIEVAL_COUNTERS)
 
 # search() 在沒有東西可給模型時回的固定句子；chat_service 看到就直接回「沒有相關資料」，不必再打 LLM
 NO_DATA = "目前沒有避難所資料。"
@@ -357,6 +372,25 @@ class VectorStore:
         return self.plan_retrieve(query, plan, n_results).hits
 
     @staticmethod
+    def _count_shape(result: PlannedResult, unfiltered: bool) -> None:
+        """
+        記下這一次檢索走哪條路。fell_back 代表規則層抽出的條件在索引裡沒有東西符合，
+        送進 prompt 的只是「最接近的資料」——線上這個比例偏高就表示規則層抽錯了。
+        """
+        if result.named:
+            metrics.incr("retrieval.named")
+        elif result.fell_back:
+            metrics.incr("retrieval.fell_back")
+        elif result.filtered:
+            metrics.incr("retrieval.filtered")
+        elif result.ranked:
+            metrics.incr("retrieval.ranked")
+        if unfiltered:
+            metrics.incr("retrieval.unfiltered")
+        if result.total > len(result.hits):
+            metrics.incr("retrieval.truncated")
+
+    @staticmethod
     def _planned_header(plan: QueryPlan, result: PlannedResult) -> str | None:
         order = "由小到大" if plan.capacity_order == "asc" else "由大到小"
         condition = plan.describe()
@@ -392,6 +426,7 @@ class VectorStore:
         有規則層計畫時在前面加一行說明篩選條件與結果狀態。
         """
         if self.count() == 0:
+            metrics.incr("retrieval.no_data")
             return NO_DATA
 
         header = None
@@ -401,14 +436,18 @@ class VectorStore:
             hits = result.hits
             header = self._planned_header(plan, result)
             unfiltered = not (result.filtered or result.fell_back or result.ranked or result.named)
+            self._count_shape(result, unfiltered)
         else:
             hits = self.retrieve(query, n_results)
+            metrics.incr("retrieval.unfiltered")
         if not hits:
+            metrics.incr("retrieval.no_match")
             return NO_MATCH
         # 純語意檢索永遠會回 top-k，「今天天氣如何」也會撈到十筆避難所；
         # 最接近的一筆都離得很遠時就當成沒有相關資料，模型才不會拿不相干的資料硬答。
         # 有 metadata 篩選的路徑不套用：篩選命中本身就是相關的證據
         if unfiltered and hits[0].distance > config.RAG_MAX_DISTANCE:
+            metrics.incr("retrieval.no_match")
             return NO_MATCH
 
         # 別名只是給 embedding 用的，餵給模型反而會被照抄成「宜蘭國小（宜蘭國民小學）」，所以從 prompt 文字裡拿掉
