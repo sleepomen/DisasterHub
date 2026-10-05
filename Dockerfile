@@ -1,21 +1,22 @@
-FROM python:3.10-slim
-
-RUN apt-get update && apt-get install -y \
-    libpq-dev \
-    gcc \
-    python3-dev \
-    && rm -rf /var/lib/apt/lists/*
+# Python 3.12：3.10 的安全支援在 2026-10-31 結束。
+# 上限是 3.12 而不是更新的版本，因為 chromadb 0.5.x 依賴的 chroma-hnswlib
+# 沒有 cp313 以上的 wheel（換掉或升級 chromadb 才解得開）
+FROM python:3.12-slim
 
 WORKDIR /app
 
-RUN pip install --upgrade pip
-
+# 依賴一律從 lock 檔安裝，重建才會得到同一組版本（評測數字綁在這組版本上）。
+# --only-binary :all: 把「不需要編譯器」變成會被檢查的前提：將來若有依賴沒有
+# 預編譯 wheel，建置會直接失敗，而不是悄悄回頭要求 gcc。
+# 因此這個映像不裝 gcc / python3-dev / libpq-dev：psycopg2-binary 自帶 libpq，
+# chromadb 與其他依賴在 cp312/linux-amd64 都有 wheel（省下約 250MB）
 ARG INSTALL_DEV=false
-COPY requirements.txt requirements-dev.txt ./
-RUN if [ "$INSTALL_DEV" = "true" ]; then \
-        pip install --no-cache-dir -r requirements-dev.txt; \
+COPY requirements.txt requirements-dev.txt requirements.lock requirements-dev.lock ./
+RUN python -m pip install --no-cache-dir --upgrade pip \
+    && if [ "$INSTALL_DEV" = "true" ]; then \
+        pip install --no-cache-dir --only-binary :all: -r requirements-dev.lock; \
     else \
-        pip install --no-cache-dir -r requirements.txt; \
+        pip install --no-cache-dir --only-binary :all: -r requirements.lock; \
     fi
 
 COPY . .
