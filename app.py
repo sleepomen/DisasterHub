@@ -1,13 +1,17 @@
 import asyncio
+import contextvars
 import json
 import logging
+import re
 import secrets
 import threading
+import uuid
 from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 from fastapi import FastAPI, Header, HTTPException, Request, Response
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.datastructures import MutableHeaders
 from pydantic import BaseModel, Field, field_validator
 from repositories.shelter_repository import ShelterRepository
 from services.map_service import MapService
@@ -17,11 +21,33 @@ from services.vector_store import VectorStore
 from services.population_service import PopulationModel
 from services import health
 from services import auth
+from services.metrics import metrics
 from services.rate_limit import RateLimiter
 import config
 import uvicorn
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+# 每一行 log 都帶 request id：一個請求在 docker logs 裡的幾行才能串起來，
+# 使用者回報「剛才那題壞了」時也能直接用回應標頭上的 id 去撈
+REQUEST_ID_HEADER = "X-Request-ID"
+# 這個值會進 log，不檢查格式等於讓人把任意內容（含換行）塞進日誌
+SAFE_REQUEST_ID = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
+request_id_var: contextvars.ContextVar[str] = contextvars.ContextVar("request_id", default="-")
+
+
+class RequestIdFilter(logging.Filter):
+    """掛在 handler 上而不是 logger 上：這樣所有子 logger 傳上來的紀錄都會被補上欄位"""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        record.request_id = request_id_var.get()
+        return True
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s [%(request_id)s]: %(message)s",
+)
+for _handler in logging.getLogger().handlers:
+    _handler.addFilter(RequestIdFilter())
 logger = logging.getLogger(__name__)
 
 try:
@@ -50,6 +76,9 @@ AI_BUSY = "AI 助手正在回答其他問題，請稍後再試。"
 # 單一來源的用量上限。/api/chat 不需要登入（災時任何人都要問得到），
 # 但也因此沒有任何東西擋住有人拿它當免費 LLM 用，所以按來源限流
 chat_limiter = RateLimiter(config.CHAT_RATE_LIMIT, config.CHAT_RATE_WINDOW)
+# 被擋掉的請求也要留下數字：rate_limit 偏高代表有人在刷，busy 偏高代表生成名額不夠用，
+# 兩者的處理方式完全不同，混在一個 429 裡看不出來
+metrics.register("chat.rejected.rate_limit", "chat.rejected.busy")
 
 # 列舉題（一個縣 20 至 30 筆）生成要 1 分鐘以上，一次給完的話使用者只能看著轉圈等，
 # 所以改用 SSE 邊生成邊送。no-cache / X-Accel-Buffering 是給前面的反向代理看的：
@@ -129,7 +158,48 @@ async def lifespan(_: FastAPI):
             await retry_task
 
 
+class RequestIdMiddleware:
+    """
+    純 ASGI 中介層（不是 BaseHTTPMiddleware）：整個請求——包含 SSE 的串流回應主體——
+    都在 await self.app(...) 裡面跑完，所以 contextvar 對串流那段也有效，
+    而且不會多一層 task 與佇列去影響逐段送出的時序。
+    """
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        request_id = self._incoming_id(scope) or uuid.uuid4().hex[:8]
+
+        async def send_with_id(message):
+            if message["type"] == "http.response.start":
+                MutableHeaders(scope=message).append(REQUEST_ID_HEADER, request_id)
+            await send(message)
+
+        token = request_id_var.set(request_id)
+        try:
+            await self.app(scope, receive, send_with_id)
+        finally:
+            request_id_var.reset(token)
+
+    @staticmethod
+    def _incoming_id(scope) -> str:
+        """只有確定前面有代理時才沿用上游的 id，而且要通過格式檢查"""
+        if not config.TRUST_PROXY_HEADERS:
+            return ""
+        wanted = REQUEST_ID_HEADER.lower().encode()
+        for key, value in scope.get("headers", []):
+            if key.lower() == wanted:
+                candidate = value.decode("latin-1", "replace")
+                return candidate if SAFE_REQUEST_ID.match(candidate) else ""
+        return ""
+
+
 app = FastAPI(lifespan=lifespan)
+app.add_middleware(RequestIdMiddleware)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
@@ -410,6 +480,7 @@ async def chat(request: ChatRequest, http_request: Request):
     # 來源用量先看：被限流的請求不該佔用生成名額
     wait = chat_limiter.hit(client_key(http_request))
     if wait > 0:
+        metrics.incr("chat.rejected.rate_limit")
         raise HTTPException(
             status_code=429,
             detail=f"提問太頻繁，請 {wait} 秒後再試。",
@@ -418,6 +489,7 @@ async def chat(request: ChatRequest, http_request: Request):
     # 名額要在開始串流前就拿到，拿不到才有機會回 429；
     # 串流一開始送出，狀態碼就定了，之後的錯誤只能以 error 事件表達
     if not chat_slots.acquire(blocking=False):
+        metrics.incr("chat.rejected.busy")
         raise HTTPException(status_code=429, detail=AI_BUSY)
 
     def stream():
@@ -431,6 +503,14 @@ async def chat(request: ChatRequest, http_request: Request):
             chat_slots.release()
 
     return StreamingResponse(stream(), media_type="text/event-stream", headers=SSE_HEADERS)
+
+# 線上計數器。權限跟寫入端點一樣：它會揭露流量模式與節流狀態，不該對外公開
+# （對外的存活/就緒檢查用 /health 與 /health/ready）
+@app.get("/api/stats")
+async def stats(http_request: Request, x_api_key: str = Header(default="")):
+    require_write_access(http_request, x_api_key)
+    return metrics.snapshot()
+
 
 # 渲染首頁
 @app.get("/", response_class=FileResponse)
