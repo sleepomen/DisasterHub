@@ -132,8 +132,10 @@ Disaster_Hub/
 ├── Dockerfile                  # INSTALL_DEV build arg controls dev dependencies
 ├── docker-compose.yml          # Production setup
 ├── docker-compose.dev.yml      # Dev overlay (hot reload / source mount / test deps)
-├── requirements.txt            # Runtime dependencies
+├── requirements.txt            # Runtime dependencies (intent: version ranges)
 ├── requirements-dev.txt        # Test dependencies (pytest / httpx)
+├── requirements.lock           # Fully pinned runtime set — what the image installs
+├── requirements-dev.lock       # Fully pinned test set
 ├── init.sql                    # Database bootstrap (runs automatically on first start)
 ├── .env.example
 ├── .github/workflows/ci.yml    # Runs the tests on push / PR
@@ -148,6 +150,7 @@ Disaster_Hub/
 ├── services/
 │   ├── data_fetcher.py         # Reads the JSON data
 │   ├── map_service.py          # Map data formatting
+│   ├── metrics.py              # In-memory counters + latency samples (/api/stats)
 │   ├── rate_limit.py           # Per-source sliding-window request limit (chat)
 │   ├── sync_service.py         # Data synchronization
 │   ├── chat_service.py         # Intent detection + RAG + LLM
@@ -174,6 +177,7 @@ Disaster_Hub/
 └── tests/
     ├── test_shelter_model.py
     ├── test_map_service.py
+    ├── test_metrics.py
     ├── test_rate_limit.py
     ├── test_data_fetcher2.py
     ├── test_shelter_profile.py
@@ -200,6 +204,7 @@ Disaster_Hub/
 | GET | `/health/ready` | Readiness — actually checks the database and vector index; returns 503 when not ready |
 | GET | `/api/shelters` | Fetch all shelter data |
 | GET | `/api/population` | The population model (coastline polylines + township population) used by the frontend crowd animation |
+| GET | `/api/stats` | Online counters and latency percentiles (requires login, or `X-API-Key`) |
 | POST | `/api/login` | Log in with the administrator credentials; sets an HttpOnly session cookie. Five consecutive failures lock the source for 5 minutes |
 | POST | `/api/logout` | Log out and clear the cookie |
 | GET | `/api/me` | Current login state; the frontend uses it on load to decide whether to show the login panel |
@@ -242,6 +247,64 @@ curl -N -X POST http://localhost:8501/api/chat \
 
 Behind a reverse proxy, response buffering has to be off or the stream is pointless: the endpoint sends `X-Accel-Buffering: no` for nginx, and Caddy does not buffer by default.
 
+### Online Counters and Logs
+
+The evaluations under `evals/` measure the model against a fixed 130-question set. These counters
+measure what real traffic actually does, which is not the same thing — and without them there is no
+way to tell whether the questions users ask resemble the ones the system was tuned on.
+
+`GET /api/stats` (same access as the write endpoints — it exposes traffic patterns and throttle state,
+so it is not public; use `/health/ready` for external probes) returns:
+
+```json
+{
+  "uptime_s": 167.0,
+  "counters": {
+    "chat.route.rag": 1, "chat.route.out_of_scope": 1, "chat.route.needs_coords": 0,
+    "chat.answer.early_reply": 1, "chat.answer.generated": 1,
+    "chat.generation.ok": 1, "chat.generation.interrupted": 0, "chat.generation.unavailable": 0,
+    "retrieval.named": 1, "retrieval.filtered": 0, "retrieval.fell_back": 0,
+    "retrieval.no_match": 0, "retrieval.truncated": 0,
+    "chat.rejected.rate_limit": 0, "chat.rejected.busy": 0
+  },
+  "latency_ms": {
+    "chat.early_reply": {"count": 1, "p50": 3.1, "p95": 3.1, "max": 3.1},
+    "chat.generated": {"count": 1, "p50": 12163.8, "p95": 12163.8, "max": 12163.8}
+  }
+}
+```
+
+Counter names are registered up front, so one that has never fired still reports `0` — "never happened"
+and "no such metric" would otherwise look identical, and these numbers are only meaningful as ratios.
+The ones worth watching:
+
+- **`retrieval.fell_back` over `chat.route.rag`** — how often the rules layer extracted a condition that
+  nothing in the index matched, so the model was handed "the closest other data" instead. A rising ratio
+  means the keyword tables in `services/query_rules.py` are mis-reading real questions.
+- **`retrieval.no_match`** — how often the distance gate refused to answer. `RAG_MAX_DISTANCE` was tuned
+  on the eval set; this is the only signal for whether it is also right for real questions.
+- **`retrieval.truncated`** — results that hit `MAX_FILTERED_RESULTS`, so the prompt saw fewer shelters
+  than exist. Zero at the current data size; it starts firing when a county passes 30 shelters.
+- **`chat.rejected.rate_limit` vs `chat.rejected.busy`** — someone hammering the endpoint versus not
+  enough generation slots. Both return 429 and need completely different responses.
+- **`chat.generation.interrupted`** — answers cut off mid-stream (upstream died, or the `OLLAMA_TIMEOUT`
+  deadline fired). Failed generations are sampled into the latency percentiles too, so a timeout cannot
+  quietly improve p95.
+
+Everything is in memory and resets on restart; the percentiles cover the most recent 512 samples per
+path, not the whole uptime.
+
+Every response carries an `X-Request-ID`, every log line is prefixed with it, and each answer leaves one
+`key=value` summary line — so a user reporting "the answer I just got was wrong" gives you the id to grep:
+
+```
+2026-10-05 08:59:12 INFO services.chat_service [e943c1f1]: chat route=rag source=generated outcome=ok context_chars=138 reply_chars=34 ms=12164
+```
+
+An incoming `X-Request-ID` is only honoured when `TRUST_PROXY_HEADERS=true`, and only if it matches
+`[A-Za-z0-9._-]{1,64}` — the value reaches the log, so an unchecked one would let anyone inject newlines
+into it.
+
 ### Simulation State and Occupancy
 
 - The simulation flow: `/api/simulate_disaster` uses PostGIS to find the affected shelters and estimates the population inside the radius, the evacuation demand and the shelter shortfall from the township populations in `data_reference/east_taiwan_population.json`. The frontend runs the evacuation animation off that same estimate, and when the animation ends it writes each shelter's occupancy back to the database with `POST /api/occupancy`, recomputing vector documents only for the shelters that changed. From then on the loads the AI sees match the map, whether the answer comes from RAG, capacity ranking, geographic distance, or the simulation snapshot.
@@ -281,9 +344,12 @@ docker exec -it disaster_app pytest tests/ -v
 Or locally:
 
 ```bash
-pip install -r requirements-dev.txt
+pip install --only-binary :all: -r requirements-dev.lock
 pytest tests/ -v
 ```
+
+Installing from the lock file gets the same versions the image has. Note that `chroma-hnswlib`
+(pulled in by `chromadb` 0.5.x) has no wheels beyond CPython 3.12, so a local run needs Python 3.12 or older.
 
 ## RAG Recall Evaluation
 
@@ -550,8 +616,10 @@ Disaster_Hub/
 ├── Dockerfile                  # INSTALL_DEV build arg 控制 dev 依賴
 ├── docker-compose.yml          # 正式設定
 ├── docker-compose.dev.yml      # 開發疊加（熱重載 / 原始碼掛載 / 測試依賴）
-├── requirements.txt            # 執行期依賴
+├── requirements.txt            # 執行期依賴（意圖：版本範圍）
 ├── requirements-dev.txt        # 測試依賴（pytest / httpx）
+├── requirements.lock           # 完整釘選的執行期版本 — 映像實際安裝的是這個
+├── requirements-dev.lock       # 完整釘選的測試版本
 ├── init.sql                    # 資料庫初始化（首次啟動自動執行）
 ├── .env.example
 ├── .github/workflows/ci.yml    # push / PR 自動跑測試
@@ -566,6 +634,7 @@ Disaster_Hub/
 ├── services/
 │   ├── data_fetcher.py         # 讀取 JSON 資料
 │   ├── map_service.py          # 地圖資料格式化
+│   ├── metrics.py              # 記憶體計數器與延遲取樣（/api/stats）
 │   ├── rate_limit.py           # 按來源的滑動視窗用量上限（聊天）
 │   ├── sync_service.py         # 資料同步
 │   ├── chat_service.py         # 意圖判斷 + RAG + LLM
@@ -592,6 +661,7 @@ Disaster_Hub/
 └── tests/
     ├── test_shelter_model.py
     ├── test_map_service.py
+    ├── test_metrics.py
     ├── test_rate_limit.py
     ├── test_data_fetcher2.py
     ├── test_shelter_profile.py
@@ -617,6 +687,7 @@ Disaster_Hub/
 | GET | `/health/ready` | readiness，實際檢查資料庫與向量索引；未就緒回 503 |
 | GET | `/api/shelters` | 取得所有避難所資料 |
 | GET | `/api/population` | 人口模型（海岸線折線 + 鄉鎮人口），前端人群動畫用 |
+| GET | `/api/stats` | 線上計數器與延遲百分位（需登入，或帶 `X-API-Key`）|
 | POST | `/api/login` | 以管理者帳密登入，成功後發 HttpOnly session cookie；連續失敗 5 次會鎖 5 分鐘 |
 | POST | `/api/logout` | 登出，清除 cookie |
 | GET | `/api/me` | 目前登入狀態，前端載入時用來決定是否顯示登入面板 |
@@ -659,6 +730,59 @@ curl -N -X POST http://localhost:8501/api/chat \
 
 前面有反向代理時要關掉回應緩衝，否則串流等於沒做：這支端點會送 `X-Accel-Buffering: no` 給 nginx 看，Caddy 預設不緩衝。
 
+### 線上計數器與日誌
+
+`evals/` 下的評測量的是「模型在固定的 130 道題上表現如何」；這些計數器量的是「真實流量實際怎麼走」。
+兩者不會自動一致，而沒有這些數字就無法判斷使用者問的問題跟當初調校用的題目像不像。
+
+`GET /api/stats`（權限跟寫入端點一樣——它會揭露流量模式與節流狀態，所以不對外公開，
+對外探測請用 `/health/ready`）回傳：
+
+```json
+{
+  "uptime_s": 167.0,
+  "counters": {
+    "chat.route.rag": 1, "chat.route.out_of_scope": 1, "chat.route.needs_coords": 0,
+    "chat.answer.early_reply": 1, "chat.answer.generated": 1,
+    "chat.generation.ok": 1, "chat.generation.interrupted": 0, "chat.generation.unavailable": 0,
+    "retrieval.named": 1, "retrieval.filtered": 0, "retrieval.fell_back": 0,
+    "retrieval.no_match": 0, "retrieval.truncated": 0,
+    "chat.rejected.rate_limit": 0, "chat.rejected.busy": 0
+  },
+  "latency_ms": {
+    "chat.early_reply": {"count": 1, "p50": 3.1, "p95": 3.1, "max": 3.1},
+    "chat.generated": {"count": 1, "p50": 12163.8, "p95": 12163.8, "max": 12163.8}
+  }
+}
+```
+
+計數器名稱是預先登記的，所以還沒發生過的指標仍然會以 `0` 出現——否則「從未發生」跟「沒有這個指標」
+長得一樣，而這些數字的意義本來就在比例。值得盯的幾個：
+
+- **`retrieval.fell_back` 除以 `chat.route.rag`** — 規則層抽出的條件在索引裡沒有東西符合、
+  只好把「最接近的其他資料」送給模型的比例。這個比例上升代表 `services/query_rules.py`
+  的關鍵字表讀錯了真實問句。
+- **`retrieval.no_match`** — 距離門檻拒答的次數。`RAG_MAX_DISTANCE` 是在評測集上調出來的，
+  這是唯一能判斷它對真實問句是否同樣適用的訊號。
+- **`retrieval.truncated`** — 命中 `MAX_FILTERED_RESULTS` 的次數，代表 prompt 看到的避難所
+  比實際存在的少。目前資料量下恆為 0，等單一縣超過 30 間才會開始跳。
+- **`chat.rejected.rate_limit` 對 `chat.rejected.busy`** — 有人在刷，還是生成名額不夠。
+  兩者都回 429，但處理方式完全相反。
+- **`chat.generation.interrupted`** — 答案吐到一半斷掉（上游掛了，或 `OLLAMA_TIMEOUT` 的
+  deadline 觸發）。失敗的生成同樣會進延遲取樣，所以逾時不會悄悄把 p95 修漂亮。
+
+全部只放記憶體、重啟歸零；百分位涵蓋的是每條路徑最近 512 筆樣本，不是開機以來全部。
+
+每個回應都帶 `X-Request-ID`，每一行 log 都以它開頭，而每次問答會留下一行 `key=value` 摘要——
+使用者回報「我剛才拿到的答案是錯的」時，直接拿那個 id 去 grep：
+
+```
+2026-10-05 08:59:12 INFO services.chat_service [e943c1f1]: chat route=rag source=generated outcome=ok context_chars=138 reply_chars=34 ms=12164
+```
+
+只有 `TRUST_PROXY_HEADERS=true` 時才會沿用上游帶進來的 `X-Request-ID`，而且必須符合
+`[A-Za-z0-9._-]{1,64}`：這個值會進 log，不檢查等於讓任何人把換行塞進日誌。
+
 ### 模擬狀態與收容人數
 
 - 模擬流程：`/api/simulate_disaster` 用 PostGIS 找出受影響避難所，並以 `data_reference/east_taiwan_population.json` 的鄉鎮人口估算圈內人口、疏散需求與收容缺口；前端依同一份估算跑疏散動畫；動畫結束後把各避難所收容人數 `POST /api/occupancy` 回寫資料庫，並只對有變動的避難所重算向量文件。此後不論走 RAG、容量排序、地理距離或模擬快照，AI 看到的負載都與地圖一致。
@@ -698,9 +822,12 @@ docker exec -it disaster_app pytest tests/ -v
 或在本機：
 
 ```bash
-pip install -r requirements-dev.txt
+pip install --only-binary :all: -r requirements-dev.lock
 pytest tests/ -v
 ```
+
+從 lock 檔安裝才會拿到跟映像一樣的版本。注意 `chromadb` 0.5.x 依賴的 `chroma-hnswlib`
+沒有 CPython 3.12 以上的 wheel，所以本機要用 Python 3.12 或更舊的版本。
 
 ## RAG 召回率評測
 
