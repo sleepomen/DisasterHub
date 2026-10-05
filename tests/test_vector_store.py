@@ -536,3 +536,44 @@ def test_slow_embedding_does_not_block_readiness_count(store):
         release_embedding.set()
         searcher.join(timeout=10)
     assert retrieved == [2]
+
+
+def retrieval_counters():
+    from services.metrics import metrics
+    return metrics.snapshot()["counters"]
+
+
+@pytest.mark.parametrize("query,expected", [
+    ("宜蘭的體育館", "retrieval.filtered"),
+    ("宜蘭的圖書館", "retrieval.fell_back"),
+    ("最大的避難所", "retrieval.ranked"),
+    ("中正國小還有空位嗎", "retrieval.named"),
+])
+def test_retrieval_shape_is_counted(store, query, expected):
+    # fell_back 的線上比例就是「規則層抽錯條件」的直接指標，離線評測量不到真實問句
+    from services.metrics import metrics
+    metrics.reset()
+    with patch("config.RAG_MAX_DISTANCE", 2.0):  # 關鍵字 embedding 距離很粗，門檻另外測
+        store.search(query, plan=analyze(query))
+    assert retrieval_counters()[expected] == 1
+
+
+def test_distance_gate_and_truncation_are_counted(store):
+    from services.metrics import metrics
+    metrics.reset()
+    with patch("config.RAG_MAX_DISTANCE", -1.0):  # 讓任何距離都超標
+        assert "找不到" in store.search("避難所有提供飲水嗎", plan=analyze("避難所有提供飲水嗎"))
+    assert retrieval_counters()["retrieval.no_match"] == 1
+
+    metrics.reset()
+    with patch("services.vector_store.MAX_FILTERED_RESULTS", 1):
+        store.search("宜蘭的避難所", plan=analyze("宜蘭的避難所"))
+    assert retrieval_counters()["retrieval.truncated"] == 1
+
+
+def test_empty_index_is_counted_as_no_data():
+    from services.metrics import metrics
+    metrics.reset()
+    s = VectorStore(embedding_function=KeywordEmbedding(), collection_name="test_vs_metrics_empty")
+    assert "沒有避難所資料" in s.search("宜蘭")
+    assert retrieval_counters()["retrieval.no_data"] == 1

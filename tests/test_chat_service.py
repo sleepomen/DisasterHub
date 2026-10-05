@@ -508,3 +508,79 @@ def test_nearest_query_with_no_results_replies_directly():
         events = list(svc.chat_stream("離我最近的避難所 緯度 23.99 經度 121.60"))
     assert post.call_count == 0
     assert len(events) == 1 and "附近沒有找到" in events[0]["text"]
+
+
+def counters():
+    from services.metrics import metrics
+    return metrics.snapshot()["counters"]
+
+
+def reset_metrics():
+    from services.metrics import metrics
+    metrics.reset()
+    return metrics
+
+
+@pytest.mark.parametrize("msg,route", [
+    ("高雄有哪些避難所", "out_of_scope"),
+    ("哪些避難所受到影響？", "simulation"),
+    ("離我最近的避難所 緯度 23.99 經度 121.60", "nearest"),
+    ("最近的避難所在哪", "needs_coords"),
+    ("疏散建議", "no_simulation_advice"),
+    ("宜蘭有哪些避難所", "rag"),
+])
+def test_every_route_is_counted(svc, msg, route):
+    # 線上問句的分布跟評測題庫不會一樣，而「使用者實際問什麼」只有計數器量得到
+    m = reset_metrics()
+    svc.build_context(msg)
+    assert counters()[f"chat.route.{route}"] == 1
+    assert m.last_route() == route
+
+
+def test_early_reply_and_generated_counted_separately(svc):
+    reset_metrics()
+    with patch("services.chat_service.requests.post") as post:
+        list(svc.chat_stream("高雄有哪些避難所"))
+    assert post.call_count == 0
+    c = counters()
+    assert (c["chat.answer.early_reply"], c["chat.answer.generated"]) == (1, 0)
+
+    reset_metrics()
+    with patch("services.chat_service.requests.post", return_value=FakeStream(ndjson("甲"))):
+        list(svc.chat_stream("宜蘭有哪些避難所"))
+    c = counters()
+    assert (c["chat.answer.early_reply"], c["chat.answer.generated"]) == (0, 1)
+    assert c["chat.generation.ok"] == 1
+
+
+@pytest.mark.parametrize("stream,outcome", [
+    (lambda: FakeStream(ndjson("甲", done=False), error=ConnectionError("斷")), "interrupted"),
+    (lambda: FakeStream([], error=ConnectionError("斷")), "unavailable"),
+    (lambda: FakeStream(ndjson()), "empty"),
+])
+def test_generation_failure_modes_counted_separately(svc, stream, outcome):
+    # 吐了一半才斷、一個字都沒吐、連線正常但模型沒給字，處理方式不同，不能混成一個數字
+    reset_metrics()
+    with patch("services.chat_service.requests.post", return_value=stream()):
+        list(svc.chat_stream("宜蘭有哪些避難所"))
+    assert counters()[f"chat.generation.{outcome}"] == 1
+
+
+def test_each_answer_logs_one_parsable_summary(svc, caplog):
+    import logging
+    reset_metrics()
+    with caplog.at_level(logging.INFO, logger="services.chat_service"):
+        with patch("services.chat_service.requests.post", return_value=FakeStream(ndjson("甲避難所"))):
+            list(svc.chat_stream("宜蘭有哪些避難所"))
+    line = next(r.getMessage() for r in caplog.records if r.getMessage().startswith("chat "))
+    for field in ("route=rag", "source=generated", "outcome=ok", "reply_chars=4"):
+        assert field in line
+    assert "ms=" in line
+
+
+def test_failed_generations_are_sampled_too(svc):
+    # 只取樣成功的請求會把 p95 偷偷修掉
+    m = reset_metrics()
+    with patch("services.chat_service.requests.post", side_effect=ConnectionError("down")):
+        list(svc.chat_stream("宜蘭有哪些避難所"))
+    assert m.snapshot()["latency_ms"]["chat.generated"]["count"] == 1

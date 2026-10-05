@@ -53,6 +53,7 @@ def client():
         # 整個 session 的 /api/chat 會累加在同一個視窗裡，不清就會莫名收到 429
         app_module.login_throttle.reset("testclient")
         app_module.chat_limiter.reset("testclient")
+        app_module.metrics.reset()
 
 
 def login(client, **overrides):
@@ -458,3 +459,84 @@ def test_startup_sync_retry_gives_up_after_the_last_delay(caplog):
             asyncio.run(app_module.retry_startup_sync())
     assert sync.call_count == 2
     assert "/api/sync" in caplog.text
+
+
+def test_stats_requires_the_same_access_as_writes(client):
+    # 計數器會揭露流量模式與節流狀態，不該像 /health 那樣對外公開
+    assert client.get("/api/stats").status_code == 401
+    res = client.get("/api/stats", headers=WRITE_HEADERS)
+    assert res.status_code == 200
+    body = res.json()
+    assert "uptime_s" in body and "counters" in body and "latency_ms" in body
+    # 預先登記的名稱即使還沒發生過也要在，否則分不出「沒發生」和「沒這個指標」
+    assert body["counters"]["chat.route.rag"] == 0
+    assert body["counters"]["retrieval.fell_back"] == 0
+
+
+def test_rejections_are_counted_by_reason(client):
+    import app as app_module
+    with patch("app.chat_service.chat_stream", side_effect=fake_chat_stream), \
+         patch.object(app_module.chat_limiter, "max_requests", 1):
+        assert client.post("/api/chat", json={"message": "x"}).status_code == 200
+        assert client.post("/api/chat", json={"message": "x"}).status_code == 429
+    held = 0
+    while app_module.chat_slots.acquire(blocking=False):
+        held += 1
+    try:
+        app_module.chat_limiter.reset("testclient")
+        with patch("app.chat_service.chat_stream", side_effect=fake_chat_stream):
+            assert client.post("/api/chat", json={"message": "x"}).status_code == 429
+    finally:
+        for _ in range(held):
+            app_module.chat_slots.release()
+    counters = client.get("/api/stats", headers=WRITE_HEADERS).json()["counters"]
+    # 被刷 vs 名額不夠是兩種完全不同的問題，混在同一個 429 裡看不出來
+    assert counters["chat.rejected.rate_limit"] == 1
+    assert counters["chat.rejected.busy"] == 1
+
+
+def test_every_response_carries_a_request_id(client):
+    res = client.get("/health")
+    rid = res.headers["x-request-id"]
+    assert len(rid) == 8 and rid.isalnum()
+    # 每個請求都是新的 id
+    assert client.get("/health").headers["x-request-id"] != rid
+
+
+def test_incoming_request_id_only_trusted_behind_proxy(client):
+    headers = {"X-Request-ID": "from-proxy-123"}
+    assert client.get("/health", headers=headers).headers["x-request-id"] != "from-proxy-123"
+    with patch("config.TRUST_PROXY_HEADERS", True):
+        assert client.get("/health", headers=headers).headers["x-request-id"] == "from-proxy-123"
+        # 這個值會進 log，格式不對就不能沿用（否則可以把換行塞進日誌）
+        bad = {"X-Request-ID": "bad id\nINJECTED"}
+        assert client.get("/health", headers=bad).headers["x-request-id"] != "bad id\nINJECTED"
+
+
+def test_request_id_filter_fills_the_log_field():
+    import logging
+    import app as app_module
+
+    def record():
+        return logging.LogRecord("x", logging.INFO, __file__, 1, "msg", None, None)
+
+    log_filter = app_module.RequestIdFilter()
+    token = app_module.request_id_var.set("abc12345")
+    try:
+        inside = record()
+        assert log_filter.filter(inside) is True
+        assert inside.request_id == "abc12345"
+    finally:
+        app_module.request_id_var.reset(token)
+
+    # 沒有請求情境時也要有值，否則 formatter 會因為缺欄位而炸掉
+    outside = record()
+    log_filter.filter(outside)
+    assert outside.request_id == "-"
+
+    # filter 要掛在 handler 上而不是 logger 上，子 logger 傳上來的紀錄才會被補欄位
+    assert any(
+        isinstance(flt, app_module.RequestIdFilter)
+        for handler in logging.getLogger().handlers
+        for flt in handler.filters
+    )
