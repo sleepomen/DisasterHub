@@ -1,4 +1,5 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
+
 from models.shelter import Shelter
 from services.sync_service import DataSyncService
 
