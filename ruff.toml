@@ -1,0 +1,17 @@
+# Lint 設定。CI 會跑 `ruff check .`，本機用同一個檔案，所以兩邊結果一致。
+#
+# 行長設 140 而不是常見的 88/120：這份程式的註解是中文，而 CJK 字元佔兩個顯示欄位，
+# 字元數本來就不是寬度的好代理。這個上限的用途是擋掉病態的長行（原本測試裡有 326 和
+# 293 字元的），不是用來跟既有風格打架。要更嚴格就往下調。
+line-length = 140
+target-version = "py312"
+extend-exclude = ["static/vendor"]
+
+[lint]
+# E/W pycodestyle、F pyflakes、I isort、UP pyupgrade（已經在 3.12）、
+# B bugbear（抓得到 zip 沒有 strict、except 裡 raise 沒有 from 這類真問題）、C4 推導式。
+# 刻意不選 SIM：它在這份程式上多半是風格雜訊，SIM115 還會誤報測試刻意持有的檔案 handle。
+select = ["E", "W", "F", "I", "UP", "B", "C4"]
+
+[lint.isort]
+known-first-party = ["config", "models", "repositories", "services", "evals"]
