@@ -358,8 +358,7 @@ def test_population_endpoint(client):
 
 
 def test_simulate_includes_population_estimate(client):
-    impacted = [{"name": "[HUALIEN] 甲", "capacity": 100, "current_ppl": 10, "remaining": 90,
-                 "lat": 23.9, "lon": 121.6, "address": ""}]
+    impacted = [Shelter(name="[HUALIEN] 甲", capacity=100, lat=23.9, lon=121.6, current_people=10)]
     with patch("repositories.shelter_repository.ShelterRepository.get_shelters_in_radius", return_value=impacted):
         res = client.post("/api/simulate_disaster", headers=WRITE_HEADERS,
                           json={"lat": 23.977, "lon": 121.601, "radius": 10, "type": "earthquake"})
@@ -566,3 +565,39 @@ def test_request_id_filter_fills_the_log_field():
         for handler in logging.getLogger().handlers
         for flt in handler.filters
     )
+
+
+def test_simulate_response_shape_is_unchanged(client):
+    # repository 現在回 Shelter 物件，但 API 的 JSON 形狀是對外契約：
+    # 前端的疏散動畫讀 remaining / lat / lon，回寫收容人數讀 name
+    impacted = [
+        Shelter(name="[HUALIEN] 甲", capacity=100, lat=23.9, lon=121.6, current_people=10, address="花蓮市"),
+    ]
+    with patch("repositories.shelter_repository.ShelterRepository.get_shelters_in_radius", return_value=impacted):
+        res = client.post(
+            "/api/simulate_disaster",
+            headers=WRITE_HEADERS,
+            json={"lat": 23.977, "lon": 121.601, "radius": 10, "type": "earthquake"},
+        )
+    assert res.status_code == 200
+    row = res.json()["impacted_shelters"][0]
+    assert set(row) == {"name", "capacity", "current_ppl", "remaining", "lat", "lon", "address"}
+    assert (row["name"], row["current_ppl"], row["remaining"]) == ("[HUALIEN] 甲", 10, 90)
+
+
+def test_nearest_shelter_response_shape(client):
+    from models.shelter import NearbyShelter
+    nearby = [
+        NearbyShelter(
+            shelter=Shelter(name="[YILAN] 乙", capacity=300, lat=24.7, lon=121.7, current_people=20),
+            distance_km=2.5,
+        ),
+    ]
+    with patch("repositories.shelter_repository.ShelterRepository.get_nearest_shelters", return_value=nearby):
+        res = client.post("/api/nearest_shelter", json={"lat": 24.7, "lon": 121.7, "limit": 5})
+    assert res.status_code == 200
+    body = res.json()
+    assert body["count"] == 1
+    row = body["shelters"][0]
+    assert set(row) == {"name", "capacity", "current_ppl", "remaining", "lat", "lon", "address", "distance_km"}
+    assert (row["distance_km"], row["remaining"]) == (2.5, 280)

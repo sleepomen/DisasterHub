@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from models.shelter import Shelter
+from models.shelter import NearbyShelter, Shelter
 from services.chat_service import (
     AI_UNAVAILABLE,
     GENERIC_ERROR,
@@ -49,7 +49,7 @@ def ndjson(*chunks, done=True):
 
 class FakeRepo:
     def get_nearest_shelters(self, lat, lon, limit=5):
-        return [{"name": "[HUALIEN] 花蓮縣立體育館", "distance_km": 1.2, "capacity": 1500, "current_ppl": 0, "remaining": 1500}]
+        return [NearbyShelter(Shelter("[HUALIEN] 花蓮縣立體育館", 1500, 23.98, 121.6), distance_km=1.2)]
 
     def get_all_shelters(self):
         return [
@@ -166,7 +166,7 @@ def test_capacity_ranking_goes_through_rules_layer(svc):
 
 def test_simulation_context_includes_remaining(svc):
     svc.set_simulation({"type": "flood", "radius_km": 10, "impacted_count": 1, "impacted_shelters": [
-        {"name": "[TAITUNG] 丙", "capacity": 200, "current_ppl": 50, "remaining": 150}]})
+        Shelter("[TAITUNG] 丙", 200, 22.7, 121.1, 50)]})
     ctx, early = svc._get_simulation_context()
     assert early is None
     assert "淹水" in ctx
@@ -283,7 +283,7 @@ def test_stream_stops_at_deadline(svc):
 
 def test_refresh_occupancy_updates_simulation_snapshot(svc):
     svc.set_simulation({"type": "flood", "radius_km": 10, "impacted_count": 1, "impacted_shelters": [
-        {"name": "[TAITUNG] 丙", "capacity": 200, "current_ppl": 50, "remaining": 150}]})
+        Shelter("[TAITUNG] 丙", 200, 22.7, 121.1, 50)]})
     svc.refresh_occupancy([Shelter("[TAITUNG] 丙", 200, 22.7, 121.1, 190)])
     ctx, _ = svc._get_simulation_context()
     assert "目前收容 190 人" in ctx
@@ -300,8 +300,8 @@ def test_refresh_occupancy_recomputes_population_totals(svc):
     svc.set_simulation({
         "type": "earthquake", "radius_km": 10, "impacted_count": 2,
         "impacted_shelters": [
-            {"name": "[HUALIEN] 甲", "capacity": 100, "current_ppl": 0, "remaining": 100},
-            {"name": "[HUALIEN] 乙", "capacity": 200, "current_ppl": 50, "remaining": 150},
+            Shelter("[HUALIEN] 甲", 100, 23.9, 121.6, 0),
+            Shelter("[HUALIEN] 乙", 200, 23.9, 121.6, 50),
         ],
         "population": {"estimated_evacuees": 400, "total_remaining": 250, "placeable": 250, "shortfall": 150,
                        "fallback_estimate": False, "townships": []},
@@ -343,7 +343,7 @@ def test_format_people_uses_wan_for_large_numbers():
 def test_simulation_summary_and_context_include_population(svc):
     svc.set_simulation({
         "type": "earthquake", "lat": 23.977, "lon": 121.601, "radius_km": 10, "impacted_count": 1,
-        "impacted_shelters": [{"name": "[HUALIEN] 甲", "capacity": 100, "current_ppl": 0, "remaining": 100}],
+        "impacted_shelters": [Shelter("[HUALIEN] 甲", 100, 23.9, 121.6, 0)],
         "population": {
             "covered_population": 175000, "evacuation_ratio": 0.12, "estimated_evacuees": 21000,
             "fallback_estimate": False, "total_remaining": 100, "placeable": 100, "shortfall": 20900,
@@ -415,7 +415,7 @@ def test_general_query_has_empty_plan(svc):
 def test_followup_routes_to_simulation_only_when_active(svc):
     assert svc._is_simulation_query("請給我疏散建議") is False
     svc.set_simulation({"type": "earthquake", "radius_km": 5, "impacted_count": 1, "impacted_shelters": [
-        {"name": "[HUALIEN] 甲", "capacity": 100, "current_ppl": 0, "remaining": 100}]})
+        Shelter("[HUALIEN] 甲", 100, 23.9, 121.6, 0)]})
     assert svc._is_simulation_query("請給我疏散建議") is True
     context, early = svc.build_context("避難所還有空間嗎")
     assert early is None
@@ -425,7 +425,7 @@ def test_followup_routes_to_simulation_only_when_active(svc):
 
 
 SIM = {"type": "earthquake", "radius_km": 5, "impacted_count": 1, "impacted_shelters": [
-    {"name": "[HUALIEN] 甲", "capacity": 100, "current_ppl": 0, "remaining": 100}]}
+    Shelter("[HUALIEN] 甲", 100, 23.9, 121.6, 0)]}
 
 
 def test_out_of_scope_is_rejected_even_during_simulation(svc):
@@ -456,8 +456,8 @@ def test_geo_query_without_coords_during_simulation_uses_snapshot(svc):
 def test_snapshot_is_a_copy_so_readers_cannot_mutate_state(svc):
     svc.set_simulation(SIM)
     snap = svc._snapshot()
-    snap["impacted_shelters"][0]["remaining"] = 0
-    assert svc.latest_simulation["impacted_shelters"][0]["remaining"] == 100
+    snap["impacted_shelters"][0].current_people = 100
+    assert svc.latest_simulation["impacted_shelters"][0].remaining == 100
 
 
 def test_evacuation_advice_without_simulation_asks_to_run_one(svc):
