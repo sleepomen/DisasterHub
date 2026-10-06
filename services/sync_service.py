@@ -1,6 +1,7 @@
 import logging
-from services.data_fetcher import DataFetcher
+
 from repositories.shelter_repository import ShelterRepository
+from services.data_fetcher import DataFetcher
 
 logger = logging.getLogger(__name__)
 

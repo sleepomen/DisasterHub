@@ -99,7 +99,7 @@ class Metrics:
     def reset(self) -> None:
         """測試用：清掉所有計數與樣本，但保留已登記的名稱（歸零而非消失）"""
         with self._lock:
-            self._counters = {name: 0 for name in self._counters}
+            self._counters = dict.fromkeys(self._counters, 0)
             self._samples.clear()
             self.started_at = time.time()
 
