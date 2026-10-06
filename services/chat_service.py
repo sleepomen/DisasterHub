@@ -1,14 +1,16 @@
 import copy
 import json
-import re
 import logging
+import re
 import threading
 import time
+
 import requests
-from services.vector_store import VectorStore, NO_DATA, NO_MATCH
+
+import config
 from services import query_rules
 from services.metrics import metrics
-import config
+from services.vector_store import NO_DATA, NO_MATCH, VectorStore
 
 logger = logging.getLogger(__name__)
 
