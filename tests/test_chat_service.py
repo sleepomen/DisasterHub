@@ -1,14 +1,16 @@
 import json
 from unittest.mock import MagicMock, patch
+
 import pytest
+
 from models.shelter import Shelter
 from services.chat_service import (
-    ChatService,
-    display_name,
-    GenerationTimeout,
-    GENERIC_ERROR,
     AI_UNAVAILABLE,
+    GENERIC_ERROR,
     STREAM_INTERRUPTED,
+    ChatService,
+    GenerationTimeout,
+    display_name,
 )
 
 
@@ -468,7 +470,7 @@ def test_evacuation_advice_without_simulation_asks_to_run_one(svc):
 
 def test_no_match_from_retrieval_becomes_fixed_reply_without_llm(svc):
     from services.chat_service import NO_RELEVANT_REPLY
-    from services.vector_store import NO_MATCH, NO_DATA
+    from services.vector_store import NO_DATA, NO_MATCH
     for sentinel in (NO_MATCH, NO_DATA):
         svc.vector_store.search.return_value = sentinel
         with patch("services.chat_service.requests.post") as post:

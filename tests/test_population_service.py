@@ -1,7 +1,9 @@
 import json
 import math
+
 import pytest
-from services.population_service import PopulationModel, EVAC_RATIO, FALLBACK_DENSITY, distance_km
+
+from services.population_service import EVAC_RATIO, FALLBACK_DENSITY, PopulationModel, distance_km
 
 
 @pytest.fixture(scope="module")

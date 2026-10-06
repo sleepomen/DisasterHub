@@ -1,7 +1,9 @@
 import asyncio
 import json
 from unittest.mock import patch
+
 import pytest
+
 from models.shelter import Shelter
 
 FAKE_SHELTERS = [
@@ -46,6 +48,7 @@ def client():
          patch("config.ADMIN_USERNAME", ADMIN["username"]), \
          patch("config.ADMIN_PASSWORD", ADMIN["password"]):
         from fastapi.testclient import TestClient
+
         import app as app_module
         with TestClient(app_module.app) as c:
             yield c
@@ -136,6 +139,7 @@ def test_login_marks_cookie_secure_behind_https_proxy(client):
 
 def test_forwarded_for_only_trusted_behind_proxy():
     from starlette.requests import Request
+
     import app as app_module
     scope = {
         "type": "http", "method": "POST", "path": "/api/login", "query_string": b"",
@@ -223,7 +227,12 @@ def test_sync_accepts_write_credentials_as_recovery_path(client):
 
 
 def test_sync_disabled_when_nothing_is_configured(client):
-    with patch("config.SYNC_API_KEY", ""), patch("config.WRITE_API_KEY", ""),          patch("config.ADMIN_USERNAME", ""), patch("config.ADMIN_PASSWORD", ""):
+    with (
+        patch("config.SYNC_API_KEY", ""),
+        patch("config.WRITE_API_KEY", ""),
+        patch("config.ADMIN_USERNAME", ""),
+        patch("config.ADMIN_PASSWORD", ""),
+    ):
         res = client.post("/api/sync", headers={"X-API-Key": "x"})
     assert res.status_code == 503
     assert "SYNC_API_KEY" in res.json()["detail"]
@@ -282,7 +291,16 @@ def test_occupancy_writes_back_and_reindexes_changed_only(client):
         Shelter(name="[HUALIEN] 甲", capacity=100, lat=23.9, lon=121.6, current_people=90),
         Shelter(name="[YILAN] 乙", capacity=300, lat=24.7, lon=121.7, current_people=0),
     ]
-    with patch("repositories.shelter_repository.ShelterRepository.get_all_shelters", side_effect=[FAKE_SHELTERS, after]),          patch("repositories.shelter_repository.ShelterRepository.set_occupancy", return_value=1) as set_occ,          patch("services.vector_store.VectorStore.upsert_shelters", return_value=1) as upsert:
+    with (
+        patch(
+            "repositories.shelter_repository.ShelterRepository.get_all_shelters",
+            side_effect=[FAKE_SHELTERS, after],
+        ),
+        patch(
+            "repositories.shelter_repository.ShelterRepository.set_occupancy", return_value=1
+        ) as set_occ,
+        patch("services.vector_store.VectorStore.upsert_shelters", return_value=1) as upsert,
+    ):
         res = client.post("/api/occupancy", headers=WRITE_HEADERS,
                           json={"occupancy": [{"name": "[HUALIEN] 甲", "current_ppl": 90}]})
     assert res.status_code == 200
@@ -304,7 +322,13 @@ def test_occupancy_reports_database_failure(client):
 
 def test_reset_restores_baseline_occupancy(client):
     baseline = {"[HUALIEN] 甲": 0, "[YILAN] 乙": 0}
-    with patch("services.sync_service.DataSyncService.baseline_occupancy", return_value=baseline),          patch("repositories.shelter_repository.ShelterRepository.set_occupancy", return_value=2) as set_occ,          patch("services.vector_store.VectorStore.upsert_shelters", return_value=0):
+    with (
+        patch("services.sync_service.DataSyncService.baseline_occupancy", return_value=baseline),
+        patch(
+            "repositories.shelter_repository.ShelterRepository.set_occupancy", return_value=2
+        ) as set_occ,
+        patch("services.vector_store.VectorStore.upsert_shelters", return_value=0),
+    ):
         res = client.post("/api/reset_simulation", headers=WRITE_HEADERS)
     assert res.status_code == 200
     assert res.json()["status"] == "success"
@@ -452,6 +476,7 @@ def test_startup_sync_retries_in_the_background_until_it_succeeds():
 
 def test_startup_sync_retry_gives_up_after_the_last_delay(caplog):
     import logging
+
     import app as app_module
     with patch("app.STARTUP_RETRY_DELAYS", (0, 0)), \
          patch("app.sync_and_reindex", side_effect=RuntimeError("down")) as sync:
@@ -515,6 +540,7 @@ def test_incoming_request_id_only_trusted_behind_proxy(client):
 
 def test_request_id_filter_fills_the_log_field():
     import logging
+
     import app as app_module
 
     def record():

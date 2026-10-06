@@ -1,6 +1,8 @@
 import unittest
+
 from models.shelter import Shelter
 from services.map_service import MapService
+
 
 class TestMapService(unittest.TestCase):
     def test_transform_shelters_to_map_points(self):

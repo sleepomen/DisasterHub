@@ -1,5 +1,6 @@
 import pytest
-from services.query_rules import analyze, out_of_scope_reply, known_townships
+
+from services.query_rules import analyze, known_townships, out_of_scope_reply
 
 
 def test_known_townships_come_from_population_model():

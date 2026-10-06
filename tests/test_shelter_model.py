@@ -1,5 +1,6 @@
 from models.shelter import Shelter
 
+
 def test_occupancy_rate_calculation():
     # 容量 100，入住 50 人，負載率應為 50%
     shelter = Shelter(name="測試中心", capacity=100, lat=23.9, lon=121.6, current_people=50)

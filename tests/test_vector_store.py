@@ -1,8 +1,10 @@
 import threading
 from unittest.mock import patch
+
 import pytest
+
 from models.shelter import Shelter
-from services.vector_store import VectorStore, Hit
+from services.vector_store import Hit, VectorStore
 
 KEYWORDS = ["宜蘭", "花蓮", "台東", "國小", "國中", "體育館", "圖書館", "公所"]
 

@@ -2,8 +2,8 @@
 import json
 from unittest.mock import patch
 
-from models.shelter import Shelter
 from evals.run_gen_eval import _append_line, load_progress, progress_path_for, run
+from models.shelter import Shelter
 
 SIGNATURE = {"model": "qwen2.5:7b", "num_ctx": 8192}
 SHELTERS = [

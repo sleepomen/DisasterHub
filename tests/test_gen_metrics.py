@@ -1,4 +1,3 @@
-from models.shelter import Shelter
 from evals.gen_metrics import (
     build_catalog,
     format_issues,
@@ -8,6 +7,7 @@ from evals.gen_metrics import (
     score_reply,
     suspected_invented_names,
 )
+from models.shelter import Shelter
 
 SHELTERS = [
     Shelter("[YILAN] 宜蘭國小", 500, 24.7, 121.7, 0, "宜蘭縣宜蘭市崇聖街2號"),
@@ -94,7 +94,10 @@ def test_score_false_abstain_and_capacity_and_top1():
     assert s["false_abstain"] == 0.0
 
     expect = {"top1": "[YILAN] 羅東鎮立體育館"}
-    assert score_reply("最大的是羅東體育館，其次宜蘭國小。", ["[YILAN] 羅東鎮立體育館"], CONTEXT, CATALOG, expect=expect)["top1_correct"] == 1.0
+    scored = score_reply(
+        "最大的是羅東體育館，其次宜蘭國小。", ["[YILAN] 羅東鎮立體育館"], CONTEXT, CATALOG, expect=expect
+    )
+    assert scored["top1_correct"] == 1.0
     assert score_reply("宜蘭國小最大，羅東體育館其次。", ["[YILAN] 羅東鎮立體育館"], CONTEXT, CATALOG, expect=expect)["top1_correct"] == 0.0
 
 
