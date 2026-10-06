@@ -6,6 +6,19 @@ on:
   pull_request:
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # ruff 是 CI 專用工具，所以版本釘在這裡而不是放進 requirements-dev：
+      # 執行期與測試用的映像都不需要 lint 工具。本機用同一版才會得到同樣結果：
+      #   pip install ruff==0.16.10 && ruff check .
+      - run: pip install ruff==0.16.10
+      - run: ruff check .
+
   test:
     runs-on: ubuntu-latest
     steps:
@@ -16,5 +29,17 @@ jobs:
           cache: pip
       # 用 lock 檔安裝：CI 測到的依賴組合要跟映像一致，否則 CI 綠燈不代表容器跑得起來。
       # --only-binary 與 Dockerfile 一致，缺 wheel 要在 CI 就炸出來
-      - run: pip install --only-binary :all: -r requirements-dev.lock
+      - run: "pip install --only-binary :all: -r requirements-dev.lock"
       - run: pytest tests/ -v
+
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Dockerfile 壞掉不該只有在本機 docker build 時才發現。
+      # 這一步同時驗證 requirements.lock 在乾淨環境裝得起來，以及「不需要編譯器」
+      # （--only-binary）的前提還成立
+      - run: "docker build --build-arg INSTALL_DEV=true -t disasterhub:ci ."
+      # 在映像裡面跑測試：這才證明映像自己帶齊了跑得起來的依賴，
+      # 順便走過 entrypoint 的降權路徑（runuser → app 使用者）
+      - run: "docker run --rm disasterhub:ci python -m pytest tests/ -q"
