@@ -403,7 +403,7 @@ async def simulate(request: SimulateRequest, http_request: Request, x_api_key: s
         repo.get_shelters_in_radius, request.lat, request.lon, request.radius
     )
     # 人口估算與前端動畫、AI 回答共用同一份模型，三邊數字才會一致
-    total_remaining = sum(s["remaining"] for s in impacted)
+    total_remaining = sum(s.remaining for s in impacted)
     population = population_model.estimate(
         request.lat, request.lon, request.radius, request.type, total_remaining
     )
@@ -414,6 +414,7 @@ async def simulate(request: SimulateRequest, http_request: Request, x_api_key: s
         "lon": request.lon,
         "radius_km": request.radius,
         "impacted_count": len(impacted),
+        # 快照存 Shelter 物件：收容人數回寫後 refresh_occupancy 直接換成新的物件就好
         "impacted_shelters": impacted,
         "population": population,
     })
@@ -421,7 +422,7 @@ async def simulate(request: SimulateRequest, http_request: Request, x_api_key: s
     return {
         "status": "success",
         "impacted_count": len(impacted),
-        "impacted_shelters": impacted,
+        "impacted_shelters": map_service.to_impacted(impacted),
         "population": population,
     }
 
@@ -470,7 +471,7 @@ async def nearest_shelter(request: NearestRequest):
     return {
         "status": "success",
         "count": len(results),
-        "shelters": results
+        "shelters": map_service.to_nearest(results),
     }
 
 #呼叫 chat_service.chat_stream() 傳入問題
