@@ -1,11 +1,13 @@
-import time
 import logging
 import threading
+import time
 from contextlib import contextmanager
+
 from psycopg2 import OperationalError
-from psycopg2.pool import ThreadedConnectionPool, PoolError
-from models.shelter import Shelter
+from psycopg2.pool import PoolError, ThreadedConnectionPool
+
 import config
+from models.shelter import Shelter
 
 MAX_RETRIES = 3
 RETRY_DELAY = 2  # 秒
@@ -49,7 +51,7 @@ def _acquire(pool):
             return pool.getconn()
         except PoolError as e:
             if time.monotonic() >= deadline:
-                raise RuntimeError(f"資料庫連線池已滿，等待 {POOL_WAIT_SECONDS:g} 秒仍拿不到連線：{e}")
+                raise RuntimeError(f"資料庫連線池已滿，等待 {POOL_WAIT_SECONDS:g} 秒仍拿不到連線：{e}") from e
             time.sleep(POOL_RETRY_INTERVAL)
 
 
@@ -106,7 +108,7 @@ class ShelterRepository:
                 cursor.execute("ALTER TABLE shelters ADD COLUMN IF NOT EXISTS address VARCHAR(200) DEFAULT ''")
                 cursor.execute("CREATE INDEX IF NOT EXISTS idx_shelters_geom ON shelters USING GIST (geom)")
         except Exception as e:
-            raise RuntimeError(f"ensure_schema 失敗：{e}")
+            raise RuntimeError(f"ensure_schema 失敗：{e}") from e
 
     # 同步只負責「靜態」欄位（容量 / 地址 / 座標）。
     # current_ppl 是模擬回寫的即時狀態，重啟或手動同步都不能把它洗掉；
@@ -145,7 +147,7 @@ class ShelterRepository:
             with self._cursor() as cursor:
                 cursor.execute(self.UPSERT_SQL, self._upsert_params(shelter))
         except Exception as e:
-            raise RuntimeError(f"upsert_shelter 失敗：{e}")
+            raise RuntimeError(f"upsert_shelter 失敗：{e}") from e
 
     def upsert_shelters(self, shelters: list[Shelter]) -> int:
         if not shelters:
@@ -155,7 +157,7 @@ class ShelterRepository:
             with self._cursor() as cursor:
                 cursor.executemany(self.UPSERT_SQL, params)
         except Exception as e:
-            raise RuntimeError(f"upsert_shelters 失敗：{e}")
+            raise RuntimeError(f"upsert_shelters 失敗：{e}") from e
         return len(params)
 
     def set_occupancy(self, occupancy: dict[str, int]) -> int:
@@ -171,7 +173,7 @@ class ShelterRepository:
                 cursor.execute(self.SET_OCCUPANCY_SQL, (names, counts))
                 return cursor.rowcount
         except Exception as e:
-            raise RuntimeError(f"set_occupancy 失敗：{e}")
+            raise RuntimeError(f"set_occupancy 失敗：{e}") from e
 
     def get_all_shelters(self):
         # 固定排序，讓向量索引指紋與前端列表在重啟後保持一致
@@ -180,7 +182,7 @@ class ShelterRepository:
                 cursor.execute(f"SELECT {SELECT_COLUMNS} FROM shelters ORDER BY name")
                 return [_row_to_shelter(row) for row in cursor.fetchall()]
         except Exception as e:
-            raise RuntimeError(f"get_all_shelters error：{e}")
+            raise RuntimeError(f"get_all_shelters error：{e}") from e
 
     def get_shelters_in_radius(self, lat: float, lon: float, radius_km: float):
         """
@@ -210,7 +212,7 @@ class ShelterRepository:
                         "address": row[5],
                     })
         except Exception as e:
-            raise RuntimeError(f"get_shelters_in_radius 失敗：{e}")
+            raise RuntimeError(f"get_shelters_in_radius 失敗：{e}") from e
         return impacted_shelters
 
     def get_nearest_shelters(self, lat: float, lon: float, limit: int = 5):
@@ -246,5 +248,5 @@ class ShelterRepository:
                         "distance_km": float(row[6]),
                     })
         except Exception as e:
-            raise RuntimeError(f"get_nearest_shelters 失敗：{e}")
+            raise RuntimeError(f"get_nearest_shelters 失敗：{e}") from e
         return nearest

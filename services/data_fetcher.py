@@ -1,7 +1,8 @@
-import json
-import os
 import glob
+import json
 import logging
+import os
+
 from models.shelter import Shelter
 
 logger = logging.getLogger(__name__)
@@ -25,14 +26,14 @@ def _parse_item(item: dict, region_name: str) -> Shelter:
         lat = float(item.get("lat"))
         lon = float(item.get("lon"))
     except (TypeError, ValueError):
-        raise ValueError("lat / lon 缺少或不是數字")
+        raise ValueError("lat / lon 缺少或不是數字") from None
     if not (-90 <= lat <= 90 and -180 <= lon <= 180) or (lat == 0 and lon == 0):
         raise ValueError(f"座標不合法（{lat}, {lon}）")
     try:
         capacity = int(item.get("total_vessel", 0))
         current = int(item.get("total_people", 0))
     except (TypeError, ValueError):
-        raise ValueError("total_vessel / total_people 不是整數")
+        raise ValueError("total_vessel / total_people 不是整數") from None
     if capacity < 0 or current < 0:
         raise ValueError("容量或人數不能是負數")
     return Shelter(
@@ -75,7 +76,7 @@ class DataFetcher:
             region_name = filename.split('_')[0].upper()
 
             try:
-                with open(file_path, 'r', encoding='utf-8') as f:
+                with open(file_path, encoding='utf-8') as f:
                     data = json.load(f)
                 if not isinstance(data, list):
                     raise ValueError("最外層必須是陣列")

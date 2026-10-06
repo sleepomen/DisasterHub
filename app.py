@@ -8,23 +8,24 @@ import threading
 import uuid
 from contextlib import asynccontextmanager, suppress
 from pathlib import Path
+
+import uvicorn
 from fastapi import FastAPI, Header, HTTPException, Request, Response
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
-from starlette.datastructures import MutableHeaders
 from pydantic import BaseModel, Field, field_validator
-from repositories.shelter_repository import ShelterRepository
-from services.map_service import MapService
-from services.sync_service import DataSyncService
-from services.chat_service import ChatService
-from services.vector_store import VectorStore
-from services.population_service import PopulationModel
-from services import health
-from services import auth
-from services.metrics import metrics
-from services.rate_limit import RateLimiter
+from starlette.datastructures import MutableHeaders
+
 import config
-import uvicorn
+from repositories.shelter_repository import ShelterRepository
+from services import auth, health
+from services.chat_service import ChatService
+from services.map_service import MapService
+from services.metrics import metrics
+from services.population_service import PopulationModel
+from services.rate_limit import RateLimiter
+from services.sync_service import DataSyncService
+from services.vector_store import VectorStore
 
 # 每一行 log 都帶 request id：一個請求在 docker logs 裡的幾行才能串起來，
 # 使用者回報「剛才那題壞了」時也能直接用回應標頭上的 id 去撈
@@ -440,7 +441,7 @@ async def update_occupancy(request: OccupancyRequest, http_request: Request, x_a
         result = await asyncio.to_thread(apply_occupancy, occupancy)
     except Exception:
         logger.exception("收容人數回寫失敗")
-        raise HTTPException(status_code=500, detail="收容人數回寫失敗")
+        raise HTTPException(status_code=500, detail="收容人數回寫失敗") from None
     return {"status": "success", **result}
 
 
@@ -453,7 +454,7 @@ async def reset_simulation(http_request: Request, x_api_key: str = Header(defaul
         result = await asyncio.to_thread(apply_occupancy, baseline)
     except Exception:
         logger.exception("重置收容人數失敗")
-        raise HTTPException(status_code=500, detail="重置收容人數失敗")
+        raise HTTPException(status_code=500, detail="重置收容人數失敗") from None
     # 資料庫真的還原了才清快照；先清再寫失敗會變成聊天說沒模擬、地圖與資料庫卻還是滿載
     chat_service.clear_simulation()
     return {"status": "success", **result}
