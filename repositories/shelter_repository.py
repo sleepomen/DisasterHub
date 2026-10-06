@@ -7,7 +7,7 @@ from psycopg2 import OperationalError
 from psycopg2.pool import PoolError, ThreadedConnectionPool
 
 import config
-from models.shelter import Shelter
+from models.shelter import NearbyShelter, Shelter
 
 MAX_RETRIES = 3
 RETRY_DELAY = 2  # 秒
@@ -184,11 +184,12 @@ class ShelterRepository:
         except Exception as e:
             raise RuntimeError(f"get_all_shelters error：{e}") from e
 
-    def get_shelters_in_radius(self, lat: float, lon: float, radius_km: float):
+    def get_shelters_in_radius(self, lat: float, lon: float, radius_km: float) -> list[Shelter]:
         """
-        使用 PostGIS 找出中心點半徑內的避難所
+        使用 PostGIS 找出中心點半徑內的避難所。
+        回傳 Shelter 物件（跟 get_all_shelters 一致），轉成 API 的 JSON 由 MapService 負責。
         """
-        impacted_shelters = []
+        impacted: list[Shelter] = []
         try:
             with self._cursor() as cursor:
                 sql = f"""
@@ -201,25 +202,17 @@ class ShelterRepository:
                     );
                 """
                 cursor.execute(sql, (lon, lat, radius_km * 1000))
-                for row in cursor.fetchall():
-                    impacted_shelters.append({
-                        "name": row[0],
-                        "capacity": row[1],
-                        "current_ppl": row[2],
-                        "remaining": max(0, row[1] - row[2]),
-                        "lat": row[3],
-                        "lon": row[4],
-                        "address": row[5],
-                    })
+                impacted = [_row_to_shelter(row) for row in cursor.fetchall()]
         except Exception as e:
             raise RuntimeError(f"get_shelters_in_radius 失敗：{e}") from e
-        return impacted_shelters
+        return impacted
 
-    def get_nearest_shelters(self, lat: float, lon: float, limit: int = 5):
+    def get_nearest_shelters(self, lat: float, lon: float, limit: int = 5) -> list[NearbyShelter]:
         """
-        使用 PostGIS ST_Distance 找出距離中心點最近的 N 個避難所，依距離排序
+        使用 PostGIS ST_Distance 找出距離中心點最近的 N 個避難所，依距離排序。
+        距離是這次查詢才有的值，所以包成 NearbyShelter 而不是塞進 Shelter。
         """
-        nearest = []
+        nearest: list[NearbyShelter] = []
         try:
             with self._cursor() as cursor:
                 sql = f"""
@@ -236,17 +229,10 @@ class ShelterRepository:
                     LIMIT %s;
                 """
                 cursor.execute(sql, (lon, lat, lon, lat, limit))
-                for row in cursor.fetchall():
-                    nearest.append({
-                        "name": row[0],
-                        "capacity": row[1],
-                        "current_ppl": row[2],
-                        "remaining": max(0, row[1] - row[2]),
-                        "lat": float(row[3]),
-                        "lon": float(row[4]),
-                        "address": row[5],
-                        "distance_km": float(row[6]),
-                    })
+                nearest = [
+                    NearbyShelter(shelter=_row_to_shelter(row), distance_km=float(row[6]))
+                    for row in cursor.fetchall()
+                ]
         except Exception as e:
             raise RuntimeError(f"get_nearest_shelters 失敗：{e}") from e
         return nearest
