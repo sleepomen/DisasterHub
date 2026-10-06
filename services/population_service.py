@@ -1,6 +1,7 @@
 import json
 import logging
 import math
+from itertools import pairwise
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -75,7 +76,7 @@ class PopulationModel:
             return c[0][1]
         if lat <= c[-1][0]:
             return c[-1][1]
-        for (lat_a, lon_a), (lat_b, lon_b) in zip(c, c[1:]):
+        for (lat_a, lon_a), (lat_b, lon_b) in pairwise(c):
             if lat_b <= lat <= lat_a:
                 t = (lat_a - lat) / (lat_a - lat_b) if lat_a != lat_b else 0.0
                 return lon_a + (lon_b - lon_a) * t

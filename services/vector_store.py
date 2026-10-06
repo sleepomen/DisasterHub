@@ -5,12 +5,14 @@ import re
 import threading
 from dataclasses import dataclass
 from pathlib import Path
+
 import chromadb
+
 import config
 from services.embeddings import build_embedding_function
 from services.metrics import metrics
+from services.query_rules import MAX_FILTERED_RESULTS, MAX_RANKED_RESULTS, QueryPlan
 from services.shelter_profile import profile, strip_region_tag
-from services.query_rules import QueryPlan, MAX_FILTERED_RESULTS, MAX_RANKED_RESULTS
 
 logger = logging.getLogger(__name__)
 
@@ -118,7 +120,7 @@ class VectorStore:
         # 文件先排序，資料庫回傳順序不同不會被誤判成資料變了
         digest = hashlib.sha256(self._ef_name().encode("utf-8"))
         # metadata 欄位改了（例如新增 road）文件內容不會變，靠版本號讓落地的索引重建
-        digest.update(f"metadata-v{METADATA_VERSION}".encode("utf-8"))
+        digest.update(f"metadata-v{METADATA_VERSION}".encode())
         for doc in sorted(documents):
             digest.update(SEPARATOR)
             digest.update(doc.encode("utf-8"))
@@ -310,7 +312,7 @@ class VectorStore:
         dists = results.get("distances", [[]])[0]
         hits = [
             Hit(name=meta["name"], document=doc, distance=float(dist), metadata=meta)
-            for doc, meta, dist in zip(docs, metas, dists)
+            for doc, meta, dist in zip(docs, metas, dists, strict=True)
         ]
         return hits, total
 
@@ -324,7 +326,10 @@ class VectorStore:
             stored = self.collection.get(where=where, include=["documents", "metadatas"])
         docs = stored.get("documents") or []
         metas = stored.get("metadatas") or []
-        hits = [Hit(name=meta["name"], document=doc, distance=0.0, metadata=meta) for doc, meta in zip(docs, metas)]
+        hits = [
+            Hit(name=meta["name"], document=doc, distance=0.0, metadata=meta)
+            for doc, meta in zip(docs, metas, strict=True)
+        ]
         hits.sort(key=lambda h: h.metadata.get("capacity", 0), reverse=descending)
         return hits
 
