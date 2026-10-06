@@ -1,5 +1,7 @@
 import logging
+
 import requests
+
 import config
 
 logger = logging.getLogger(__name__)
