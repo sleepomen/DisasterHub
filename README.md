@@ -143,14 +143,14 @@ Disaster_Hub/
 ├── conftest.py                 # Default environment variables for tests
 │
 ├── models/
-│   └── shelter.py              # Shelter data model
+│   └── shelter.py              # Shelter + NearbyShelter (shelter plus a per-query distance)
 │
 ├── repositories/
 │   └── shelter_repository.py   # PostGIS queries (pooling, batch upsert, schema migration)
 │
 ├── services/
 │   ├── data_fetcher.py         # Reads the JSON data
-│   ├── map_service.py          # Map data formatting
+│   ├── map_service.py          # Domain objects → API JSON (the only place dicts are built)
 │   ├── metrics.py              # In-memory counters + latency samples (/api/stats)
 │   ├── rate_limit.py           # Per-source sliding-window request limit (chat)
 │   ├── sync_service.py         # Data synchronization
@@ -247,6 +247,18 @@ curl -N -X POST http://localhost:8501/api/chat \
 ```
 
 Behind a reverse proxy, response buffering has to be off or the stream is pointless: the endpoint sends `X-Accel-Buffering: no` for nginx, and Caddy does not buffer by default.
+
+### Where dicts are built
+
+`ShelterRepository` returns domain objects everywhere — `list[Shelter]`, or `list[NearbyShelter]`
+(a shelter plus the distance that one query computed, which is not a property of the shelter). The
+`dict`s that go out as JSON are built only in `MapService`, which is also the only place the
+`current_people` → `current_ppl` rename happens.
+
+That rename, and the key sets for `/api/shelters`, `/api/simulate_disaster` and `/api/nearest_shelter`,
+are an external contract: the frontend's evacuation animation reads `remaining` / `lat` / `lon`, and the
+occupancy write-back reads `name`. `tests/test_map_service.py` pins the exact key sets so a field rename
+cannot break the map silently.
 
 ### Online Counters and Logs
 
@@ -639,14 +651,14 @@ Disaster_Hub/
 ├── conftest.py                 # 測試用環境變數預設值
 │
 ├── models/
-│   └── shelter.py              # Shelter 資料模型
+│   └── shelter.py              # Shelter 與 NearbyShelter（避難所 + 該次查詢的距離）
 │
 ├── repositories/
 │   └── shelter_repository.py   # PostGIS 查詢（連線池、批次 upsert、schema migration）
 │
 ├── services/
 │   ├── data_fetcher.py         # 讀取 JSON 資料
-│   ├── map_service.py          # 地圖資料格式化
+│   ├── map_service.py          # 領域物件 → API JSON（dict 只在這一層產生）
 │   ├── metrics.py              # 記憶體計數器與延遲取樣（/api/stats）
 │   ├── rate_limit.py           # 按來源的滑動視窗用量上限（聊天）
 │   ├── sync_service.py         # 資料同步
@@ -742,6 +754,16 @@ curl -N -X POST http://localhost:8501/api/chat \
 ```
 
 前面有反向代理時要關掉回應緩衝，否則串流等於沒做：這支端點會送 `X-Accel-Buffering: no` 給 nginx 看，Caddy 預設不緩衝。
+
+### dict 在哪裡產生
+
+`ShelterRepository` 一律回領域物件——`list[Shelter]`，或 `list[NearbyShelter]`（避難所加上
+這一次查詢算出的距離；距離不是避難所的屬性）。要送出去當 JSON 的 `dict` 只在 `MapService`
+產生，`current_people` → `current_ppl` 的改名也只發生在那一層。
+
+這個改名，以及 `/api/shelters`、`/api/simulate_disaster`、`/api/nearest_shelter` 的欄位組合，
+都是對外契約：前端的疏散動畫讀 `remaining` / `lat` / `lon`，收容人數回寫讀 `name`。
+`tests/test_map_service.py` 把欄位組合釘死，欄位改名就不會讓地圖安靜地壞掉。
 
 ### 線上計數器與日誌
 
