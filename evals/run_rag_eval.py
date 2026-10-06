@@ -129,8 +129,13 @@ def summarize(rows, ks):
             "mean_best_relevant_distance": round(mean(best), 4) if best else None,
         }
 
-    cat_aggs = [v for v in summary["categories"].values()]
-    metric_keys = [f"recall@{k}" for k in ks] + [f"precision@{k}" for k in ks] + [f"hit@{k}" for k in ks] + ["mrr", "recall@all", "precision@all"]
+    cat_aggs = list(summary["categories"].values())
+    metric_keys = (
+        [f"recall@{k}" for k in ks]
+        + [f"precision@{k}" for k in ks]
+        + [f"hit@{k}" for k in ks]
+        + ["mrr", "recall@all", "precision@all"]
+    )
     summary["macro"] = {k: round(mean(c[k] for c in cat_aggs), 4) for k in metric_keys} if cat_aggs else {}
     summary["micro"] = {k: round(v, 4) for k, v in aggregate(positive_scores).items()} if positive_scores else {}
     lat = [r["latency_ms"] for r in rows]
@@ -160,7 +165,11 @@ def print_report(summary, ks, meta):
     neg = summary["negatives"]
     if neg:
         fp = f"{neg['false_positive_rate']:.3f}" if neg["false_positive_rate"] is not None else "n/a (no --threshold)"
-        print(f"negatives    n={neg['count']}  rejected_by_rules={neg['rejected_by_rules']}  mean_top1_dist={neg['mean_top1_distance']}  min_top1_dist={neg['min_top1_distance']}  FP_rate={fp}")
+        print(
+            f"negatives    n={neg['count']}  rejected_by_rules={neg['rejected_by_rules']}  "
+            f"mean_top1_dist={neg['mean_top1_distance']}  min_top1_dist={neg['min_top1_distance']}  "
+            f"FP_rate={fp}"
+        )
     lat = summary["latency_ms"]
     print(f"latency      p50={lat['p50']} ms  p95={lat['p95']} ms   index_build={meta['index_build_s']:.2f}s")
 
@@ -196,7 +205,17 @@ def main():
     store, docs, build_s = build_store(args.embedder, label, args.doc_style)
     rows = run(cases, store, ks, max(args.top, ks[-1]), args.threshold, use_rules=not args.no_rules)
     summary = summarize(rows, ks)
-    meta = {"label": label, "embedder": args.embedder, "doc_style": args.doc_style, "rules": not args.no_rules, "top": args.top, "docs": docs, "index_build_s": build_s, "threshold": args.threshold, "cases": len(cases)}
+    meta = {
+        "label": label,
+        "embedder": args.embedder,
+        "doc_style": args.doc_style,
+        "rules": not args.no_rules,
+        "top": args.top,
+        "docs": docs,
+        "index_build_s": build_s,
+        "threshold": args.threshold,
+        "cases": len(cases),
+    }
 
     print_report(summary, ks, meta)
     print_misses(rows, ks[-1], args.show_misses)

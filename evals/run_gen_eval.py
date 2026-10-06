@@ -24,7 +24,7 @@ sys.path.insert(0, ROOT)
 
 from evals.gen_metrics import NEGATIVE_KEYS, POSITIVE_KEYS, aggregate, asks_capacity, build_catalog, score_reply  # noqa: E402
 from evals.metrics import percentile  # noqa: E402
-from evals.run_rag_eval import build_store, load_cases, DEFAULT_CASES, RESULTS_DIR  # noqa: E402
+from evals.run_rag_eval import DEFAULT_CASES, RESULTS_DIR, build_store, load_cases  # noqa: E402
 
 
 def progress_path_for(out: str) -> str:
@@ -66,7 +66,6 @@ def load_progress(path: str, signature: dict) -> dict:
 
 
 def run(cases, store, shelters, progress_handle=None, done=None):
-    import config
     from services.chat_service import ChatService
 
     catalog = build_catalog(shelters)
@@ -196,7 +195,14 @@ def print_failures(rows, limit):
         s = r["scores"]
         if "abstain_correct" in s:
             return s["abstain_correct"] < 1.0
-        return s["answer_recall"] < 1.0 or s["hallucinated"] or s["false_abstain"] or not s["numbers_supported"] or not s["format_ok"] or s["truncated"]
+        return (
+            s["answer_recall"] < 1.0
+            or s["hallucinated"]
+            or s["false_abstain"]
+            or not s["numbers_supported"]
+            or not s["format_ok"]
+            or s["truncated"]
+        )
 
     failures = [r for r in rows if bad(r)]
     if not failures:
