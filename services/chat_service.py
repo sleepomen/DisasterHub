@@ -191,21 +191,17 @@ class ChatService:
         with self._lock:
             if not self.latest_simulation:
                 return
-            impacted = self.latest_simulation.get("impacted_shelters", [])
-            for item in impacted:
-                s = lookup.get(item.get("name"))
-                if s is None:
-                    continue
-                item["capacity"] = s.capacity
-                item["current_ppl"] = s.current_people
-                item["remaining"] = s.remaining
+            # 快照存的是 Shelter 物件，所以直接換成資料庫最新的那一個，
+            # 不必逐欄位覆寫（以前是 dict，改一個欄位就要記得同步 remaining）
+            impacted = [lookup.get(s.name, s) for s in self.latest_simulation.get("impacted_shelters", [])]
+            self.latest_simulation["impacted_shelters"] = impacted
 
             # 人口摘要的總剩餘空間也要跟著逐筆數字走；模擬當下的值另外留一份，
             # 可安置 / 缺口這些規劃數字才有基準可以對照
             population = self.latest_simulation.get("population")
             if population and "total_remaining" in population:
                 population.setdefault("initial_remaining", population["total_remaining"])
-                current = sum(int(item.get("remaining", 0) or 0) for item in impacted)
+                current = sum(s.remaining for s in impacted)
                 population["total_remaining"] = current
                 population["placed"] = max(0, int(population["initial_remaining"]) - current)
 
@@ -268,12 +264,9 @@ class ChatService:
         lines.extend(population_lines(sim.get("population") or {}))
         lines.append(f"受影響避難所共 {len(impacted)} 個：")
         for i, s in enumerate(impacted, 1):
-            capacity = s.get("capacity", 0)
-            current = s.get("current_ppl", 0)
-            remaining = s.get("remaining", max(0, capacity - current))
             lines.append(
-                f"{i}. {display_name(s['name'])}：容量 {capacity} 人，"
-                f"目前收容 {current} 人，剩餘空間 {remaining} 人"
+                f"{i}. {display_name(s.name)}：容量 {s.capacity} 人，"
+                f"目前收容 {s.current_people} 人，剩餘空間 {s.remaining} 人"
             )
 
         return "\n".join(lines), None
@@ -304,10 +297,11 @@ class ChatService:
 
             lines = [f"使用者位置：緯度 {lat}、經度 {lon}"]
             lines.append("距離最近的避難所（依距離由近到遠排序）：")
-            for i, s in enumerate(results, 1):
+            for i, n in enumerate(results, 1):
+                s = n.shelter
                 lines.append(
-                    f"{i}. {display_name(s['name'])}：距離 {s['distance_km']} 公里，"
-                    f"容量 {s['capacity']} 人，剩餘空間 {s['remaining']} 人"
+                    f"{i}. {display_name(s.name)}：距離 {n.distance_km} 公里，"
+                    f"容量 {s.capacity} 人，剩餘空間 {s.remaining} 人"
                 )
             return "\n".join(lines), None
         except Exception:
