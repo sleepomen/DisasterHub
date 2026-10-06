@@ -132,6 +132,7 @@ Disaster_Hub/
 ├── Dockerfile                  # INSTALL_DEV build arg controls dev dependencies
 ├── docker-compose.yml          # Production setup
 ├── docker-compose.dev.yml      # Dev overlay (hot reload / source mount / test deps)
+├── ruff.toml                   # Lint config (CI runs `ruff check .`)
 ├── requirements.txt            # Runtime dependencies (intent: version ranges)
 ├── requirements-dev.txt        # Test dependencies (pytest / httpx)
 ├── requirements.lock           # Fully pinned runtime set — what the image installs
@@ -350,6 +351,17 @@ pytest tests/ -v
 
 Installing from the lock file gets the same versions the image has. Note that `chroma-hnswlib`
 (pulled in by `chromadb` 0.5.x) has no wheels beyond CPython 3.12, so a local run needs Python 3.12 or older.
+
+Lint, with the version CI pins:
+
+```bash
+pip install ruff==0.16.10
+ruff check .
+```
+
+CI runs three jobs: `ruff check .`, the tests on a clean Python 3.12 installed from the lock file, and
+`docker build` followed by the tests *inside* the image — the last one is what proves the image carries
+everything it needs and that the "no compiler required" assumption still holds.
 
 ## RAG Recall Evaluation
 
@@ -616,6 +628,7 @@ Disaster_Hub/
 ├── Dockerfile                  # INSTALL_DEV build arg 控制 dev 依賴
 ├── docker-compose.yml          # 正式設定
 ├── docker-compose.dev.yml      # 開發疊加（熱重載 / 原始碼掛載 / 測試依賴）
+├── ruff.toml                   # Lint 設定（CI 跑 `ruff check .`）
 ├── requirements.txt            # 執行期依賴（意圖：版本範圍）
 ├── requirements-dev.txt        # 測試依賴（pytest / httpx）
 ├── requirements.lock           # 完整釘選的執行期版本 — 映像實際安裝的是這個
@@ -828,6 +841,17 @@ pytest tests/ -v
 
 從 lock 檔安裝才會拿到跟映像一樣的版本。注意 `chromadb` 0.5.x 依賴的 `chroma-hnswlib`
 沒有 CPython 3.12 以上的 wheel，所以本機要用 Python 3.12 或更舊的版本。
+
+Lint（用 CI 釘的同一版，兩邊結果才一致）：
+
+```bash
+pip install ruff==0.16.10
+ruff check .
+```
+
+CI 有三個 job：`ruff check .`、在乾淨的 Python 3.12 上從 lock 檔安裝後跑測試、以及
+`docker build` 之後在**映像裡面**跑測試——最後這個才證明映像自己帶齊了依賴，
+而且「不需要編譯器」的前提還成立。
 
 ## RAG 召回率評測
 
