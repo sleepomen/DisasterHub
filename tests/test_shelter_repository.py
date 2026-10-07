@@ -89,3 +89,16 @@ def test_pool_creation_gives_up_after_max_retries():
             shelter_repository._get_pool({})
     assert "重試" in str(exc.value)
     assert shelter_repository._pool is None
+
+
+def test_delete_missing_sql_targets_only_absent_names():
+    sql = ShelterRepository.DELETE_MISSING_SQL
+    assert "DELETE FROM shelters" in sql
+    # <> ALL(...)：名稱不等於清單裡任何一個才刪。名稱為 NULL 的髒資料不會被刪（NULL <> ALL 不成立）
+    assert "name <> ALL" in sql
+
+
+def test_delete_missing_refuses_an_empty_keep_list():
+    # 空清單會讓 name <> ALL('{}') 對所有列成立，也就是清空整張表
+    with pytest.raises(ValueError):
+        ShelterRepository().delete_missing([])

@@ -586,3 +586,9 @@ def test_failed_generations_are_sampled_too(svc):
     with patch("services.chat_service.requests.post", side_effect=ConnectionError("down")):
         list(svc.chat_stream("宜蘭有哪些避難所"))
     assert m.snapshot()["latency_ms"]["chat.generated"]["count"] == 1
+
+
+def test_display_name_is_the_same_function_as_the_index_side():
+    # 以前 REGION_TAG_PATTERN 在 chat_service 與 shelter_profile 各定義一次，寫法還不一樣
+    from services.shelter_profile import strip_region_tag
+    assert display_name is strip_region_tag
