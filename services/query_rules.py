@@ -9,6 +9,7 @@ import re
 from dataclasses import dataclass, field
 
 from services.population_service import PopulationModel
+from services.shelter_profile import FACILITY_LABELS
 
 # 系統涵蓋的三個縣，對應 metadata 的 region 欄位
 REGION_ALIASES = {
@@ -45,6 +46,15 @@ FACILITY_KEYWORDS = [
     ("會館", ["會館"]),
     ("文化館", ["會館"]),
 ]
+
+# 查詢端用的標籤必須真的存在於索引端的詞彙裡。少了這道檢查，在這裡加一個
+# shelter_profile 沒有的標籤不會報錯：metadata 篩選只會永遠落空，然後退回一般檢索
+# （prompt 的標頭會說「沒有找到符合條件的」），看起來像檢索品質差而不是設定錯誤
+_UNKNOWN_FACILITIES = {label for _, labels in FACILITY_KEYWORDS for label in labels} - FACILITY_LABELS
+if _UNKNOWN_FACILITIES:
+    raise RuntimeError(
+        f"FACILITY_KEYWORDS 用了 shelter_profile.FACILITY_LABELS 沒有的設施標籤：{sorted(_UNKNOWN_FACILITIES)}"
+    )
 
 SIZE_CLASS_KEYWORDS = ["大型", "中型", "小型"]
 
