@@ -52,6 +52,10 @@ class DataFetcher:
         current_dir = os.path.dirname(os.path.abspath(__file__))
         self.folder_path = os.path.normpath(os.path.join(current_dir, "..", "data_for_refuge"))
         self.skipped = 0
+        # 整個檔案讀不起來的清單。這跟 skipped（單筆壞掉）要分開記：
+        # 一個檔案就是一個縣，少一個檔案代表那一縣在這次同步裡「看起來不存在」，
+        # 同步端必須靠這個訊號決定不要清理，否則會把整個縣當成已移除而刪掉
+        self.failed_files: list[str] = []
 
     def get_shelters(self) -> list[Shelter]:
         """
@@ -61,6 +65,7 @@ class DataFetcher:
         """
         all_shelters = []
         self.skipped = 0
+        self.failed_files = []
 
         # 找json資料夾
         search_pattern = os.path.join(self.folder_path, "*.json")
@@ -82,6 +87,7 @@ class DataFetcher:
                     raise ValueError("最外層必須是陣列")
             except Exception as e:
                 logger.error("解析 %s 失敗: %s", filename, e)
+                self.failed_files.append(filename)
                 continue
 
             loaded = 0
