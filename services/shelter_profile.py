@@ -6,6 +6,9 @@ COUNTY_LABELS = {"YILAN": "宜蘭縣", "HUALIEN": "花蓮縣", "TAITUNG": "台�
 TOWNSHIP_PATTERN = re.compile(r"(?:宜蘭縣|花蓮縣|臺東縣|台東縣)?([^\d\s]{1,3}?[市鄉鎮])")
 STREET_PATTERN = re.compile(r"(?:[市鄉鎮])([^\d\s]{1,8}?(?:大路|路|街|大道)(?:[一二三四五六七八九十]段)?)")
 
+# 避難所名稱 → facility 標籤（順序代表優先權，先命中先贏）。
+# 這是「名稱 → 標籤」；query_rules 那張是「問句 → 標籤」，兩者方向不同不能合併，
+# 但標籤詞彙必須一致，所以由下面的 FACILITY_LABELS 統一
 FACILITY_RULES = [
     ("國小", "國小"),
     ("國中", "國中"),
@@ -21,16 +24,10 @@ FACILITY_RULES = [
     ("會館", "會館"),
 ]
 
-FACILITY_DESCRIPTIONS = {
-    "國小": "國民小學，學校類型",
-    "國中": "國民中學，學校類型",
-    "高中": "高級中學，學校類型",
-    "體育場館": "體育館或運動場，大型室內外運動場館",
-    "圖書館": "公共圖書館",
-    "公所": "鄉鎮市公所，地方行政機關",
-    "會館": "文化會館，公共集會場所",
-    "其他": "公共設施",
-}
+# metadata 的 facility 標籤詞彙。這裡是唯一的來源：從 FACILITY_RULES 推導而不是手寫第三份清單。
+# 索引端（這個模組）決定寫進 metadata 的值，查詢端（query_rules）只能用這組標籤——
+# 用了不存在的標籤，ChromaDB 的 where 篩選會永遠篩不到東西，而且會安靜地退回一般檢索
+FACILITY_LABELS = frozenset({label for _, label in FACILITY_RULES} | {"其他"})
 
 SIZE_CLASSES = [(300, "小型"), (800, "中型"), (float("inf"), "大型")]
 
