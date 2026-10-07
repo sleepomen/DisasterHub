@@ -175,6 +175,22 @@ class ShelterRepository:
         except Exception as e:
             raise RuntimeError(f"set_occupancy 失敗：{e}") from e
 
+    # 清掉來源已經移除的避難所。沒有這一步，從 JSON 刪掉一間避難所之後，
+    # 資料庫那一列會永遠留著，AI 會繼續推薦一個已經不是避難所的地點；
+    # 改名更糟：舊名新名各一列。名稱為 NULL 的髒資料留著不動（NULL <> ALL 不成立）
+    DELETE_MISSING_SQL = "DELETE FROM shelters WHERE name <> ALL(%s::text[]);"
+
+    def delete_missing(self, keep_names: list[str]) -> int:
+        """刪除名稱不在 keep_names 裡的避難所，回傳刪掉的列數"""
+        if not keep_names:
+            raise ValueError("delete_missing 需要一份非空的保留清單，空清單會清掉整張表")
+        try:
+            with self._cursor() as cursor:
+                cursor.execute(self.DELETE_MISSING_SQL, (list(keep_names),))
+                return cursor.rowcount
+        except Exception as e:
+            raise RuntimeError(f"delete_missing 失敗：{e}") from e
+
     def get_all_shelters(self):
         # 固定排序，讓向量索引指紋與前端列表在重啟後保持一致
         try:
