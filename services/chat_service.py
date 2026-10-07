@@ -10,6 +10,7 @@ import requests
 import config
 from services import query_rules
 from services.metrics import metrics
+from services.shelter_profile import strip_region_tag
 from services.vector_store import NO_DATA, NO_MATCH, VectorStore
 
 logger = logging.getLogger(__name__)
@@ -86,7 +87,6 @@ metrics.register(*ROUTE_COUNTERS, *OUTCOME_COUNTERS)
 
 DISASTER_TYPE_LABELS = {"earthquake": "強震", "flood": "淹水", "fire": "火災"}
 
-REGION_TAG_PATTERN = re.compile(r"^\[[A-Z]+\]\s*")
 COORD_PATTERNS = [
     re.compile(r"緯度[：:＝=\s]*(\d{2}\.\d+)[,，/\s]*經度[：:＝=\s]*(\d{3}\.\d+)"),
     re.compile(r"經度[：:＝=\s]*(\d{3}\.\d+)[,，/\s]*緯度[：:＝=\s]*(\d{2}\.\d+)"),
@@ -102,8 +102,9 @@ class GenerationTimeout(RuntimeError):
     """整段生成超過 OLLAMA_TIMEOUT，串流已中止"""
 
 
-def display_name(name: str) -> str:
-    return REGION_TAG_PATTERN.sub("", name or "")
+# 顯示用名稱就是去掉 [REGION] 前綴。直接沿用索引端那一個函式，
+# 不要再維護第二份同樣的正則（原本這個 pattern 在兩個模組各定義一次，而且寫法還不一樣）
+display_name = strip_region_tag
 
 
 def format_people(n) -> str:
