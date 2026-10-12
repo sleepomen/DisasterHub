@@ -1,3 +1,4 @@
+import random
 from statistics import mean
 
 
@@ -72,6 +73,76 @@ def percentile(values: list[float], p: float) -> float:
     ordered = sorted(values)
     idx = min(len(ordered) - 1, max(0, round((len(ordered) - 1) * p)))
     return ordered[idx]
+
+
+# bootstrap 預設：1000 次重抽樣、95% 區間、固定種子。
+# 種子一定要固定——論文裡的信賴區間每跑一次就變一個數字是不能用的
+BOOTSTRAP_ITERATIONS = 1000
+BOOTSTRAP_CONFIDENCE = 0.95
+BOOTSTRAP_SEED = 20261012
+
+
+def bootstrap_ci(
+    values: list[float],
+    iterations: int = BOOTSTRAP_ITERATIONS,
+    confidence: float = BOOTSTRAP_CONFIDENCE,
+    seed: int = BOOTSTRAP_SEED,
+) -> tuple[float, float]:
+    """
+    對「平均值」做 bootstrap 信賴區間：每次從原樣本抽同樣數量（可重複）算一次平均，
+    重複 iterations 次，取這些平均值分布的兩端。
+
+    130 題、50 間避難所的規模下，兩個設定差 0.03 到底有沒有意義，只有區間答得出來。
+    """
+    if not values:
+        return (0.0, 0.0)
+    rng = random.Random(seed)
+    n = len(values)
+    means = [mean(rng.choices(values, k=n)) for _ in range(iterations)]
+    tail = (1.0 - confidence) / 2
+    return round(percentile(means, tail), 4), round(percentile(means, 1.0 - tail), 4)
+
+
+def stratified_bootstrap_ci(
+    groups: list[list[float]],
+    iterations: int = BOOTSTRAP_ITERATIONS,
+    confidence: float = BOOTSTRAP_CONFIDENCE,
+    seed: int = BOOTSTRAP_SEED,
+) -> tuple[float, float]:
+    """
+    macro 平均（先算每個類別的平均、再對類別取平均）的 bootstrap。
+
+    重抽樣必須在「每個類別內部」做，類別的題數才會維持不變；直接對全部題目重抽會
+    改變類別組成，算出來的就不是 macro 了。
+    """
+    groups = [g for g in groups if g]
+    if not groups:
+        return (0.0, 0.0)
+    rng = random.Random(seed)
+    macros = []
+    for _ in range(iterations):
+        macros.append(mean(mean(rng.choices(g, k=len(g))) for g in groups))
+    tail = (1.0 - confidence) / 2
+    return round(percentile(macros, tail), 4), round(percentile(macros, 1.0 - tail), 4)
+
+
+def paired_bootstrap_ci(
+    pairs: list[tuple[float, float]],
+    iterations: int = BOOTSTRAP_ITERATIONS,
+    confidence: float = BOOTSTRAP_CONFIDENCE,
+    seed: int = BOOTSTRAP_SEED,
+) -> tuple[float, float]:
+    """
+    兩個設定「差值」的信賴區間，逐題配對後重抽樣。
+
+    這比「兩個區間有沒有重疊」嚴謹得多：兩個區間重疊並不代表沒有差異，
+    而差值的區間包含 0 才是「這份題庫看不出差異」的正確說法。
+    配對（同一題在兩個設定下的分數一起抽）會消掉題目難度造成的變異。
+    """
+    if not pairs:
+        return (0.0, 0.0)
+    diffs = [a - b for a, b in pairs]
+    return bootstrap_ci(diffs, iterations, confidence, seed)
 
 
 def score_case(ranked: list[str], relevant: set[str], ks: list[int]) -> dict:
