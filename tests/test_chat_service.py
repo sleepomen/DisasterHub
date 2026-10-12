@@ -592,3 +592,24 @@ def test_display_name_is_the_same_function_as_the_index_side():
     # 以前 REGION_TAG_PATTERN 在 chat_service 與 shelter_profile 各定義一次，寫法還不一樣
     from services.shelter_profile import strip_region_tag
     assert display_name is strip_region_tag
+
+
+@pytest.mark.parametrize("msg", [
+    "離我最近的收容所是哪一間",
+    "最近的避難所在哪一個地方",
+])
+def test_geo_question_with_only_question_words_still_asks_for_coords(svc, msg):
+    """
+    _needs_coordinates 是減法啟發式：剝掉已知詞之後剩 >=2 字就當成有地名。
+    路由評測抓到「離我最近的收容所是哪一間」剝完剩「離哪一間」（純疑問詞與量詞），
+    於是被誤判成有地點線索而走了 RAG——使用者問的是純距離問題，卻拿到語意檢索的結果。
+    """
+    context, early = svc.build_context(msg)
+    assert context is None
+    assert "座標" in early
+
+
+def test_place_name_outside_every_known_list_still_counts_as_a_clue(svc):
+    # 補黑名單時不能把「知本」這種不在任何鄉鎮清單裡的地名一起剝掉
+    context, early = svc.build_context("知本附近")
+    assert early is None and context is not None
