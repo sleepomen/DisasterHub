@@ -8,7 +8,16 @@ from statistics import mean
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
-from evals.metrics import aggregate, percentile, question_group, score_case  # noqa: E402
+from evals.metrics import (  # noqa: E402
+    BOOTSTRAP_ITERATIONS,
+    BOOTSTRAP_SEED,
+    aggregate,
+    bootstrap_ci,
+    percentile,
+    question_group,
+    score_case,
+    stratified_bootstrap_ci,
+)
 
 DEFAULT_CASES = os.path.join(ROOT, "evals", "rag_eval.jsonl")
 RESULTS_DIR = os.path.join(ROOT, "evals", "results")
@@ -154,6 +163,22 @@ def summarize(rows, ks):
     )
     summary["macro"] = {k: round(mean(c[k] for c in cat_aggs), 4) for k in metric_keys} if cat_aggs else {}
     summary["micro"] = {k: round(v, 4) for k, v in aggregate(positive_scores).items()} if positive_scores else {}
+
+    # 95% 信賴區間：這份題庫只有 130 題，沒有區間就無法判斷兩個設定差 0.03 有沒有意義。
+    # macro 用分層重抽（類別內部抽，維持類別題數），micro 直接對題目抽
+    ci_keys = [f"recall@{k}" for k in ks] + ["recall@all", "precision@all", "r_precision", "mrr"]
+    per_cat_scores = [
+        [g["scores"] for g in by_cat[cat]] for cat in sorted(by_cat) if cat != "negative"
+    ]
+    summary["ci95"] = {
+        "iterations": BOOTSTRAP_ITERATIONS,
+        "seed": BOOTSTRAP_SEED,
+        "macro": {
+            key: stratified_bootstrap_ci([[s[key] for s in group] for group in per_cat_scores])
+            for key in ci_keys
+        },
+        "micro": {key: bootstrap_ci([s[key] for s in positive_scores]) for key in ci_keys},
+    } if positive_scores else {}
     lat = [r["latency_ms"] for r in rows]
     summary["latency_ms"] = {"p50": round(percentile(lat, 0.5), 2), "p95": round(percentile(lat, 0.95), 2)}
     return summary
@@ -175,6 +200,7 @@ def print_report(summary, ks, meta):
         cells += [f"{s['mrr']:>7.3f}"]
         cells += [f"{s['mean_best_relevant_distance']:>7.3f}" if s["mean_best_relevant_distance"] is not None else f"{'-':>7}"]
         print(" | ".join(cells))
+    ci = summary.get("ci95") or {}
     for name in ("macro", "micro"):
         s = summary[name]
         if s:
@@ -184,6 +210,13 @@ def print_report(summary, ks, meta):
             cells += [f"{s['recall@all']:>7.3f}", f"{s['precision@all']:>7.3f}"]
             cells += [f"{s['mrr']:>7.3f}", f"{'':>7}"]
             print(" | ".join(cells))
+
+    if ci:
+        print(f"\n95% 信賴區間（bootstrap {ci['iterations']} 次，seed={ci['seed']}；macro 為類別內分層重抽）")
+        for name in ("macro", "micro"):
+            for key, (lo, hi) in ci[name].items():
+                point = summary[name][key]
+                print(f"  {name:<6} {key:<14} {point:.3f}  [{lo:.3f}, {hi:.3f}]  寬度 {hi - lo:.3f}")
 
     groups = summary.get("groups") or {}
     if groups:

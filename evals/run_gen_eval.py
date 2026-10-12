@@ -23,7 +23,13 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
 from evals.gen_metrics import NEGATIVE_KEYS, POSITIVE_KEYS, aggregate, asks_capacity, build_catalog, score_reply  # noqa: E402
-from evals.metrics import percentile  # noqa: E402
+from evals.metrics import (  # noqa: E402
+    BOOTSTRAP_ITERATIONS,
+    BOOTSTRAP_SEED,
+    bootstrap_ci,
+    percentile,
+    stratified_bootstrap_ci,
+)
 from evals.run_rag_eval import DEFAULT_CASES, RESULTS_DIR, build_store, load_cases  # noqa: E402
 
 
@@ -150,11 +156,32 @@ def summarize(rows):
             for k in POSITIVE_KEYS if any(k in c for c in cats)
         }
         summary["micro"] = {k: round(v, 4) for k, v in aggregate([r["scores"] for r in positive_rows]).items()}
+
+        # 95% 信賴區間。120 道正例題下，llama 的 0.961 與 qwen 的 0.971 差 0.01，
+        # 沒有區間就無法說這是差異還是雜訊（要比兩個設定請用 evals/compare_runs.py 做配對比較）
+        ci_keys = [k for k in CI_KEYS if all(k in r["scores"] for r in positive_rows)]
+        per_cat = [
+            [g["scores"] for g in by_cat[cat]] for cat in sorted(by_cat) if cat != "negative"
+        ]
+        summary["ci95"] = {
+            "iterations": BOOTSTRAP_ITERATIONS,
+            "seed": BOOTSTRAP_SEED,
+            "macro": {
+                key: stratified_bootstrap_ci([[s[key] for s in group] for group in per_cat])
+                for key in ci_keys
+            },
+            "micro": {
+                key: bootstrap_ci([r["scores"][key] for r in positive_rows]) for key in ci_keys
+            },
+        }
     lat = [r["latency_ms"] for r in rows]
     summary["latency_ms"] = {"p50": round(percentile(lat, 0.5), 1), "p95": round(percentile(lat, 0.95), 1)}
     summary["generated"] = sum(1 for r in rows if r["generated"])
     return summary
 
+
+# 要報信賴區間的指標：論文表格裡真正被拿來比較的那幾個
+CI_KEYS = ["answer_recall", "answer_precision", "complete", "hallucinated", "false_abstain"]
 
 COLUMNS = [
     ("answer_recall", "ansR"), ("answer_precision", "ansP"), ("complete", "full"),
@@ -234,6 +261,17 @@ def print_failures(rows, limit):
         print(f"   reply: {snippet[:160]}{'…' if len(snippet) > 160 else ''}")
 
 
+def print_ci(summary) -> None:
+    ci = summary.get("ci95") or {}
+    if not ci:
+        return
+    print(f"\n95% 信賴區間（bootstrap {ci['iterations']} 次，seed={ci['seed']}；macro 為類別內分層重抽）")
+    for name in ("macro", "micro"):
+        for key, (lo, hi) in ci[name].items():
+            point = summary[name][key]
+            print(f"  {name:<6} {key:<18} {point:.3f}  [{lo:.3f}, {hi:.3f}]  寬度 {hi - lo:.3f}")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--cases", default=DEFAULT_CASES)
@@ -295,6 +333,7 @@ def main():
         "num_ctx": config.OLLAMA_NUM_CTX, "docs": docs, "index_build_s": build_s, "cases": len(cases),
     }
     print_report(summary, meta)
+    print_ci(summary)
     print_failures(rows, args.show_failures)
 
     with open(out, "w", encoding="utf-8") as f:
