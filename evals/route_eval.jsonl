@@ -1,0 +1,34 @@
+{"query": "宜蘭有哪些避難所", "expected_route": "rag", "simulation": false, "note": "列舉題"}
+{"query": "花蓮縣立體育館的容量是多少", "expected_route": "rag", "simulation": false, "note": "點名單一避難所"}
+{"query": "容量最大的避難所是哪一間", "expected_route": "rag", "simulation": false, "note": "容量排名仍走檢索，排序在向量層做"}
+{"query": "台東哪些國小可以避難", "expected_route": "rag", "simulation": false, "note": "地區＋設施"}
+{"query": "避難所有提供飲水嗎", "expected_route": "rag", "simulation": false, "note": "語意題"}
+{"query": "知本附近有避難所嗎", "expected_route": "rag", "simulation": false, "note": "有地理關鍵字但也有地名，設計上交給檢索而不是回頭要座標"}
+{"query": "中華路一段附近的避難所", "expected_route": "rag", "simulation": false, "note": "同上，路名就是地點線索"}
+{"query": "頭城鎮附近的學校", "expected_route": "rag", "simulation": false, "note": "同上，鄉鎮名"}
+{"query": "台北到宜蘭之間有避難所嗎", "expected_route": "rag", "simulation": false, "note": "刻意同時出現範圍外與範圍內地名；設計上只有整句沒有範圍內線索才拒答"}
+{"query": "最近有沒有新增避難所", "expected_route": "rag", "simulation": false, "note": "「最近」是時間副詞不是距離；關鍵字路由預期會誤判成 needs_coords"}
+{"query": "高雄有哪些避難所", "expected_route": "out_of_scope", "simulation": false, "note": "範圍外縣市"}
+{"query": "台北的避難所在哪裡", "expected_route": "out_of_scope", "simulation": false, "note": "範圍外縣市"}
+{"query": "新竹縣的收容所", "expected_route": "out_of_scope", "simulation": false, "note": "範圍外縣市"}
+{"query": "屏東有哪裡可以避難", "expected_route": "out_of_scope", "simulation": false, "note": "範圍外縣市"}
+{"query": "哪些避難所受到影響", "expected_route": "simulation", "simulation": true, "note": "明確問模擬結果"}
+{"query": "模擬結果如何", "expected_route": "simulation", "simulation": true, "note": "明確問模擬結果"}
+{"query": "影響範圍有多大", "expected_route": "simulation", "simulation": true, "note": "明確問模擬結果"}
+{"query": "哪些避難所受到影響", "expected_route": "simulation", "simulation": false, "note": "沒有模擬時仍該走模擬路徑，由它回「尚未執行模擬」"}
+{"query": "受影響的避難所還有空間嗎", "expected_route": "simulation", "simulation": true, "note": "模擬進行中的追問"}
+{"query": "收容缺口還有多少", "expected_route": "simulation", "simulation": true, "note": "模擬進行中的追問"}
+{"query": "要怎麼調度", "expected_route": "simulation", "simulation": true, "note": "模擬進行中的追問"}
+{"query": "離我最近的避難所 緯度 23.99 經度 121.60", "expected_route": "nearest", "simulation": false, "note": "有座標的距離查詢"}
+{"query": "23.99, 121.60 附近有什麼避難所", "expected_route": "nearest", "simulation": false, "note": "裸座標"}
+{"query": "經度 121.60 緯度 23.99 最近的收容所", "expected_route": "nearest", "simulation": false, "note": "座標順序顛倒"}
+{"query": "緯度：22.75，經度：121.14 最靠近哪一間", "expected_route": "nearest", "simulation": false, "note": "全形標點的座標"}
+{"query": "最近的避難所在哪", "expected_route": "needs_coords", "simulation": false, "note": "地理問句但沒有任何地點線索"}
+{"query": "附近有什麼避難所", "expected_route": "needs_coords", "simulation": false, "note": "同上"}
+{"query": "我附近可以去哪裡", "expected_route": "needs_coords", "simulation": false, "note": "同上"}
+{"query": "離我最近的收容所是哪一間", "expected_route": "needs_coords", "simulation": false, "note": "同上"}
+{"query": "請給我疏散建議", "expected_route": "no_simulation_advice", "simulation": false, "note": "要疏散建議但沒有模擬可依據"}
+{"query": "要怎麼疏散", "expected_route": "no_simulation_advice", "simulation": false, "note": "同上"}
+{"query": "疏散計畫是什麼", "expected_route": "no_simulation_advice", "simulation": false, "note": "同上"}
+{"query": "人要疏散到哪裡", "expected_route": "no_simulation_advice", "simulation": false, "note": "同上"}
+{"query": "請給我疏散建議", "expected_route": "simulation", "simulation": true, "note": "同一句話在模擬進行中該改走模擬快照——路由必須看狀態不只看關鍵字"}
