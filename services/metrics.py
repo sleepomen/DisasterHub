@@ -66,6 +66,13 @@ class Metrics:
         """本執行緒最近一次 route() 記下的名稱；沒有就回 '-'"""
         return getattr(self._local, "route", "-")
 
+    def clear_route(self) -> None:
+        """
+        清掉本執行緒的路由紀錄。在迴圈裡一題一題量路由時必須先清，
+        否則某一題走到沒有呼叫 route() 的路徑時會讀到上一題的值，而且看不出來。
+        """
+        self._local.route = None
+
     def observe(self, name: str, value_ms: float) -> None:
         with self._lock:
             samples = self._samples.get(name)
