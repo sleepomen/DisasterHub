@@ -1,0 +1,341 @@
+{
+  "summary": {
+    "count": 34,
+    "correct": 34,
+    "accuracy": 1.0,
+    "per_route": {
+      "nearest": {
+        "count": 4,
+        "correct": 4,
+        "accuracy": 1.0
+      },
+      "needs_coords": {
+        "count": 4,
+        "correct": 4,
+        "accuracy": 1.0
+      },
+      "no_simulation_advice": {
+        "count": 4,
+        "correct": 4,
+        "accuracy": 1.0
+      },
+      "out_of_scope": {
+        "count": 4,
+        "correct": 4,
+        "accuracy": 1.0
+      },
+      "rag": {
+        "count": 10,
+        "correct": 10,
+        "accuracy": 1.0
+      },
+      "simulation": {
+        "count": 8,
+        "correct": 8,
+        "accuracy": 1.0
+      }
+    },
+    "confusion": {
+      "nearest": {
+        "nearest": 4
+      },
+      "needs_coords": {
+        "needs_coords": 4
+      },
+      "no_simulation_advice": {
+        "no_simulation_advice": 4
+      },
+      "out_of_scope": {
+        "out_of_scope": 4
+      },
+      "rag": {
+        "rag": 10
+      },
+      "simulation": {
+        "simulation": 8
+      }
+    },
+    "routes": [
+      "nearest",
+      "needs_coords",
+      "no_simulation_advice",
+      "out_of_scope",
+      "rag",
+      "simulation"
+    ]
+  },
+  "rows": [
+    {
+      "query": "宜蘭有哪些避難所",
+      "simulation": false,
+      "expected": "rag",
+      "actual": "rag",
+      "answered_without_llm": false,
+      "note": "列舉題"
+    },
+    {
+      "query": "花蓮縣立體育館的容量是多少",
+      "simulation": false,
+      "expected": "rag",
+      "actual": "rag",
+      "answered_without_llm": false,
+      "note": "點名單一避難所"
+    },
+    {
+      "query": "容量最大的避難所是哪一間",
+      "simulation": false,
+      "expected": "rag",
+      "actual": "rag",
+      "answered_without_llm": false,
+      "note": "容量排名仍走檢索，排序在向量層做"
+    },
+    {
+      "query": "台東哪些國小可以避難",
+      "simulation": false,
+      "expected": "rag",
+      "actual": "rag",
+      "answered_without_llm": false,
+      "note": "地區＋設施"
+    },
+    {
+      "query": "避難所有提供飲水嗎",
+      "simulation": false,
+      "expected": "rag",
+      "actual": "rag",
+      "answered_without_llm": false,
+      "note": "語意題"
+    },
+    {
+      "query": "知本附近有避難所嗎",
+      "simulation": false,
+      "expected": "rag",
+      "actual": "rag",
+      "answered_without_llm": false,
+      "note": "有地理關鍵字但也有地名，設計上交給檢索而不是回頭要座標"
+    },
+    {
+      "query": "中華路一段附近的避難所",
+      "simulation": false,
+      "expected": "rag",
+      "actual": "rag",
+      "answered_without_llm": false,
+      "note": "同上，路名就是地點線索"
+    },
+    {
+      "query": "頭城鎮附近的學校",
+      "simulation": false,
+      "expected": "rag",
+      "actual": "rag",
+      "answered_without_llm": false,
+      "note": "同上，鄉鎮名"
+    },
+    {
+      "query": "台北到宜蘭之間有避難所嗎",
+      "simulation": false,
+      "expected": "rag",
+      "actual": "rag",
+      "answered_without_llm": false,
+      "note": "刻意同時出現範圍外與範圍內地名；設計上只有整句沒有範圍內線索才拒答"
+    },
+    {
+      "query": "最近有沒有新增避難所",
+      "simulation": false,
+      "expected": "rag",
+      "actual": "rag",
+      "answered_without_llm": false,
+      "note": "「最近」是時間副詞不是距離；關鍵字路由預期會誤判成 needs_coords"
+    },
+    {
+      "query": "高雄有哪些避難所",
+      "simulation": false,
+      "expected": "out_of_scope",
+      "actual": "out_of_scope",
+      "answered_without_llm": true,
+      "note": "範圍外縣市"
+    },
+    {
+      "query": "台北的避難所在哪裡",
+      "simulation": false,
+      "expected": "out_of_scope",
+      "actual": "out_of_scope",
+      "answered_without_llm": true,
+      "note": "範圍外縣市"
+    },
+    {
+      "query": "新竹縣的收容所",
+      "simulation": false,
+      "expected": "out_of_scope",
+      "actual": "out_of_scope",
+      "answered_without_llm": true,
+      "note": "範圍外縣市"
+    },
+    {
+      "query": "屏東有哪裡可以避難",
+      "simulation": false,
+      "expected": "out_of_scope",
+      "actual": "out_of_scope",
+      "answered_without_llm": true,
+      "note": "範圍外縣市"
+    },
+    {
+      "query": "哪些避難所受到影響",
+      "simulation": true,
+      "expected": "simulation",
+      "actual": "simulation",
+      "answered_without_llm": false,
+      "note": "明確問模擬結果"
+    },
+    {
+      "query": "模擬結果如何",
+      "simulation": true,
+      "expected": "simulation",
+      "actual": "simulation",
+      "answered_without_llm": false,
+      "note": "明確問模擬結果"
+    },
+    {
+      "query": "影響範圍有多大",
+      "simulation": true,
+      "expected": "simulation",
+      "actual": "simulation",
+      "answered_without_llm": false,
+      "note": "明確問模擬結果"
+    },
+    {
+      "query": "哪些避難所受到影響",
+      "simulation": false,
+      "expected": "simulation",
+      "actual": "simulation",
+      "answered_without_llm": true,
+      "note": "沒有模擬時仍該走模擬路徑，由它回「尚未執行模擬」"
+    },
+    {
+      "query": "受影響的避難所還有空間嗎",
+      "simulation": true,
+      "expected": "simulation",
+      "actual": "simulation",
+      "answered_without_llm": false,
+      "note": "模擬進行中的追問"
+    },
+    {
+      "query": "收容缺口還有多少",
+      "simulation": true,
+      "expected": "simulation",
+      "actual": "simulation",
+      "answered_without_llm": false,
+      "note": "模擬進行中的追問"
+    },
+    {
+      "query": "要怎麼調度",
+      "simulation": true,
+      "expected": "simulation",
+      "actual": "simulation",
+      "answered_without_llm": false,
+      "note": "模擬進行中的追問"
+    },
+    {
+      "query": "離我最近的避難所 緯度 23.99 經度 121.60",
+      "simulation": false,
+      "expected": "nearest",
+      "actual": "nearest",
+      "answered_without_llm": false,
+      "note": "有座標的距離查詢"
+    },
+    {
+      "query": "23.99, 121.60 附近有什麼避難所",
+      "simulation": false,
+      "expected": "nearest",
+      "actual": "nearest",
+      "answered_without_llm": false,
+      "note": "裸座標"
+    },
+    {
+      "query": "經度 121.60 緯度 23.99 最近的收容所",
+      "simulation": false,
+      "expected": "nearest",
+      "actual": "nearest",
+      "answered_without_llm": false,
+      "note": "座標順序顛倒"
+    },
+    {
+      "query": "緯度：22.75，經度：121.14 最靠近哪一間",
+      "simulation": false,
+      "expected": "nearest",
+      "actual": "nearest",
+      "answered_without_llm": false,
+      "note": "全形標點的座標"
+    },
+    {
+      "query": "最近的避難所在哪",
+      "simulation": false,
+      "expected": "needs_coords",
+      "actual": "needs_coords",
+      "answered_without_llm": true,
+      "note": "地理問句但沒有任何地點線索"
+    },
+    {
+      "query": "附近有什麼避難所",
+      "simulation": false,
+      "expected": "needs_coords",
+      "actual": "needs_coords",
+      "answered_without_llm": true,
+      "note": "同上"
+    },
+    {
+      "query": "我附近可以去哪裡",
+      "simulation": false,
+      "expected": "needs_coords",
+      "actual": "needs_coords",
+      "answered_without_llm": true,
+      "note": "同上"
+    },
+    {
+      "query": "離我最近的收容所是哪一間",
+      "simulation": false,
+      "expected": "needs_coords",
+      "actual": "needs_coords",
+      "answered_without_llm": true,
+      "note": "同上"
+    },
+    {
+      "query": "請給我疏散建議",
+      "simulation": false,
+      "expected": "no_simulation_advice",
+      "actual": "no_simulation_advice",
+      "answered_without_llm": true,
+      "note": "要疏散建議但沒有模擬可依據"
+    },
+    {
+      "query": "要怎麼疏散",
+      "simulation": false,
+      "expected": "no_simulation_advice",
+      "actual": "no_simulation_advice",
+      "answered_without_llm": true,
+      "note": "同上"
+    },
+    {
+      "query": "疏散計畫是什麼",
+      "simulation": false,
+      "expected": "no_simulation_advice",
+      "actual": "no_simulation_advice",
+      "answered_without_llm": true,
+      "note": "同上"
+    },
+    {
+      "query": "人要疏散到哪裡",
+      "simulation": false,
+      "expected": "no_simulation_advice",
+      "actual": "no_simulation_advice",
+      "answered_without_llm": true,
+      "note": "同上"
+    },
+    {
+      "query": "請給我疏散建議",
+      "simulation": true,
+      "expected": "simulation",
+      "actual": "simulation",
+      "answered_without_llm": false,
+      "note": "同一句話在模擬進行中該改走模擬快照——路由必須看狀態不只看關鍵字"
+    }
+  ]
+}
