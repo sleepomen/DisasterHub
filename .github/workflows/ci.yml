@@ -31,6 +31,9 @@ jobs:
       # --only-binary 與 Dockerfile 一致，缺 wheel 要在 CI 就炸出來
       - run: "pip install --only-binary :all: -r requirements-dev.lock"
       - run: pytest tests/ -v
+      # 路由評測用假的向量庫與資料庫，所以不需要 Ollama / ChromaDB / PostgreSQL 在跑，
+      # 是唯一能在 CI 當回歸哨兵的評測。路由正確率掉下來就讓建置失敗
+      - run: "python evals/run_route_eval.py --min-accuracy 1.0"
 
   image:
     runs-on: ubuntu-latest
