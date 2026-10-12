@@ -57,8 +57,8 @@ LLM           Ollama + llama3.2:3b (running locally on the host)
 ### 1. Clone the project
 
 ```bash
-git clone https://github.com/VesselST/disaster-hub.git
-cd disaster-hub
+git clone https://github.com/sleepomen/DisasterHub.git
+cd DisasterHub
 ```
 
 ### 2. Configure environment variables
@@ -126,7 +126,7 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 ## Project Structure
 
 ```
-Disaster_Hub/
+DisasterHub/
 ├── app.py                      # FastAPI application
 ├── config.py                   # Single place for all environment variables
 ├── Dockerfile                  # INSTALL_DEV build arg controls dev dependencies
@@ -184,7 +184,6 @@ Disaster_Hub/
     ├── test_shelter_profile.py
     ├── test_shelter_repository.py
     ├── test_population_service.py
-    ├── test_query_rules.py
     ├── test_query_rules.py
     ├── test_vector_store.py
     ├── test_chat_service.py
@@ -380,25 +379,62 @@ everything it needs and that the "no compiler required" assumption still holds.
 
 The evaluation set `evals/rag_eval.jsonl` (130 questions across 9 categories) is generated from `data_for_refuge/` by `evals/build_eval_set.py`. Ground truth for the structured categories (name, region, township, facilities, capacity) is derived programmatically; alias, semantic and negative cases are labeled by hand.
 
+**Limitation worth stating in any write-up:** the township and facility ground truth (32 of the 130 questions) is computed by the same `township_of()` and `facility_of()` functions in `services/shelter_profile.py` that write the index metadata, so for those two categories the evaluation partly tests the retriever against itself, and part of the gain from "enriched documents" is circular. The alias, semantic and negative categories are hand-labeled and not affected. A held-out set written by someone who has not seen the data format is the only real fix.
+
 ```bash
 docker exec -it disaster_app python evals/build_eval_set.py
 docker exec -it disaster_app python evals/run_rag_eval.py --embedder minilm --label baseline
 docker exec -it disaster_app python evals/run_rag_eval.py --embedder ollama:bge-m3 --label bge-m3
 ```
 
-The run reports per-category Recall@3/5/10, Precision, MRR, hit rate, mean distance of the relevant documents, top-1 distance for the negative cases (used to pick a similarity threshold), and query latency p50/p95. Full results land in `evals/results/<label>.json`. `--threshold` sets a cosine distance cutoff for computing the false-positive rate on negatives, and `--doc-style legacy` builds the index with the old document template for comparison.
+The run reports, per category, Recall@3/5/10 with the ceiling of Recall@10 next to it, R-Precision, Precision, MRR, the mean distance of the relevant documents, the top-1 distance for the negative cases (used to pick a similarity threshold), and query latency p50/p95. It then repeats the aggregate split into single-answer and listing questions, because Recall@K and MRR only mean something on the former. Full results land in `evals/results/<label>.json`. `--threshold` sets a cosine distance cutoff for computing the false-positive rate on negatives, and `--doc-style legacy` builds the index with the old document template for comparison.
 
 Results so far (macro; R@all is scored over the full returned list, "misses" counts questions with no relevant document in the top 10):
 
-| Configuration | R@3 | R@10 | R@all | P@all | MRR | Misses | Negatives rejected |
-|---|---|---|---|---|---|---|---|
-| MiniLM + legacy documents (baseline) | 0.379 | 0.619 | 0.619 | – | 0.561 | 27 | 0/10 |
-| MiniLM + enriched documents | 0.530 | 0.775 | 0.775 | – | 0.726 | 10 | 0/10 |
-| bge-m3 + legacy documents | 0.674 | 0.865 | 0.865 | – | 0.864 | 4 | 0/10 |
-| bge-m3 + enriched documents | 0.748 | 0.898 | 0.898 | 0.335 | 0.926 | 2 | 0/10 |
-| **bge-m3 + enriched documents + rules layer (current)** | **0.794** | **0.936** | **0.997** | **0.730** | **0.990** | **0** | **8/10** |
+| Configuration | R@3 | R@10 | R-Prec | R@all | P@all | MRR | Misses | Negatives rejected |
+|---|---|---|---|---|---|---|---|---|
+| MiniLM + legacy documents (baseline) | 0.379 | 0.619 | – | 0.619 | – | 0.561 | 27 | 0/10 |
+| MiniLM + enriched documents | 0.530 | 0.775 | – | 0.775 | – | 0.726 | 10 | 0/10 |
+| bge-m3 + legacy documents | 0.674 | 0.865 | – | 0.865 | – | 0.864 | 4 | 0/10 |
+| bge-m3 + enriched documents | 0.748 | 0.898 | – | 0.898 | 0.335 | 0.926 | 2 | 0/10 |
+| **bge-m3 + enriched documents + rules layer (current)** | **0.801** | **0.939** | **0.992** | **1.000** | **0.926** | **0.996** | **0** | **8/10** |
 
-Without the rules layer retrieval always returns the top 10, so R@all equals R@10. With it, the region, township, facility and capacity categories all reach R@all and P@all of 1.0 ("Which shelters are in Yilan?" returns all 20 with no noise). The only remaining partial miss is the bare street-name query "四維路", which is left for BM25 hybrid retrieval. The two negatives that are not rejected ("What's the weather today?" and "How do I apply for disaster relief?") are not geographic questions; the prompt rules answer them with "no relevant data".
+**R@10 on this set has a ceiling of 0.939, not 1.0.** Forty-one of the 130 questions ask for every shelter
+in a region, township or facility class, and nine of those have 14 to 20 correct answers, so no ranking can
+fit all of them into the top 10: `min(10, |rel|) / |rel|` averages 0.939 over the set. The current
+configuration's R@10 is 0.939 — *exactly* the ceiling. That number measures the shape of the evaluation set,
+not retrieval quality. `run_rag_eval.py` now prints the ceiling next to R@10 (`ceil@10`) and splits the
+questions by how many correct answers they have, because Recall@K is only comparable across questions
+when K ≥ |rel|:
+
+```
+          n   |rel|   metrics that apply
+single   64   1       MRR 0.992   hit@3 1.000   hit@10 1.000   R@all 1.000
+multi    56   6.6     R-Prec 1.000   R@all 1.000   P@all 0.986   (R@10 0.907, its ceiling 0.907)
+```
+
+For single-answer questions the ranking metrics are meaningful and nearly saturated. For listing questions
+the honest metrics are R-Precision (precision at K = |rel|) and R@all, and both are 1.000: with the rules
+layer, retrieval returns exactly the right set. What is left to improve is P@all on the two hand-labeled
+categories — alias 0.642 and semantic 0.763 — where a metadata filter cannot help and the dense retriever
+returns extra documents alongside the right ones. Those two categories are where RAG is doing the work on
+this data set.
+
+Without the rules layer retrieval always returns the top 10, so R@all equals R@10. With it, the region, township, facility and capacity categories all reach R@all and P@all of 1.0 ("Which shelters are in Yilan?" returns all 20 with no noise). The bare street-name query "四維路" used to be the one partial miss (R@all 0.5 in the `bge-m3_rules` run); the road metadata filter added afterwards fixed it, and every category now reaches R@all 1.000. A BM25 hybrid is therefore no longer motivated by a miss on this set — the reason to measure it would be to quantify how much the dense retriever still contributes once the rules layer is in place, which is what an ablation against a rules-only / SQL-only baseline would show. The two negatives that are not rejected ("What's the weather today?" and "How do I apply for disaster relief?") are not geographic questions; the prompt rules answer them with "no relevant data".
+
+Scored this way, the `--no-rules` comparison says something the old table could not: the two components
+carry different question types.
+
+| | single: MRR | single: hit@10 | listing: R-Prec | listing: R@all | listing: P@all | negatives rejected |
+|---|---|---|---|---|---|---|
+| bge-m3 + enriched docs, **no rules layer** | 0.969 | 1.000 | 0.794 | 0.876 | 0.493 | 0/10 |
+| **+ rules layer (current)** | 0.992 | 1.000 | 1.000 | 1.000 | 0.986 | 8/10 |
+
+Dense retrieval alone already answers single-answer questions — hit@10 is 1.000 without the rules layer,
+and MRR only moves 0.969 → 0.992. Everything the rules layer buys is on listing questions
+(R-Precision 0.794 → 1.000, P@all 0.493 → 0.986) and on declining out-of-scope questions (0/10 → 8/10).
+That is the honest division of labour between the two mechanisms, and it is the comparison an ablation
+should extend rather than replace.
 
 Pass `--no-rules` to run the comparison without the rules layer:
 
@@ -410,7 +446,7 @@ docker exec -it disaster_app python evals/run_rag_eval.py --embedder ollama:bge-
 "Enriched documents" means the township, facility types, capacity tier and aliases that `services/shelter_profile.py` derives from the name and address, written into both the vector document and its metadata. The "rules layer" is `services/query_rules.py`: before vector retrieval it extracts the region (Yilan / Hualien / Taitung), township (29 of them, taken from the population model, including suffix-less forms such as 礁溪), facility type (school / elementary school / gymnasium / township office…) and capacity conditions (over a thousand, more than 500, 300 or fewer, small…), turns them into a ChromaDB `where` filter and returns every matching document; "largest / most" questions are re-ordered by capacity; an empty filtered result falls back to plain semantic retrieval. A question that names a county outside the coverage area (Taipei, Kaohsiung…) with no eastern place name in it is declined by the rules layer and never reaches the vector index.
 
 ```
-Disaster_Hub/
+DisasterHub/
 ├── evals/
 │   ├── build_eval_set.py       # Generates the evaluation set
 │   ├── rag_eval.jsonl          # The evaluation set
@@ -457,7 +493,7 @@ Results so far (macro averages over the eight positive categories; `negatives` i
 |---|---|---|---|---|---|---|---|---|---|---|
 | llama3.2:3b, prompt before this round (baseline) | 0.725 | 0.719 | 0.707 | 0.022 | 0.214 | 0.986 | 1.000 | 0.014 | 0.900 | 9.4 s |
 | **llama3.2:3b, current pipeline** | 0.961 | 0.913 | 0.943 | 0.006 | 0.016 | 0.994 | 1.000 | 0.000 | 1.000 | 8.6 s |
-| **qwen2.5:7b, current pipeline** | 0.967 | 0.961 | 0.926 | 0.036 | 0.000 | 1.000 | 1.000 | 0.000 | 1.000 | 21.4 s |
+| **qwen2.5:7b, current pipeline** | 0.971 | 0.962 | 0.941 | 0.028 | 0.000 | 1.000 | 1.000 | 0.000 | 1.000 | 24.9 s |
 
 The baseline's dominant failure was not hallucination but over-refusal: on 21% of the questions the model answered "no relevant data" even though the retrieved context listed exactly the shelters it had been asked about. Three changes removed it.
 
@@ -469,7 +505,7 @@ Out-of-scope questions are now declined by a distance gate rather than by the mo
 
 `capacity_stated` in the baseline row is not comparable with the rows below it: that column now applies only to questions that actually ask about capacity or occupancy, instead of every single-shelter question.
 
-What remains on both models is dropped or mistyped names rather than invented facts: 濤強國小 written as 涙強國小, 中興國小附幼 shortened to 中興國小, 台東縣立體育場 written as 台東縣立體場. That is what most of qwen2.5:7b's `halluc` 0.036 is, and it also explains the recall that is missing from 1.000. Every number either model printed was traceable to the retrieved context, nothing was truncated, and all ten out-of-scope questions were declined. The 3B model's `top1` of 0.667 is one of the three ranking questions, where it named the second-largest shelter first.
+What remains on both models is dropped or mistyped names rather than invented facts: 濤強國小 written as 涙強國小, 中興國小附幼 shortened to 中興國小, 台東縣立體育場 written as 台東縣立體場. That is what most of qwen2.5:7b's `halluc` 0.028 is, and it also explains the recall that is missing from 1.000. Every number either model printed was traceable to the retrieved context, nothing was truncated, and all ten out-of-scope questions were declined. The 3B model's `top1` of 0.667 is one of the three ranking questions, where it named the second-largest shelter first.
 
 ---
 
@@ -566,8 +602,8 @@ LLM           Ollama + llama3.2:3b（宿主機本地部署）
 ### 1. 複製專案
 
 ```bash
-git clone https://github.com/VesselST/disaster-hub.git
-cd disaster-hub
+git clone https://github.com/sleepomen/DisasterHub.git
+cd DisasterHub
 ```
 
 ### 2. 設定環境變數
@@ -635,7 +671,7 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 ## 專案結構
 
 ```
-Disaster_Hub/
+DisasterHub/
 ├── app.py                      # FastAPI 主程式
 ├── config.py                   # 所有環境變數集中處
 ├── Dockerfile                  # INSTALL_DEV build arg 控制 dev 依賴
@@ -881,25 +917,58 @@ CI 有三個 job：`ruff check .`、在乾淨的 Python 3.12 上從 lock 檔安�
 
 評測集 `evals/rag_eval.jsonl`（130 題，9 個類別）由 `evals/build_eval_set.py` 從 `data_for_refuge/` 產生，結構化類別（名稱、地區、鄉鎮、設施、容量）的正解由程式推導，別名／語意／負例為人工標註。
 
+**寫論文時應該明說的限制**：鄉鎮與設施兩類的正解（130 題裡的 32 題）是由 `services/shelter_profile.py` 裡
+`township_of()`、`facility_of()` 這兩個函式算出來的，而寫進索引 metadata 的也是同一組函式——所以這兩類
+等於讓檢索器考自己，「擴充文件」帶來的進步有一部分是循環的。別名、語意、負例三類是人工標註，不受影響。
+唯一的真正解法是請沒看過資料格式的人另外出一份 held-out 題庫。
+
 ```bash
 docker exec -it disaster_app python evals/build_eval_set.py
 docker exec -it disaster_app python evals/run_rag_eval.py --embedder minilm --label baseline
 docker exec -it disaster_app python evals/run_rag_eval.py --embedder ollama:bge-m3 --label bge-m3
 ```
 
-輸出各類別的 Recall@3/5/10、Precision、MRR、hit rate、相關文件平均距離、負例的 top-1 距離（用來選相似度門檻）與查詢延遲 p50/p95；完整結果存在 `evals/results/<label>.json`。`--threshold` 可指定 cosine 距離門檻計算負例的假陽性率，`--doc-style legacy` 用舊的文件模板建索引以做對照。
+輸出各類別的 Recall@3/5/10（旁邊附上 R@10 的天花板）、R-Precision、Precision、MRR、相關文件平均距離、負例的 top-1 距離（用來選相似度門檻）與查詢延遲 p50/p95，最後再按「單答案題／列舉題」分群重報一次——因為 Recall@K 與 MRR 只對前者有意義；完整結果存在 `evals/results/<label>.json`。`--threshold` 可指定 cosine 距離門檻計算負例的假陽性率，`--doc-style legacy` 用舊的文件模板建索引以做對照。
 
 歷次結果（macro；R@all 以整份回傳清單計分，未命中為 top-10 完全沒有相關文件的題數）：
 
-| 設定 | R@3 | R@10 | R@all | P@all | MRR | 未命中 | 負例拒答 |
-|---|---|---|---|---|---|---|---|
-| MiniLM + 舊文件（baseline） | 0.379 | 0.619 | 0.619 | – | 0.561 | 27 | 0/10 |
-| MiniLM + 擴充文件 | 0.530 | 0.775 | 0.775 | – | 0.726 | 10 | 0/10 |
-| bge-m3 + 舊文件 | 0.674 | 0.865 | 0.865 | – | 0.864 | 4 | 0/10 |
-| bge-m3 + 擴充文件 | 0.748 | 0.898 | 0.898 | 0.335 | 0.926 | 2 | 0/10 |
-| **bge-m3 + 擴充文件 + 規則層（現行）** | **0.794** | **0.936** | **0.997** | **0.730** | **0.990** | **0** | **8/10** |
+| 設定 | R@3 | R@10 | R-Prec | R@all | P@all | MRR | 未命中 | 負例拒答 |
+|---|---|---|---|---|---|---|---|---|
+| MiniLM + 舊文件（baseline） | 0.379 | 0.619 | – | 0.619 | – | 0.561 | 27 | 0/10 |
+| MiniLM + 擴充文件 | 0.530 | 0.775 | – | 0.775 | – | 0.726 | 10 | 0/10 |
+| bge-m3 + 舊文件 | 0.674 | 0.865 | – | 0.865 | – | 0.864 | 4 | 0/10 |
+| bge-m3 + 擴充文件 | 0.748 | 0.898 | – | 0.898 | 0.335 | 0.926 | 2 | 0/10 |
+| **bge-m3 + 擴充文件 + 規則層（現行）** | **0.801** | **0.939** | **0.992** | **1.000** | **0.926** | **0.996** | **0** | **8/10** |
 
-沒有規則層時檢索固定回傳 top-10，R@all 等於 R@10。加上規則層後，地區 / 鄉鎮 / 設施 / 容量四類的 R@all 與 P@all 都到 1.0（「宜蘭有哪些避難所」回傳全部 20 筆且沒有雜訊），剩下唯一的部分未命中是純路名查詢「四維路」，留給 BM25 hybrid。兩題沒被拒答的負例是「今天天氣如何」與「如何申請災害補助」，不是地理問題，交給 prompt 規則回「沒有相關資料」。
+**這份題庫的 R@10 天花板是 0.939，不是 1.0。** 130 題裡有 41 題問的是「某地區／鄉鎮／設施類型的全部避難所」，
+其中 9 題的正解有 14 到 20 份，任何排序都不可能把它們全部塞進前 10 名：`min(10, |rel|) / |rel|`
+在整份題庫上平均是 0.939。而現行設定的 R@10 **正好就是 0.939**——這個數字量到的是題庫的形狀，
+不是檢索品質。`run_rag_eval.py` 現在會把天花板印在 R@10 旁邊（`ceil@10`），並依「正解有幾份」
+把題目分群，因為 Recall@K 只有在 K ≥ |rel| 時才跨題可比：
+
+```
+          n   |rel|   適用的指標
+single   64   1       MRR 0.992   hit@3 1.000   hit@10 1.000   R@all 1.000
+multi    56   6.6     R-Prec 1.000   R@all 1.000   P@all 0.986   （R@10 0.907，天花板 0.907）
+```
+
+單答案題的排序指標有意義，而且已經接近飽和。列舉題該看的是 R-Precision（K 取 |rel| 的 precision）
+與 R@all，兩個都是 1.000：有規則層時檢索回傳的就是正確的那一組。真正還有改善空間的是兩個人工標註
+類別的 P@all——別名 0.642、語意 0.763——那裡 metadata 篩選幫不上忙，稠密檢索會在正確文件旁邊
+多帶幾筆。**這兩類就是 RAG 在這份資料上真正有貢獻的地方。**
+
+沒有規則層時檢索固定回傳 top-10，R@all 等於 R@10。加上規則層後，地區 / 鄉鎮 / 設施 / 容量四類的 R@all 與 P@all 都到 1.0（「宜蘭有哪些避難所」回傳全部 20 筆且沒有雜訊），純路名查詢「四維路」曾經是唯一的部分未命中（在 `bge-m3_rules` 那次 R@all 只有 0.5），後來加的 road metadata 篩選已經修好，現在每一類的 R@all 都是 1.000。也就是說 **BM25 hybrid 已經不再是被這份題庫的未命中所驅動**；真要量它，動機應該是「有了規則層之後，稠密檢索還貢獻多少」，那需要的是對照「只用規則／只用 SQL」基線的消融實驗。兩題沒被拒答的負例是「今天天氣如何」與「如何申請災害補助」，不是地理問題，交給 prompt 規則回「沒有相關資料」。
+
+改成這樣計分之後，`--no-rules` 的對照講出了舊表看不出來的事：兩個機制負責的題型不一樣。
+
+| | 單答案：MRR | 單答案：hit@10 | 列舉：R-Prec | 列舉：R@all | 列舉：P@all | 負例拒答 |
+|---|---|---|---|---|---|---|
+| bge-m3 + 擴充文件，**沒有規則層** | 0.969 | 1.000 | 0.794 | 0.876 | 0.493 | 0/10 |
+| **加上規則層（現行）** | 0.992 | 1.000 | 1.000 | 1.000 | 0.986 | 8/10 |
+
+單答案題光靠稠密檢索就已經解決了——沒有規則層時 hit@10 就是 1.000，MRR 也只從 0.969 動到 0.992。
+規則層買到的東西全部在列舉題（R-Precision 0.794 → 1.000、P@all 0.493 → 0.986）以及範圍外問題的
+拒答（0/10 → 8/10）。這就是兩個機制之間誠實的分工，消融實驗應該是延伸這個對照，而不是取代它。
 
 `--no-rules` 可以關掉規則層做對照：
 
@@ -911,7 +980,7 @@ docker exec -it disaster_app python evals/run_rag_eval.py --embedder ollama:bge-
 擴充文件指 `services/shelter_profile.py` 從名稱與地址推導出的鄉鎮、設施類型、容量分級、別名，寫進向量文件與 metadata。規則層指 `services/query_rules.py`：在向量檢索前抽出地區（宜蘭 / 花蓮 / 台東）、鄉鎮（29 個，來自人口模型，支援「礁溪」這種省略字尾的寫法）、設施類型（學校 / 國小 / 體育館 / 公所…）與容量條件（上千人、超過 500 人、300 人以下、小型…），轉成 ChromaDB `where` 篩選並回傳全部符合的文件；「最大 / 最多」再依容量重排；篩選結果為空時退回一般語意檢索。提到台北、高雄等範圍外縣市、且整句沒有東部地名時，在規則層直接拒答，不進向量檢索。
 
 ```
-Disaster_Hub/
+DisasterHub/
 ├── evals/
 │   ├── build_eval_set.py       # 產生評測集
 │   ├── rag_eval.jsonl          # 評測集
@@ -958,7 +1027,7 @@ docker exec -it disaster_app python evals/run_gen_eval.py --limit 10 --category 
 |---|---|---|---|---|---|---|---|---|---|---|
 | llama3.2:3b，本輪修改前的 prompt（baseline） | 0.725 | 0.719 | 0.707 | 0.022 | 0.214 | 0.986 | 1.000 | 0.014 | 0.900 | 9.4 秒 |
 | **llama3.2:3b，目前的流程** | 0.961 | 0.913 | 0.943 | 0.006 | 0.016 | 0.994 | 1.000 | 0.000 | 1.000 | 8.6 秒 |
-| **qwen2.5:7b，目前的流程** | 0.967 | 0.961 | 0.926 | 0.036 | 0.000 | 1.000 | 1.000 | 0.000 | 1.000 | 21.4 秒 |
+| **qwen2.5:7b，目前的流程** | 0.971 | 0.962 | 0.941 | 0.028 | 0.000 | 1.000 | 1.000 | 0.000 | 1.000 | 24.9 秒 |
 
 baseline 最主要的問題不是幻覺，而是過度拒答：有 21% 的題目，檢索明明已經把被問到的避難所放進資料區，模型還是回「目前沒有相關資料」。三項修改把它消掉。
 
@@ -970,7 +1039,7 @@ baseline 最主要的問題不是幻覺，而是過度拒答：有 21% 的題目
 
 baseline 那一列的 `capacity_stated` 不能跟下面兩列比：這個欄位現在只套用在真的問容量或收容人數的題目，而不是每一道單一避難所的題目。
 
-兩個模型剩下的錯誤都是把名稱寫漏或寫錯，不是編造事實：濤強國小寫成涙強國小、中興國小附幼簡寫成中興國小、台東縣立體育場寫成台東縣立體場。qwen2.5:7b 的 `halluc` 0.036 大部分就是這個，召回率差那一點也是同一個原因。兩個模型印出來的數字全部都能在檢索資料裡找到，沒有任何一題被截斷，十道範圍外問題全部正確拒答。3B 模型的 `top1` 0.667 是三道排名題裡有一道把第二大的避難所講在前面。
+兩個模型剩下的錯誤都是把名稱寫漏或寫錯，不是編造事實：濤強國小寫成涙強國小、中興國小附幼簡寫成中興國小、台東縣立體育場寫成台東縣立體場。qwen2.5:7b 的 `halluc` 0.028 大部分就是這個，召回率差那一點也是同一個原因。兩個模型印出來的數字全部都能在檢索資料裡找到，沒有任何一題被截斷，十道範圍外問題全部正確拒答。3B 模型的 `top1` 0.667 是三道排名題裡有一道把第二大的避難所講在前面。
 
 ---
 
