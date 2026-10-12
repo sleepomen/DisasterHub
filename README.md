@@ -180,6 +180,7 @@ DisasterHub/
     ├── test_map_service.py
     ├── test_metrics.py
     ├── test_rate_limit.py
+    ├── test_route_eval.py
     ├── test_data_fetcher2.py
     ├── test_shelter_profile.py
     ├── test_shelter_repository.py
@@ -371,9 +372,10 @@ pip install ruff==0.16.10
 ruff check .
 ```
 
-CI runs three jobs: `ruff check .`, the tests on a clean Python 3.12 installed from the lock file, and
-`docker build` followed by the tests *inside* the image — the last one is what proves the image carries
-everything it needs and that the "no compiler required" assumption still holds.
+CI runs three jobs: `ruff check .`; the tests on a clean Python 3.12 installed from the lock file,
+followed by the routing evaluation as a regression gate (`--min-accuracy 1.0`); and `docker build`
+followed by the tests *inside* the image — the last one is what proves the image carries everything it
+needs and that the "no compiler required" assumption still holds.
 
 ## RAG Recall Evaluation
 
@@ -451,7 +453,9 @@ DisasterHub/
 │   ├── build_eval_set.py       # Generates the evaluation set
 │   ├── rag_eval.jsonl          # The evaluation set
 │   ├── run_rag_eval.py         # Runs the retrieval evaluation
-│   ├── metrics.py              # Recall / Precision / MRR
+│   ├── metrics.py              # Recall / Precision / MRR / R-Precision / ceilings
+│   ├── route_eval.jsonl        # Routing test set (34 questions, all six routes)
+│   ├── run_route_eval.py       # Runs the routing evaluation (no services needed)
 │   ├── run_gen_eval.py         # Runs the generation evaluation (real ChatService + Ollama)
 │   ├── gen_metrics.py          # Answer recall / hallucination / number faithfulness / format rules
 │   └── results/                # Output of each run
@@ -508,6 +512,52 @@ Out-of-scope questions are now declined by a distance gate rather than by the mo
 What remains on both models is dropped or mistyped names rather than invented facts: 濤強國小 written as 涙強國小, 中興國小附幼 shortened to 中興國小, 台東縣立體育場 written as 台東縣立體場. That is what most of qwen2.5:7b's `halluc` 0.028 is, and it also explains the recall that is missing from 1.000. Every number either model printed was traceable to the retrieved context, nothing was truncated, and all ten out-of-scope questions were declined. The 3B model's `top1` of 0.667 is one of the three ranking questions, where it named the second-largest shelter first.
 
 ---
+
+## Routing Evaluation
+
+The system's design claim is hybrid routing: distance questions go straight to PostGIS, simulation
+follow-ups read the snapshot, and only the rest enter RAG. Neither the retrieval nor the generation
+evaluation measured that decision — and of the 130 questions in `rag_eval.jsonl`, only four contain a
+geographic keyword and none contain a simulation keyword, so **four of the six routes had no test
+coverage at all**, including both of the non-RAG paths that make the routing "hybrid".
+
+`evals/route_eval.jsonl` is a separate 34-question set labelled with the route each question *should*
+take, including the state-dependent case ("請給我疏散建議" must go to `no_simulation_advice` with no
+simulation and to `simulation` while one is running). The runner stubs the vector store and the
+repository, because `metrics.route()` is recorded in `build_context` *before* retrieval or the database
+is touched — so it needs no Ollama, no ChromaDB and no PostgreSQL, and it is the one evaluation that can
+run in CI:
+
+```bash
+docker exec -it disaster_app python evals/run_route_eval.py
+python evals/run_route_eval.py --min-accuracy 1.0   # what CI runs
+```
+
+```
+=== routing eval: 34/34 correct (accuracy 1.000) ===
+
+expected route           n  correct     acc
+nearest                  4        4   1.000
+needs_coords             4        4   1.000
+no_simulation_advice     4        4   1.000
+out_of_scope             4        4   1.000
+rag                     10       10   1.000
+simulation               8        8   1.000
+```
+
+The first run scored **33/34** and the one failure was a real defect: "離我最近的收容所是哪一間" is a
+pure distance question with no place in it, but it was routed to RAG. `_needs_coordinates()` is
+subtractive — it strips known words and treats anything left as a place name — and here the leftovers
+were "離哪一間", i.e. a preposition and a measure word. The user got a semantic search instead of being
+asked for coordinates. Adding those words to the blocklist fixes it, which is exactly the whack-a-mole
+this kind of heuristic invites; the comment on `GEO_GENERIC_WORDS` says so, and `test_chat_service.py`
+pins the case.
+
+**How to read this number honestly:** the question set was written by the author after reading the
+routing code, so 34/34 is a regression harness, not an independent measurement of the router. Its value
+is that all six routes are now covered, the state-dependent case is pinned, and CI fails if the accuracy
+drops. An independent routing number needs the same thing the retrieval evaluation needs — questions
+written by someone who has not seen the code.
 
 ## Example AI Queries
 
@@ -725,6 +775,7 @@ DisasterHub/
     ├── test_map_service.py
     ├── test_metrics.py
     ├── test_rate_limit.py
+    ├── test_route_eval.py
     ├── test_data_fetcher2.py
     ├── test_shelter_profile.py
     ├── test_shelter_repository.py
@@ -909,9 +960,9 @@ pip install ruff==0.16.10
 ruff check .
 ```
 
-CI 有三個 job：`ruff check .`、在乾淨的 Python 3.12 上從 lock 檔安裝後跑測試、以及
-`docker build` 之後在**映像裡面**跑測試——最後這個才證明映像自己帶齊了依賴，
-而且「不需要編譯器」的前提還成立。
+CI 有三個 job：`ruff check .`；在乾淨的 Python 3.12 上從 lock 檔安裝後跑測試，
+接著把路由評測當回歸哨兵跑一次（`--min-accuracy 1.0`）；以及 `docker build` 之後在**映像裡面**
+跑測試——最後這個才證明映像自己帶齊了依賴，而且「不需要編譯器」的前提還成立。
 
 ## RAG 召回率評測
 
@@ -985,7 +1036,9 @@ DisasterHub/
 │   ├── build_eval_set.py       # 產生評測集
 │   ├── rag_eval.jsonl          # 評測集
 │   ├── run_rag_eval.py         # 執行檢索評測
-│   ├── metrics.py              # Recall / Precision / MRR
+│   ├── metrics.py              # Recall / Precision / MRR / R-Precision / 天花板
+│   ├── route_eval.jsonl        # 路由測試集（34 題，涵蓋全部六條路由）
+│   ├── run_route_eval.py       # 執行路由評測（不需要任何服務）
 │   ├── run_gen_eval.py         # 執行生成評測（真實 ChatService + Ollama）
 │   ├── gen_metrics.py          # 回答召回 / 幻覺 / 數字忠實 / 格式規則
 │   └── results/                # 各次評測輸出
@@ -1042,6 +1095,46 @@ baseline 那一列的 `capacity_stated` 不能跟下面兩列比：這個欄位�
 兩個模型剩下的錯誤都是把名稱寫漏或寫錯，不是編造事實：濤強國小寫成涙強國小、中興國小附幼簡寫成中興國小、台東縣立體育場寫成台東縣立體場。qwen2.5:7b 的 `halluc` 0.028 大部分就是這個，召回率差那一點也是同一個原因。兩個模型印出來的數字全部都能在檢索資料裡找到，沒有任何一題被截斷，十道範圍外問題全部正確拒答。3B 模型的 `top1` 0.667 是三道排名題裡有一道把第二大的避難所講在前面。
 
 ---
+
+## 路由評測
+
+系統的設計主張是混合路由：距離問題直接打 PostGIS、模擬追問直接讀快照、其餘才進 RAG。
+但檢索與生成兩個評測都沒有量過這個判斷本身——而 `rag_eval.jsonl` 的 130 題裡只有 4 題含地理關鍵字、
+0 題含模擬關鍵字，也就是 **6 條路由裡有 4 條完全沒有測試覆蓋**，其中兩條正是讓這個路由「混合」的非 RAG 路徑。
+
+`evals/route_eval.jsonl` 是另一份 34 題的測試集，每題標上它*應該*走的路由，包含狀態相依的案例
+（「請給我疏散建議」在沒有模擬時該走 `no_simulation_advice`，模擬進行中該走 `simulation`）。
+執行器把向量庫與 repository 換成替身，因為 `metrics.route()` 是在 `build_context` 裡
+「碰到檢索或資料庫之前」就記下的——所以它不需要 Ollama、ChromaDB 或 PostgreSQL，
+是唯一能在 CI 裡跑的評測：
+
+```bash
+docker exec -it disaster_app python evals/run_route_eval.py
+python evals/run_route_eval.py --min-accuracy 1.0   # CI 跑的就是這個
+```
+
+```
+=== 路由評測：34/34 正確（accuracy 1.000）===
+
+expected route           n  correct     acc
+nearest                  4        4   1.000
+needs_coords             4        4   1.000
+no_simulation_advice     4        4   1.000
+out_of_scope             4        4   1.000
+rag                     10       10   1.000
+simulation               8        8   1.000
+```
+
+第一次跑是 **33/34**，而那一題是真的缺陷：「離我最近的收容所是哪一間」是純距離問題、句子裡沒有任何地點，
+卻被導去 RAG。`_needs_coordinates()` 是減法啟發式——剝掉已知詞之後把剩下的當成地名——
+而這一題剝完剩下「離哪一間」，也就是一個介詞加一個量詞。使用者問的是距離，拿到的卻是語意檢索的結果。
+把這些詞補進黑名單就修好了，而這正是這種啟發式會招來的打地鼠；`GEO_GENERIC_WORDS` 的註解寫明了這點，
+`test_chat_service.py` 也把這個案例釘住。
+
+**這個數字該怎麼誠實地讀**：這份題目是作者讀過路由程式之後寫的，所以 34/34 是回歸護欄，
+不是對路由器的獨立量測。它的價值在於六條路由現在都有覆蓋、狀態相依的案例被釘住、
+而且正確率掉下來 CI 會失敗。要拿到獨立的路由數字，需要的跟檢索評測一樣——
+請沒看過程式的人出題。
 
 ## AI 查詢範例
 
