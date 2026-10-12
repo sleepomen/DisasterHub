@@ -8,7 +8,7 @@ from statistics import mean
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
-from evals.metrics import aggregate, percentile, score_case  # noqa: E402
+from evals.metrics import aggregate, percentile, question_group, score_case  # noqa: E402
 
 DEFAULT_CASES = os.path.join(ROOT, "evals", "rag_eval.jsonl")
 RESULTS_DIR = os.path.join(ROOT, "evals", "results")
@@ -129,12 +129,28 @@ def summarize(rows, ks):
             "mean_best_relevant_distance": round(mean(best), 4) if best else None,
         }
 
+    # 依「正確答案有幾份」分群報告。recall@k 只有在 k >= |rel| 時才跨題可比，
+    # 所以單答案題看排序類指標（MRR / hit@k），列舉題看集合類指標
+    # （R-Precision / recall@all / precision@all）。混在一起平均會把天花板當成分數
+    summary["groups"] = {}
+    for group in ("single", "multi"):
+        members = [r for r in rows if r["category"] != "negative" and question_group(r["relevant"]) == group]
+        if not members:
+            continue
+        agg = aggregate([m["scores"] for m in members])
+        summary["groups"][group] = {
+            "count": len(members),
+            "relevant_per_question": round(mean(len(m["relevant"]) for m in members), 2),
+            **{k: round(v, 4) for k, v in agg.items()},
+        }
+
     cat_aggs = list(summary["categories"].values())
     metric_keys = (
         [f"recall@{k}" for k in ks]
         + [f"precision@{k}" for k in ks]
         + [f"hit@{k}" for k in ks]
-        + ["mrr", "recall@all", "precision@all"]
+        + [f"recall_ceiling@{k}" for k in ks]
+        + ["mrr", "recall@all", "precision@all", "r_precision"]
     )
     summary["macro"] = {k: round(mean(c[k] for c in cat_aggs), 4) for k in metric_keys} if cat_aggs else {}
     summary["micro"] = {k: round(v, 4) for k, v in aggregate(positive_scores).items()} if positive_scores else {}
@@ -145,13 +161,18 @@ def summarize(rows, ks):
 
 def print_report(summary, ks, meta):
     print(f"\n=== RAG eval: {meta['label']}  (embedder={meta['embedder']}, top={meta['top']}, docs={meta['docs']}) ===")
-    header = ["category", "n"] + [f"R@{k}" for k in ks] + ["R@all", "P@all", f"P@{ks[0]}", "MRR", f"hit@{ks[-1]}", "rel_dist"]
+    header = (
+        ["category", "n"]
+        + [f"R@{k}" for k in ks]
+        + [f"ceil@{ks[-1]}", "R-Prec", "R@all", "P@all", "MRR", "rel_dist"]
+    )
     print(" | ".join(f"{h:<12}" if i == 0 else f"{h:>7}" for i, h in enumerate(header)))
     for cat, s in summary["categories"].items():
         cells = [f"{cat:<12}", f"{s['count']:>7}"]
         cells += [f"{s[f'recall@{k}']:>7.3f}" for k in ks]
+        cells += [f"{s[f'recall_ceiling@{ks[-1]}']:>7.3f}", f"{s['r_precision']:>7.3f}"]
         cells += [f"{s['recall@all']:>7.3f}", f"{s['precision@all']:>7.3f}"]
-        cells += [f"{s[f'precision@{ks[0]}']:>7.3f}", f"{s['mrr']:>7.3f}", f"{s[f'hit@{ks[-1]}']:>7.3f}"]
+        cells += [f"{s['mrr']:>7.3f}"]
         cells += [f"{s['mean_best_relevant_distance']:>7.3f}" if s["mean_best_relevant_distance"] is not None else f"{'-':>7}"]
         print(" | ".join(cells))
     for name in ("macro", "micro"):
@@ -159,9 +180,30 @@ def print_report(summary, ks, meta):
         if s:
             cells = [f"{name:<12}", f"{'':>7}"]
             cells += [f"{s[f'recall@{k}']:>7.3f}" for k in ks]
+            cells += [f"{s[f'recall_ceiling@{ks[-1]}']:>7.3f}", f"{s['r_precision']:>7.3f}"]
             cells += [f"{s['recall@all']:>7.3f}", f"{s['precision@all']:>7.3f}"]
-            cells += [f"{s[f'precision@{ks[0]}']:>7.3f}", f"{s['mrr']:>7.3f}", f"{s[f'hit@{ks[-1]}']:>7.3f}", f"{'':>7}"]
+            cells += [f"{s['mrr']:>7.3f}", f"{'':>7}"]
             print(" | ".join(cells))
+
+    groups = summary.get("groups") or {}
+    if groups:
+        print()
+        print("按「正確答案有幾份」分群（recall@k 只有在 k >= |rel| 時跨題可比）")
+        single = groups.get("single")
+        if single:
+            print(
+                f"  single  n={single['count']:<3} |rel|=1          "
+                f"MRR={single['mrr']:.3f}  hit@{ks[0]}={single[f'hit@{ks[0]}']:.3f}  "
+                f"hit@{ks[-1]}={single[f'hit@{ks[-1]}']:.3f}  R@all={single['recall@all']:.3f}"
+            )
+        multi = groups.get("multi")
+        if multi:
+            print(
+                f"  multi   n={multi['count']:<3} |rel|={multi['relevant_per_question']:<4.1f}       "
+                f"R-Prec={multi['r_precision']:.3f}  R@all={multi['recall@all']:.3f}  "
+                f"P@all={multi['precision@all']:.3f}  "
+                f"（R@{ks[-1]}={multi[f'recall@{ks[-1]}']:.3f} 上限={multi[f'recall_ceiling@{ks[-1]}']:.3f}）"
+            )
     neg = summary["negatives"]
     if neg:
         fp = f"{neg['false_positive_rate']:.3f}" if neg["false_positive_rate"] is not None else "n/a (no --threshold)"
