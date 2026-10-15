@@ -167,3 +167,27 @@ def test_road_filter_composes_with_township():
     assert plan.to_where() == {"$and": [{"township": "宜蘭市"}, {"road": "中山路"}]}
     assert plan.describe() == "宜蘭市、中山路"
     assert analyze("四維路").to_where() == {"road": "四維路"}
+
+
+def test_off_topic_reply_is_detected_as_an_abstention():
+    """
+    兩個固定拒答句都必須被 evals/gen_metrics.py 的 ABSTAIN_MARKERS 認出來，
+    否則生成評測的 abstain_correct 會無聲下降——拒答做對了，分數卻掉。
+    """
+    from evals.gen_metrics import is_abstention
+    from services.query_rules import off_topic_reply, out_of_scope_reply
+    assert is_abstention(out_of_scope_reply("高雄"))
+    assert is_abstention(off_topic_reply("天氣"))
+
+
+def test_off_topic_needs_the_whole_sentence():
+    from services.query_rules import analyze
+    # 黑名單命中但整句問的是避難所 → 不算離題
+    assert analyze("下雨天要去哪個避難所").off_topic is None
+    assert analyze("淹水時收容所在哪").off_topic is None
+    # 沒有避難主題 → 離題
+    assert analyze("花蓮的天氣").off_topic == "天氣"
+    assert analyze("宜蘭的超商在哪").off_topic == "超商"
+    # 範圍外縣市優先回報涵蓋範圍，比較精確
+    plan = analyze("高雄的天氣")
+    assert plan.out_of_scope == "高雄" and plan.off_topic is None

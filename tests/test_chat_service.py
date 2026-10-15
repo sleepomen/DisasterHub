@@ -474,7 +474,9 @@ def test_no_match_from_retrieval_becomes_fixed_reply_without_llm(svc):
     for sentinel in (NO_MATCH, NO_DATA):
         svc.vector_store.search.return_value = sentinel
         with patch("services.chat_service.requests.post") as post:
-            assert svc.chat("今天天氣如何") == NO_RELEVANT_REPLY
+            # 探針不能再用「今天天氣如何」：它現在被更前面的離題判定攔走，
+            # 到不了距離門檻這條路徑（見 test_off_topic_questions_are_declined_before_retrieval）
+            assert svc.chat("避難所有提供飲水嗎") == NO_RELEVANT_REPLY
         post.assert_not_called()
     svc.vector_store.search.return_value = "RAG 結果"
 
@@ -613,3 +615,36 @@ def test_place_name_outside_every_known_list_still_counts_as_a_clue(svc):
     # 補黑名單時不能把「知本」這種不在任何鄉鎮清單裡的地名一起剝掉
     context, early = svc.build_context("知本附近")
     assert early is None and context is not None
+
+
+@pytest.mark.parametrize("msg,topic", [
+    ("花蓮的天氣", "天氣"),
+    ("宜蘭的超商在哪", "超商"),
+    ("羅東的郵局幾點關門", "郵局"),
+    ("花蓮哪裡有藥局", "藥局"),
+    ("花蓮的災害補助怎麼申請", "補助"),
+])
+def test_off_topic_questions_are_declined_before_retrieval(svc, msg, topic):
+    """
+    問句只要帶到範圍內地名就會產生 metadata 篩選，而距離門檻在有篩選的路徑上
+    依設計被跳過，所以「宜蘭的超商在哪」原本會拿到 20 筆避難所——邊界題評測實測
+    LLM 這條最後防線只攔住 13 題裡的 4 題，問超商真的會得到避難所清單。
+    """
+    with patch("services.chat_service.requests.post") as post:
+        context, early = svc.build_context(msg)
+    assert context is None
+    assert topic in early
+    assert post.call_count == 0
+    svc.vector_store.search.assert_not_called()
+
+
+@pytest.mark.parametrize("msg", [
+    "下雨天要去哪個避難所",
+    "淹水時收容所在哪",
+    "花蓮縣立游泳池還有空位嗎",
+])
+def test_off_topic_word_with_shelter_topic_is_not_declined(svc, msg):
+    # 離題判定必須看整句：這些問句命中黑名單但問的確實是避難所
+    context, early = svc.build_context(msg)
+    assert early is None
+    assert context is not None
