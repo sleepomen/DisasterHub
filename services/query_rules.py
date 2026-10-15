@@ -56,6 +56,24 @@ if _UNKNOWN_FACILITIES:
         f"FACILITY_KEYWORDS 用了 shelter_profile.FACILITY_LABELS 沒有的設施標籤：{sorted(_UNKNOWN_FACILITIES)}"
     )
 
+# 明顯不是避難所的主題。邊界題評測發現：問句只要帶到範圍內地名就會產生 metadata 篩選，
+# 而距離門檻在有篩選的路徑上依設計被跳過，於是「宜蘭的超商在哪」會拿到 20 筆避難所——
+# 而且實測 LLM 這條最後防線只攔住 13 題裡的 4 題。
+#
+# 這是黑名單，所以失效方向是安全的：沒列到的詞落到 LLM，也就是維持原本的行為，
+# 而不是誤擋正當問題。反過來的做法（要求問句必須提到避難主題）實測會誤擋 120 道正例裡的
+# 16 題——「礁溪」「冬山」「壯圍有哪些」這種只有地名的簡短問句，在避難所系統裡顯然是在問避難所。
+OFF_TOPIC_WORDS = [
+    "天氣", "下雨", "氣溫", "溫度", "降雨",
+    "補助", "紓困", "津貼", "理賠", "保險",
+    "醫院", "診所", "藥局", "加油站", "超商", "便利商店", "停車場", "郵局", "銀行",
+    "餐廳", "飯店", "民宿", "公車", "火車", "機場",
+]
+
+# 同一句話同時提到避難主題時就不算離題：「下雨天要去哪個避難所」問的是避難所，
+# 「淹水時收容所在哪」也是。少了這個條件，這類正當問題會被誤擋
+SHELTER_TOPIC_WORDS = ["避難", "收容", "安置", "疏散", "空位", "空間", "容量"]
+
 SIZE_CLASS_KEYWORDS = ["大型", "中型", "小型"]
 
 # 容量條件
@@ -113,6 +131,7 @@ class QueryPlan:
     order_by_capacity: bool = False
     capacity_order: str = "desc"  # desc = 由大到小；asc = 由小到大
     out_of_scope: str | None = None  # 命中的範圍外地名
+    off_topic: str | None = None  # 命中的非避難所主題（天氣、醫院、補助…）
 
     @property
     def has_filter(self) -> bool:
@@ -244,6 +263,11 @@ def analyze(query: str) -> QueryPlan:
                 plan.out_of_scope = place
                 return plan
 
+    # 離題判定放在範圍外之後：「高雄的天氣」兩者都中，回報縣市涵蓋範圍比較精確
+    plan.off_topic = _find_off_topic(query)
+    if plan.off_topic:
+        return plan
+
     plan.road = _find_road(query)
     plan.facilities = _find_facilities(query)
     plan.capacity_min, plan.capacity_max = _find_capacity(query)
@@ -251,6 +275,23 @@ def analyze(query: str) -> QueryPlan:
     plan.order_by_capacity = bool(SUPERLATIVE.search(query))
     plan.capacity_order = "asc" if ASCENDING.search(query) else "desc"
     return plan
+
+
+def _find_off_topic(query: str) -> str | None:
+    """問句點名了非避難所的主題，而且整句沒有提到避難主題時，回報命中的那個詞"""
+    if any(word in query for word in SHELTER_TOPIC_WORDS):
+        return None
+    return next((word for word in OFF_TOPIC_WORDS if word in query), None)
+
+
+def off_topic_reply(topic: str) -> str:
+    # 開頭刻意跟 out_of_scope_reply 用同一句「本系統只涵蓋」：
+    # evals/gen_metrics.py 的 ABSTAIN_MARKERS 認的是這個字串，
+    # 換掉的話生成評測的 abstain_correct 會無聲下降（tests 有釘住）
+    return (
+        f"本系統只涵蓋宜蘭、花蓮、台東三縣的避難收容場所資訊，沒有{topic}的資料。"
+        "可以問避難所的位置、容量、剩餘空位，或最近的避難所在哪裡。"
+    )
 
 
 def out_of_scope_reply(place: str) -> str:
