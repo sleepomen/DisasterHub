@@ -72,6 +72,7 @@ NO_NEARBY_REPLY = "附近沒有找到避難所資料。本系統只涵蓋宜蘭�
 # 只有這裡量得到：例如 needs_coords 偏高就表示很多人問「最近的避難所」卻沒有座標可用
 ROUTE_COUNTERS = (
     "chat.route.out_of_scope",
+    "chat.route.off_topic",
     "chat.route.simulation",
     "chat.route.nearest",
     "chat.route.needs_coords",
@@ -329,6 +330,12 @@ class ChatService:
         if plan.out_of_scope:
             metrics.route("out_of_scope")
             return None, query_rules.out_of_scope_reply(plan.out_of_scope)
+
+        # 問的不是避難所（天氣、醫院、補助…）。不能只靠距離門檻：有範圍內地名的問句
+        # 會產生 metadata 篩選，而門檻在那條路徑上依設計被跳過
+        if plan.off_topic:
+            metrics.route("off_topic")
+            return None, query_rules.off_topic_reply(plan.off_topic)
 
         if self._is_explicit_simulation_query(user_message):
             metrics.route("simulation")
