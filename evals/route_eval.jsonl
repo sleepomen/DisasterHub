@@ -32,3 +32,7 @@
 {"query": "疏散計畫是什麼", "expected_route": "no_simulation_advice", "simulation": false, "note": "同上"}
 {"query": "人要疏散到哪裡", "expected_route": "no_simulation_advice", "simulation": false, "note": "同上"}
 {"query": "請給我疏散建議", "expected_route": "simulation", "simulation": true, "note": "同一句話在模擬進行中該改走模擬快照——路由必須看狀態不只看關鍵字"}
+{"query": "花蓮的天氣", "expected_route": "off_topic", "simulation": false, "note": "有範圍內地名的離題問句；距離門檻在有篩選的路徑上被跳過，必須靠這一層"}
+{"query": "宜蘭的超商在哪", "expected_route": "off_topic", "simulation": false, "note": "問的是超商不是避難所"}
+{"query": "羅東的郵局幾點關門", "expected_route": "off_topic", "simulation": false, "note": "同上"}
+{"query": "下雨天要去哪個避難所", "expected_route": "rag", "simulation": false, "note": "含「下雨」但也含「避難所」——離題判定必須看整句，不能只看黑名單命中"}

@@ -1,0 +1,29 @@
+{"query": "今天天氣如何", "expect": "refuse", "kind": "off_topic_no_place", "note": "現有負例，沒有地名所以距離門檻擋得到"}
+{"query": "如何申請災害補助", "expect": "refuse", "kind": "off_topic_no_place", "note": "現有負例，同上"}
+{"query": "高雄的避難所", "expect": "refuse", "kind": "out_of_scope_place", "note": "對照組：規則層該擋下"}
+{"query": "台北哪裡可以避難", "expect": "refuse", "kind": "out_of_scope_place", "note": "對照組"}
+{"query": "花蓮的天氣", "expect": "refuse", "kind": "off_topic_in_scope_place", "note": "有範圍內地名 → 產生篩選 → 距離門檻被跳過"}
+{"query": "宜蘭明天會不會下雨", "expect": "refuse", "kind": "off_topic_in_scope_place", "note": "同上"}
+{"query": "台東現在氣溫幾度", "expect": "refuse", "kind": "off_topic_in_scope_place", "note": "同上"}
+{"query": "花蓮的災害補助怎麼申請", "expect": "refuse", "kind": "off_topic_in_scope_place", "note": "補助＋範圍內地名"}
+{"query": "宜蘭縣政府的紓困方案", "expect": "refuse", "kind": "off_topic_in_scope_place", "note": "「縣政府」還會命中公所設施關鍵字"}
+{"query": "光復鄉附近的醫院", "expect": "refuse", "kind": "other_facility", "note": "問的是醫院不是避難所，但鄉鎮名會產生篩選"}
+{"query": "花蓮市的加油站", "expect": "refuse", "kind": "other_facility", "note": "同上"}
+{"query": "宜蘭的超商在哪", "expect": "refuse", "kind": "other_facility", "note": "同上"}
+{"query": "台東的停車場", "expect": "refuse", "kind": "other_facility", "note": "同上"}
+{"query": "羅東的郵局幾點關門", "expect": "refuse", "kind": "other_facility", "note": "同上"}
+{"query": "花蓮哪裡有藥局", "expect": "refuse", "kind": "other_facility", "note": "同上"}
+{"query": "宜蘭的國小有哪些", "expect": "refuse_or_answer", "kind": "ambiguous", "note": "字面是問學校，但在避難所系統裡合理解讀成避難所；標成兩者皆可，不計入正確率"}
+{"query": "花蓮縣立游泳池還有空位嗎", "expect": "refuse", "kind": "nonexistent_shelter", "note": "聽起來像避難所但資料裡沒有這一間"}
+{"query": "宜蘭縣立美術館可以避難嗎", "expect": "refuse", "kind": "nonexistent_shelter", "note": "同上"}
+{"query": "濤強國小還有空位嗎", "expect": "answer", "kind": "correct_name", "note": "對照組：正確名稱必須答得出來"}
+{"query": "涙強國小還有空位嗎", "expect": "answer", "kind": "misspelled_name", "note": "錯一個字；生成評測觀察到模型自己也會寫成涙強"}
+{"query": "中正國少的容量", "expect": "answer", "kind": "misspelled_name", "note": "錯一個字"}
+{"query": "花蓮縣立體育官", "expect": "answer", "kind": "misspelled_name", "note": "館寫成官"}
+{"query": "宜蘭有哪些避難所", "expect": "answer", "kind": "normal", "note": "對照組：正常列舉題"}
+{"query": "避難所有提供飲水嗎", "expect": "answer", "kind": "normal", "note": "對照組：語意題"}
+{"query": "怎麼聯絡里長", "expect": "refuse", "kind": "off_topic_unlisted", "note": "離題但不在黑名單也沒有地名 → 只剩距離門檻；0.570 剛好擋下"}
+{"query": "垃圾車幾點來", "expect": "refuse", "kind": "off_topic_unlisted", "note": "同上；0.585 擋下"}
+{"query": "有沒有可以借錢的地方", "expect": "refuse", "kind": "off_topic_unlisted", "note": "0.502，比合法問題「避難所有提供飲水嗎」的 0.510 還近 → 門檻擋不到，且無法靠調門檻解決"}
+{"query": "哪裡可以洗衣服", "expect": "refuse", "kind": "off_topic_unlisted", "note": "0.554，在門檻之下 → 擋不到"}
+{"query": "有沒有人可以幫我顧小孩", "expect": "refuse", "kind": "off_topic_unlisted", "note": "0.526 → 擋不到"}

@@ -74,8 +74,9 @@ def run(cases, store, ks, top, threshold, use_rules=True):
         rejected = None
         if use_rules:
             plan = query_rules.analyze(c["query"])
-            if plan.out_of_scope:
-                hits, rejected = [], plan.out_of_scope
+            # 規則層的兩種拒答都算：範圍外縣市，以及問的不是避難所（天氣、醫院、補助…）
+            if plan.out_of_scope or plan.off_topic:
+                hits, rejected = [], plan.out_of_scope or plan.off_topic
             else:
                 # 有篩選時交給規則決定筆數（回傳全部符合者），沒篩選時維持 top
                 hits = store.retrieve_planned(c["query"], plan, n_results=None if plan.has_filter else top)
