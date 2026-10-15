@@ -1,7 +1,7 @@
 {
   "summary": {
-    "count": 34,
-    "correct": 34,
+    "count": 38,
+    "correct": 38,
     "accuracy": 1.0,
     "per_route": {
       "nearest": {
@@ -19,14 +19,19 @@
         "correct": 4,
         "accuracy": 1.0
       },
+      "off_topic": {
+        "count": 3,
+        "correct": 3,
+        "accuracy": 1.0
+      },
       "out_of_scope": {
         "count": 4,
         "correct": 4,
         "accuracy": 1.0
       },
       "rag": {
-        "count": 10,
-        "correct": 10,
+        "count": 11,
+        "correct": 11,
         "accuracy": 1.0
       },
       "simulation": {
@@ -45,11 +50,14 @@
       "no_simulation_advice": {
         "no_simulation_advice": 4
       },
+      "off_topic": {
+        "off_topic": 3
+      },
       "out_of_scope": {
         "out_of_scope": 4
       },
       "rag": {
-        "rag": 10
+        "rag": 11
       },
       "simulation": {
         "simulation": 8
@@ -59,6 +67,7 @@
       "nearest",
       "needs_coords",
       "no_simulation_advice",
+      "off_topic",
       "out_of_scope",
       "rag",
       "simulation"
@@ -336,6 +345,38 @@
       "actual": "simulation",
       "answered_without_llm": false,
       "note": "同一句話在模擬進行中該改走模擬快照——路由必須看狀態不只看關鍵字"
+    },
+    {
+      "query": "花蓮的天氣",
+      "simulation": false,
+      "expected": "off_topic",
+      "actual": "off_topic",
+      "answered_without_llm": true,
+      "note": "有範圍內地名的離題問句；距離門檻在有篩選的路徑上被跳過，必須靠這一層"
+    },
+    {
+      "query": "宜蘭的超商在哪",
+      "simulation": false,
+      "expected": "off_topic",
+      "actual": "off_topic",
+      "answered_without_llm": true,
+      "note": "問的是超商不是避難所"
+    },
+    {
+      "query": "羅東的郵局幾點關門",
+      "simulation": false,
+      "expected": "off_topic",
+      "actual": "off_topic",
+      "answered_without_llm": true,
+      "note": "同上"
+    },
+    {
+      "query": "下雨天要去哪個避難所",
+      "simulation": false,
+      "expected": "rag",
+      "actual": "rag",
+      "answered_without_llm": false,
+      "note": "含「下雨」但也含「避難所」——離題判定必須看整句，不能只看黑名單命中"
     }
   ]
 }
