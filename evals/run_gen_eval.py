@@ -44,9 +44,9 @@ def _append_line(handle, obj: dict) -> None:
     os.fsync(handle.fileno())
 
 
-def load_progress(path: str, signature: dict) -> dict:
+def load_progress(path: str, signature: dict, key: str = "query") -> dict:
     """
-    讀回上次中斷前已完成的題目，回傳 {query: row}。
+    讀回上次中斷前已完成的題目，回傳 {row[key]: row}。
     第一行是設定簽章，換模型或改參數就不沿用，避免把不同設定的結果混在一起。
     斷電可能讓最後一行只寫一半，解析不了的行直接丟掉。
     """
@@ -66,8 +66,8 @@ def load_progress(path: str, signature: dict) -> dict:
                 if obj.get("signature") != signature:
                     return {}
                 continue
-            if "query" in obj:
-                done[obj["query"]] = obj
+            if key in obj:
+                done[obj[key]] = obj
     return done
 
 
