@@ -180,6 +180,8 @@ DisasterHub/
     ├── test_map_service.py
     ├── test_metrics.py
     ├── test_rate_limit.py
+    ├── test_bootstrap.py
+    ├── test_boundary_eval.py
     ├── test_route_eval.py
     ├── test_data_fetcher2.py
     ├── test_shelter_profile.py
@@ -453,7 +455,10 @@ DisasterHub/
 │   ├── build_eval_set.py       # Generates the evaluation set
 │   ├── rag_eval.jsonl          # The evaluation set
 │   ├── run_rag_eval.py         # Runs the retrieval evaluation
-│   ├── metrics.py              # Recall / Precision / MRR / R-Precision / ceilings
+│   ├── metrics.py              # Recall / Precision / MRR / R-Precision / ceilings / bootstrap CIs
+│   ├── compare_runs.py         # Paired bootstrap on the difference between two runs
+│   ├── boundary_eval.jsonl     # Boundary / abstention set (29 questions, four defences)
+│   ├── run_boundary_eval.py    # Reports which layer refused, --generate hits the real LLM
 │   ├── route_eval.jsonl        # Routing test set (34 questions, all six routes)
 │   ├── run_route_eval.py       # Runs the routing evaluation (no services needed)
 │   ├── run_gen_eval.py         # Runs the generation evaluation (real ChatService + Ollama)
@@ -505,13 +510,146 @@ The baseline's dominant failure was not hallucination but over-refusal: on 21% o
 - A question that names a place ("near Zhiben", "around Zhonghua Road section 1") goes to retrieval instead of being bounced back with a request for coordinates.
 - When a question names a shelter outright, retrieval keeps only that shelter, and the answer format is fixed at one line per shelter. Together these removed truncation on the 3B model (0.044 → 0.000), which used to answer a single-shelter question by listing ten and running out of output budget.
 
-Out-of-scope questions are now declined by a distance gate rather than by the model: if plain semantic retrieval's closest document is farther than `RAG_MAX_DISTANCE`, a fixed reply is returned and no generation happens. Weather and subsidy questions sit at a cosine distance of 0.588 and above, while the farthest question that does have an answer sits at 0.483.
+Out-of-scope questions are declined before generation rather than by the model: the rules layer refuses a county outside the coverage area or a question that is not about shelters at all, and a distance gate catches what is left — if plain semantic retrieval's closest document is farther than `RAG_MAX_DISTANCE`, a fixed reply is returned and no generation happens. The claim this paragraph used to make — that unanswerable questions sit at 0.588 and above while the farthest answerable one sits at 0.483 — held only for the two negatives in the original eval set. On a wider set of boundary questions the two classes overlap and no threshold separates them; see [Abstention and Boundary Questions](#abstention-and-boundary-questions).
 
 `capacity_stated` in the baseline row is not comparable with the rows below it: that column now applies only to questions that actually ask about capacity or occupancy, instead of every single-shelter question.
 
 What remains on both models is dropped or mistyped names rather than invented facts: 濤強國小 written as 涙強國小, 中興國小附幼 shortened to 中興國小, 台東縣立體育場 written as 台東縣立體場. That is what most of qwen2.5:7b's `halluc` 0.028 is, and it also explains the recall that is missing from 1.000. Every number either model printed was traceable to the retrieved context, nothing was truncated, and all ten out-of-scope questions were declined. The 3B model's `top1` of 0.667 is one of the three ranking questions, where it named the second-largest shelter first.
 
 ---
+
+## Abstention and Boundary Questions
+
+The generation evaluation reported abstention as perfect (`negatives: abstain_correct 1.000`), but its
+ten negatives were eight out-of-area county names — caught by the rules layer — plus two with no place
+name at all. So the entire empirical basis for `RAG_MAX_DISTANCE = 0.56` was **two questions**, and the
+most likely real-world irrelevant question (one that mentions a local place) was not represented.
+
+`evals/boundary_eval.jsonl` (29 questions) probes exactly those gaps, and `run_boundary_eval.py` reports
+**which of the four defences decided**, with `--generate` running the real LLM for whatever reaches it:
+
+```bash
+docker exec -it disaster_app python evals/run_boundary_eval.py --generate
+```
+
+| layer | decides when |
+|---|---|
+| `rules` | the question names a county outside Yilan / Hualien / Taitung |
+| `off_topic` | the question names a non-shelter topic and the sentence mentions no shelter topic |
+| `distance` | plain semantic retrieval's nearest document is farther than `RAG_MAX_DISTANCE` |
+| `llm` | nothing caught it; the shelters go into the prompt and only the model can still refuse |
+
+**First measurement — the abstention claim did not hold.** Of 17 questions that must be refused, the
+retrieval layer caught 4 and 13 reached the model, which refused only 4 of those 13. Asking
+「宜蘭的超商在哪」(where are Yilan's convenience stores) returned a list of shelters. Accuracy 14/23.
+
+Two independent causes:
+
+1. Any in-scope place name produces a metadata filter, and **the distance gate is skipped on filtered
+   paths by design** ("a filter hit is itself evidence of relevance"). The prompt header then tells the
+   model "14 shelters match 花蓮地區", while `SYSTEM_PROMPT` rule 3 says whatever is listed must be used.
+   The whole pipeline pushes the model towards answering.
+2. The distance signal does not separate the classes anyway: 「花蓮的天氣」 sits at 0.427, *closer* than
+   several answerable questions.
+
+**The fix was chosen by measuring two alternatives**, not by picking one:
+
+| | false rejections on 120 positives | boundary refusals caught (of 17) | failure direction |
+|---|---|---|---|
+| positive gate (require shelter vocabulary) | **16 (13.3%)** | 12 | unsafe — rejects valid questions |
+| **negative gate (blocklist AND no shelter word in the sentence)** | **0** | **13** | safe — unlisted words fall through to today's behaviour |
+
+The positive gate's false rejections are the terse location-only queries — 「礁溪」, 「冬山」,
+「壯圍有哪些」 — which in a shelter app obviously mean "shelters there". The negative gate needs the
+whole sentence, so 「下雨天要去哪個避難所」 (which shelter on a rainy day) is not blocked by 「下雨」.
+
+**Result:** 23/28 on the full 29-question set, with the 130-question retrieval evaluation unchanged —
+every positive metric identical, and `negatives` `rejected_by_rules` 8/10 → 10/10.
+
+```
+of the 22 that must be refused: rules 2, off_topic 13, distance 2, left to the LLM 5
+```
+
+### The distance threshold cannot be calibrated
+
+The five remaining failures are two classes, and the first one is a dead end:
+
+| question | top1 distance | should |
+|---|---|---|
+| 有沒有可以借錢的地方 (somewhere to borrow money) | 0.505 | refuse |
+| **避難所有提供飲水嗎** (do shelters provide water) | **0.510** | **answer** |
+| 有沒有人可以幫我顧小孩 (someone to watch my child) | 0.530 | refuse |
+| 哪裡可以洗衣服 (where can I do laundry) | 0.556 | refuse |
+| 怎麼聯絡里長 (how to contact the village head) | 0.570 | refuse |
+| 垃圾車幾點來 (when does the garbage truck come) | 0.588 | refuse |
+
+The classes **overlap**. At 0.56 the gate catches the last two and misses the first three; lowering it to
+0.50 would start rejecting a legitimate question. The gap the old README claimed (unanswerable ≥ 0.588,
+answerable ≤ 0.483) was an artefact of having two negatives. No threshold on this signal separates
+off-topic questions from semantic ones — which is the honest limitation to state, rather than tuning the
+number until the small sample looks clean.
+
+The second class is **nonexistent shelters** (「花蓮縣立游泳池還有空位嗎」, 「宜蘭縣立美術館可以避難嗎」):
+these genuinely *are* shelter-topic questions that name a place the data does not contain, so the
+off-topic blocklist correctly does not apply. They need a different mechanism — something like "the
+question names a facility but no shelter name is close enough" — which would touch the `named` retrieval
+path and needs its own evaluation. Left open.
+
+Note that these two are now the only questions whose outcome depends on the model, and generation runs
+at `temperature=0.3`: the swimming-pool question refused on one run and answered on another. Either set
+the temperature to 0 for reproducible numbers or report an average over several runs.
+
+## Statistical Uncertainty
+
+With 130 questions and 50 shelters, a 0.03 gap between two configurations is not obviously meaningful.
+Both runners now print a 95% bootstrap confidence interval (1000 resamples, fixed seed so the numbers
+reproduce) next to every headline metric. `macro` is resampled *within* each category so the category
+sizes stay fixed — resampling across all questions would change the category mix and stop being a macro
+average.
+
+```
+95% CI (bootstrap 1000, seed=20261012; macro resampled within categories)
+  macro  recall@3       0.801  [0.768, 0.839]  width 0.071
+  micro  recall@3       0.856  [0.802, 0.906]  width 0.104
+  micro  recall@10      0.957  [0.933, 0.976]  width 0.043
+  micro  mrr            0.996  [0.988, 1.000]  width 0.012
+```
+
+So R@3 carries roughly ±0.05 of noise on this set: a 0.03 improvement in R@3 is not a result.
+
+**To compare two runs, do not check whether their intervals overlap** — overlapping intervals do not
+mean there is no difference. `evals/compare_runs.py` pairs the two runs question by question and puts the
+interval on the *difference*, which also cancels the variance that comes from some questions simply being
+harder than others:
+
+```bash
+docker exec -it disaster_app python evals/compare_runs.py   evals/results/gen_qwen2.5-7b.json evals/results/gen_llama3.2-3b.json
+```
+
+| | A = qwen2.5:7b | B = llama3.2:3b | A − B | 95% CI of A − B | |
+|---|---|---|---|---|---|
+| answer_recall | 0.970 | 0.955 | +0.015 | [−0.024, +0.054] | indistinguishable |
+| answer_precision | 0.956 | 0.900 | **+0.055** | **[+0.007, +0.109]** | **difference** |
+| complete | 0.942 | 0.942 | +0.000 | [−0.050, +0.058] | indistinguishable |
+| hallucinated | 0.025 | 0.008 | +0.017 | [−0.017, +0.050] | indistinguishable |
+| false_abstain | 0.000 | 0.017 | −0.017 | [−0.042, +0.000] | indistinguishable |
+
+On 130 paired questions the only metric that separates the 7B model from the 3B model is answer
+precision. Everything else is inside the noise — while the 7B model is 2.9× slower (p50 24.9 s against
+8.6 s). That is the honest basis for a model choice, and it is not what the point estimates alone suggest.
+
+The same test says both of this project's own claims do hold:
+
+| Claim | metric | A − B | 95% CI |
+|---|---|---|---|
+| Prompt changes removed over-refusal | `false_abstain` | −0.200 | [−0.275, −0.125] |
+| | `answer_recall` | +0.241 | [+0.160, +0.328] |
+| | `hallucinated` | −0.017 | [−0.042, +0.000] — *not* significant |
+| Rules layer improves retrieval | `precision@all` | +0.631 | [+0.562, +0.697] |
+| | `r_precision` | +0.121 | [+0.081, +0.171] |
+
+Note the third row: the prompt rewrite measurably removed over-refusal but did **not** measurably change
+hallucination. A tool that reports "significant" for everything would not be worth running.
 
 ## Routing Evaluation
 
@@ -775,6 +913,8 @@ DisasterHub/
     ├── test_map_service.py
     ├── test_metrics.py
     ├── test_rate_limit.py
+    ├── test_bootstrap.py
+    ├── test_boundary_eval.py
     ├── test_route_eval.py
     ├── test_data_fetcher2.py
     ├── test_shelter_profile.py
@@ -1036,7 +1176,10 @@ DisasterHub/
 │   ├── build_eval_set.py       # 產生評測集
 │   ├── rag_eval.jsonl          # 評測集
 │   ├── run_rag_eval.py         # 執行檢索評測
-│   ├── metrics.py              # Recall / Precision / MRR / R-Precision / 天花板
+│   ├── metrics.py              # Recall / Precision / MRR / R-Precision / 天花板 / bootstrap 區間
+│   ├── compare_runs.py         # 兩次結果的配對 bootstrap 差值比較
+│   ├── boundary_eval.jsonl     # 邊界題／拒答題庫（29 題，涵蓋四層防線）
+│   ├── run_boundary_eval.py    # 報出是哪一層拒答，--generate 會真的打 LLM
 │   ├── route_eval.jsonl        # 路由測試集（34 題，涵蓋全部六條路由）
 │   ├── run_route_eval.py       # 執行路由評測（不需要任何服務）
 │   ├── run_gen_eval.py         # 執行生成評測（真實 ChatService + Ollama）
@@ -1088,13 +1231,134 @@ baseline 最主要的問題不是幻覺，而是過度拒答：有 21% 的題目
 - 帶地名的問句（「知本附近」「中華路一段附近」）改走檢索，不再被攔下來要座標。
 - 直接點名某間避難所時，檢索只留那一筆，回答格式固定成每間一行。這兩項合起來讓 3B 模型的截斷率從 0.044 降到 0，它以前會把單一避難所的問題答成列十筆然後把輸出長度用完。
 
-範圍外的問題現在由距離門檻擋下，不再交給模型判斷：純語意檢索最接近的文件超過 `RAG_MAX_DISTANCE` 就回固定句子，完全不進生成。天氣與補助類問題的 cosine 距離在 0.588 以上，而真的有答案的題目最遠是 0.483。
+範圍外的問題在進入生成之前就被擋下，不交給模型判斷：規則層會拒答涵蓋範圍外的縣市、以及根本不是在問避難所的問題，剩下的交給距離門檻——純語意檢索最接近的文件超過 `RAG_MAX_DISTANCE` 就回固定句子，完全不進生成。這一段原本寫的「無答案題距離在 0.588 以上、有答案題最遠 0.483」只在原評測集那兩道負例上成立；在更廣的邊界題上兩類是**重疊**的，沒有任何門檻分得開——見「拒答與邊界題」一節。
 
 baseline 那一列的 `capacity_stated` 不能跟下面兩列比：這個欄位現在只套用在真的問容量或收容人數的題目，而不是每一道單一避難所的題目。
 
 兩個模型剩下的錯誤都是把名稱寫漏或寫錯，不是編造事實：濤強國小寫成涙強國小、中興國小附幼簡寫成中興國小、台東縣立體育場寫成台東縣立體場。qwen2.5:7b 的 `halluc` 0.028 大部分就是這個，召回率差那一點也是同一個原因。兩個模型印出來的數字全部都能在檢索資料裡找到，沒有任何一題被截斷，十道範圍外問題全部正確拒答。3B 模型的 `top1` 0.667 是三道排名題裡有一道把第二大的避難所講在前面。
 
 ---
+
+## 拒答與邊界題
+
+生成評測原本把拒答報成完美（`negatives: abstain_correct 1.000`），但那 10 道負例是
+8 道範圍外縣市名（規則層擋下）加 2 道完全沒有地名的問題。也就是說 `RAG_MAX_DISTANCE = 0.56`
+的全部經驗基礎是**兩題**，而現實中最可能出現的無關問題——帶著本地地名的那種——一題都沒有。
+
+`evals/boundary_eval.jsonl`（29 題）就是針對這些缺口，`run_boundary_eval.py` 會報出
+**是四層防線裡的哪一層決定的**，`--generate` 會對落到模型的題目真的跑一次生成：
+
+```bash
+docker exec -it disaster_app python evals/run_boundary_eval.py --generate
+```
+
+| 層 | 什麼時候決定 |
+|---|---|
+| `rules` | 問句點名宜蘭／花蓮／台東以外的縣市 |
+| `off_topic` | 問句點名非避難所的主題，而且整句沒有提到避難主題 |
+| `distance` | 純語意檢索最接近的文件超過 `RAG_MAX_DISTANCE` |
+| `llm` | 以上都沒攔到；避難所資料進了 prompt，只剩模型自己能拒答 |
+
+**第一次量測——拒答這個主張不成立。** 該拒答的 17 題裡，檢索層只攔住 4 題，13 題落到模型手上，
+而模型只拒答了其中 4 題。問「宜蘭的超商在哪」真的會拿到一串避難所。正確率 14/23。
+
+兩個獨立的原因：
+
+1. 問句只要帶到範圍內地名就會產生 metadata 篩選，而**距離門檻在有篩選的路徑上依設計被跳過**
+   （「篩選命中本身就是相關的證據」）。接著 prompt 標頭會告訴模型「符合『花蓮地區』的避難所共 14 筆」，
+   而 `SYSTEM_PROMPT` 第 3 條又寫「只要裡面列有避難所，就直接用它回答」。整條管線都在推模型去回答。
+2. 距離本身也分不開：「花蓮的天氣」是 0.427，比好幾道**有答案**的題目還近。
+
+**修法是量過兩個選項才決定的**，不是挑一個來用：
+
+| | 120 道正例的誤擋 | 邊界題攔住（共 17） | 失效方向 |
+|---|---|---|---|
+| 正面門檻（要求必須提到避難主題） | **16 題（13.3%）** | 12 | 危險——誤擋正當問題 |
+| **負面門檻（黑名單＋整句沒有避難主題）** | **0 題** | **13** | 安全——沒列到的詞落到 LLM，維持原本行為 |
+
+正面門檻誤擋的正是「礁溪」「冬山」「壯圍有哪些」這種只有地名的簡短問句，而那在避難所系統裡
+顯然是在問避難所。負面門檻要看整句，所以「下雨天要去哪個避難所」不會因為「下雨」而被擋。
+
+**結果**：29 題的完整題庫上 23/28，而 130 題的檢索評測**完全沒有退步**——所有正例指標一模一樣，
+negatives 的 `rejected_by_rules` 從 8/10 變成 10/10。
+
+```
+該拒答的 22 題裡：範圍外規則 2、離題規則 13、距離門檻 2、落到 LLM 5
+```
+
+### 距離門檻無法校準
+
+剩下 5 題失敗分成兩類，而第一類是死路：
+
+| 問句 | top1 距離 | 該怎麼回 |
+|---|---|---|
+| 有沒有可以借錢的地方 | 0.505 | 拒答 |
+| **避難所有提供飲水嗎** | **0.510** | **回答** |
+| 有沒有人可以幫我顧小孩 | 0.530 | 拒答 |
+| 哪裡可以洗衣服 | 0.556 | 拒答 |
+| 怎麼聯絡里長 | 0.570 | 拒答 |
+| 垃圾車幾點來 | 0.588 | 拒答 |
+
+兩類**重疊**。門檻設 0.56 會擋到最後兩題、漏掉前三題；降到 0.50 就開始誤擋合法問題。
+README 原本宣稱的縫隙（無答案 ≥ 0.588、有答案 ≤ 0.483）是只有兩道負例造成的假象。
+這個訊號上沒有任何門檻能把離題問題與語意問題分開——這才是該寫進限制的說法，
+而不是把數字調到讓小樣本看起來乾淨。
+
+第二類是**不存在的避難所**（「花蓮縣立游泳池還有空位嗎」「宜蘭縣立美術館可以避難嗎」）：
+這兩題問的**確實是避難所主題**，只是指名了資料裡沒有的場所，所以離題黑名單本來就不該管它。
+它們需要另一種機制——類似「問句點名了設施，但沒有任何避難所名稱足夠接近」——
+那會動到 `named` 那條檢索路徑，需要自己的評測。留著未解。
+
+另外，這兩題現在是唯一結果取決於模型的題目，而生成跑在 `temperature=0.3`：
+游泳池那題一次跑拒答、另一次回答。要嘛把溫度設 0 拿可重現的數字，要嘛報幾次的平均。
+
+## 統計不確定性
+
+130 題、50 間避難所的規模下，兩個設定差 0.03 很難說有意義。兩支執行器現在都會在主要指標旁邊印出
+95% bootstrap 信賴區間（重抽 1000 次，固定種子，數字可以重現）。`macro` 的重抽是在**每個類別內部**
+做的，類別題數才會維持不變——直接對全部題目重抽會改變類別組成，算出來的就不是 macro 了。
+
+```
+95% 信賴區間（bootstrap 1000 次，seed=20261012；macro 為類別內分層重抽）
+  macro  recall@3       0.801  [0.768, 0.839]  寬度 0.071
+  micro  recall@3       0.856  [0.802, 0.906]  寬度 0.104
+  micro  recall@10      0.957  [0.933, 0.976]  寬度 0.043
+  micro  mrr            0.996  [0.988, 1.000]  寬度 0.012
+```
+
+也就是說 R@3 在這份題庫上帶著大約 ±0.05 的雜訊：R@3 進步 0.03 不構成一個結果。
+
+**比較兩個設定時不要看「兩個區間有沒有重疊」**——區間重疊並不代表沒有差異，那是常見的誤讀。
+`evals/compare_runs.py` 會把兩次結果逐題配對，把區間放在**差值**上，順便消掉「有些題目本來就比較難」
+造成的變異：
+
+```bash
+docker exec -it disaster_app python evals/compare_runs.py   evals/results/gen_qwen2.5-7b.json evals/results/gen_llama3.2-3b.json
+```
+
+| | A = qwen2.5:7b | B = llama3.2:3b | A − B | A − B 的 95% CI | |
+|---|---|---|---|---|---|
+| answer_recall | 0.970 | 0.955 | +0.015 | [−0.024, +0.054] | 看不出差異 |
+| answer_precision | 0.956 | 0.900 | **+0.055** | **[+0.007, +0.109]** | **有差異** |
+| complete | 0.942 | 0.942 | +0.000 | [−0.050, +0.058] | 看不出差異 |
+| hallucinated | 0.025 | 0.008 | +0.017 | [−0.017, +0.050] | 看不出差異 |
+| false_abstain | 0.000 | 0.017 | −0.017 | [−0.042, +0.000] | 看不出差異 |
+
+在 130 道配對題目上，7B 與 3B 之間唯一分得出來的是 answer precision，其餘全部落在雜訊裡——
+而 7B 慢了 2.9 倍（p50 24.9 秒對 8.6 秒）。這才是選模型該有的依據，而且跟只看點估計得到的印象不一樣。
+
+同一個檢驗說這個專案自己的兩個主張**都成立**：
+
+| 主張 | 指標 | A − B | 95% CI |
+|---|---|---|---|
+| prompt 改動消除了過度拒答 | `false_abstain` | −0.200 | [−0.275, −0.125] |
+| | `answer_recall` | +0.241 | [+0.160, +0.328] |
+| | `hallucinated` | −0.017 | [−0.042, +0.000] — **不**顯著 |
+| 規則層改善檢索 | `precision@all` | +0.631 | [+0.562, +0.697] |
+| | `r_precision` | +0.121 | [+0.081, +0.171] |
+
+注意第三列：prompt 改寫可量測地消除了過度拒答，但**沒有**可量測地改變幻覺率。
+一個對什麼都說「顯著」的工具是不值得跑的。
 
 ## 路由評測
 
