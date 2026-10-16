@@ -1,7 +1,7 @@
 {
   "summary": {
-    "count": 38,
-    "correct": 38,
+    "count": 42,
+    "correct": 42,
     "accuracy": 1.0,
     "per_route": {
       "nearest": {
@@ -30,13 +30,18 @@
         "accuracy": 1.0
       },
       "rag": {
-        "count": 11,
-        "correct": 11,
+        "count": 13,
+        "correct": 13,
         "accuracy": 1.0
       },
       "simulation": {
         "count": 8,
         "correct": 8,
+        "accuracy": 1.0
+      },
+      "unknown_name": {
+        "count": 2,
+        "correct": 2,
         "accuracy": 1.0
       }
     },
@@ -57,10 +62,13 @@
         "out_of_scope": 4
       },
       "rag": {
-        "rag": 11
+        "rag": 13
       },
       "simulation": {
         "simulation": 8
+      },
+      "unknown_name": {
+        "unknown_name": 2
       }
     },
     "routes": [
@@ -70,7 +78,8 @@
       "off_topic",
       "out_of_scope",
       "rag",
-      "simulation"
+      "simulation",
+      "unknown_name"
     ]
   },
   "rows": [
@@ -377,6 +386,38 @@
       "actual": "rag",
       "answered_without_llm": false,
       "note": "含「下雨」但也含「避難所」——離題判定必須看整句，不能只看黑名單命中"
+    },
+    {
+      "query": "頭城國中在哪裡",
+      "simulation": false,
+      "expected": "unknown_name",
+      "actual": "unknown_name",
+      "answered_without_llm": true,
+      "note": "資料裡只有頭城國小；llama3.2:3b 會替不存在的頭城國中編出容量，所以由程式直接回查無"
+    },
+    {
+      "query": "花蓮縣立游泳池還有空位嗎",
+      "simulation": false,
+      "expected": "unknown_name",
+      "actual": "unknown_name",
+      "answered_without_llm": true,
+      "note": "資料裡沒有游泳池這類場所"
+    },
+    {
+      "query": "涙強國小還有空位嗎",
+      "simulation": false,
+      "expected": "rag",
+      "actual": "rag",
+      "answered_without_llm": false,
+      "note": "錯字（濤強國小）不是不存在的場所，照常檢索"
+    },
+    {
+      "query": "原民會館",
+      "simulation": false,
+      "expected": "rag",
+      "actual": "rag",
+      "answered_without_llm": false,
+      "note": "簡稱（台東市原住民文化會館）不能被當成不存在"
     }
   ]
 }
