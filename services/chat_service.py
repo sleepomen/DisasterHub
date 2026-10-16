@@ -10,7 +10,7 @@ import requests
 import config
 from services import query_rules
 from services.metrics import metrics
-from services.shelter_profile import strip_region_tag
+from services.shelter_profile import aliases_of, strip_region_tag
 from services.vector_store import NO_DATA, NO_MATCH, VectorStore
 
 logger = logging.getLogger(__name__)
@@ -77,6 +77,7 @@ ROUTE_COUNTERS = (
     "chat.route.nearest",
     "chat.route.needs_coords",
     "chat.route.no_simulation_advice",
+    "chat.route.unknown_name",
     "chat.route.rag",
     "chat.route.context_error",
 )
@@ -111,6 +112,38 @@ class GenerationTimeout(RuntimeError):
 # 顯示用名稱就是去掉 [REGION] 前綴。直接沿用索引端那一個函式，
 # 不要再維護第二份同樣的正則（原本這個 pattern 在兩個模組各定義一次，而且寫法還不一樣）
 display_name = strip_region_tag
+
+# 不存在的場所最多推薦幾間名稱相近的
+MAX_UNKNOWN_SUGGESTIONS = 3
+
+
+def known_names_of(shelters: list[dict]) -> list[str]:
+    """索引 metadata → 使用者可能用來點名的所有寫法（顯示名稱加別名）"""
+    return [n for m in shelters for n in (display_name(m["name"]), *aliases_of(m["name"]))]
+
+
+def unknown_shelter_reply(name: str, shelters: list[dict]) -> str:
+    """
+    「查無」開頭：evals/gen_metrics.py 的 ABSTAIN_MARKERS 認得這個詞，生成與邊界題評測才會算成正確交代。
+    推薦的是名稱開頭相同的避難所（頭城國中 → 頭城國小、新生高中 → 新生國中 / 新生國小），
+    數字直接取自索引 metadata，不經過模型，所以不會被改寫
+    """
+    stem = name[:2]
+    similar = sorted(
+        (m for m in shelters if display_name(m["name"]).startswith(stem)),
+        key=lambda m: -int(m.get("capacity") or 0),
+    )[:MAX_UNKNOWN_SUGGESTIONS]
+    lines = [f"查無「{name}」這個避難收容場所的資料，本系統的避難所名單裡沒有這一間。"]
+    if similar:
+        lines.append("名稱相近的避難所：")
+        for m in similar:
+            place = f"{m.get('county', '')}{m.get('township', '')}"
+            lines.append(
+                f"- {display_name(m['name'])}：{place}，容量 {m.get('capacity')} 人，剩餘空位 {m.get('remaining')} 人"
+            )
+    example = next((m["township"] for m in similar if m.get("township")), "頭城鎮")
+    lines.append(f"如果要找的是其他地方，可以告訴我鄉鎮名稱，例如「{example}有哪些避難所」。")
+    return "\n".join(lines)
 
 
 def format_people(n) -> str:
@@ -358,6 +391,13 @@ class ChatService:
             metrics.route("no_simulation_advice")
             return None, NO_SIMULATION_REPLY
 
+        # 點名了資料裡沒有的場所（頭城國中、花蓮縣立游泳池）：由程式直接回答沒有這間，不交給模型。
+        # 實測 llama3.2:3b 會替它編出容量與地址，或拿名稱相近的那間來答，連明寫的提示標頭都不照做
+        unknown = self._unknown_shelter(user_message)
+        if unknown is not None:
+            metrics.route("unknown_name")
+            return None, unknown
+
         # 查詢向量要打 Ollama embedding，Ollama 掛掉時這裡會先炸；
         # 要回跟生成失敗一樣的降級訊息，而不是讓 /api/chat 變成 500
         metrics.route("rag")
@@ -369,6 +409,19 @@ class ChatService:
         if context in (NO_DATA, NO_MATCH):
             return None, NO_RELEVANT_REPLY
         return context, None
+
+    def _unknown_shelter(self, user_message: str) -> str | None:
+        """問句點名的場所不在索引裡時回傳固定回覆；在的話（或判斷不了）回 None，照常檢索"""
+        try:
+            shelters = self.vector_store.shelter_metadata()
+        except Exception:
+            # 讀不到索引就不判斷，交給後面的檢索；檢索那一步自己有降級處理
+            logger.exception("讀取避難所名單失敗")
+            return None
+        name = query_rules.unknown_shelter_name(user_message, known_names_of(shelters))
+        if name is None:
+            return None
+        return unknown_shelter_reply(name, shelters)
 
     def build_prompt(self, user_message: str, shelter_context: str) -> str:
         full_context = f"【避難所資料】\n{shelter_context}"
