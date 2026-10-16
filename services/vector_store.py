@@ -267,6 +267,11 @@ class VectorStore:
                 return self.collection.count()
             return len(self.collection.get(where=where, include=[])["ids"])
 
+    def shelter_metadata(self) -> list[dict]:
+        """索引裡每間避難所的 metadata；用來判斷問句點名的場所存不存在，不需要算 embedding"""
+        with self._lock:
+            return list(self.collection.get(include=["metadatas"]).get("metadatas") or [])
+
     def embed_query(self, query: str):
         """
         算查詢向量。故意不持鎖：這一步要打 Ollama embedding，是整條檢索裡最慢的一段
