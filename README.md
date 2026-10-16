@@ -457,9 +457,11 @@ DisasterHub/
 │   ├── run_rag_eval.py         # Runs the retrieval evaluation
 │   ├── metrics.py              # Recall / Precision / MRR / R-Precision / ceilings / bootstrap CIs
 │   ├── compare_runs.py         # Paired bootstrap on the difference between two runs
-│   ├── boundary_eval.jsonl     # Boundary / abstention set (29 questions, four defences)
+│   ├── boundary_eval.jsonl     # Boundary / abstention set (39 questions, five defences)
 │   ├── run_boundary_eval.py    # Reports which layer refused, --generate hits the real LLM
-│   ├── route_eval.jsonl        # Routing test set (34 questions, all six routes)
+│   ├── faithfulness.py         # Counterfactual context perturbations and their scoring
+│   ├── run_faithfulness_eval.py # Does the model follow a changed / incomplete context?
+│   ├── route_eval.jsonl        # Routing test set (42 questions, all eight routes)
 │   ├── run_route_eval.py       # Runs the routing evaluation (no services needed)
 │   ├── run_gen_eval.py         # Runs the generation evaluation (real ChatService + Ollama)
 │   ├── gen_metrics.py          # Answer recall / hallucination / number faithfulness / format rules
@@ -525,8 +527,8 @@ ten negatives were eight out-of-area county names — caught by the rules layer 
 name at all. So the entire empirical basis for `RAG_MAX_DISTANCE = 0.56` was **two questions**, and the
 most likely real-world irrelevant question (one that mentions a local place) was not represented.
 
-`evals/boundary_eval.jsonl` (29 questions) probes exactly those gaps, and `run_boundary_eval.py` reports
-**which of the four defences decided**, with `--generate` running the real LLM for whatever reaches it:
+`evals/boundary_eval.jsonl` (39 questions) probes exactly those gaps, and `run_boundary_eval.py` reports
+**which of the five defences decided**, with `--generate` running the real LLM for whatever reaches it:
 
 ```bash
 docker exec -it disaster_app python evals/run_boundary_eval.py --generate
@@ -536,6 +538,7 @@ docker exec -it disaster_app python evals/run_boundary_eval.py --generate
 |---|---|
 | `rules` | the question names a county outside Yilan / Hualien / Taitung |
 | `off_topic` | the question names a non-shelter topic and the sentence mentions no shelter topic |
+| `unknown_name` | the question names a facility that is not in the shelter list (see [Nonexistent shelters](#nonexistent-shelters)) |
 | `distance` | plain semantic retrieval's nearest document is farther than `RAG_MAX_DISTANCE` |
 | `llm` | nothing caught it; the shelters go into the prompt and only the model can still refuse |
 
@@ -589,15 +592,80 @@ answerable ≤ 0.483) was an artefact of having two negatives. No threshold on t
 off-topic questions from semantic ones — which is the honest limitation to state, rather than tuning the
 number until the small sample looks clean.
 
-The second class is **nonexistent shelters** (「花蓮縣立游泳池還有空位嗎」, 「宜蘭縣立美術館可以避難嗎」):
-these genuinely *are* shelter-topic questions that name a place the data does not contain, so the
-off-topic blocklist correctly does not apply. They need a different mechanism — something like "the
-question names a facility but no shelter name is close enough" — which would touch the `named` retrieval
-path and needs its own evaluation. Left open.
+The second class is **nonexistent shelters**, covered in the next section.
 
-Note that these two are now the only questions whose outcome depends on the model, and generation runs
-at `temperature=0.3`: the swimming-pool question refused on one run and answered on another. Either set
-the temperature to 0 for reproducible numbers or report an average over several runs.
+The three off-topic questions above are now the only scored questions whose outcome depends on the
+model, and generation runs at `temperature=0.3`, so the same question can be refused on one run and
+answered on the next. Either set the temperature to 0 for reproducible numbers or report an average
+over several runs.
+
+### Nonexistent shelters
+
+「花蓮縣立游泳池還有空位嗎」 is a shelter question; it just names a place the data does not contain, so the
+off-topic blocklist rightly ignores it. To see how large this gap is, the set gained ten **near-miss
+names**, each one character away from a real shelter: 新生高中 next to 新生國中, 頭城國中 next to 頭城國小,
+羅東高中 next to 台東高中. For these rows a refusal is not required — recommending a similar shelter is
+helpful — but the reply must say the asked place is not in the data:
+
+| verdict | meaning |
+|---|---|
+| acknowledged | says the place is not in the data (suggesting others afterwards is fine) |
+| fabricated | gives the nonexistent place a capacity, a remaining space, an address or a status |
+| substituted | answers with a different shelter without saying it is a different one |
+
+**Measured on llama3.2:3b (the default model), over three runs: only 2–4 of the 12 acknowledged.** The
+rest looked like ordinary answers:
+
+- 「頭城國中：宜蘭縣頭城鎮，容量 400 人，剩餘空位 400 人」 — 頭城國小's data under a name that does not exist
+- 「知本國中：尚有 400 個空位」, 「礁溪國小：沒有空位」 — an invented status for a place that does not exist
+- asking for 蘇澳國中 returned 「蘇澳國小：容量 320 人」 with no word about the switch
+
+In an evacuation the first two send people to a building that is not a shelter. The counterfactual
+evaluation (`evals/run_faithfulness_eval.py`, which removes the asked shelter from the context) had shown
+the same tendency on qwen2.5:7b: 57.8% of its replies silently answered with another shelter. It never
+invented numbers; the 3B model does.
+
+**A prompt instruction does not fix it.** Six of the twelve went down the filter-miss path, whose header
+already tells the model *"no shelter matches 頭城鎮、國中 … tell the user first that nothing fully
+matches"*. Not one of the six complied. So the decision is no longer left to the model:
+`query_rules.unknown_shelter_name()` extracts a named facility (2–8 characters plus a facility suffix,
+including suffixes the data never has, such as 游泳池 or 美術館), and when it matches nothing in the
+index, `build_context` returns a fixed reply before retrieval and before any generation:
+
+```
+查無「頭城國中」這個避難收容場所的資料，本系統的避難所名單裡沒有這一間。
+名稱相近的避難所：
+- 頭城國小：宜蘭縣頭城鎮，容量 400 人，剩餘空位 400 人
+如果要找的是其他地方，可以告訴我鄉鎮名稱，例如「頭城鎮有哪些避難所」。
+```
+
+The suggestions are the shelters whose names start the same way, with numbers copied from the index
+metadata, so nothing in the reply comes from the model. The hard part is not flagging typos:
+
+| question | decision | why |
+|---|---|---|
+| 頭城國小在哪裡, 宜蘭國民小學 | retrieval | the name or an alias exists |
+| 中興國小 | retrieval | the first part of 中興國小附幼 |
+| 原民會館 | retrieval | an abbreviation: its characters appear in order in 原住民文化會館 |
+| 涙強國小 | retrieval | one character off a real name (濤強國小) → a typo |
+| 中正國少, 花蓮縣立體育官 | retrieval | the suffix is not a facility type, so no name is extracted |
+| 宜蘭的國小, 花蓮市國小, 大型體育館 | retrieval | asks about a category, not a named place |
+| **羅東高中** | **查無** | one character off 台東高中, but 羅東 is itself a place, so it is a different school |
+| **新生高中** | **查無** | same start as 新生國中 but a different facility type |
+
+When the shelter list is empty (the index is not built yet) or cannot be read, the check is skipped and
+the question goes to retrieval as before.
+
+**Result:** all 12 acknowledged, 0 fabricated, 0 substituted. Boundary accuracy went from 25/38 to
+**35/38**; none of the 120 positive questions in `rag_eval.jsonl` is flagged (a test pins this), and the
+routing evaluation is 42/42 with `unknown_name` as a new route.
+
+```
+of the 32 that must be refused: rules 2, off_topic 13, unknown_name 12, distance 2, left to the LLM 3
+```
+
+Still open: typos go through retrieval and the model as before, and the model is not always reliable on
+them — one run answered 涙強國小 with 250 people, while 濤強國小 holds 300. This judge does not check that.
 
 ## Statistical Uncertainty
 
@@ -659,12 +727,14 @@ evaluation measured that decision — and of the 130 questions in `rag_eval.json
 geographic keyword and none contain a simulation keyword, so **four of the six routes had no test
 coverage at all**, including both of the non-RAG paths that make the routing "hybrid".
 
-`evals/route_eval.jsonl` is a separate 34-question set labelled with the route each question *should*
+`evals/route_eval.jsonl` is a separate 42-question set labelled with the route each question *should*
 take, including the state-dependent case ("請給我疏散建議" must go to `no_simulation_advice` with no
-simulation and to `simulation` while one is running). The runner stubs the vector store and the
-repository, because `metrics.route()` is recorded in `build_context` *before* retrieval or the database
-is touched — so it needs no Ollama, no ChromaDB and no PostgreSQL, and it is the one evaluation that can
-run in CI:
+simulation and to `simulation` while one is running). Two routes were added later: `off_topic` and
+`unknown_name` (see [Nonexistent shelters](#nonexistent-shelters)). The runner stubs the vector store and
+the repository, because `metrics.route()` is recorded in `build_context` *before* retrieval or the
+database is touched. The stub returns the real shelter list read from the JSON files in
+`data_for_refuge/`, since `unknown_name` must be decided against real names. So it needs no Ollama, no
+ChromaDB and no PostgreSQL, and it is the one evaluation that can run in CI:
 
 ```bash
 docker exec -it disaster_app python evals/run_route_eval.py
@@ -672,15 +742,17 @@ python evals/run_route_eval.py --min-accuracy 1.0   # what CI runs
 ```
 
 ```
-=== routing eval: 34/34 correct (accuracy 1.000) ===
+=== routing eval: 42/42 correct (accuracy 1.000) ===
 
 expected route           n  correct     acc
 nearest                  4        4   1.000
 needs_coords             4        4   1.000
 no_simulation_advice     4        4   1.000
+off_topic                3        3   1.000
 out_of_scope             4        4   1.000
-rag                     10       10   1.000
+rag                     13       13   1.000
 simulation               8        8   1.000
+unknown_name             2        2   1.000
 ```
 
 The first run scored **33/34** and the one failure was a real defect: "離我最近的收容所是哪一間" is a
@@ -692,8 +764,8 @@ this kind of heuristic invites; the comment on `GEO_GENERIC_WORDS` says so, and 
 pins the case.
 
 **How to read this number honestly:** the question set was written by the author after reading the
-routing code, so 34/34 is a regression harness, not an independent measurement of the router. Its value
-is that all six routes are now covered, the state-dependent case is pinned, and CI fails if the accuracy
+routing code, so 42/42 is a regression harness, not an independent measurement of the router. Its value
+is that all eight routes are now covered, the state-dependent case is pinned, and CI fails if the accuracy
 drops. An independent routing number needs the same thing the retrieval evaluation needs — questions
 written by someone who has not seen the code.
 
@@ -1178,9 +1250,11 @@ DisasterHub/
 │   ├── run_rag_eval.py         # 執行檢索評測
 │   ├── metrics.py              # Recall / Precision / MRR / R-Precision / 天花板 / bootstrap 區間
 │   ├── compare_runs.py         # 兩次結果的配對 bootstrap 差值比較
-│   ├── boundary_eval.jsonl     # 邊界題／拒答題庫（29 題，涵蓋四層防線）
+│   ├── boundary_eval.jsonl     # 邊界題／拒答題庫（39 題，涵蓋五層防線）
 │   ├── run_boundary_eval.py    # 報出是哪一層拒答，--generate 會真的打 LLM
-│   ├── route_eval.jsonl        # 路由測試集（34 題，涵蓋全部六條路由）
+│   ├── faithfulness.py         # 反事實上下文的改動方式與評分
+│   ├── run_faithfulness_eval.py # 資料被改動或不完整時，模型是否照資料回答
+│   ├── route_eval.jsonl        # 路由測試集（42 題，涵蓋全部八條路由）
 │   ├── run_route_eval.py       # 執行路由評測（不需要任何服務）
 │   ├── run_gen_eval.py         # 執行生成評測（真實 ChatService + Ollama）
 │   ├── gen_metrics.py          # 回答召回 / 幻覺 / 數字忠實 / 格式規則
@@ -1245,8 +1319,8 @@ baseline 那一列的 `capacity_stated` 不能跟下面兩列比：這個欄位�
 8 道範圍外縣市名（規則層擋下）加 2 道完全沒有地名的問題。也就是說 `RAG_MAX_DISTANCE = 0.56`
 的全部經驗基礎是**兩題**，而現實中最可能出現的無關問題——帶著本地地名的那種——一題都沒有。
 
-`evals/boundary_eval.jsonl`（29 題）就是針對這些缺口，`run_boundary_eval.py` 會報出
-**是四層防線裡的哪一層決定的**，`--generate` 會對落到模型的題目真的跑一次生成：
+`evals/boundary_eval.jsonl`（39 題）就是針對這些缺口，`run_boundary_eval.py` 會報出
+**是五層防線裡的哪一層決定的**，`--generate` 會對落到模型的題目真的跑一次生成：
 
 ```bash
 docker exec -it disaster_app python evals/run_boundary_eval.py --generate
@@ -1256,6 +1330,7 @@ docker exec -it disaster_app python evals/run_boundary_eval.py --generate
 |---|---|
 | `rules` | 問句點名宜蘭／花蓮／台東以外的縣市 |
 | `off_topic` | 問句點名非避難所的主題，而且整句沒有提到避難主題 |
+| `unknown_name` | 問句點名的場所不在避難所名單裡（見[不存在的場所](#不存在的場所)） |
 | `distance` | 純語意檢索最接近的文件超過 `RAG_MAX_DISTANCE` |
 | `llm` | 以上都沒攔到；避難所資料進了 prompt，只剩模型自己能拒答 |
 
@@ -1304,13 +1379,72 @@ README 原本宣稱的縫隙（無答案 ≥ 0.588、有答案 ≤ 0.483）是�
 這個訊號上沒有任何門檻能把離題問題與語意問題分開——這才是該寫進限制的說法，
 而不是把數字調到讓小樣本看起來乾淨。
 
-第二類是**不存在的避難所**（「花蓮縣立游泳池還有空位嗎」「宜蘭縣立美術館可以避難嗎」）：
-這兩題問的**確實是避難所主題**，只是指名了資料裡沒有的場所，所以離題黑名單本來就不該管它。
-它們需要另一種機制——類似「問句點名了設施，但沒有任何避難所名稱足夠接近」——
-那會動到 `named` 那條檢索路徑，需要自己的評測。留著未解。
+第二類是**不存在的避難所**，見下一節。
 
-另外，這兩題現在是唯一結果取決於模型的題目，而生成跑在 `temperature=0.3`：
-游泳池那題一次跑拒答、另一次回答。要嘛把溫度設 0 拿可重現的數字，要嘛報幾次的平均。
+上面三道離題問題現在是唯一結果取決於模型的計分題，而生成跑在 `temperature=0.3`，
+同一題可能這次拒答、下次回答。要嘛把溫度設 0 拿可重現的數字，要嘛報幾次的平均。
+
+### 不存在的場所
+
+「花蓮縣立游泳池還有空位嗎」問的確實是避難所，只是點名了資料裡沒有的場所，所以離題黑名單本來就不該管它。
+為了量出這個缺口有多大，題庫加了 10 題**名稱只差一字**的場所，每題都跟一間真實避難所只差一個字：
+新生高中對新生國中、頭城國中對頭城國小、羅東高中對台東高中。這些題目不要求拒答——推薦相近的避難所
+反而有幫助——但回覆必須交代「資料裡沒有你問的那間」：
+
+| 判定 | 意思 |
+|---|---|
+| 交代 | 說明資料裡沒有這間（之後推薦別間沒問題） |
+| 編造 | 替不存在的場所講出容量、剩餘空位、地址或狀態 |
+| 換答 | 直接拿別間來答，沒說那是另一間 |
+
+**用線上預設模型 llama3.2:3b 跑三次，12 題只有 2～4 題有交代。** 其他回覆看起來都像正常答案：
+
+- 「頭城國中：宜蘭縣頭城鎮，容量 400 人，剩餘空位 400 人」——把頭城國小的資料安在一個不存在的名稱上
+- 「知本國中：尚有 400 個空位」、「礁溪國小：沒有空位」——替不存在的場所編出狀態
+- 問蘇澳國中，回「蘇澳國小：容量 320 人」，完全沒提換了一間
+
+在避難情境裡，前兩種會讓人跑去一個根本不是避難所的地方。反事實評測
+（`evals/run_faithfulness_eval.py`，把使用者問的那間從資料裡拿掉）在 qwen2.5:7b 上已經看到同樣的傾向：
+57.8% 的回覆默默換成別間回答。差別是 7B 模型從不編數字，3B 模型會。
+
+**靠 prompt 指示修不好。** 12 題裡有 6 題走的是篩選落空的路徑，標頭早就明寫
+「沒有找到符合『頭城鎮、國中』條件的避難所……回答時請先明確告知使用者沒有完全符合條件的避難所」，
+這 6 題一題都沒照做。所以這件事不再交給模型判斷：`query_rules.unknown_shelter_name()` 從問句抽出被點名的場所
+（2～8 個字加上設施字尾，也包括資料裡根本沒有的字尾，例如游泳池、美術館），對不到索引裡任何一間時，
+`build_context` 在檢索與生成之前就直接回固定句子：
+
+```
+查無「頭城國中」這個避難收容場所的資料，本系統的避難所名單裡沒有這一間。
+名稱相近的避難所：
+- 頭城國小：宜蘭縣頭城鎮，容量 400 人，剩餘空位 400 人
+如果要找的是其他地方，可以告訴我鄉鎮名稱，例如「頭城鎮有哪些避難所」。
+```
+
+推薦的是名稱開頭相同的避難所，數字直接取自索引的 metadata，回覆裡沒有任何一個字來自模型。
+真正難的是不能把錯字也當成不存在：
+
+| 問句 | 判定 | 原因 |
+|---|---|---|
+| 頭城國小在哪裡、宜蘭國民小學 | 照常檢索 | 名稱或別名存在 |
+| 中興國小 | 照常檢索 | 是「中興國小附幼」的前半 |
+| 原民會館 | 照常檢索 | 簡稱：字依序都在「原住民文化會館」裡 |
+| 涙強國小 | 照常檢索 | 跟真實名稱（濤強國小）只差一字 → 錯字 |
+| 中正國少、花蓮縣立體育官 | 照常檢索 | 字尾不是設施類型，抽不到名稱 |
+| 宜蘭的國小、花蓮市國小、大型體育館 | 照常檢索 | 問的是一類，不是點名某一間 |
+| **羅東高中** | **查無** | 跟台東高中只差一字，但「羅東」本身是地名，是另一間學校 |
+| **新生高中** | **查無** | 開頭跟新生國中一樣，但設施類型不同 |
+
+避難所名單是空的（索引還沒建好）或讀不到時不做判斷，照原本的方式走檢索。
+
+**結果**：12 題全部交代，編造 0、換答 0。邊界題正確率從 25/38 升到 **35/38**；
+`rag_eval.jsonl` 的 120 道正例沒有任何一題被誤判（有測試釘住），路由評測 42/42，`unknown_name` 是新增的路由。
+
+```
+該拒答的 32 題裡：範圍外規則 2、離題規則 13、不存在場所規則 12、距離門檻 2、落到 LLM 3
+```
+
+還沒解決的：錯字照常走檢索與生成，而模型對錯字不一定可靠——有一次把涙強國小答成 250 人，
+濤強國小實際是 300 人。這套判定沒有檢查這一點。
 
 ## 統計不確定性
 
@@ -1366,10 +1500,12 @@ docker exec -it disaster_app python evals/compare_runs.py   evals/results/gen_qw
 但檢索與生成兩個評測都沒有量過這個判斷本身——而 `rag_eval.jsonl` 的 130 題裡只有 4 題含地理關鍵字、
 0 題含模擬關鍵字，也就是 **6 條路由裡有 4 條完全沒有測試覆蓋**，其中兩條正是讓這個路由「混合」的非 RAG 路徑。
 
-`evals/route_eval.jsonl` 是另一份 34 題的測試集，每題標上它*應該*走的路由，包含狀態相依的案例
+`evals/route_eval.jsonl` 是另一份 42 題的測試集，每題標上它*應該*走的路由，包含狀態相依的案例
 （「請給我疏散建議」在沒有模擬時該走 `no_simulation_advice`，模擬進行中該走 `simulation`）。
+後來又加了兩條路由：`off_topic` 與 `unknown_name`（見[不存在的場所](#不存在的場所)）。
 執行器把向量庫與 repository 換成替身，因為 `metrics.route()` 是在 `build_context` 裡
-「碰到檢索或資料庫之前」就記下的——所以它不需要 Ollama、ChromaDB 或 PostgreSQL，
+「碰到檢索或資料庫之前」就記下的。替身回傳的是從 `data_for_refuge/` JSON 讀出來的真實避難所名單，
+因為 `unknown_name` 必須拿真實名稱來判斷。所以它不需要 Ollama、ChromaDB 或 PostgreSQL，
 是唯一能在 CI 裡跑的評測：
 
 ```bash
@@ -1378,15 +1514,17 @@ python evals/run_route_eval.py --min-accuracy 1.0   # CI 跑的就是這個
 ```
 
 ```
-=== 路由評測：34/34 正確（accuracy 1.000）===
+=== 路由評測：42/42 正確（accuracy 1.000）===
 
 expected route           n  correct     acc
 nearest                  4        4   1.000
 needs_coords             4        4   1.000
 no_simulation_advice     4        4   1.000
+off_topic                3        3   1.000
 out_of_scope             4        4   1.000
-rag                     10       10   1.000
+rag                     13       13   1.000
 simulation               8        8   1.000
+unknown_name             2        2   1.000
 ```
 
 第一次跑是 **33/34**，而那一題是真的缺陷：「離我最近的收容所是哪一間」是純距離問題、句子裡沒有任何地點，
@@ -1395,8 +1533,8 @@ simulation               8        8   1.000
 把這些詞補進黑名單就修好了，而這正是這種啟發式會招來的打地鼠；`GEO_GENERIC_WORDS` 的註解寫明了這點，
 `test_chat_service.py` 也把這個案例釘住。
 
-**這個數字該怎麼誠實地讀**：這份題目是作者讀過路由程式之後寫的，所以 34/34 是回歸護欄，
-不是對路由器的獨立量測。它的價值在於六條路由現在都有覆蓋、狀態相依的案例被釘住、
+**這個數字該怎麼誠實地讀**：這份題目是作者讀過路由程式之後寫的，所以 42/42 是回歸護欄，
+不是對路由器的獨立量測。它的價值在於八條路由現在都有覆蓋、狀態相依的案例被釘住、
 而且正確率掉下來 CI 會失敗。要拿到獨立的路由數字，需要的跟檢索評測一樣——
 請沒看過程式的人出題。
 
