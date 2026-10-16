@@ -47,7 +47,7 @@ def test_swap_changes_only_the_target_line_and_keeps_it_consistent():
     # 剩餘空位 = 新容量 - 目前收容，不然模型會因為矛盾改用別的數字
     assert perturbed["counterfactual"]["remaining"] == new - 100
     old_lines, new_lines = CONTEXT.split("\n"), perturbed["context"].split("\n")
-    changed = [i for i, (a, b) in enumerate(zip(old_lines, new_lines)) if a != b]
+    changed = [i for i, (a, b) in enumerate(zip(old_lines, new_lines, strict=True)) if a != b]
     assert changed == [3]
     assert f"容量 {new} 人" in new_lines[3] and "容量 800 人" not in new_lines[3]
     assert f"尚有 {new - 100} 個空位" in new_lines[3]
