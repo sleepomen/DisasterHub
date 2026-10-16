@@ -36,3 +36,7 @@
 {"query": "宜蘭的超商在哪", "expected_route": "off_topic", "simulation": false, "note": "問的是超商不是避難所"}
 {"query": "羅東的郵局幾點關門", "expected_route": "off_topic", "simulation": false, "note": "同上"}
 {"query": "下雨天要去哪個避難所", "expected_route": "rag", "simulation": false, "note": "含「下雨」但也含「避難所」——離題判定必須看整句，不能只看黑名單命中"}
+{"query": "頭城國中在哪裡", "expected_route": "unknown_name", "simulation": false, "note": "資料裡只有頭城國小；llama3.2:3b 會替不存在的頭城國中編出容量，所以由程式直接回查無"}
+{"query": "花蓮縣立游泳池還有空位嗎", "expected_route": "unknown_name", "simulation": false, "note": "資料裡沒有游泳池這類場所"}
+{"query": "涙強國小還有空位嗎", "expected_route": "rag", "simulation": false, "note": "錯字（濤強國小）不是不存在的場所，照常檢索"}
+{"query": "原民會館", "expected_route": "rag", "simulation": false, "note": "簡稱（台東市原住民文化會館）不能被當成不存在"}

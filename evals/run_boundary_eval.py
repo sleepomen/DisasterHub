@@ -5,9 +5,10 @@ RAG_MAX_DISTANCE=0.56 是在 rag_eval.jsonl 的 10 道負例上調出來的，�
 規則層的範圍外地名擋掉的，也就是距離門檻的經驗基礎只有 2 題。這支腳本拿一組刻意
 繞過規則層的邊界題去問：拒答到底是誰做的，還是根本沒有人做。
 
-四層防線（順序與 build_context 一致）：
-  rules      query_rules 認出範圍外縣市 → 直接拒答
-  off_topic  問的不是避難所（天氣、醫院、補助…）且整句沒有避難主題 → 直接拒答
+五層防線（順序與 build_context 一致）：
+  rules         query_rules 認出範圍外縣市 → 直接拒答
+  off_topic     問的不是避難所（天氣、醫院、補助…）且整句沒有避難主題 → 直接拒答
+  unknown_name  點名了資料裡沒有的場所（頭城國中、花蓮縣立游泳池）→ 程式直接回「查無」並推薦名稱相近的
   distance   純語意檢索的最近距離超過 RAG_MAX_DISTANCE → 回「沒有相關資料」
   llm        以上都沒攔到，資料被送進 prompt，只剩模型自己判斷該不該拒答
 
@@ -21,15 +22,17 @@ import argparse
 import collections
 import json
 import os
+import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
 import config  # noqa: E402
-from evals.gen_metrics import is_abstention  # noqa: E402
+from evals.faithfulness import MISSING_RE  # noqa: E402
+from evals.gen_metrics import build_catalog, is_abstention, mentioned_shelters  # noqa: E402
 from services import query_rules  # noqa: E402
-from services.chat_service import ChatService  # noqa: E402
+from services.chat_service import ChatService, known_names_of  # noqa: E402
 from services.vector_store import NO_DATA, NO_MATCH, VectorStore  # noqa: E402
 
 DEFAULT_CASES = os.path.join(ROOT, "evals", "boundary_eval.jsonl")
@@ -52,6 +55,11 @@ def classify(store: VectorStore, query: str) -> dict:
         return {"layer": "off_topic", "refused": True, "filtered": None,
                 "top1_distance": None, "hits": 0, "matched_place": plan.off_topic}
 
+    unknown = query_rules.unknown_shelter_name(query, known_names_of(store.shelter_metadata()))
+    if unknown:
+        return {"layer": "unknown_name", "refused": True, "filtered": None,
+                "top1_distance": None, "hits": 0, "matched_place": unknown}
+
     where = plan.to_where()
     result = store.plan_retrieve(query, plan)
     hits = result.hits
@@ -67,16 +75,70 @@ def classify(store: VectorStore, query: str) -> dict:
     }
 
 
-def run(cases: list[dict], store: VectorStore, service: ChatService | None) -> list[dict]:
+def is_nonexistent(row: dict) -> bool:
+    return row["kind"].startswith("nonexistent")
+
+
+# 一句話裡出現這些，就是在描述那個場所的狀態，而不是在說「沒有這間」
+DETAIL_RE = re.compile(r"容量|空位|收容|地址|位於|\d")
+NO_SPACE_RE = re.compile(r"(?:沒有|無|尚無)(?:剩餘)?空位")
+
+
+def judge_nonexistent(reply: str, name: str, catalog) -> dict:
+    """
+    問的場所不在資料裡時，「對」的定義跟一般拒答不同：先交代沒有這一間，之後再推薦別間也可以。
+    錯的有三種，嚴重度由高到低：
+      fabricated   替不存在的那間講出容量、空位、地址——「頭城國中：容量 400 人」其實是頭城國小的資料。
+                   以句為單位判斷，「…容量 400 人。目前沒有完全符合的避難所」前一句已經編了，後一句救不回來
+      substituted  沒交代就直接拿別間來答，使用者會以為那就是答案
+      其他         「X：無」這種沒頭沒尾的回覆，沒編也沒換，但也沒告訴使用者資料裡沒有
+    反事實評測（evals/faithfulness.py）量到 qwen2.5:7b 在 57.8% 的漏撈題裡默默換答，
+    這裡驗證線上路徑是不是也一樣。
+    """
+    # 「沒有空位」是在講狀態不是在說沒有這間，先換掉，否則 MISSING_RE 的「沒有」會把它當成交代
+    def says_missing(text: str) -> bool:
+        return bool(MISSING_RE.search(NO_SPACE_RE.sub("空位", text)))
+
+    sentences = [s for s in re.split(r"[\n。]", reply) if name in s]
+    fabricated = any(DETAIL_RE.search(s) and not says_missing(s) for s in sentences)
+    acknowledged = is_abstention(reply) or says_missing(reply)
+    mentioned = mentioned_shelters(reply, catalog)
+    substituted = bool(mentioned) and not acknowledged and not fabricated
+    if fabricated:
+        verdict = "fabricated"
+    elif substituted:
+        verdict = "substituted"
+    elif acknowledged:
+        verdict = "acknowledged"
+    else:
+        verdict = "other"
+    return {
+        "verdict": verdict,
+        "acknowledged": acknowledged,
+        "fabricated": fabricated,
+        "substituted": substituted,
+        "mentioned": mentioned,
+    }
+
+
+def run(cases: list[dict], store: VectorStore, service: ChatService | None, catalog=None) -> list[dict]:
     rows = []
     for case in cases:
         row = {"query": case["query"], "expect": case["expect"], "kind": case["kind"],
                "note": case.get("note", ""), **classify(store, case["query"])}
-        if service is not None and row["layer"] == "llm":
+        # 不存在的場所即使被 unknown_name 層攔下也要看實際回覆：固定回覆本身也得通過同一套判定
+        if service is not None and (row["layer"] == "llm" or is_nonexistent(row)):
             reply = service.chat(case["query"])
             row["reply"] = reply
-            row["llm_abstained"] = is_abstention(reply)
-            row["refused"] = bool(row["llm_abstained"])
+            row["llm_abstained"] = is_abstention(reply) if row["layer"] == "llm" else None
+            if row["layer"] == "llm":
+                row["refused"] = bool(row["llm_abstained"])
+            if is_nonexistent(row) and catalog is not None:
+                row.update(judge_nonexistent(reply, case["name"], catalog))
+                row["refused"] = row["verdict"] == "acknowledged"
+                # 記下模型看到的標頭，才分得出是走了篩選、點名還是純語意路徑
+                context, _ = service.build_context(case["query"])
+                row["context_header"] = (context or "").split("\n", 1)[0]
         rows.append(row)
     return rows
 
@@ -89,6 +151,7 @@ def summarize(rows: list[dict]) -> dict:
     )
     by_layer = collections.Counter(r["layer"] for r in rows)
     should_refuse = [r for r in rows if r["expect"] == "refuse"]
+    judged = [r for r in rows if "verdict" in r]
     return {
         "count": len(rows),
         "scored": len(scored),
@@ -99,10 +162,16 @@ def summarize(rows: list[dict]) -> dict:
             "count": len(should_refuse),
             "by_rules": sum(1 for r in should_refuse if r["layer"] == "rules"),
             "by_off_topic": sum(1 for r in should_refuse if r["layer"] == "off_topic"),
+            "by_unknown_name": sum(1 for r in should_refuse if r["layer"] == "unknown_name"),
             "by_distance": sum(1 for r in should_refuse if r["layer"] == "distance"),
             "left_to_llm": sum(1 for r in should_refuse if r["layer"] == "llm"),
         },
         "threshold": config.RAG_MAX_DISTANCE,
+        "nonexistent": {
+            "count": len(judged),
+            **{v: sum(1 for r in judged if r["verdict"] == v)
+               for v in ("acknowledged", "fabricated", "substituted", "other")},
+        },
     }
 
 
@@ -110,6 +179,7 @@ def print_report(summary: dict, rows: list[dict], generated: bool) -> None:
     s = summary["should_refuse"]
     print(f"\n=== 邊界題與拒答評測（RAG_MAX_DISTANCE={summary['threshold']}）===")
     print(f"該拒答的 {s['count']} 題裡：範圍外規則擋下 {s['by_rules']}、離題規則擋下 {s['by_off_topic']}、"
+          f"不存在場所規則擋下 {s['by_unknown_name']}、"
           f"距離門檻擋下 {s['by_distance']}、落到 LLM {s['left_to_llm']}")
     if generated:
         print(f"計分 {summary['scored']} 題（含 LLM 實際回覆），正確 {summary['correct']}"
@@ -127,6 +197,19 @@ def print_report(summary: dict, rows: list[dict], generated: bool) -> None:
         else:
             mark = "OK" if (r["expect"] == "refuse") == bool(r["refused"]) else "**錯**"
         print(f"{r['query']:<22} {r['kind']:<26} {r['expect']:<6} {r['layer']:<9} {filt:<5} {dist:>7}  {mark}")
+
+    judged = [r for r in rows if "verdict" in r]
+    if judged:
+        n = summary["nonexistent"]
+        print(f"\n資料裡不存在的場所 {n['count']} 題：有交代沒有這間 {n['acknowledged']}、"
+              f"替它編出資料 {n['fabricated']}、沒交代就拿別間來答 {n['substituted']}、其他 {n['other']}")
+        labels = {"acknowledged": "交代", "fabricated": "編造", "substituted": "換答", "other": "其他"}
+        for r in judged:
+            verdict = labels[r["verdict"]]
+            reply = r["reply"].replace("\n", " ")
+            print(f"  [{verdict}] {r['query']}")
+            print(f"     標頭：{r['context_header'][:70]}")
+            print(f"     回覆：{reply[:90]}{'…' if len(reply) > 90 else ''}")
 
     print("\n距離分布（只看沒有 metadata 篩選的題目——距離門檻只在這條路徑上生效）")
     unfiltered = [r for r in rows if r["filtered"] is False and r["top1_distance"] is not None]
@@ -150,7 +233,9 @@ def main() -> int:
     cases = load_cases(args.cases)
     store, docs, _ = build_store(args.embedder, "boundary", "current")
     service = ChatService(vector_store=store, repo=None) if args.generate else None
-    rows = run(cases, store, service)
+    from services.data_fetcher import DataFetcher
+    catalog = build_catalog(DataFetcher().get_shelters())
+    rows = run(cases, store, service, catalog)
     summary = summarize(rows)
     summary["docs"] = docs
     summary["generated"] = bool(args.generate)

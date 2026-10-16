@@ -42,6 +42,13 @@ class StubVectorStore:
     def search(self, query, n_results=None, plan=None):
         return "（路由評測的替身，不是真的檢索結果）"
 
+    def shelter_metadata(self):
+        # 「點名的場所存不存在」要對真實名單判斷，否則每個名稱都會被當成不存在；
+        # 只讀 data_for_refuge/ 的 JSON，不需要 ChromaDB
+        from services.data_fetcher import DataFetcher
+        from services.vector_store import VectorStore
+        return [VectorStore.build_metadata(s) for s in DataFetcher().get_shelters()]
+
 
 class StubRepo:
     def get_nearest_shelters(self, lat, lon, limit=5):
