@@ -648,3 +648,54 @@ def test_off_topic_word_with_shelter_topic_is_not_declined(svc, msg):
     context, early = svc.build_context(msg)
     assert early is None
     assert context is not None
+
+
+SHELTER_META = [
+    {"name": "[YILAN] 頭城國小", "county": "宜蘭縣", "township": "頭城鎮", "capacity": 400, "remaining": 380},
+    {"name": "[TAITUNG] 新生國中", "county": "台東縣", "township": "台東市", "capacity": 600, "remaining": 600},
+    {"name": "[TAITUNG] 新生國小", "county": "台東縣", "township": "台東市", "capacity": 350, "remaining": 350},
+    {"name": "[HUALIEN] 中正國小", "county": "花蓮縣", "township": "花蓮市", "capacity": 400, "remaining": 400},
+]
+
+
+def test_nonexistent_shelter_gets_a_fixed_reply_without_llm(svc):
+    """
+    llama3.2:3b 實測會替不存在的「頭城國中」編出容量與地址（其實是頭城國小的資料），
+    連「請先告知使用者沒有完全符合條件」的標頭都不照做，所以這裡不能進生成
+    """
+    from evals.gen_metrics import is_abstention
+
+    svc.vector_store.shelter_metadata.return_value = SHELTER_META
+    with patch("services.chat_service.requests.post") as post:
+        context, early = svc.build_context("頭城國中在哪裡")
+    assert context is None
+    assert early.startswith("查無「頭城國中」")
+    # 推薦的數字直接取自 metadata，剩餘空位是 380 不是容量 400
+    assert "頭城國小：宜蘭縣頭城鎮，容量 400 人，剩餘空位 380 人" in early
+    assert is_abstention(early)  # 評測要認得這是交代沒有
+    post.assert_not_called()
+    svc.vector_store.search.assert_not_called()
+
+
+def test_unknown_reply_suggests_names_with_the_same_start_largest_first(svc):
+    svc.vector_store.shelter_metadata.return_value = SHELTER_META
+    _, early = svc.build_context("新生高中還有空位嗎")
+    assert early.index("新生國中") < early.index("新生國小")
+    assert "中正國小" not in early
+    # 結尾的範例用推薦那間所在的鄉鎮，問台東的場所不會被叫去問頭城鎮
+    assert "例如「台東市有哪些避難所」" in early
+
+
+def test_existing_and_misspelled_shelters_still_go_to_retrieval(svc):
+    svc.vector_store.shelter_metadata.return_value = SHELTER_META
+    for msg in ("頭城國小在哪裡", "中正國少的容量", "中證國小還有空位嗎"):
+        context, early = svc.build_context(msg)
+        assert early is None and context is not None, msg
+
+
+def test_name_list_failure_falls_through_to_retrieval(svc):
+    # 讀不到名單時寧可照常檢索，也不能把整個問答弄掛或亂回查無
+    svc.vector_store.shelter_metadata.side_effect = RuntimeError("chroma down")
+    context, early = svc.build_context("頭城國中在哪裡")
+    assert early is None and context == "RAG 結果"
+    svc.vector_store.shelter_metadata.side_effect = None

@@ -21,6 +21,9 @@ class StubStore:
         from services.vector_store import NO_MATCH
         return NO_MATCH if self.refuse else "資料"
 
+    def shelter_metadata(self):
+        return [{"name": "[YILAN] 宜蘭國小"}, {"name": "[YILAN] 頭城國小"}]
+
 
 def test_layer_attribution_follows_build_context_order():
     """
@@ -31,6 +34,8 @@ def test_layer_attribution_follows_build_context_order():
     store = StubStore()
     assert classify(store, "高雄的避難所")["layer"] == "rules"
     assert classify(store, "花蓮的天氣")["layer"] == "off_topic"
+    assert classify(store, "頭城國中在哪裡")["layer"] == "unknown_name"
+    assert classify(store, "頭城國小在哪裡")["layer"] == "llm"
     assert classify(store, "宜蘭有哪些避難所")["layer"] == "llm"
     assert classify(StubStore(refuse=True), "避難所有提供飲水嗎")["layer"] == "distance"
 
@@ -72,3 +77,41 @@ def test_results_file_matches_the_case_file_if_present():
         return
     data = json.loads(out.read_text(encoding="utf-8"))
     assert data["summary"]["count"] == len(load_cases(CASES_PATH))
+
+
+def test_nonexistent_shelter_is_judged_by_acknowledgement_not_by_abstain_markers():
+    """
+    問不存在的場所時，「資料中沒有新生高中，最接近的是新生國中…」是對的回答，
+    但它不含 ABSTAIN_MARKERS；反過來直接答「新生國中：容量 600 人」看起來很正常，其實是換答
+    """
+    from evals.gen_metrics import build_catalog
+    from evals.run_boundary_eval import judge_nonexistent
+    from models.shelter import Shelter
+
+    catalog = build_catalog([Shelter("[TAITUNG] 新生國中", 600, 22.7, 121.1, 0, "台東縣台東市")])
+
+    def verdict(reply):
+        return judge_nonexistent(reply, "新生高中", catalog)["verdict"]
+
+    assert verdict("資料中沒有新生高中，最接近的是新生國中，容量 600 人。") == "acknowledged"
+    assert verdict("新生國中：台東市，容量 600 人，剩餘空位 600 人。") == "substituted"
+    # 「X：無」既沒交代也沒換答，兩邊都不算對
+    assert verdict("新生高中：無") == "other"
+
+
+def test_describing_the_nonexistent_shelter_is_fabrication_even_with_a_disclaimer_later():
+    """
+    llama3.2:3b 實測：「頭城國中：宜蘭縣頭城鎮，容量 400 人。目前沒有完全符合條件的避難所。」
+    400 人是頭城國小的資料。後面那句交代救不回前面已經編好的一筆，不能算對
+    """
+    from evals.gen_metrics import build_catalog
+    from evals.run_boundary_eval import judge_nonexistent
+
+    reply = "頭城國中：宜蘭縣頭城鎮，容量 400 人，剩餘空位 400 人。\n目前沒有完全符合「頭城鎮、國中」條件的避難所。"
+    assert judge_nonexistent(reply, "頭城國中", build_catalog([]))["verdict"] == "fabricated"
+    # 狀態也算：說它「無空位」一樣是替不存在的場所編出資料
+    assert judge_nonexistent("礁溪國小：無空位。", "礁溪國小", build_catalog([]))["verdict"] == "fabricated"
+    # 「沒有空位」裡的「沒有」不是在說沒有這間（實測第二輪就被這樣誤判成交代）
+    assert judge_nonexistent("知本國中：沒有空位。", "知本國中", build_catalog([]))["verdict"] == "fabricated"
+    # 句子本身就在說沒有這間 → 不是編造
+    assert judge_nonexistent("東海高中：無資料", "東海高中", build_catalog([]))["verdict"] == "acknowledged"

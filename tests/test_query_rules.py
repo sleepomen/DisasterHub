@@ -191,3 +191,63 @@ def test_off_topic_needs_the_whole_sentence():
     # 範圍外縣市優先回報涵蓋範圍，比較精確
     plan = analyze("高雄的天氣")
     assert plan.out_of_scope == "高雄" and plan.off_topic is None
+
+
+# 真實名單的一部分，涵蓋各種相近名稱的陷阱
+KNOWN = [
+    "頭城國小", "新生國中", "新生國小", "台東高中", "台東女中", "濤強國小", "中正國小",
+    "台東縣立體育館", "台東市原住民文化會館", "原住民文化會館", "中興國小附幼", "宜蘭國小", "宜蘭國民小學",
+]
+
+
+@pytest.mark.parametrize("query,name", [
+    ("頭城國中在哪裡", "頭城國中"),
+    ("請問頭城國中", "頭城國中"),
+    ("新生高中還有空位嗎", "新生高中"),           # 字首一樣、字尾不同 → 不同的學校
+    ("羅東高中的容量多少", "羅東高中"),           # 跟台東高中只差一字，但「羅東」是地名，不是錯字
+    ("花蓮縣立游泳池還有空位嗎", "花蓮縣立游泳池"),  # 資料裡根本沒有這類場所
+])
+def test_unknown_shelter_name_is_detected(query, name):
+    from services.query_rules import unknown_shelter_name
+    assert unknown_shelter_name(query, KNOWN) == name
+
+
+@pytest.mark.parametrize("query", [
+    "頭城國小在哪裡",        # 存在
+    "宜蘭國民小學",          # 別名
+    "中興國小",              # 「中興國小附幼」的前半
+    "原民會館",              # 簡稱：字依序都在「原住民文化會館」裡
+    "涙強國小還有空位嗎",    # 錯一個字，字首不是地名 → 錯字，照常檢索
+    "中正國少的容量",        # 字尾不是合法類型 → 抽不到名稱
+    "宜蘭的國小有哪些",      # 問一類，不是點名
+    "宜蘭有哪些國小",
+    "花蓮市國小",            # 字首是鄉鎮全名 → 問一類
+    "大型體育館",
+    "最大的體育館",
+])
+def test_known_typo_abbreviation_and_category_questions_are_not_flagged(query):
+    from services.query_rules import unknown_shelter_name
+    assert unknown_shelter_name(query, KNOWN) is None
+
+
+def test_unknown_shelter_check_is_off_without_a_name_list():
+    # 索引還沒建好時名單是空的；這時不能把每個名稱都說成不存在
+    from services.query_rules import unknown_shelter_name
+    assert unknown_shelter_name("頭城國中在哪裡", []) is None
+
+
+def test_no_positive_retrieval_question_is_flagged_as_unknown():
+    """130 題檢索題庫的正例全部是真實存在的避難所，一題都不能被攔成「查無」"""
+    import json
+    import pathlib
+
+    from services.chat_service import known_names_of
+    from services.data_fetcher import DataFetcher
+    from services.query_rules import unknown_shelter_name
+    from services.vector_store import VectorStore
+
+    names = known_names_of([VectorStore.build_metadata(s) for s in DataFetcher().get_shelters()])
+    path = pathlib.Path(__file__).resolve().parent.parent / "evals" / "rag_eval.jsonl"
+    cases = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    flagged = [c["query"] for c in cases if c["relevant"] and unknown_shelter_name(c["query"], names)]
+    assert flagged == []
