@@ -162,8 +162,12 @@
     // ── Leaflet ──────────────────────────────────────────────
     const map = L.map('map', { center: [23.9, 121.6], zoom: 9, zoomControl: true });
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/attributions">CARTO</a>',
+    // 底圖用 OpenStreetMap 官方圖磚，深色是 style.css 對 .leaflet-tile-pane 套濾鏡轉出來的。
+    // 原本用 CARTO dark_all，但 CARTO 改成要 API key，沒帶 key 的請求一律回
+    // 「API KEY REQUIRED」浮水印圖磚，整張地圖會被浮水印鋪滿。OSM 不用帳號，
+    // 但使用政策要求保留下面的 attribution
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 19,
     }).addTo(map);
 

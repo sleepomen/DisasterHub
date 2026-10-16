@@ -1,6 +1,8 @@
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
 
         :root {
+            /* 左側面板寬度；圖例與縮放按鈕要排在它右邊，三處共用這個值才不會各改各的 */
+            --sidebar-w: 292px;
             --bg: #171c2b;
             --bg-deep: #10141f;
             --panel: rgba(26, 32, 51, 0.9);
@@ -108,7 +110,9 @@
 
         #map-panel { position: absolute; inset: 0; z-index: 1; }
         #map { width: 100%; height: 100%; background: var(--bg-deep); }
-        .leaflet-tile-pane { filter: brightness(1.5) contrast(0.9) saturate(1.2) hue-rotate(-8deg); }
+        /* OSM 是亮色圖磚：反相後轉回原本的色相（水仍是藍、綠地仍是綠），再壓暗、降飽和貼近介面的深色。
+           只套在圖磚層，避難所標記與模擬範圍圈在別的 pane，不受影響 */
+        .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.85) saturate(0.5); }
 
         #crowd-canvas {
             position: absolute;
@@ -141,7 +145,7 @@
         /* 左側控制面板 */
         .sidebar {
             top: 16px; left: 16px;
-            width: 292px;
+            width: var(--sidebar-w);
             max-height: calc(100% - 32px);
             display: flex;
             flex-direction: column;
@@ -341,6 +345,8 @@
         }
 
         /* Leaflet 深色化 */
+        /* Leaflet 預設把縮放按鈕放在地圖左上角，正好被左側面板蓋住；移到面板右邊 */
+        .leaflet-top.leaflet-left { left: calc(var(--sidebar-w) + 18px); }
         .leaflet-control-zoom { border: none !important; box-shadow: var(--shadow) !important; }
         .leaflet-control-zoom a {
             background: var(--panel-solid) !important;
@@ -424,10 +430,11 @@
         }
         #app-error-retry:hover { background: var(--accent-dim); }
 
-        /* 圖例 */
+        /* 圖例：放在左側面板的右邊。以前跟面板同樣貼左，視窗不夠高時面板往下長、圖例往上疊，
+           兩者會重疊（面板在上層，圖例第一項被蓋掉） */
         .legend {
             position: absolute;
-            bottom: 18px; left: 16px;
+            bottom: 18px; left: calc(16px + var(--sidebar-w) + 12px);
             background: var(--panel);
             backdrop-filter: blur(18px) saturate(140%);
             border: 1px solid var(--line);
@@ -627,7 +634,7 @@
         .btn-ghost:hover { color: var(--text); }
 
         @media (max-width: 1100px) {
-            .sidebar { width: 256px; }
+            :root { --sidebar-w: 256px; }
             #chat-panel { width: 264px; }
             .nav-stats { display: none; }
         }
