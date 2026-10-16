@@ -299,3 +299,79 @@ def out_of_scope_reply(place: str) -> str:
         f"本系統只涵蓋宜蘭、花蓮、台東三縣的避難所資料，目前沒有{place}的避難所資訊。"
         "請改問東部地區的避難所，或洽當地政府的災害應變中心。"
     )
+
+
+# 問句點名了一個「看起來是場所」的名稱：字首 2～8 個字＋設施字尾。字首排除助詞與口語詞，
+# 「請問頭城國中」才會抽到「頭城國中」，「宜蘭的國小」「有哪些國中」則抽不到任何名稱。
+# 字尾也收資料裡沒有的類型（游泳池、美術館…）：問到這些一定是不存在的場所
+NAMED_FACILITY_SUFFIXES = sorted([
+    "國民小學", "國民中學", "高級中學", "綜合運動場", "綜合體育場", "運動中心", "活動中心", "文化會館",
+    "國小", "國中", "高中", "女中", "小學", "體育館", "體育場", "運動場", "圖書館", "公所", "會館",
+    "游泳池", "美術館", "博物館", "文化中心",
+], key=len, reverse=True)
+_PREFIX_CHAR = r"(?:(?![的有是在與和或及個間位該這那此各等某其哪些什麼幾最附近我你要想問請找去到往從離跟靠])[一-鿿])"
+NAMED_FACILITY_RE = re.compile(rf"({_PREFIX_CHAR}{{2,8}})({'|'.join(NAMED_FACILITY_SUFFIXES)})")
+
+# 字首是這些時是在問「一類」場所，不是點名某一間：「大型體育館」「東部國小」
+GENERIC_PREFIXES = {"大型", "中型", "小型", "東部", "所有", "全部", "其他", "一般", "任何", "公立", "縣立", "市立", "鄉立", "鎮立"}
+COUNTY_NAMES = {"宜蘭縣", "花蓮縣", "台東縣", "臺東縣"}
+
+
+def _edit_distance(a: str, b: str) -> int:
+    prev = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        cur = [i]
+        for j, cb in enumerate(b, 1):
+            cur.append(min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (ca != cb)))
+        prev = cur
+    return prev[-1]
+
+
+def _is_subsequence(short: str, long: str) -> bool:
+    it = iter(long)
+    return all(ch in it for ch in short)
+
+
+def _is_place(prefix: str, stems_too: bool) -> bool:
+    if prefix in REGION_ALIASES or prefix in COUNTY_NAMES or prefix in known_townships():
+        return True
+    return stems_too and any(prefix == name[:-1] for name in known_townships())
+
+
+def unknown_shelter_name(query: str, known_names: list[str]) -> str | None:
+    """
+    問句點名的場所不在資料裡時，回傳那個名稱；否則回 None。
+
+    邊界題評測（llama3.2:3b）：問「頭城國中」「卑南國小」這種不存在、但跟真實避難所只差一兩個字的名稱，
+    12 題只有 2～4 題會交代「資料裡沒有」，其餘不是替它編出容量與地址，就是直接拿頭城國小來答。
+    篩選落空時 prompt 標頭明寫「請先告知使用者沒有完全符合條件的避難所」，那 6 題一題都沒照做，
+    所以這件事不能交給模型判斷，由程式先攔下。
+
+    錯字與「不同場所」要分開：
+      - 字尾不是合法的設施類型（中正國少、體育官）→ 抽不到名稱，照常走檢索
+      - 字尾相同、字首只差一個字（涙強國小 vs 濤強國小）→ 當成錯字，照常走檢索
+      - 但字首本身是地名時（羅東高中 vs 台東高中）就是另一個地方，不是錯字
+      - 字尾不同（新生高中 vs 新生國中）→ 不同的學校
+    known_names 為空（索引還沒建好）時不判斷，免得把每個名稱都說成不存在。
+    """
+    if not known_names:
+        return None
+    if any(name in query for name in known_names):
+        return None
+    for m in NAMED_FACILITY_RE.finditer(query):
+        prefix, suffix = m.group(1), m.group(2)
+        fragment = prefix + suffix
+        if prefix in GENERIC_PREFIXES or _is_place(prefix, stems_too=False):
+            continue
+        # 「中興國小」是「中興國小附幼」的前半，指的是同一間
+        if any(fragment in name for name in known_names):
+            continue
+        place_prefix = _is_place(prefix, stems_too=True)
+        same_suffix = [name[: -len(suffix)] for name in known_names if name.endswith(suffix)]
+        typo = not place_prefix and any(_edit_distance(prefix, known) <= 1 for known in same_suffix)
+        # 簡稱：「原民會館」的字依序都在「原住民文化會館」裡
+        abbreviation = any(_is_subsequence(prefix, known) for known in same_suffix)
+        if typo or abbreviation:
+            continue
+        return fragment
+    return None
