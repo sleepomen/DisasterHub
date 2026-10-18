@@ -122,6 +122,11 @@ def known_names_of(shelters: list[dict]) -> list[str]:
     return [n for m in shelters for n in (display_name(m["name"]), *aliases_of(m["name"]))]
 
 
+def typo_note(written: str, real: str) -> str:
+    # 不用「沒有」「查無」：ABSTAIN_MARKERS 認得那些詞，這裡是有答案的，不能被評測算成拒答
+    return f"（找不到「{written}」，以下是名稱最接近的「{real}」的資料）"
+
+
 def unknown_shelter_reply(name: str, shelters: list[dict]) -> str:
     """
     「查無」開頭：evals/gen_metrics.py 的 ABSTAIN_MARKERS 認得這個詞，生成與邊界題評測才會算成正確交代。
@@ -370,6 +375,14 @@ class ChatService:
             metrics.route("off_topic")
             return None, query_rules.off_topic_reply(plan.off_topic)
 
+        # 錯一個字的避難所名稱（涙強國小）先改成真實名稱再檢索，才會走「點名」那條路、只送那一間；
+        # 不改的話只剩「國小」篩選，模型要從一整串學校裡自己猜，實測會把容量答錯。
+        # chat_stream 已經改過時這裡找不到錯字，不會重複處理
+        corrected, _ = self.correct_typo(user_message)
+        if corrected != user_message:
+            user_message = corrected
+            plan = query_rules.analyze(user_message)
+
         if self._is_explicit_simulation_query(user_message):
             metrics.route("simulation")
             return self._get_simulation_context()
@@ -410,13 +423,34 @@ class ChatService:
             return None, NO_RELEVANT_REPLY
         return context, None
 
+    def _shelter_metadata(self) -> list[dict] | None:
+        try:
+            return self.vector_store.shelter_metadata()
+        except Exception:
+            # 讀不到索引就不做名稱判斷，交給後面的檢索；檢索那一步自己有降級處理
+            logger.exception("讀取避難所名單失敗")
+            return None
+
+    def correct_typo(self, user_message: str) -> tuple[str, str | None]:
+        """
+        問句點名的避難所錯一個字、而且只像某一間時，回傳 (改成真實名稱的問句, 給使用者看的說明)；
+        沒有錯字回 (原問句, None)。說明由程式加在回覆開頭，不交給模型決定要不要提
+        """
+        shelters = self._shelter_metadata()
+        if not shelters:
+            return user_message, None
+        forms = {form: display_name(m["name"]) for m in shelters for form in (display_name(m["name"]), *aliases_of(m["name"]))}
+        found = query_rules.typo_correction(user_message, list(forms))
+        if found is None:
+            return user_message, None
+        written, form = found
+        real = forms[form]
+        return user_message.replace(written, real), typo_note(written, real)
+
     def _unknown_shelter(self, user_message: str) -> str | None:
         """問句點名的場所不在索引裡時回傳固定回覆；在的話（或判斷不了）回 None，照常檢索"""
-        try:
-            shelters = self.vector_store.shelter_metadata()
-        except Exception:
-            # 讀不到索引就不判斷，交給後面的檢索；檢索那一步自己有降級處理
-            logger.exception("讀取避難所名單失敗")
+        shelters = self._shelter_metadata()
+        if shelters is None:
             return None
         name = query_rules.unknown_shelter_name(user_message, known_names_of(shelters))
         if name is None:
@@ -448,6 +482,8 @@ class ChatService:
         呼叫端只負責把 text 接起來或往下送。
         """
         started = time.monotonic()
+        # 錯字在這裡就改掉：prompt 裡的問題也要是真實名稱，模型才不會照抄錯字回答
+        user_message, typo = self.correct_typo(user_message)
         try:
             shelter_context, early_reply = self.build_context(user_message)
         except Exception:
@@ -461,10 +497,12 @@ class ChatService:
             # 檢索層就答得出來（範圍外、要座標、沒有相關資料），不必打 LLM，一次給完
             metrics.incr("chat.answer.early_reply")
             self._log_summary("early_reply", "ok", 0, len(early_reply), started)
-            yield {"type": "delta", "text": early_reply}
+            yield {"type": "delta", "text": f"{typo}\n{early_reply}" if typo else early_reply}
             return
 
         metrics.incr("chat.answer.generated")
+        if typo:
+            yield {"type": "delta", "text": typo + "\n"}
         prompt = self.build_prompt(user_message, shelter_context)
         reply_chars = 0
         try:
