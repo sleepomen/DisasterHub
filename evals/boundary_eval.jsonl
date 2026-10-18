@@ -16,10 +16,10 @@
 {"query": "宜蘭的國小有哪些", "expect": "refuse_or_answer", "kind": "ambiguous", "note": "字面是問學校，但在避難所系統裡合理解讀成避難所；標成兩者皆可，不計入正確率"}
 {"query": "花蓮縣立游泳池還有空位嗎", "expect": "refuse", "kind": "nonexistent_shelter", "name": "花蓮縣立游泳池", "note": "聽起來像避難所但資料裡沒有這一間"}
 {"query": "宜蘭縣立美術館可以避難嗎", "expect": "refuse", "kind": "nonexistent_shelter", "name": "宜蘭縣立美術館", "note": "同上"}
-{"query": "濤強國小還有空位嗎", "expect": "answer", "kind": "correct_name", "note": "對照組：正確名稱必須答得出來"}
-{"query": "涙強國小還有空位嗎", "expect": "answer", "kind": "misspelled_name", "note": "錯一個字；生成評測觀察到模型自己也會寫成涙強"}
-{"query": "中正國少的容量", "expect": "answer", "kind": "misspelled_name", "note": "錯一個字"}
-{"query": "花蓮縣立體育官", "expect": "answer", "kind": "misspelled_name", "note": "館寫成官"}
+{"query": "濤強國小還有空位嗎", "expect": "answer", "kind": "correct_name", "shelter": "[HUALIEN] 濤強國小", "note": "對照組：正確名稱必須答得出來"}
+{"query": "涙強國小還有空位嗎", "expect": "answer", "kind": "misspelled_name", "shelter": "[HUALIEN] 濤強國小", "note": "錯一個字；生成評測觀察到模型自己也會寫成涙強"}
+{"query": "中正國少的容量", "expect": "answer", "kind": "misspelled_name", "shelter": "[HUALIEN] 中正國小", "note": "錯一個字"}
+{"query": "花蓮縣立體育官", "expect": "answer", "kind": "misspelled_name", "shelter": "[HUALIEN] 花蓮縣立體育館", "note": "館寫成官"}
 {"query": "宜蘭有哪些避難所", "expect": "answer", "kind": "normal", "note": "對照組：正常列舉題"}
 {"query": "避難所有提供飲水嗎", "expect": "answer", "kind": "normal", "note": "對照組：語意題"}
 {"query": "怎麼聯絡里長", "expect": "refuse", "kind": "off_topic_unlisted", "note": "離題但不在黑名單也沒有地名 → 只剩距離門檻；0.570 剛好擋下"}
@@ -37,3 +37,7 @@
 {"query": "知本國中還有空位嗎", "expect": "refuse", "kind": "nonexistent_near_name", "name": "知本國中", "note": "有知本國小"}
 {"query": "羅東高中的容量多少", "expect": "refuse", "kind": "nonexistent_near_name", "name": "羅東高中", "note": "有羅東國小"}
 {"query": "台東縣立游泳池還有空位嗎", "expect": "refuse", "kind": "nonexistent_near_name", "name": "台東縣立游泳池", "note": "有台東縣立體育館、體育場"}
+{"query": "馬籃國小的容量多少", "expect": "answer", "kind": "misspelled_name", "shelter": "[TAITUNG] 馬蘭國小", "note": "錯一字，只像馬蘭國小一間 → 改成真實名稱再檢索"}
+{"query": "康落國小還有空位嗎", "expect": "answer", "kind": "misspelled_name", "shelter": "[TAITUNG] 康樂國小", "note": "同上"}
+{"query": "澳化國小在哪裡", "expect": "answer", "kind": "misspelled_name", "shelter": "[YILAN] 澳花國小", "note": "同上"}
+{"query": "清講國小可以收幾個人", "expect": "answer", "kind": "misspelled_name", "shelter": "[YILAN] 清溝國小", "note": "同上"}
