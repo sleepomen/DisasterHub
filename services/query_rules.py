@@ -338,9 +338,16 @@ def _is_place(prefix: str, stems_too: bool) -> bool:
     return stems_too and any(prefix == name[:-1] for name in known_townships())
 
 
-def unknown_shelter_name(query: str, known_names: list[str]) -> str | None:
+@dataclass
+class NamedFacility:
+    """問句點名的場所跟避難所名單比對的結果"""
+    fragment: str             # 問句裡的寫法
+    typo_of: str | None = None  # 錯一個字時，對應到的真實名稱（或別名）；None 代表資料裡沒有這間
+
+
+def match_named_facility(query: str, known_names: list[str]) -> NamedFacility | None:
     """
-    問句點名的場所不在資料裡時，回傳那個名稱；否則回 None。
+    問句點名了名單裡沒有的場所時回傳結果；名稱存在、問的是一類、或抽不到名稱時回 None。
 
     邊界題評測（llama3.2:3b）：問「頭城國中」「卑南國小」這種不存在、但跟真實避難所只差一兩個字的名稱，
     12 題只有 2～4 題會交代「資料裡沒有」，其餘不是替它編出容量與地址，就是直接拿頭城國小來答。
@@ -349,7 +356,7 @@ def unknown_shelter_name(query: str, known_names: list[str]) -> str | None:
 
     錯字與「不同場所」要分開：
       - 字尾不是合法的設施類型（中正國少、體育官）→ 抽不到名稱，照常走檢索
-      - 字尾相同、字首只差一個字（涙強國小 vs 濤強國小）→ 當成錯字，照常走檢索
+      - 字尾相同、字首只差一個字，而且只對得到一間（涙強國小 vs 濤強國小）→ 錯字，typo_of 指向那間
       - 但字首本身是地名時（羅東高中 vs 台東高中）就是另一個地方，不是錯字
       - 字尾不同（新生高中 vs 新生國中）→ 不同的學校
     known_names 為空（索引還沒建好）時不判斷，免得把每個名稱都說成不存在。
@@ -366,12 +373,31 @@ def unknown_shelter_name(query: str, known_names: list[str]) -> str | None:
         # 「中興國小」是「中興國小附幼」的前半，指的是同一間
         if any(fragment in name for name in known_names):
             continue
-        place_prefix = _is_place(prefix, stems_too=True)
-        same_suffix = [name[: -len(suffix)] for name in known_names if name.endswith(suffix)]
-        typo = not place_prefix and any(_edit_distance(prefix, known) <= 1 for known in same_suffix)
+        same_suffix = [name for name in known_names if name.endswith(suffix)]
         # 簡稱：「原民會館」的字依序都在「原住民文化會館」裡
-        abbreviation = any(_is_subsequence(prefix, known) for known in same_suffix)
-        if typo or abbreviation:
+        if any(_is_subsequence(prefix, name[: -len(suffix)]) for name in same_suffix):
             continue
-        return fragment
+        # 字首是地名就是另一個地方，不是錯字：「羅東高中」不是「台東高中」，
+        # 「台中體育館」「屏東縣立體育館」更不能被改成台東的那間——它們該由範圍外規則拒答
+        other_place = _is_place(prefix, stems_too=True) or prefix.startswith(tuple(OUT_OF_SCOPE_PLACES))
+        if not other_place:
+            close =[name for name in same_suffix if _edit_distance(prefix, name[: -len(suffix)]) <= 1]
+            if len(close) == 1:
+                return NamedFacility(fragment, typo_of=close[0])
+            if close:
+                # 同時像好幾間：猜哪一間都可能猜錯，交給檢索
+                continue
+        return NamedFacility(fragment)
     return None
+
+
+def unknown_shelter_name(query: str, known_names: list[str]) -> str | None:
+    """問句點名的場所不在資料裡（而且不是錯字）時回傳那個名稱"""
+    found = match_named_facility(query, known_names)
+    return found.fragment if found and found.typo_of is None else None
+
+
+def typo_correction(query: str, known_names: list[str]) -> tuple[str, str] | None:
+    """問句點名的場所跟某間避難所只差一個字時，回傳 (問句裡的寫法, 真實名稱)"""
+    found = match_named_facility(query, known_names)
+    return (found.fragment, found.typo_of) if found and found.typo_of else None
