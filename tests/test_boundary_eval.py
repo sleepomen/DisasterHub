@@ -115,3 +115,24 @@ def test_describing_the_nonexistent_shelter_is_fabrication_even_with_a_disclaime
     assert judge_nonexistent("知本國中：沒有空位。", "知本國中", build_catalog([]))["verdict"] == "fabricated"
     # 句子本身就在說沒有這間 → 不是編造
     assert judge_nonexistent("東海高中：無資料", "東海高中", build_catalog([]))["verdict"] == "acknowledged"
+
+
+def test_named_answer_must_name_the_shelter_and_use_its_numbers():
+    """錯字題實際出過的錯：把涙強國小答成 250 人，濤強國小實際是 300。只看「沒拒答」會算對"""
+    from evals.gen_metrics import build_catalog
+    from evals.run_boundary_eval import judge_named_answer, row_correct
+    from models.shelter import Shelter
+
+    target = Shelter("[HUALIEN] 濤強國小", 300, 23.9, 121.6, 0, "花蓮縣花蓮市")
+    other = Shelter("[HUALIEN] 明禮國小", 250, 23.9, 121.6, 0, "花蓮縣花蓮市")
+    catalog = build_catalog([target, other])
+
+    ok = judge_named_answer("（找不到「涙強國小」，以下是名稱最接近的「濤強國小」的資料）\n濤強國小：容量 300 人", target, catalog)
+    assert ok["answer_ok"]
+    wrong_number = judge_named_answer("濤強國小：容量 250 人", target, catalog)
+    assert not wrong_number["answer_ok"] and wrong_number["wrong_numbers"] == [250]
+    wrong_shelter = judge_named_answer("明禮國小：容量 250 人", target, catalog)
+    assert not wrong_shelter["named_ok"]
+
+    row = {"expect": "answer", "refused": False, **wrong_number}
+    assert not row_correct(row)
