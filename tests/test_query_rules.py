@@ -251,3 +251,26 @@ def test_no_positive_retrieval_question_is_flagged_as_unknown():
     cases = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
     flagged = [c["query"] for c in cases if c["relevant"] and unknown_shelter_name(c["query"], names)]
     assert flagged == []
+
+
+@pytest.mark.parametrize("query,expected", [
+    ("涙強國小還有空位嗎", ("涙強國小", "濤強國小")),
+    ("中政國小", ("中政國小", "中正國小")),
+])
+def test_one_character_typo_maps_to_the_only_close_shelter(query, expected):
+    from services.query_rules import typo_correction, unknown_shelter_name
+    assert typo_correction(query, KNOWN) == expected
+    assert unknown_shelter_name(query, KNOWN) is None
+
+
+@pytest.mark.parametrize("query", [
+    "中強國小",          # 跟濤強國小、中正國小都只差一字：猜哪間都可能錯，不改
+    "羅東高中",          # 字首是地名 → 另一間學校，不是台東高中的錯字
+    "台中體育館",        # 範圍外縣市，絕不能被改成台東體育館
+    "屏東縣立體育館",
+    "頭城國小在哪裡",    # 名稱正確，沒什麼好改
+])
+def test_typo_correction_leaves_ambiguous_and_other_places_alone(query):
+    from services.query_rules import typo_correction
+    names = KNOWN + ["台東體育館"]
+    assert typo_correction(query, names) is None
