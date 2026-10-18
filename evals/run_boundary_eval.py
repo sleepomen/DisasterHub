@@ -30,7 +30,13 @@ sys.path.insert(0, ROOT)
 
 import config  # noqa: E402
 from evals.faithfulness import MISSING_RE  # noqa: E402
-from evals.gen_metrics import build_catalog, is_abstention, mentioned_shelters  # noqa: E402
+from evals.gen_metrics import (  # noqa: E402
+    MIN_CHECKED_NUMBER,
+    build_catalog,
+    integers_in,
+    is_abstention,
+    mentioned_shelters,
+)
 from services import query_rules  # noqa: E402
 from services.chat_service import ChatService, known_names_of  # noqa: E402
 from services.vector_store import NO_DATA, NO_MATCH, VectorStore  # noqa: E402
@@ -121,7 +127,33 @@ def judge_nonexistent(reply: str, name: str, catalog) -> dict:
     }
 
 
-def run(cases: list[dict], store: VectorStore, service: ChatService | None, catalog=None) -> list[dict]:
+def judge_named_answer(reply: str, shelter, catalog) -> dict:
+    """
+    點名某一間（含錯字）的題目：回覆最先講到的必須是那一間，而且回覆裡的數字只能是它的容量或剩餘空位。
+    只看「有沒有拒答」的話，把涙強國小答成 250 人（實際 300）也會算對——那正是錯字題實際出過的錯
+    """
+    mentioned = mentioned_shelters(reply, catalog)
+    allowed = {shelter.capacity, shelter.remaining}
+    numbers = sorted(n for n in integers_in(reply) if n >= MIN_CHECKED_NUMBER)
+    wrong_numbers = [n for n in numbers if n not in allowed]
+    named_ok = bool(mentioned) and mentioned[0] == shelter.name
+    return {
+        "target": shelter.name,
+        "named_ok": named_ok,
+        "wrong_numbers": wrong_numbers,
+        "answer_ok": named_ok and not wrong_numbers,
+    }
+
+
+def row_correct(row: dict) -> bool:
+    if (row["expect"] == "refuse") != bool(row["refused"]):
+        return False
+    # 該回答的題目，沒拒答還不夠：點名題要答對那一間、數字要對
+    return row.get("answer_ok", True)
+
+
+def run(cases: list[dict], store: VectorStore, service: ChatService | None, catalog=None,
+        shelters: dict | None = None) -> list[dict]:
     rows = []
     for case in cases:
         row = {"query": case["query"], "expect": case["expect"], "kind": case["kind"],
@@ -139,16 +171,15 @@ def run(cases: list[dict], store: VectorStore, service: ChatService | None, cata
                 # 記下模型看到的標頭，才分得出是走了篩選、點名還是純語意路徑
                 context, _ = service.build_context(case["query"])
                 row["context_header"] = (context or "").split("\n", 1)[0]
+            if case.get("shelter") and catalog is not None and shelters is not None:
+                row.update(judge_named_answer(reply, shelters[case["shelter"]], catalog))
         rows.append(row)
     return rows
 
 
 def summarize(rows: list[dict]) -> dict:
     scored = [r for r in rows if r["expect"] in ("refuse", "answer")]
-    correct = sum(
-        1 for r in scored
-        if (r["expect"] == "refuse") == bool(r["refused"])
-    )
+    correct = sum(1 for r in scored if row_correct(r))
     by_layer = collections.Counter(r["layer"] for r in rows)
     should_refuse = [r for r in rows if r["expect"] == "refuse"]
     judged = [r for r in rows if "verdict" in r]
@@ -195,8 +226,17 @@ def print_report(summary: dict, rows: list[dict], generated: bool) -> None:
         if r["expect"] == "refuse_or_answer":
             mark = "（不計分）"
         else:
-            mark = "OK" if (r["expect"] == "refuse") == bool(r["refused"]) else "**錯**"
+            mark = "OK" if row_correct(r) else "**錯**"
         print(f"{r['query']:<22} {r['kind']:<26} {r['expect']:<6} {r['layer']:<9} {filt:<5} {dist:>7}  {mark}")
+
+    named = [r for r in rows if "answer_ok" in r]
+    if named:
+        print(f"\n點名題（含錯字）{len(named)} 題：答對那一間而且數字正確 {sum(r['answer_ok'] for r in named)}")
+        for r in named:
+            verdict = "對" if r["answer_ok"] else ("講錯間" if not r["named_ok"] else f"數字錯 {r['wrong_numbers']}")
+            reply = r["reply"].replace("\n", " ")
+            print(f"  [{verdict}] {r['query']}")
+            print(f"     回覆：{reply[:90]}{'…' if len(reply) > 90 else ''}")
 
     judged = [r for r in rows if "verdict" in r]
     if judged:
@@ -234,8 +274,9 @@ def main() -> int:
     store, docs, _ = build_store(args.embedder, "boundary", "current")
     service = ChatService(vector_store=store, repo=None) if args.generate else None
     from services.data_fetcher import DataFetcher
-    catalog = build_catalog(DataFetcher().get_shelters())
-    rows = run(cases, store, service, catalog)
+    all_shelters = DataFetcher().get_shelters()
+    catalog = build_catalog(all_shelters)
+    rows = run(cases, store, service, catalog, {s.name: s for s in all_shelters})
     summary = summarize(rows)
     summary["docs"] = docs
     summary["generated"] = bool(args.generate)
