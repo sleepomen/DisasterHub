@@ -699,3 +699,34 @@ def test_name_list_failure_falls_through_to_retrieval(svc):
     context, early = svc.build_context("頭城國中在哪裡")
     assert early is None and context == "RAG 結果"
     svc.vector_store.shelter_metadata.side_effect = None
+
+
+TYPO_META = SHELTER_META + [
+    {"name": "[HUALIEN] 濤強國小", "county": "花蓮縣", "township": "花蓮市", "capacity": 300, "remaining": 300},
+]
+
+
+def test_typo_is_corrected_before_retrieval(svc):
+    """
+    「涙強國小」以前只剩「國小」篩選，模型得從一整串學校裡自己猜，實測把容量答成 250（實際 300）。
+    改成真實名稱後檢索才會走點名路徑，只送濤強國小那一筆
+    """
+    svc.vector_store.shelter_metadata.return_value = TYPO_META
+    context, early = svc.build_context("涙強國小還有空位嗎")
+    assert early is None and context == "RAG 結果"
+    searched = svc.vector_store.search.call_args.args[0]
+    assert searched == "濤強國小還有空位嗎"
+
+
+def test_typo_note_comes_first_and_prompt_uses_the_real_name(svc):
+    from evals.gen_metrics import is_abstention
+
+    svc.vector_store.shelter_metadata.return_value = TYPO_META
+    with patch("services.chat_service.requests.post", return_value=FakeStream(ndjson("濤強國小：容量 300 人"))) as post:
+        reply = svc.chat("涙強國小還有空位嗎")
+    assert reply.startswith("（找不到「涙強國小」，以下是名稱最接近的「濤強國小」的資料）\n")
+    assert reply.endswith("濤強國小：容量 300 人")
+    prompt = post.call_args.kwargs["json"]["prompt"]
+    assert "濤強國小還有空位嗎" in prompt and "涙強" not in prompt
+    # 這是有答案的回覆，評測不能把開頭那句說明算成拒答
+    assert not is_abstention(reply)
