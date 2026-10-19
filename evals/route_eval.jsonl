@@ -40,3 +40,6 @@
 {"query": "花蓮縣立游泳池還有空位嗎", "expected_route": "unknown_name", "simulation": false, "note": "資料裡沒有游泳池這類場所"}
 {"query": "涙強國小還有空位嗎", "expected_route": "rag", "simulation": false, "note": "錯字（濤強國小）不是不存在的場所，照常檢索"}
 {"query": "原民會館", "expected_route": "rag", "simulation": false, "note": "簡稱（台東市原住民文化會館）不能被當成不存在"}
+{"query": "有沒有可以借錢的地方", "expected_route": "no_clue", "simulation": false, "note": "沒有地名也沒有任何避難線索；距離 0.505 在門檻內，交給模型會列出一串避難所"}
+{"query": "我們一家五口可以去哪", "expected_route": "rag", "simulation": false, "note": "沒有地名但「去哪」是在找地方，不能被擋"}
+{"query": "地震了要去哪裡", "expected_route": "rag", "simulation": false, "note": "災害詞是線索"}
