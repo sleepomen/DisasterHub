@@ -730,3 +730,26 @@ def test_typo_note_comes_first_and_prompt_uses_the_real_name(svc):
     assert "濤強國小還有空位嗎" in prompt and "涙強" not in prompt
     # 這是有答案的回覆，評測不能把開頭那句說明算成拒答
     assert not is_abstention(reply)
+
+
+def test_question_without_any_shelter_clue_gets_the_fixed_reply(svc):
+    """借錢、洗衣服這類問題：離題黑名單攔不到、距離在門檻內，交給模型會列出一串避難所"""
+    from services.chat_service import NO_RELEVANT_REPLY
+
+    svc.vector_store.shelter_metadata.return_value = SHELTER_META
+    with patch("services.chat_service.requests.post") as post:
+        context, early = svc.build_context("有沒有可以借錢的地方")
+    assert (context, early) == (None, NO_RELEVANT_REPLY)
+    post.assert_not_called()
+    svc.vector_store.search.assert_not_called()
+
+
+def test_clue_check_only_applies_without_filters_and_with_a_name_list(svc):
+    svc.vector_store.shelter_metadata.return_value = SHELTER_META
+    # 有地名就有篩選，不歸這條規則管
+    context, early = svc.build_context("花蓮哪裡可以洗衣服")
+    assert early is None and context is not None
+    # 名單讀不到就不判斷
+    svc.vector_store.shelter_metadata.return_value = []
+    context, early = svc.build_context("有沒有可以借錢的地方")
+    assert early is None and context is not None
