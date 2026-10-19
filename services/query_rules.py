@@ -74,6 +74,16 @@ OFF_TOPIC_WORDS = [
 # 「淹水時收容所在哪」也是。少了這個條件，這類正當問題會被誤擋
 SHELTER_TOPIC_WORDS = ["避難", "收容", "安置", "疏散", "空位", "空間", "容量"]
 
+# 沒有地名、沒有設施、也沒有容量條件的問句（純語意路徑）要至少帶一點跟避難有關的線索才進檢索。
+# 這條路上距離門檻分不開離題與正當問題（借錢 0.505、避難所飲水 0.510），黑名單也列不完，
+# 所以反過來檢查「有沒有線索」：災害、要去某處、要住、能收多少——災民真的會這樣問。
+# 不放「人」：「有沒有人可以幫我顧小孩」也有人字
+SHELTER_CLUE_WORDS = [
+    "地震", "淹水", "水災", "颱風", "豪雨", "火災", "失火", "土石流", "海嘯", "停電", "災",
+    "撤離", "逃生", "危險", "安全", "避", "躲", "住", "過夜", "睡", "收", "容納",
+    "去哪", "往哪", "到哪",
+]
+
 SIZE_CLASS_KEYWORDS = ["大型", "中型", "小型"]
 
 # 容量條件
@@ -388,6 +398,34 @@ def match_named_facility(query: str, known_names: list[str]) -> NamedFacility | 
                 # 同時像好幾間：猜哪一間都可能猜錯，交給檢索
                 continue
         return NamedFacility(fragment)
+    return _suffix_typo(query, known_names)
+
+
+def _suffix_typo(query: str, known_names: list[str]) -> NamedFacility | None:
+    """
+    字尾打錯的名稱（中正國少、花蓮縣立體育官）抽不到合法的設施字尾，上面的判斷看不到它們，
+    以前照常檢索時只剩鄉鎮篩選，模型會把整個花蓮市的避難所列出來。
+    條件刻意收窄：長度相同、只有最後一個字不同，而且只像一間。只放寬到最後一個字，是因為
+    「宜蘭的小型避難所」裡的「宜蘭的小」跟「宜蘭國小」也只差一個字，但那是倒數第二個字。
+    字首錯字（涙強國小）由上面的判斷處理
+    """
+    close = {}
+    for name in known_names:
+        if len(name) < 4:
+            continue
+        head = name[:-1]
+        start = query.find(head)
+        while start != -1:
+            written = query[start:start + len(name)]
+            if len(written) == len(name) and written != name:
+                close[name] = written
+            start = query.find(head, start + 1)
+    if not close:
+        return None
+    # 同一間的全名與別名可能一起命中（花蓮市中正體育館 / 中正體育館）：別名包含在全名裡就算同一間
+    longest = max(close, key=len)
+    if all(name in longest for name in close):
+        return NamedFacility(close[longest], typo_of=longest)
     return None
 
 
@@ -395,6 +433,24 @@ def unknown_shelter_name(query: str, known_names: list[str]) -> str | None:
     """問句點名的場所不在資料裡（而且不是錯字）時回傳那個名稱"""
     found = match_named_facility(query, known_names)
     return found.fragment if found and found.typo_of is None else None
+
+
+def has_shelter_clue(query: str, known_names: list[str]) -> bool:
+    """
+    純語意路徑上的問句有沒有任何跟避難所相關的線索：避難主題詞、災害或「要去哪」、設施關鍵字，
+    或跟某間避難所名稱共用兩個字以上（「知本附近」「女子中學」）。
+
+    邊界題評測：「有沒有可以借錢的地方」「哪裡可以洗衣服」「有沒有人可以幫我顧小孩」三題
+    離題黑名單攔不到、距離又在門檻以內，最後交給模型，模型就列出一串避難所。
+    之前量過把這種「正面門檻」套在所有路徑上會誤擋 120 道正例裡的 16 題（「礁溪」「壯圍有哪些」）；
+    這裡只套在沒有任何篩選條件的路徑，那些只有地名的問句會產生篩選，不會走到這裡。
+    失效方向：只要有一點線索就照原本的方式檢索，只有完全沒線索的才回「沒有相關資料」。
+    """
+    words = SHELTER_TOPIC_WORDS + SHELTER_CLUE_WORDS + [keyword for keyword, _ in FACILITY_KEYWORDS]
+    if any(word in query for word in words):
+        return True
+    pairs = {query[i:i + 2] for i in range(len(query) - 1)}
+    return any(pair in name for pair in pairs for name in known_names)
 
 
 def typo_correction(query: str, known_names: list[str]) -> tuple[str, str] | None:
