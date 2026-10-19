@@ -5,10 +5,11 @@ RAG_MAX_DISTANCE=0.56 是在 rag_eval.jsonl 的 10 道負例上調出來的，�
 規則層的範圍外地名擋掉的，也就是距離門檻的經驗基礎只有 2 題。這支腳本拿一組刻意
 繞過規則層的邊界題去問：拒答到底是誰做的，還是根本沒有人做。
 
-五層防線（順序與 build_context 一致）：
+六層防線（順序與 build_context 一致）：
   rules         query_rules 認出範圍外縣市 → 直接拒答
   off_topic     問的不是避難所（天氣、醫院、補助…）且整句沒有避難主題 → 直接拒答
   unknown_name  點名了資料裡沒有的場所（頭城國中、花蓮縣立游泳池）→ 程式直接回「查無」並推薦名稱相近的
+  no_clue       沒有任何篩選條件，也沒有任何避難線索（借錢、洗衣服）→ 直接回「沒有相關資料」
   distance   純語意檢索的最近距離超過 RAG_MAX_DISTANCE → 回「沒有相關資料」
   llm        以上都沒攔到，資料被送進 prompt，只剩模型自己判斷該不該拒答
 
@@ -61,10 +62,14 @@ def classify(store: VectorStore, query: str) -> dict:
         return {"layer": "off_topic", "refused": True, "filtered": None,
                 "top1_distance": None, "hits": 0, "matched_place": plan.off_topic}
 
-    unknown = query_rules.unknown_shelter_name(query, known_names_of(store.shelter_metadata()))
+    names = known_names_of(store.shelter_metadata())
+    unknown = query_rules.unknown_shelter_name(query, names)
     if unknown:
         return {"layer": "unknown_name", "refused": True, "filtered": None,
                 "top1_distance": None, "hits": 0, "matched_place": unknown}
+    if not (plan.has_filter or plan.order_by_capacity) and names and not query_rules.has_shelter_clue(query, names):
+        return {"layer": "no_clue", "refused": True, "filtered": False,
+                "top1_distance": None, "hits": 0, "matched_place": None}
 
     where = plan.to_where()
     result = store.plan_retrieve(query, plan)
@@ -194,6 +199,7 @@ def summarize(rows: list[dict]) -> dict:
             "by_rules": sum(1 for r in should_refuse if r["layer"] == "rules"),
             "by_off_topic": sum(1 for r in should_refuse if r["layer"] == "off_topic"),
             "by_unknown_name": sum(1 for r in should_refuse if r["layer"] == "unknown_name"),
+            "by_no_clue": sum(1 for r in should_refuse if r["layer"] == "no_clue"),
             "by_distance": sum(1 for r in should_refuse if r["layer"] == "distance"),
             "left_to_llm": sum(1 for r in should_refuse if r["layer"] == "llm"),
         },
@@ -210,7 +216,7 @@ def print_report(summary: dict, rows: list[dict], generated: bool) -> None:
     s = summary["should_refuse"]
     print(f"\n=== 邊界題與拒答評測（RAG_MAX_DISTANCE={summary['threshold']}）===")
     print(f"該拒答的 {s['count']} 題裡：範圍外規則擋下 {s['by_rules']}、離題規則擋下 {s['by_off_topic']}、"
-          f"不存在場所規則擋下 {s['by_unknown_name']}、"
+          f"不存在場所規則擋下 {s['by_unknown_name']}、無線索規則擋下 {s['by_no_clue']}、"
           f"距離門檻擋下 {s['by_distance']}、落到 LLM {s['left_to_llm']}")
     if generated:
         print(f"計分 {summary['scored']} 題（含 LLM 實際回覆），正確 {summary['correct']}"
