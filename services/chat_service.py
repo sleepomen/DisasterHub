@@ -78,6 +78,7 @@ ROUTE_COUNTERS = (
     "chat.route.needs_coords",
     "chat.route.no_simulation_advice",
     "chat.route.unknown_name",
+    "chat.route.no_clue",
     "chat.route.rag",
     "chat.route.context_error",
 )
@@ -411,6 +412,12 @@ class ChatService:
             metrics.route("unknown_name")
             return None, unknown
 
+        # 沒有地名、設施、容量條件，也沒有任何跟避難相關的線索（借錢、洗衣服、顧小孩）：
+        # 這條路上距離門檻分不開離題與正當問題，交給模型的話它會列出一串避難所
+        if not (plan.has_filter or plan.order_by_capacity) and self._lacks_shelter_clue(user_message):
+            metrics.route("no_clue")
+            return None, NO_RELEVANT_REPLY
+
         # 查詢向量要打 Ollama embedding，Ollama 掛掉時這裡會先炸；
         # 要回跟生成失敗一樣的降級訊息，而不是讓 /api/chat 變成 500
         metrics.route("rag")
@@ -446,6 +453,11 @@ class ChatService:
         written, form = found
         real = forms[form]
         return user_message.replace(written, real), typo_note(written, real)
+
+    def _lacks_shelter_clue(self, user_message: str) -> bool:
+        names = known_names_of(self._shelter_metadata() or [])
+        # 名單是空的（索引還沒建好、讀不到）就不判斷，照原本的方式檢索
+        return bool(names) and not query_rules.has_shelter_clue(user_message, names)
 
     def _unknown_shelter(self, user_message: str) -> str | None:
         """問句點名的場所不在索引裡時回傳固定回覆；在的話（或判斷不了）回 None，照常檢索"""
