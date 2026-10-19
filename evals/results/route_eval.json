@@ -1,7 +1,7 @@
 {
   "summary": {
-    "count": 42,
-    "correct": 42,
+    "count": 45,
+    "correct": 45,
     "accuracy": 1.0,
     "per_route": {
       "nearest": {
@@ -12,6 +12,11 @@
       "needs_coords": {
         "count": 4,
         "correct": 4,
+        "accuracy": 1.0
+      },
+      "no_clue": {
+        "count": 1,
+        "correct": 1,
         "accuracy": 1.0
       },
       "no_simulation_advice": {
@@ -30,8 +35,8 @@
         "accuracy": 1.0
       },
       "rag": {
-        "count": 13,
-        "correct": 13,
+        "count": 15,
+        "correct": 15,
         "accuracy": 1.0
       },
       "simulation": {
@@ -52,6 +57,9 @@
       "needs_coords": {
         "needs_coords": 4
       },
+      "no_clue": {
+        "no_clue": 1
+      },
       "no_simulation_advice": {
         "no_simulation_advice": 4
       },
@@ -62,7 +70,7 @@
         "out_of_scope": 4
       },
       "rag": {
-        "rag": 13
+        "rag": 15
       },
       "simulation": {
         "simulation": 8
@@ -74,6 +82,7 @@
     "routes": [
       "nearest",
       "needs_coords",
+      "no_clue",
       "no_simulation_advice",
       "off_topic",
       "out_of_scope",
@@ -418,6 +427,30 @@
       "actual": "rag",
       "answered_without_llm": false,
       "note": "簡稱（台東市原住民文化會館）不能被當成不存在"
+    },
+    {
+      "query": "有沒有可以借錢的地方",
+      "simulation": false,
+      "expected": "no_clue",
+      "actual": "no_clue",
+      "answered_without_llm": true,
+      "note": "沒有地名也沒有任何避難線索；距離 0.505 在門檻內，交給模型會列出一串避難所"
+    },
+    {
+      "query": "我們一家五口可以去哪",
+      "simulation": false,
+      "expected": "rag",
+      "actual": "rag",
+      "answered_without_llm": false,
+      "note": "沒有地名但「去哪」是在找地方，不能被擋"
+    },
+    {
+      "query": "地震了要去哪裡",
+      "simulation": false,
+      "expected": "rag",
+      "actual": "rag",
+      "answered_without_llm": false,
+      "note": "災害詞是線索"
     }
   ]
 }
