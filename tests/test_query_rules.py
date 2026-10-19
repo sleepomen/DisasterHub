@@ -274,3 +274,83 @@ def test_typo_correction_leaves_ambiguous_and_other_places_alone(query):
     from services.query_rules import typo_correction
     names = KNOWN + ["台東體育館"]
     assert typo_correction(query, names) is None
+
+
+@pytest.mark.parametrize("query,expected", [
+    ("中正國少的容量", ("中正國少", "中正國小")),
+    ("花蓮縣立體育官", ("花蓮縣立體育官", "花蓮縣立體育館")),
+])
+def test_last_character_typo_maps_to_the_shelter(query, expected):
+    from services.query_rules import typo_correction
+    names = KNOWN + ["花蓮縣立體育館", "花蓮體育館"]
+    assert typo_correction(query, names) == expected
+
+
+def test_full_name_and_alias_hitting_together_count_as_one_shelter():
+    from services.query_rules import typo_correction
+    names = ["花蓮市中正體育館", "中正體育館"]
+    assert typo_correction("花蓮市中正體育管", names) == ("花蓮市中正體育管", "花蓮市中正體育館")
+
+
+def test_only_the_last_character_may_differ():
+    # 「宜蘭的小」跟「宜蘭國小」也只差一個字，但那是倒數第二個字：這是「宜蘭的小型避難所」，不是錯字
+    from services.query_rules import typo_correction
+    assert typo_correction("宜蘭的小型避難所，容量300人以下", KNOWN) is None
+
+
+def test_no_retrieval_question_is_rewritten_as_a_typo():
+    """130 題檢索題庫（含負例）都沒有錯字；任何一題被改寫都代表規則放得太寬"""
+    import json
+    import pathlib
+
+    from services.chat_service import known_names_of
+    from services.data_fetcher import DataFetcher
+    from services.query_rules import typo_correction
+    from services.vector_store import VectorStore
+
+    names = known_names_of([VectorStore.build_metadata(s) for s in DataFetcher().get_shelters()])
+    path = pathlib.Path(__file__).resolve().parent.parent / "evals" / "rag_eval.jsonl"
+    cases = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    rewritten = [c["query"] for c in cases if typo_correction(c["query"], names)]
+    assert rewritten == []
+
+
+@pytest.mark.parametrize("query", [
+    "地震了要去哪裡", "颱風天哪裡可以躲", "家裡停電了可以去哪裡過夜", "哪裡可以收容很多人",
+    "我們一家五口可以去哪",  # 沒有災害詞，只有「去哪」
+    "知本附近", "女子中學",  # 跟避難所名稱共用兩個字
+])
+def test_questions_with_any_shelter_clue_pass(query):
+    from services.query_rules import has_shelter_clue
+    assert has_shelter_clue(query, ["知本國小", "台東女子高級中學"])
+
+
+@pytest.mark.parametrize("query", [
+    "有沒有可以借錢的地方", "哪裡可以洗衣服", "怎麼聯絡里長",
+    "有沒有人可以幫我顧小孩",  # 「人」不算線索
+])
+def test_questions_without_any_shelter_clue_are_caught(query):
+    from services.query_rules import has_shelter_clue
+    assert not has_shelter_clue(query, ["知本國小", "台東女子高級中學"])
+
+
+def test_no_positive_retrieval_question_lacks_a_clue_on_the_unfiltered_path():
+    """無線索規則只管沒有篩選條件的路徑；那條路上 130 題檢索題庫的正例一題都不能被擋"""
+    import json
+    import pathlib
+
+    from services.chat_service import known_names_of
+    from services.data_fetcher import DataFetcher
+    from services.query_rules import has_shelter_clue
+    from services.vector_store import VectorStore
+
+    names = known_names_of([VectorStore.build_metadata(s) for s in DataFetcher().get_shelters()])
+    path = pathlib.Path(__file__).resolve().parent.parent / "evals" / "rag_eval.jsonl"
+    cases = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    blocked = []
+    for c in cases:
+        plan = analyze(c["query"])
+        unfiltered = not (plan.out_of_scope or plan.off_topic or plan.has_filter or plan.order_by_capacity)
+        if c["relevant"] and unfiltered and not has_shelter_clue(c["query"], names):
+            blocked.append(c["query"])
+    assert blocked == []
