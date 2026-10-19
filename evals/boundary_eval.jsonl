@@ -41,3 +41,14 @@
 {"query": "康落國小還有空位嗎", "expect": "answer", "kind": "misspelled_name", "shelter": "[TAITUNG] 康樂國小", "note": "同上"}
 {"query": "澳化國小在哪裡", "expect": "answer", "kind": "misspelled_name", "shelter": "[YILAN] 澳花國小", "note": "同上"}
 {"query": "清講國小可以收幾個人", "expect": "answer", "kind": "misspelled_name", "shelter": "[YILAN] 清溝國小", "note": "同上"}
+{"query": "地震了要去哪裡", "expect": "answer", "kind": "no_place_need", "note": "沒有地名也沒有設施的正當問題：無線索規則不能擋。這組是寫規則的人出的題，不是獨立樣本"}
+{"query": "淹水的時候可以去哪", "expect": "answer", "kind": "no_place_need", "note": "同上"}
+{"query": "颱風天哪裡可以躲", "expect": "answer", "kind": "no_place_need", "note": "同上"}
+{"query": "家裡停電了可以去哪裡過夜", "expect": "answer", "kind": "no_place_need", "note": "同上"}
+{"query": "哪裡比較安全", "expect": "answer", "kind": "no_place_need", "note": "同上"}
+{"query": "哪裡可以收容很多人", "expect": "answer", "kind": "no_place_need", "note": "同上"}
+{"query": "我們一家五口可以去哪", "expect": "answer", "kind": "no_place_need", "note": "沒有任何災害詞，只有「去哪」"}
+{"query": "房子倒了要住哪裡", "expect": "answer", "kind": "no_place_need", "note": "同上"}
+{"query": "土石流要撤離到哪", "expect": "answer", "kind": "no_place_need", "note": "同上"}
+{"query": "怎麼申請身分證", "expect": "refuse", "kind": "off_topic_unlisted", "note": "不在離題黑名單、沒有地名，也沒有避難線索"}
+{"query": "手機要怎麼設定", "expect": "refuse", "kind": "off_topic_unlisted", "note": "同上"}
