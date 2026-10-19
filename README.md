@@ -457,7 +457,7 @@ DisasterHub/
 │   ├── run_rag_eval.py         # Runs the retrieval evaluation
 │   ├── metrics.py              # Recall / Precision / MRR / R-Precision / ceilings / bootstrap CIs
 │   ├── compare_runs.py         # Paired bootstrap on the difference between two runs
-│   ├── boundary_eval.jsonl     # Boundary / abstention set (39 questions, five defences)
+│   ├── boundary_eval.jsonl     # Boundary / abstention set (43 questions, five defences)
 │   ├── run_boundary_eval.py    # Reports which layer refused, --generate hits the real LLM
 │   ├── faithfulness.py         # Counterfactual context perturbations and their scoring
 │   ├── run_faithfulness_eval.py # Does the model follow a changed / incomplete context?
@@ -527,7 +527,7 @@ ten negatives were eight out-of-area county names — caught by the rules layer 
 name at all. So the entire empirical basis for `RAG_MAX_DISTANCE = 0.56` was **two questions**, and the
 most likely real-world irrelevant question (one that mentions a local place) was not represented.
 
-`evals/boundary_eval.jsonl` (39 questions) probes exactly those gaps, and `run_boundary_eval.py` reports
+`evals/boundary_eval.jsonl` (43 questions) probes exactly those gaps, and `run_boundary_eval.py` reports
 **which of the five defences decided**, with `--generate` running the real LLM for whatever reaches it:
 
 ```bash
@@ -664,8 +664,54 @@ routing evaluation is 42/42 with `unknown_name` as a new route.
 of the 32 that must be refused: rules 2, off_topic 13, unknown_name 12, distance 2, left to the LLM 3
 ```
 
-Still open: typos go through retrieval and the model as before, and the model is not always reliable on
-them — one run answered 涙強國小 with 250 people, while 濤強國小 holds 300. This judge does not check that.
+### Misspelled shelter names
+
+Typos were left to retrieval, and the model was not reliable on them — one run answered 涙強國小 with
+250 people, while 濤強國小 holds 300. The boundary judge could not see that, because for questions that
+should be answered it only checked "did not refuse". So two things changed.
+
+**The judge now checks the answer itself.** Every question that names a shelter (correctly or with a
+typo) carries the real shelter in `boundary_eval.jsonl`, and `judge_named_answer()` requires that the
+first shelter named in the reply is that one and that every number ≥ 50 in the reply is its capacity or
+remaining space. Eight such questions, six of them typos. With typo handling switched off, **2 of 8**
+passed:
+
+- 「澳化國小：宜蘭縣南澳鄉，容量 150 人」 — the right data under the wrong name, so the user never learns
+  the shelter is called 澳花國小
+- 「馬籃國小：沒有資料」 — the data was there
+- 「清講國小可以收幾個人」 — eight schools listed, the user picks
+
+**A one-character typo is now mapped to the shelter before retrieval.** `query_rules.typo_correction()`
+returns the real name, and `ChatService` puts it into both retrieval (so the named-shelter path sends only
+that shelter) and the prompt (so the model does not copy the typo). The reply starts with a line that code
+adds, not the model:
+
+```
+（找不到「康落國小」，以下是名稱最接近的「康樂國小」的資料）
+康樂國小：台東縣台東市，容量 250 人，剩餘空位 250 人。
+```
+
+The conditions are deliberately narrow, because a wrong correction answers a question nobody asked:
+
+| question | result | why |
+|---|---|---|
+| 涙強國小, 馬籃國小 | → 濤強國小, 馬蘭國小 | first part one character off, and only one shelter is that close |
+| 中正國少, 花蓮縣立體育官 | → 中正國小, 花蓮縣立體育館 | only the **last** character differs |
+| 中強國小 | unchanged | one character from both 濤強國小 and 中正國小 — guessing could be wrong either way |
+| 羅東高中 | 查無 | 羅東 is a place, so this is another school, not a typo of 台東高中 |
+| 台中體育館 | out-of-scope reply | must never become 台東體育館 |
+| 宜蘭的小型避難所 | unchanged | 「宜蘭的小」 is one character from 宜蘭國小, but not in the last position |
+
+The last row is why only the final character may differ for suffix typos: the first version allowed either
+of the last two and rewrote that question. A test now asserts that none of the 130 retrieval questions is
+rewritten.
+
+**Result:** named questions **2/8 → 8/8**, boundary accuracy 33/42 → **38/42**, routing 42/42.
+
+Of the four failures left, three are the unlisted off-topic questions above. The fourth is 「中正國少的容量」,
+where the model answered 中正國小 correctly and then appended 「目前沒有相關資料」. After the correction the
+prompt is identical to the one for 「中正國小的容量」, and five repeats of the typo question produced that
+tail once — sampling noise at `temperature=0.3`, not the correction.
 
 ## Statistical Uncertainty
 
@@ -1250,7 +1296,7 @@ DisasterHub/
 │   ├── run_rag_eval.py         # 執行檢索評測
 │   ├── metrics.py              # Recall / Precision / MRR / R-Precision / 天花板 / bootstrap 區間
 │   ├── compare_runs.py         # 兩次結果的配對 bootstrap 差值比較
-│   ├── boundary_eval.jsonl     # 邊界題／拒答題庫（39 題，涵蓋五層防線）
+│   ├── boundary_eval.jsonl     # 邊界題／拒答題庫（43 題，涵蓋五層防線）
 │   ├── run_boundary_eval.py    # 報出是哪一層拒答，--generate 會真的打 LLM
 │   ├── faithfulness.py         # 反事實上下文的改動方式與評分
 │   ├── run_faithfulness_eval.py # 資料被改動或不完整時，模型是否照資料回答
@@ -1319,7 +1365,7 @@ baseline 那一列的 `capacity_stated` 不能跟下面兩列比：這個欄位�
 8 道範圍外縣市名（規則層擋下）加 2 道完全沒有地名的問題。也就是說 `RAG_MAX_DISTANCE = 0.56`
 的全部經驗基礎是**兩題**，而現實中最可能出現的無關問題——帶著本地地名的那種——一題都沒有。
 
-`evals/boundary_eval.jsonl`（39 題）就是針對這些缺口，`run_boundary_eval.py` 會報出
+`evals/boundary_eval.jsonl`（43 題）就是針對這些缺口，`run_boundary_eval.py` 會報出
 **是五層防線裡的哪一層決定的**，`--generate` 會對落到模型的題目真的跑一次生成：
 
 ```bash
@@ -1443,8 +1489,47 @@ README 原本宣稱的縫隙（無答案 ≥ 0.588、有答案 ≤ 0.483）是�
 該拒答的 32 題裡：範圍外規則 2、離題規則 13、不存在場所規則 12、距離門檻 2、落到 LLM 3
 ```
 
-還沒解決的：錯字照常走檢索與生成，而模型對錯字不一定可靠——有一次把涙強國小答成 250 人，
-濤強國小實際是 300 人。這套判定沒有檢查這一點。
+### 錯字的避難所名稱
+
+錯字原本照常交給檢索，而模型對錯字並不可靠——有一次把涙強國小答成 250 人，濤強國小實際是 300 人。
+邊界題的判定看不到這種錯，因為「該回答」的題目只檢查「有沒有拒答」。所以改了兩件事。
+
+**判定開始檢查答案本身。** 每一題點名避難所的題目（不論寫對寫錯）都在 `boundary_eval.jsonl` 標上正確的那間，
+`judge_named_answer()` 要求回覆最先講到的就是那間，而且回覆裡 ≥ 50 的數字只能是它的容量或剩餘空位。
+這類題目共 8 題，其中 6 題是錯字。關掉錯字處理時只有 **2/8** 通過：
+
+- 「澳化國小：宜蘭縣南澳鄉，容量 150 人」——資料對、名稱錯，使用者永遠不知道它叫澳花國小
+- 「馬籃國小：沒有資料」——資料明明在
+- 「清講國小可以收幾個人」——列出 8 間學校，讓使用者自己挑
+
+**錯一個字的名稱在檢索前就對應到正確的避難所。** `query_rules.typo_correction()` 回傳真實名稱，
+`ChatService` 把它同時用在檢索（才會走點名路徑、只送那一間）與 prompt（模型才不會照抄錯字）。
+回覆開頭那句由程式加上，不交給模型：
+
+```
+（找不到「康落國小」，以下是名稱最接近的「康樂國小」的資料）
+康樂國小：台東縣台東市，容量 250 人，剩餘空位 250 人。
+```
+
+條件刻意收窄，因為改錯等於回答了一個沒人問的問題：
+
+| 問句 | 結果 | 原因 |
+|---|---|---|
+| 涙強國小、馬籃國小 | → 濤強國小、馬蘭國小 | 前段差一個字，而且只像一間 |
+| 中正國少、花蓮縣立體育官 | → 中正國小、花蓮縣立體育館 | 只有**最後一個字**不同 |
+| 中強國小 | 不改 | 跟濤強國小、中正國小都只差一字，猜哪間都可能錯 |
+| 羅東高中 | 查無 | 「羅東」是地名，是另一間學校，不是台東高中的錯字 |
+| 台中體育館 | 範圍外回覆 | 絕不能被改成台東體育館 |
+| 宜蘭的小型避難所 | 不改 | 「宜蘭的小」跟宜蘭國小也只差一字，但不在最後一個字 |
+
+最後一列就是字尾錯字只允許最後一個字不同的原因：第一版允許最後兩個字裡錯一個，結果把這題改寫了。
+現在有測試確保 130 題檢索題庫沒有任何一題被改寫。
+
+**結果**：點名題 **2/8 → 8/8**，邊界題正確率 33/42 → **38/42**，路由評測 42/42。
+
+剩下 4 題失敗裡，3 題是上面沒列在黑名單的離題問題。第 4 題是「中正國少的容量」：模型正確答出中正國小，
+接著又自己補了一句「目前沒有相關資料」。更正之後的 prompt 跟「中正國小的容量」一模一樣，
+同一題重跑 5 次只出現一次這種尾巴——是 `temperature=0.3` 的抽樣雜訊，不是更正造成的。
 
 ## 統計不確定性
 
