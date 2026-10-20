@@ -171,6 +171,32 @@
         maxZoom: 19,
     }).addTo(map);
 
+    // 土石流潛勢溪流影響範圍（農業部開放資料），疊在底圖上、標記下面。
+    // 淹水模擬會避開落在範圍內的避難所，畫出來使用者才看得懂為什麼某間沒有人去
+    async function loadHazardZones() {
+        try {
+            const res = await fetch('/api/hazard_zones');
+            if (!res.ok) return;
+            const data = await res.json();
+            L.geoJSON(data, {
+                style: { color: '#ff9f43', weight: 1, opacity: 0.7, fillColor: '#ff9f43', fillOpacity: 0.18 },
+                onEachFeature: (f, layer) => {
+                    const p = f.properties || {};
+                    layer.bindPopup(
+                        `<div class="popup-name">土石流潛勢溪流 ${p.debris_no || ''}</div>`
+                        + `<div class="popup-row"><span>位置</span><span>${p.county || ''}${p.town || ''}${p.village || ''}</span></div>`
+                        + `<div class="popup-row"><span>風險等級</span><span>${p.risk || '-'}</span></div>`
+                        + `<div class="popup-row"><span>保全住戶</span><span>${p.households ?? '-'} 戶</span></div>`
+                    );
+                },
+            }).addTo(map);
+        } catch (err) {
+            // 疊圖只是輔助資訊，載不到不影響其他功能
+            console.error('災害潛勢區域載入失敗', err);
+        }
+    }
+    loadHazardZones();
+
     let markers = [];
     let disasterCircle = null;
     let allShelterData = [];
@@ -357,17 +383,9 @@
         return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     }
 
-    // 找最近的避難所
-    function findNearestShelter(lat, lon, impactedShelters) {
-        let best = null, bestDist = Infinity;
-        impactedShelters.forEach(s => {
-            const d = distKm(lat, lon, s.lat, s.lon);
-            if (d < bestDist) { bestDist = d; best = s; }
-        });
-        return best;
-    }
-
     const PEOPLE_PER_DOT = 25;
+    // 起點在鄉鎮人口重心附近散開的範圍（公里）；只影響畫面，不影響分配
+    const SPAWN_SPREAD_KM = 1.2;
 
     function gaussRand() {
         let u = 0, v = 0;
@@ -376,101 +394,59 @@
         return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
     }
 
-    function pickShelterFor(lat, lon, candidates, planned) {
-        let best = null, bestScore = Infinity;
-        candidates.forEach(s => {
-            const used = planned[s.name] || 0;
-            if (s.remaining - used <= 0) return;
-            const score = distKm(lat, lon, s.lat, s.lon) * (1 + used / s.remaining);
-            if (score < bestScore) { bestScore = score; best = s; }
-        });
-        return best;
+    function spawnNear(lat, lon, lonScale) {
+        for (let tries = 0; tries < 10; tries++) {
+            const sLat = lat + gaussRand() * SPAWN_SPREAD_KM / 111;
+            const sLon = lon + gaussRand() * SPAWN_SPREAD_KM / lonScale;
+            if (isLand(sLat, sLon)) return { lat: sLat, lon: sLon };
+        }
+        return { lat, lon };
     }
 
-    // population 來自 /api/simulate_disaster：後端已算好圈內人口與疏散需求，這裡只負責把人畫出來
-    function startCrowdAnimation(impactedShelters, disasterLat, disasterLon, radiusKm, dotColor, population) {
+    // 誰去哪一間、各多少人由後端決定（/api/simulate_disaster 的 evacuation），並已寫入資料庫。
+    // 這裡只把每一筆分配拆成人群點畫出來；亂數只用在起點的散布位置，不影響任何數字
+    function startCrowdAnimation(plan, finalOccupancy, disasterLat, dotColor) {
         if (animationId) cancelAnimationFrame(animationId);
         particles = [];
 
-        const candidates = impactedShelters.map(s => ({
-            ...s,
-            remaining: Math.max(0, s.capacity - (shelterOccupancy[s.name] || 0)),
-        }));
-        const totalRoom = candidates.reduce((sum, s) => sum + s.remaining, 0);
-        const lonScale = 111 * Math.cos(disasterLat * Math.PI / 180);
+        const flows = (plan && plan.flows) || [];
+        const placed = (plan && plan.placed) || 0;
+        const unplaced = (plan && plan.unplaced) || 0;
 
-        const covered = (population && population.townships) || [];
-        const coveredPop = covered.reduce((s, c) => s + c.weight, 0);
-        let evacuees = (population && population.estimated_evacuees) || Math.round(Math.PI * radiusKm * radiusKm * 2);
-        evacuees = Math.min(totalRoom, evacuees);
-
-        const totalDots = Math.min(300, Math.max(8, Math.round(evacuees / PEOPLE_PER_DOT)));
-        const peoplePerDot = Math.max(1, Math.round(evacuees / totalDots));
-        const planned = {};
-
-        function pickCenter() {
-            let r = Math.random() * coveredPop;
-            for (const c of covered) {
-                r -= c.weight;
-                if (r <= 0) return c;
-            }
-            return covered[covered.length - 1];
-        }
-
-        function sampleSpawn() {
-            for (let tries = 0; tries < 15; tries++) {
-                let lat, lon;
-                if (covered.length) {
-                    const c = pickCenter();
-                    const spreadKm = Math.min(3.2, 0.7 + Math.sqrt(c.pop) / 260);
-                    lat = c.lat + gaussRand() * spreadKm / 111;
-                    lon = c.lon + gaussRand() * spreadKm / lonScale;
-                } else {
-                    const angle = Math.random() * 2 * Math.PI;
-                    const r = Math.sqrt(Math.random()) * radiusKm;
-                    lat = disasterLat + (r / 111) * Math.cos(angle);
-                    lon = disasterLon + (r / lonScale) * Math.sin(angle);
-                }
-                if (distKm(lat, lon, disasterLat, disasterLon) <= radiusKm && isLand(lat, lon)) {
-                    return { lat, lon };
-                }
-            }
-            return null;
-        }
-
-        for (let i = 0; i < totalDots; i++) {
-            const spawn = sampleSpawn();
-            if (!spawn) continue;
-            const shelter = pickShelterFor(spawn.lat, spawn.lon, candidates, planned);
-            if (!shelter) break;
-            planned[shelter.name] = (planned[shelter.name] || 0) + peoplePerDot;
-
-            const delay = Math.random() * 8000;
-            const duration = 6000 + distKm(spawn.lat, spawn.lon, shelter.lat, shelter.lon) * 400 + Math.random() * 3000;
-
-            particles.push({
-                startLat: spawn.lat, startLon: spawn.lon,
-                targetLat: shelter.lat,
-                targetLon: shelter.lon,
-                targetName: shelter.name,
-                people: peoplePerDot,
-                startTime: null,
-                delay,
-                duration,
-                done: false,
-                color: dotColor,
-                arrived: false,
-            });
-        }
-
-        if (particles.length === 0) {
+        if (flows.length === 0) {
             document.getElementById('sim-progress-wrap').classList.remove('visible');
             document.getElementById('btn-simulate').disabled = false;
-            addChat(totalRoom === 0
+            applyOccupancy(finalOccupancy);
+            addChat(unplaced > 0
                 ? '範圍內的避難所皆已滿載，無法再安置人群。'
                 : '此範圍內幾乎沒有可疏散的人口（多為海域或無人山區），未產生疏散人流。', 'ai');
             return;
         }
+
+        const lonScale = 111 * Math.cos(disasterLat * Math.PI / 180);
+        const totalDots = Math.min(300, Math.max(8, Math.round(placed / PEOPLE_PER_DOT)));
+
+        flows.forEach(f => {
+            // 每筆分配至少一個點；人數平均拆到各點，加總恰好等於分配人數
+            const dots = Math.max(1, Math.round(f.people / placed * totalDots));
+            const base = Math.floor(f.people / dots);
+            const extra = f.people % dots;
+            for (let i = 0; i < dots; i++) {
+                const spawn = spawnNear(f.from_lat, f.from_lon, lonScale);
+                particles.push({
+                    startLat: spawn.lat, startLon: spawn.lon,
+                    targetLat: f.to_lat,
+                    targetLon: f.to_lon,
+                    targetName: f.to,
+                    people: base + (i < extra ? 1 : 0),
+                    startTime: null,
+                    delay: Math.random() * 8000,
+                    duration: 6000 + distKm(spawn.lat, spawn.lon, f.to_lat, f.to_lon) * 400 + Math.random() * 3000,
+                    done: false,
+                    arrived: false,
+                });
+            }
+        });
 
         let totalArrived = 0;
         const total = particles.length;
@@ -532,33 +508,19 @@
             if (!allDone) {
                 animationId = requestAnimationFrame(animate);
             } else {
-                // 動畫結束
+                // 動畫結束：畫面改用後端寫入資料庫的數字，跟 AI 助手看到的是同一份
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 document.getElementById('sim-progress-wrap').classList.remove('visible');
                 document.getElementById('btn-simulate').disabled = false;
-                const movedPeople = particles.reduce((sum, p) => sum + (p.people || 0), 0);
-                addChat(`疏散模擬完成！共約 ${movedPeople} 人（${total} 批次）已移入避難所，請查看各避難所目前負載率。`, 'ai');
-                syncOccupancy(candidates.map(s => s.name));
+                applyOccupancy(finalOccupancy);
+                const count = Object.keys(plan.assigned || {}).length;
+                addChat(`疏散模擬完成！共 ${placed} 人依最近且有空位的原則移入 ${count} 間避難所`
+                    + (unplaced > 0 ? `，仍有 ${unplaced} 人無法安置` : '')
+                    + '。AI 助手已使用同一份分配結果回答。', 'ai');
             }
         }
 
         animationId = requestAnimationFrame(animate);
-    }
-
-    // 動畫只改了瀏覽器裡的數字，要回寫後端資料庫與向量索引，AI 的回答才會跟畫面一致
-    async function syncOccupancy(names) {
-        const occupancy = names
-            .filter(name => name in shelterOccupancy)
-            .map(name => ({ name, current_ppl: Math.round(shelterOccupancy[name]) }));
-        if (occupancy.length === 0) return;
-        try {
-            const data = await postAuthed('/api/occupancy', { occupancy });
-            applyOccupancy(data.occupancy);
-            addChat(`已將 ${data.updated} 個避難所的收容人數同步至後端，AI 助手現在會依最新負載回答。`, 'ai');
-        } catch (err) {
-            console.error('收容人數回寫失敗', err);
-            addChat(describeAuthError(err) || '收容人數回寫後端失敗，AI 助手的回答可能與地圖不一致。', 'ai');
-        }
     }
 
     // 以後端回傳的佔用表為準，更新本地狀態、基準值與 marker 顏色
@@ -633,7 +595,7 @@
 
             // 重置負載率並開始動畫
             resizeCanvas();
-            startCrowdAnimation(result.impacted_shelters, lat, lon, radius, dotColor, result.population);
+            startCrowdAnimation(result.evacuation, result.occupancy, lat, dotColor);
 
         } catch (err) {
             console.error('模擬失敗', err);
