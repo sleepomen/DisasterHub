@@ -1,4 +1,6 @@
+import json
 import logging
+from pathlib import Path
 
 from repositories.shelter_repository import ShelterRepository
 from services.data_fetcher import DataFetcher
@@ -8,7 +10,12 @@ logger = logging.getLogger(__name__)
 
 # 清理步驟的結果：刪了幾筆，以及因為來源不完整而「不敢刪」了幾次。
 # 後者連續出現代表來源資料壞掉而沒人發現
-metrics.register("sync.pruned", "sync.prune_skipped")
+metrics.register("sync.pruned", "sync.prune_skipped", "sync.hazard_failed")
+
+# 災害潛勢區域：hazard_type → data_reference/ 裡的 GeoJSON（由 tools/build_hazard_zones.py 產生）
+HAZARD_FILES = {
+    "debris_flow": Path(__file__).resolve().parent.parent / "data_reference" / "debris_flow_east.geojson",
+}
 
 class DataSyncService:
     #初始化fetcher/repository
@@ -53,6 +60,7 @@ class DataSyncService:
             raise RuntimeError(f"同步失敗：{len(shelters)} 筆資料沒有任何一筆寫入資料庫")
 
         pruned = self._prune_removed(shelters, success_count)
+        self.sync_hazard_zones()
         logger.info(
             "同步完成：%d / %d 筆（來源略過 %d 筆，清掉已移除 %d 筆）",
             success_count, len(shelters), self.fetcher.skipped, pruned,
@@ -87,3 +95,22 @@ class DataSyncService:
             metrics.incr("sync.pruned", pruned)
             logger.info("清掉 %d 筆已從來源移除的避難所", pruned)
         return pruned
+
+    def sync_hazard_zones(self) -> dict[str, int]:
+        """
+        把 data_reference/ 的災害潛勢 GeoJSON 匯入 hazard_zones，回傳各類寫入筆數。
+        這是附加資訊：讀不到檔案或寫入失敗只記錄，不讓避難所同步跟著失敗——
+        少了潛勢區域，系統退回「不排除任何避難所」，跟加上這個功能之前一樣
+        """
+        loaded = {}
+        for hazard_type, path in HAZARD_FILES.items():
+            try:
+                features = json.loads(path.read_text(encoding="utf-8"))["features"]
+                loaded[hazard_type] = self.repository.replace_hazard_zones(hazard_type, features)
+            except Exception:
+                metrics.incr("sync.hazard_failed")
+                logger.exception("匯入災害潛勢區域 %s 失敗", hazard_type)
+        if loaded:
+            logger.info("災害潛勢區域匯入：%s", loaded)
+        return loaded
+
