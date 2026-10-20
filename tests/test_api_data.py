@@ -41,6 +41,8 @@ def client():
     with patch("repositories.shelter_repository.ShelterRepository.get_all_shelters", return_value=FAKE_SHELTERS), \
          patch("repositories.shelter_repository.ShelterRepository.get_shelters_in_radius", return_value=[]), \
          patch("repositories.shelter_repository.ShelterRepository.ensure_schema"), \
+         patch("repositories.shelter_repository.ShelterRepository.set_occupancy", return_value=0), \
+         patch("services.vector_store.VectorStore.upsert_shelters", return_value=0), \
          patch("services.vector_store.build_embedding_function", return_value=FakeEmbedding()), \
          patch("services.vector_store.VectorStore.build_index"), \
          patch("services.sync_service.DataSyncService.sync"), \
@@ -601,3 +603,100 @@ def test_nearest_shelter_response_shape(client):
     row = body["shelters"][0]
     assert set(row) == {"name", "capacity", "current_ppl", "remaining", "lat", "lon", "address", "distance_km"}
     assert (row["distance_km"], row["remaining"]) == (2.5, 280)
+
+
+def test_simulate_plan_matches_population_and_is_written(client):
+    """
+    分配由後端決定並直接寫入資料庫：AI 在模擬當下就看得到同一份數字，
+    不用等前端動畫跑完再回寫（以前前端用亂數分配，每次結果都不一樣）
+    """
+    impacted = [
+        Shelter(name="[HUALIEN] 甲", capacity=100, lat=23.98, lon=121.60, current_people=10),
+        Shelter(name="[HUALIEN] 丙", capacity=50000, lat=24.00, lon=121.60, current_people=0),
+    ]
+    with (
+        patch("repositories.shelter_repository.ShelterRepository.get_shelters_in_radius", return_value=impacted),
+        patch("repositories.shelter_repository.ShelterRepository.set_occupancy", return_value=2) as set_occ,
+    ):
+        res = client.post("/api/simulate_disaster", headers=WRITE_HEADERS,
+                          json={"lat": 23.977, "lon": 121.601, "radius": 10, "type": "earthquake"})
+    assert res.status_code == 200
+    body = res.json()
+    plan, pop = body["evacuation"], body["population"]
+    # 安置人數就是人口估算的「可安置」，各避難所加總也對得上
+    assert plan["placed"] == pop["placeable"] == sum(plan["assigned"].values())
+    assert plan["assigned"]["[HUALIEN] 甲"] == 90  # 最近的先填滿剩餘空位
+    written = set_occ.call_args.args[0]
+    assert written == {name: people + (10 if name == "[HUALIEN] 甲" else 0) for name, people in plan["assigned"].items()}
+
+    import app as app_module
+    assert app_module.chat_service.latest_simulation["evacuation"] == plan
+
+
+def test_simulate_drops_the_snapshot_when_the_write_fails(client):
+    impacted = [Shelter(name="[HUALIEN] 甲", capacity=100, lat=23.98, lon=121.60, current_people=10)]
+    with (
+        patch("repositories.shelter_repository.ShelterRepository.get_shelters_in_radius", return_value=impacted),
+        patch("repositories.shelter_repository.ShelterRepository.set_occupancy", side_effect=RuntimeError("db down")),
+    ):
+        res = client.post("/api/simulate_disaster", headers=WRITE_HEADERS,
+                          json={"lat": 23.977, "lon": 121.601, "radius": 10, "type": "earthquake"})
+    assert res.status_code == 500 and "db down" not in res.text
+    import app as app_module
+    # 資料庫沒寫進去，AI 就不能講這份分配
+    assert not app_module.chat_service.latest_simulation
+
+
+def test_flood_simulation_skips_shelters_inside_debris_flow_zones(client):
+    """豪雨同時觸發淹水與土石流：實測澳花國小就在高風險土石流影響範圍內，淹水模擬不能把人送過去"""
+    impacted = [
+        Shelter(name="[YILAN] 澳花國小", capacity=150, lat=24.33, lon=121.73, current_people=0),
+        Shelter(name="[YILAN] 安全", capacity=50000, lat=24.40, lon=121.75, current_people=0),
+    ]
+    with (
+        patch("repositories.shelter_repository.ShelterRepository.get_shelters_in_radius", return_value=impacted),
+        patch("repositories.shelter_repository.ShelterRepository.shelters_in_hazard_zones",
+              return_value={"[YILAN] 澳花國小": ["宜縣DF139"]}) as zones,
+    ):
+        res = client.post("/api/simulate_disaster", headers=WRITE_HEADERS,
+                          json={"lat": 24.35, "lon": 121.74, "radius": 10, "type": "flood"})
+    assert res.status_code == 200
+    plan, pop = res.json()["evacuation"], res.json()["population"]
+    zones.assert_called_once_with("debris_flow")
+    assert "[YILAN] 澳花國小" not in plan["assigned"]
+    assert plan["excluded"] == {"[YILAN] 澳花國小": ["宜縣DF139"]}
+    # 可安置空間只算能去的那間，才會跟分配結果對得上
+    assert pop["placeable"] == plan["placed"] == plan["assigned"]["[YILAN] 安全"]
+
+
+def test_earthquake_does_not_query_debris_flow_zones(client):
+    impacted = [Shelter(name="[YILAN] 澳花國小", capacity=150, lat=24.33, lon=121.73, current_people=0)]
+    with (
+        patch("repositories.shelter_repository.ShelterRepository.get_shelters_in_radius", return_value=impacted),
+        patch("repositories.shelter_repository.ShelterRepository.shelters_in_hazard_zones") as zones,
+    ):
+        res = client.post("/api/simulate_disaster", headers=WRITE_HEADERS,
+                          json={"lat": 24.35, "lon": 121.74, "radius": 10, "type": "earthquake"})
+    assert res.status_code == 200
+    zones.assert_not_called()
+    assert res.json()["evacuation"]["excluded"] == {}
+
+
+def test_hazard_query_failure_falls_back_to_no_exclusion(client):
+    impacted = [Shelter(name="[YILAN] 澳花國小", capacity=150, lat=24.33, lon=121.73, current_people=0)]
+    with (
+        patch("repositories.shelter_repository.ShelterRepository.get_shelters_in_radius", return_value=impacted),
+        patch("repositories.shelter_repository.ShelterRepository.shelters_in_hazard_zones",
+              side_effect=RuntimeError("db down")),
+    ):
+        res = client.post("/api/simulate_disaster", headers=WRITE_HEADERS,
+                          json={"lat": 24.35, "lon": 121.74, "radius": 10, "type": "flood"})
+    assert res.status_code == 200
+    assert "[YILAN] 澳花國小" in res.json()["evacuation"]["assigned"]
+
+
+def test_hazard_zones_endpoint_serves_the_bundled_geojson(client):
+    res = client.get("/api/hazard_zones")
+    assert res.status_code == 200
+    body = res.json()
+    assert body["type"] == "FeatureCollection" and len(body["features"]) > 500
