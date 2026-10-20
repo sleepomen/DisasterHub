@@ -9,6 +9,7 @@ import requests
 
 import config
 from services import query_rules
+from services.evacuation import HAZARD_LABELS
 from services.metrics import metrics
 from services.shelter_profile import aliases_of, strip_region_tag
 from services.vector_store import NO_DATA, NO_MATCH, VectorStore
@@ -50,7 +51,12 @@ SIMULATION_KEYWORDS = ["哪些受影響", "受影響的避難所", "哪些避難
 
 # 有模擬進行中時，這些追問也該看模擬結果而不是全域語意檢索；
 # 沒有模擬時不啟用，否則「有什麼建議」會被導去回答「尚未執行模擬」
-SIMULATION_FOLLOWUP_KEYWORDS = ["疏散建議", "怎麼疏散", "如何疏散", "疏散到哪", "安置", "調度", "建議", "還有空間", "夠不夠", "缺口"]
+# 「分配」「排除」「模擬」：實測「這次模擬每間避難所分配了多少人？有沒有避難所被排除？」走了全域檢索，
+# 模型同時看到 10 間不相干的避難所與模擬結果，答出「宜蘭國小：無避難所被排除」
+SIMULATION_FOLLOWUP_KEYWORDS = [
+    "疏散建議", "怎麼疏散", "如何疏散", "疏散到哪", "安置", "調度", "建議", "還有空間", "夠不夠", "缺口",
+    "分配", "排除", "模擬",
+]
 
 # 明確在要疏散建議、但還沒有模擬可依據：直接請使用者先跑模擬，不要拿全域檢索硬湊
 EVACUATION_ADVICE_KEYWORDS = ["疏散建議", "怎麼疏散", "如何疏散", "疏散到哪", "疏散計畫"]
@@ -203,6 +209,34 @@ def population_lines(population: dict) -> list[str]:
     return lines
 
 
+def excluded_lines(plan: dict) -> list[str]:
+    excluded = (plan or {}).get("excluded") or {}
+    if not excluded:
+        return []
+    label = HAZARD_LABELS.get(plan.get("excluded_hazard"), "災害潛勢區域")
+    names = "、".join(f"{display_name(name)}（{'、'.join(refs)}）" for name, refs in sorted(excluded.items()))
+    return [f"以下避難所位於{label}內，本次未列為疏散目的地：{names}。"]
+
+
+def evacuation_lines(plan: dict) -> list[str]:
+    """
+    後端算好的疏散分配 → prompt 文字。數字跟地圖動畫、資料庫是同一份。
+    每一間都要列出來，不能截斷：實測只列前 10 間、再寫「其餘 4 間合計 650 人」時，
+    模型會自己編出 4 個名稱湊數（花蓮的模擬裡冒出宜蘭國小、台東女中）。
+    受影響的避難所最多也就幾十間，全列出來的成本很低
+    """
+    assigned = (plan or {}).get("assigned") or {}
+    if not assigned:
+        return excluded_lines(plan)
+    ranked = sorted(assigned.items(), key=lambda kv: (-kv[1], kv[0]))
+    lines = [f"疏散分配（共 {len(ranked)} 間，依直線距離由近到遠，並守住各避難所的剩餘空位）："]
+    lines += [f"- {display_name(name)}：分配 {people} 人" for name, people in ranked]
+    if plan.get("unplaced"):
+        lines.append(f"範圍內避難所已全部額滿，仍有 {plan['unplaced']} 人無法安置。")
+    lines += excluded_lines(plan)
+    return lines
+
+
 class ChatService:
     def __init__(self, vector_store: VectorStore, repo=None):
         self.vector_store = vector_store
@@ -282,7 +316,7 @@ class ChatService:
             f"影響半徑：{sim.get('radius_km')} 公里，"
             f"受影響避難所數量：{sim.get('impacted_count', 0)} 個。"
         )
-        extra = population_lines(sim.get("population") or {})
+        extra = population_lines(sim.get("population") or {}) + evacuation_lines(sim.get("evacuation") or {})
         if extra:
             summary += "\n" + "\n".join(extra)
         return summary
@@ -308,11 +342,14 @@ class ChatService:
             f"影響半徑：{sim.get('radius_km', '')} 公里",
         ]
         lines.extend(population_lines(sim.get("population") or {}))
+        # 被排除的那間仍在受影響清單裡、也還有空位；不標出來，模型會把它當成可以去的地方
+        excluded = (sim.get("evacuation") or {}).get("excluded") or {}
         lines.append(f"受影響避難所共 {len(impacted)} 個：")
         for i, s in enumerate(impacted, 1):
+            note = "（位於土石流潛勢溪流影響範圍內，本次未列為疏散目的地）" if s.name in excluded else ""
             lines.append(
                 f"{i}. {display_name(s.name)}：容量 {s.capacity} 人，"
-                f"目前收容 {s.current_people} 人，剩餘空間 {s.remaining} 人"
+                f"目前收容 {s.current_people} 人，剩餘空間 {s.remaining} 人{note}"
             )
 
         return "\n".join(lines), None
@@ -331,6 +368,14 @@ class ChatService:
                 return lat, lon
         return None
 
+    def _debris_flow_shelters(self) -> dict[str, list[str]]:
+        """位在土石流潛勢溪流影響範圍內的避難所；查不到就當作沒有，不讓最近避難所查詢跟著失敗"""
+        try:
+            return self.repo.shelters_in_hazard_zones("debris_flow")
+        except Exception:
+            logger.exception("查詢土石流潛勢區域失敗")
+            return {}
+
     def _get_nearest_context(self, lat: float, lon: float) -> tuple[str | None, str | None]:
         """回傳 (context, early_reply)。查不到或查壞了都是固定回覆，不能當成資料送進 prompt"""
         if self.repo is None:
@@ -341,13 +386,18 @@ class ChatService:
             if not results:
                 return None, NO_NEARBY_REPLY
 
+            hazards = self._debris_flow_shelters()
             lines = [f"使用者位置：緯度 {lat}、經度 {lon}"]
             lines.append("距離最近的避難所（依距離由近到遠排序）：")
             for i, n in enumerate(results, 1):
                 s = n.shelter
+                warning = (
+                    f"（注意：位於土石流潛勢溪流影響範圍 {'、'.join(hazards[s.name])} 內，豪雨時不宜前往）"
+                    if s.name in hazards else ""
+                )
                 lines.append(
                     f"{i}. {display_name(s.name)}：距離 {n.distance_km} 公里，"
-                    f"容量 {s.capacity} 人，剩餘空間 {s.remaining} 人"
+                    f"容量 {s.capacity} 人，剩餘空間 {s.remaining} 人{warning}"
                 )
             return "\n".join(lines), None
         except Exception:
@@ -536,6 +586,12 @@ class ChatService:
             self._log_summary("generated", "empty", len(shelter_context), 0, started)
             yield {"type": "error", "text": AI_UNAVAILABLE}
             return
+        # 被排除的避難所由程式補在最後，不交給模型：實測 3 次回答都照「名稱：容量、剩餘空位」的格式
+        # 把澳花國小列成剩餘 150 人，附註整個被省略——看起來就像豪雨時可以去
+        if metrics.last_route() == "simulation":
+            note = excluded_lines((self._snapshot() or {}).get("evacuation") or {})
+            if note:
+                yield {"type": "delta", "text": "\n\n" + note[0]}
         metrics.incr("chat.generation.ok")
         self._log_summary("generated", "ok", len(shelter_context), reply_chars, started)
 
