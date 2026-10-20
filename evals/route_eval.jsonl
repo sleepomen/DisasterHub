@@ -43,3 +43,4 @@
 {"query": "有沒有可以借錢的地方", "expected_route": "no_clue", "simulation": false, "note": "沒有地名也沒有任何避難線索；距離 0.505 在門檻內，交給模型會列出一串避難所"}
 {"query": "我們一家五口可以去哪", "expected_route": "rag", "simulation": false, "note": "沒有地名但「去哪」是在找地方，不能被擋"}
 {"query": "地震了要去哪裡", "expected_route": "rag", "simulation": false, "note": "災害詞是線索"}
+{"query": "這次模擬每間避難所分配了多少人？有沒有避難所被排除？", "expected_route": "simulation", "simulation": true, "note": "模擬進行中問分配與排除：走全域檢索時模型會把不相干的避難所混進來"}
