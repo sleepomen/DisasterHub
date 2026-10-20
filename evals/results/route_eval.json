@@ -1,7 +1,7 @@
 {
   "summary": {
-    "count": 45,
-    "correct": 45,
+    "count": 46,
+    "correct": 46,
     "accuracy": 1.0,
     "per_route": {
       "nearest": {
@@ -40,8 +40,8 @@
         "accuracy": 1.0
       },
       "simulation": {
-        "count": 8,
-        "correct": 8,
+        "count": 9,
+        "correct": 9,
         "accuracy": 1.0
       },
       "unknown_name": {
@@ -73,7 +73,7 @@
         "rag": 15
       },
       "simulation": {
-        "simulation": 8
+        "simulation": 9
       },
       "unknown_name": {
         "unknown_name": 2
@@ -451,6 +451,14 @@
       "actual": "rag",
       "answered_without_llm": false,
       "note": "災害詞是線索"
+    },
+    {
+      "query": "這次模擬每間避難所分配了多少人？有沒有避難所被排除？",
+      "simulation": true,
+      "expected": "simulation",
+      "actual": "simulation",
+      "answered_without_llm": false,
+      "note": "模擬進行中問分配與排除：走全域檢索時模型會把不相干的避難所混進來"
     }
   ]
 }
