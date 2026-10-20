@@ -1,3 +1,4 @@
+import json
 import logging
 import threading
 import time
@@ -55,7 +56,31 @@ def _acquire(pool):
             time.sleep(POOL_RETRY_INTERVAL)
 
 
-SELECT_COLUMNS = "name, capacity, current_ppl, ST_Y(geom::geometry), ST_X(geom::geometry), COALESCE(address, '')"
+# 半徑與最近距離查詢都用 geom::geography（才能用公尺算真實距離），但 idx_shelters_geom 建在
+# geometry 上，EXPLAIN 證實這兩個查詢一律 Seq Scan——關掉 seqscan 也一樣。運算式索引要跟查詢裡的
+# 運算式完全相同才會被採用，所以這裡建的就是 (geom::geography)
+GEOGRAPHY_INDEX_SQL = "CREATE INDEX IF NOT EXISTS idx_shelters_geog ON shelters USING GIST ((geom::geography))"
+
+# 災害潛勢區域（目前是土石流潛勢溪流影響範圍）。距離查詢一樣轉成 geography，索引也建在同一個運算式上
+HAZARD_SCHEMA_SQL = (
+    """
+    CREATE TABLE IF NOT EXISTS hazard_zones (
+        id SERIAL PRIMARY KEY,
+        hazard_type VARCHAR(40) NOT NULL,
+        ref_no VARCHAR(40),
+        county VARCHAR(20),
+        town VARCHAR(20),
+        village VARCHAR(20),
+        risk VARCHAR(10),
+        households INTEGER,
+        geom GEOMETRY(MultiPolygon, 4326)
+    )
+    """,
+    "CREATE INDEX IF NOT EXISTS idx_hazard_zones_geog ON hazard_zones USING GIST ((geom::geography))",
+    "CREATE INDEX IF NOT EXISTS idx_hazard_zones_type ON hazard_zones (hazard_type)",
+)
+
+SELECT_COLUMNS ="name, capacity, current_ppl, ST_Y(geom::geometry), ST_X(geom::geometry), COALESCE(address, '')"
 
 
 def _row_to_shelter(row) -> Shelter:
@@ -107,6 +132,9 @@ class ShelterRepository:
             with self._cursor() as cursor:
                 cursor.execute("ALTER TABLE shelters ADD COLUMN IF NOT EXISTS address VARCHAR(200) DEFAULT ''")
                 cursor.execute("CREATE INDEX IF NOT EXISTS idx_shelters_geom ON shelters USING GIST (geom)")
+                cursor.execute(GEOGRAPHY_INDEX_SQL)
+                for statement in HAZARD_SCHEMA_SQL:
+                    cursor.execute(statement)
         except Exception as e:
             raise RuntimeError(f"ensure_schema 失敗：{e}") from e
 
@@ -252,3 +280,50 @@ class ShelterRepository:
         except Exception as e:
             raise RuntimeError(f"get_nearest_shelters 失敗：{e}") from e
         return nearest
+
+    # ── 災害潛勢區域 ─────────────────────────────────────────
+    HAZARD_INSERT_SQL = """
+        INSERT INTO hazard_zones (hazard_type, ref_no, county, town, village, risk, households, geom)
+        VALUES (%s, %s, %s, %s, %s, %s, %s,
+                ST_Multi(ST_CollectionExtract(ST_MakeValid(ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326)), 3)));
+    """
+
+    def replace_hazard_zones(self, hazard_type: str, features: list[dict]) -> int:
+        """
+        整批換掉某一類災害潛勢區域，在同一個交易裡刪舊寫新：寫到一半失敗會整批回滾，
+        不會留下「舊的刪了、新的只寫一半」的狀態。官方多邊形偶有自相交，用 ST_MakeValid 修正
+        """
+        try:
+            with self._cursor() as cursor:
+                cursor.execute("DELETE FROM hazard_zones WHERE hazard_type = %s", (hazard_type,))
+                for f in features:
+                    p = f["properties"]
+                    cursor.execute(self.HAZARD_INSERT_SQL, (
+                        hazard_type, p.get("debris_no"), p.get("county"), p.get("town"), p.get("village"),
+                        p.get("risk"), p.get("households"), json.dumps(f["geometry"]),
+                    ))
+            return len(features)
+        except Exception as e:
+            raise RuntimeError(f"replace_hazard_zones 失敗：{e}") from e
+
+    def shelters_in_hazard_zones(self, hazard_type: str, buffer_m: float = 0) -> dict[str, list[str]]:
+        """
+        位在（或距離 buffer_m 公尺內有）災害潛勢區域的避難所 → 命中的區域編號。
+        用 geography 算公尺，兩邊的 geography 運算式索引才會被採用
+        """
+        try:
+            with self._cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT s.name, array_agg(DISTINCT z.ref_no ORDER BY z.ref_no)
+                    FROM shelters s
+                    JOIN hazard_zones z
+                      ON z.hazard_type = %s
+                     AND ST_DWithin(z.geom::geography, s.geom::geography, %s)
+                    GROUP BY s.name
+                    """,
+                    (hazard_type, buffer_m),
+                )
+                return {name: list(refs) for name, refs in cursor.fetchall()}
+        except Exception as e:
+            raise RuntimeError(f"shelters_in_hazard_zones 失敗：{e}") from e
