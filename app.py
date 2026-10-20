@@ -1,5 +1,6 @@
 import asyncio
 import contextvars
+import functools
 import json
 import logging
 import re
@@ -20,11 +21,12 @@ import config
 from repositories.shelter_repository import ShelterRepository
 from services import auth, health
 from services.chat_service import ChatService
+from services.evacuation import EXCLUDED_HAZARDS, origins_from, plan_evacuation
 from services.map_service import MapService
 from services.metrics import metrics
 from services.population_service import PopulationModel
 from services.rate_limit import RateLimiter
-from services.sync_service import DataSyncService
+from services.sync_service import HAZARD_FILES, DataSyncService
 from services.vector_store import VectorStore
 
 # 每一行 log 都帶 request id：一個請求在 docker logs 裡的幾行才能串起來，
@@ -100,6 +102,14 @@ def sync_and_reindex(force: bool = False) -> int:
     shelters = repo.get_all_shelters()
     vector_store.build_index(shelters, force=force)
     return len(shelters)
+
+
+@functools.cache
+def hazard_zones_geojson() -> dict:
+    path = HAZARD_FILES["debris_flow"]
+    if not path.exists():
+        return {"type": "FeatureCollection", "features": []}
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def apply_occupancy(occupancy: dict[str, int]) -> dict:
@@ -402,11 +412,29 @@ async def simulate(request: SimulateRequest, http_request: Request, x_api_key: s
     impacted = await asyncio.to_thread(
         repo.get_shelters_in_radius, request.lat, request.lon, request.radius
     )
-    # 人口估算與前端動畫、AI 回答共用同一份模型，三邊數字才會一致
-    total_remaining = sum(s.remaining for s in impacted)
+    # 位在對應災害潛勢區域內的避難所不當疏散目的地（淹水模擬避開土石流影響範圍）。
+    # 查不到潛勢資料時退回「不排除」，跟沒有這個功能時一樣，模擬本身不能因此失敗
+    excluded: dict[str, list[str]] = {}
+    hazard = EXCLUDED_HAZARDS.get(request.type)
+    if hazard:
+        try:
+            in_zone = await asyncio.to_thread(repo.shelters_in_hazard_zones, hazard)
+            excluded = {s.name: in_zone[s.name] for s in impacted if s.name in in_zone}
+        except Exception:
+            logger.exception("查詢災害潛勢區域失敗，本次模擬不排除任何避難所")
+    destinations = [s for s in impacted if s.name not in excluded]
+
+    # 人口估算與前端動畫、AI 回答共用同一份模型，三邊數字才會一致；
+    # 可安置空間只算真的能去的避難所，否則「可安置」會跟分配結果對不上
+    total_remaining = sum(s.remaining for s in destinations)
     population = population_model.estimate(
         request.lat, request.lon, request.radius, request.type, total_remaining
     )
+    # 誰去哪一間由後端決定，結果確定、可重現；前端只把這份分配畫成動畫。
+    # 以前是瀏覽器用亂數分配、動畫跑完才回寫，AI 要等回寫成功才看得到同樣的數字
+    plan = plan_evacuation(origins_from(population, request.lat, request.lon), destinations)
+    plan["excluded"] = excluded
+    plan["excluded_hazard"] = hazard if excluded else None
 
     chat_service.set_simulation({
         "type": request.type,
@@ -417,14 +445,32 @@ async def simulate(request: SimulateRequest, http_request: Request, x_api_key: s
         # 快照存 Shelter 物件：收容人數回寫後 refresh_occupancy 直接換成新的物件就好
         "impacted_shelters": impacted,
         "population": population,
+        "evacuation": plan,
     })
+
+    occupancy = {s.name: s.current_people + plan["assigned"][s.name] for s in impacted if s.name in plan["assigned"]}
+    try:
+        written = await asyncio.to_thread(apply_occupancy, occupancy) if occupancy else None
+    except Exception:
+        # 資料庫沒寫進去就不能留著快照，否則 AI 會講一份資料庫裡不存在的分配
+        chat_service.clear_simulation()
+        logger.exception("寫入疏散分配失敗")
+        raise HTTPException(status_code=500, detail="寫入疏散分配失敗") from None
 
     return {
         "status": "success",
         "impacted_count": len(impacted),
         "impacted_shelters": map_service.to_impacted(impacted),
         "population": population,
+        "evacuation": plan,
+        "occupancy": written["occupancy"] if written else None,
     }
+
+
+# 災害潛勢區域（GeoJSON），地圖疊圖用。檔案在啟動時讀一次就好，內容只有重建資料時才會變
+@app.get("/api/hazard_zones")
+async def get_hazard_zones():
+    return hazard_zones_geojson()
 
 
 # 人口模型（海岸線 + 鄉鎮人口）：前端人群動畫用它決定人從哪裡出發
