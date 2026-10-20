@@ -102,3 +102,18 @@ def test_delete_missing_refuses_an_empty_keep_list():
     # 空清單會讓 name <> ALL('{}') 對所有列成立，也就是清空整張表
     with pytest.raises(ValueError):
         ShelterRepository().delete_missing([])
+
+
+def test_distance_queries_have_a_matching_geography_index():
+    """
+    兩個距離查詢都寫 geom::geography；建在 geometry 上的索引對它們沒用，EXPLAIN 一律 Seq Scan。
+    運算式索引必須跟查詢裡的運算式一字不差，任何一邊改寫都要一起改
+    """
+    import pathlib
+    import re
+
+    assert "USING GIST ((geom::geography))" in shelter_repository.GEOGRAPHY_INDEX_SQL
+    source = pathlib.Path(shelter_repository.__file__).read_text(encoding="utf-8")
+    assert len(re.findall(r"geom::geography|ST_DWithin\(\s*geom,", source)) >= 3
+    init_sql = (pathlib.Path(shelter_repository.__file__).resolve().parent.parent / "init.sql").read_text(encoding="utf-8")
+    assert "USING GIST ((geom::geography))" in init_sql
