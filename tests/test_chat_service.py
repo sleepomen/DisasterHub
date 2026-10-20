@@ -753,3 +753,72 @@ def test_clue_check_only_applies_without_filters_and_with_a_name_list(svc):
     svc.vector_store.shelter_metadata.return_value = []
     context, early = svc.build_context("有沒有可以借錢的地方")
     assert early is None and context is not None
+
+
+def test_simulation_summary_quotes_the_server_side_evacuation_plan(svc):
+    svc.set_simulation({
+        "type": "flood", "lat": 23.97, "lon": 121.6, "radius_km": 10, "impacted_count": 2,
+        "impacted_shelters": [],
+        "evacuation": {"assigned": {"[HUALIEN] 甲": 90, "[HUALIEN] 丙": 300}, "placed": 390, "unplaced": 15},
+    })
+    summary = svc._simulation_summary()
+    assert summary.index("丙：分配 300 人") < summary.index("甲：分配 90 人")
+    assert "[HUALIEN]" not in summary
+    assert "仍有 15 人無法安置" in summary
+
+
+def test_every_assigned_shelter_is_listed_so_the_model_cannot_fill_gaps(svc):
+    # 只列前 10 間加「其餘 4 間合計」時，模型會自己編名稱湊滿 14 間
+    assigned = {f"[HUALIEN] 避難所{i:02d}": 100 + i for i in range(14)}
+    svc.set_simulation({"type": "flood", "radius_km": 10, "impacted_count": 14, "impacted_shelters": [],
+                        "evacuation": {"assigned": assigned, "placed": sum(assigned.values()), "unplaced": 0}})
+    summary = svc._simulation_summary()
+    assert all(f"避難所{i:02d}：分配 {100 + i} 人" in summary for i in range(14))
+    assert "其餘" not in summary and "共 14 間" in summary
+
+
+def test_nearest_results_warn_about_debris_flow_zones(svc):
+    from models.shelter import NearbyShelter, Shelter
+
+    svc.repo = MagicMock()
+    svc.repo.get_nearest_shelters.return_value = [
+        NearbyShelter(Shelter("[YILAN] 澳花國小", 150, 24.33, 121.73, 0), distance_km=1.2),
+        NearbyShelter(Shelter("[YILAN] 南澳鄉綜合體育場", 550, 24.46, 121.80, 0), distance_km=3.4),
+    ]
+    svc.repo.shelters_in_hazard_zones.return_value = {"[YILAN] 澳花國小": ["宜縣DF139"]}
+    context, early = svc._get_nearest_context(24.33, 121.73)
+    first, second = context.splitlines()[2:4]
+    assert "宜縣DF139" in first and "豪雨時不宜前往" in first
+    assert "土石流" not in second
+
+    # 潛勢區域查壞了，最近避難所仍要答得出來
+    svc.repo.shelters_in_hazard_zones.side_effect = RuntimeError("db down")
+    context, early = svc._get_nearest_context(24.33, 121.73)
+    assert early is None and "澳花國小" in context
+
+
+def test_simulation_summary_names_the_excluded_shelters(svc):
+    svc.set_simulation({
+        "type": "flood", "radius_km": 10, "impacted_count": 2, "impacted_shelters": [],
+        "evacuation": {"assigned": {"[YILAN] 安全": 100}, "placed": 100, "unplaced": 0,
+                       "excluded": {"[YILAN] 澳花國小": ["宜縣DF139"]}, "excluded_hazard": "debris_flow"},
+    })
+    summary = svc._simulation_summary()
+    assert "澳花國小（宜縣DF139）" in summary and "土石流潛勢溪流影響範圍" in summary
+
+
+def test_excluded_shelters_are_appended_by_code_on_simulation_answers(svc):
+    """小模型照格式列表時會把「未列為疏散目的地」的附註省略，被排除的那間看起來像有空位可去"""
+    svc.set_simulation({
+        "type": "flood", "radius_km": 15, "impacted_count": 1,
+        "impacted_shelters": [Shelter("[YILAN] 澳花國小", 150, 24.33, 121.73, 0)],
+        "evacuation": {"assigned": {}, "placed": 0, "unplaced": 0,
+                       "excluded": {"[YILAN] 澳花國小": ["宜縣DF139"]}, "excluded_hazard": "debris_flow"},
+    })
+    with patch("services.chat_service.requests.post", return_value=FakeStream(ndjson("澳花國小：剩餘空間 150 人"))):
+        reply = svc.chat("這次模擬有沒有避難所被排除？")
+    assert reply.endswith("本次未列為疏散目的地：澳花國小（宜縣DF139）。")
+
+    # 一般檢索的回答不附加
+    with patch("services.chat_service.requests.post", return_value=FakeStream(ndjson("中正國小"))):
+        assert svc.chat("避難所有提供飲水嗎") == "中正國小"
