@@ -306,24 +306,27 @@ class ShelterRepository:
         except Exception as e:
             raise RuntimeError(f"replace_hazard_zones 失敗：{e}") from e
 
-    def shelters_in_hazard_zones(self, hazard_type: str, buffer_m: float = 0) -> dict[str, list[str]]:
+    def shelter_hazard_distances(self, hazard_type: str, within_m: float) -> dict[str, list[tuple[str, float]]]:
         """
-        位在（或距離 buffer_m 公尺內有）災害潛勢區域的避難所 → 命中的區域編號。
-        用 geography 算公尺，兩邊的 geography 運算式索引才會被採用
+        距離災害潛勢區域 within_m 公尺內的避難所 → [(區域編號, 距離公尺)]，由近到遠。
+        距離 0 代表位在區域內。用 geography 算公尺，兩邊的 geography 運算式索引才會被採用
         """
         try:
             with self._cursor() as cursor:
                 cursor.execute(
                     """
-                    SELECT s.name, array_agg(DISTINCT z.ref_no ORDER BY z.ref_no)
+                    SELECT s.name, z.ref_no, ST_Distance(z.geom::geography, s.geom::geography) AS d
                     FROM shelters s
                     JOIN hazard_zones z
                       ON z.hazard_type = %s
                      AND ST_DWithin(z.geom::geography, s.geom::geography, %s)
-                    GROUP BY s.name
+                    ORDER BY s.name, d, z.ref_no
                     """,
-                    (hazard_type, buffer_m),
+                    (hazard_type, within_m),
                 )
-                return {name: list(refs) for name, refs in cursor.fetchall()}
+                result: dict[str, list[tuple[str, float]]] = {}
+                for name, ref, distance in cursor.fetchall():
+                    result.setdefault(name, []).append((ref, float(distance)))
+                return result
         except Exception as e:
-            raise RuntimeError(f"shelters_in_hazard_zones 失敗：{e}") from e
+            raise RuntimeError(f"shelter_hazard_distances 失敗：{e}") from e

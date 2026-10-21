@@ -18,6 +18,9 @@ from services.population_service import distance_km
 # 不能當成疏散目的地。地震與火災目前沒有對應的潛勢圖資，不排除
 EXCLUDED_HAZARDS = {"flood": "debris_flow"}
 HAZARD_LABELS = {"debris_flow": "土石流潛勢溪流影響範圍"}
+# 範圍外但離得很近的避難所只警告、不排除：影響範圍本身已經含堆積區，
+# 排除會讓本來就不多的空位再少一間。200 公尺內實測只有南山國小（121 公尺），下一間是 482 公尺
+HAZARD_WARN_M = 200
 
 # 範圍內沒有任何鄉鎮人口重心時（海域、無人山區），疏散人數由面積保底估算，起點就放在災害中心
 FALLBACK_ORIGIN = "災害中心"
@@ -56,6 +59,23 @@ def origins_from(population: dict, center_lat: float, center_lon: float) -> list
         return [Origin(FALLBACK_ORIGIN, center_lat, center_lon, evacuees)] if evacuees > 0 else []
     shares = apportion(evacuees, {t["name"]: int(t["weight"]) for t in townships})
     return [Origin(t["name"], t["lat"], t["lon"], shares[t["name"]]) for t in townships if shares[t["name"]] > 0]
+
+
+def split_hazard_hits(hits: dict[str, list[tuple[str, float]]]) -> tuple[dict[str, list[str]], dict[str, dict]]:
+    """
+    shelter_hazard_distances 的結果 → (位在區域內, 只是靠近)。
+      inside  {名稱: [所在區域編號]}
+      near    {名稱: {"refs": [附近區域編號], "distance_m": 最近距離（公尺，取整）}}
+    """
+    inside: dict[str, list[str]] = {}
+    near: dict[str, dict] = {}
+    for name, zones in hits.items():
+        within = [ref for ref, d in zones if d == 0]
+        if within:
+            inside[name] = within
+        elif zones:
+            near[name] = {"refs": [ref for ref, _ in zones], "distance_m": round(min(d for _, d in zones))}
+    return inside, near
 
 
 def plan_evacuation(origins: list[Origin], shelters: list) -> dict:
