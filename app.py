@@ -21,7 +21,7 @@ import config
 from repositories.shelter_repository import ShelterRepository
 from services import auth, health
 from services.chat_service import ChatService
-from services.evacuation import EXCLUDED_HAZARDS, origins_from, plan_evacuation
+from services.evacuation import EXCLUDED_HAZARDS, HAZARD_WARN_M, origins_from, plan_evacuation, split_hazard_hits
 from services.map_service import MapService
 from services.metrics import metrics
 from services.population_service import PopulationModel
@@ -413,13 +413,17 @@ async def simulate(request: SimulateRequest, http_request: Request, x_api_key: s
         repo.get_shelters_in_radius, request.lat, request.lon, request.radius
     )
     # 位在對應災害潛勢區域內的避難所不當疏散目的地（淹水模擬避開土石流影響範圍）。
+    # 範圍外 HAZARD_WARN_M 公尺內的照常分配，只附上警告。
     # 查不到潛勢資料時退回「不排除」，跟沒有這個功能時一樣，模擬本身不能因此失敗
     excluded: dict[str, list[str]] = {}
+    near: dict[str, dict] = {}
     hazard = EXCLUDED_HAZARDS.get(request.type)
     if hazard:
         try:
-            in_zone = await asyncio.to_thread(repo.shelters_in_hazard_zones, hazard)
-            excluded = {s.name: in_zone[s.name] for s in impacted if s.name in in_zone}
+            hits = await asyncio.to_thread(repo.shelter_hazard_distances, hazard, HAZARD_WARN_M)
+            inside, nearby = split_hazard_hits(hits)
+            excluded = {s.name: inside[s.name] for s in impacted if s.name in inside}
+            near = {s.name: nearby[s.name] for s in impacted if s.name in nearby}
         except Exception:
             logger.exception("查詢災害潛勢區域失敗，本次模擬不排除任何避難所")
     destinations = [s for s in impacted if s.name not in excluded]
@@ -434,7 +438,8 @@ async def simulate(request: SimulateRequest, http_request: Request, x_api_key: s
     # 以前是瀏覽器用亂數分配、動畫跑完才回寫，AI 要等回寫成功才看得到同樣的數字
     plan = plan_evacuation(origins_from(population, request.lat, request.lon), destinations)
     plan["excluded"] = excluded
-    plan["excluded_hazard"] = hazard if excluded else None
+    plan["near_hazard"] = near
+    plan["hazard"] = hazard if excluded or near else None
 
     chat_service.set_simulation({
         "type": request.type,
