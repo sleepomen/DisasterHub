@@ -20,7 +20,8 @@ Built in response to the 2025 barrier-lake disaster in Guangfu Township, Hualien
 
 - **Real map visualization** — Leaflet.js + OpenStreetMap. 50 shelters across Yilan, Hualien and Taitung are plotted at their real coordinates; marker size scales with capacity, and clicking one shows live information.
 - **PostGIS spatial simulation** — Set a disaster epicenter and impact radius; the backend computes the list of affected shelters via `ST_DWithin`. Earthquake, flood and fire scenarios are supported.
-- **Crowd evacuation animation** — The backend estimates the population inside the impact radius and the resulting evacuation demand from a township population model. Crowd points head to the nearest shelter that still has room, and load ratios update in real time. When the animation ends, each shelter's occupancy is written back to the database and the vector index, so the loads the AI assistant reports match the map.
+- **Crowd evacuation animation** — The backend estimates the population inside the impact radius and the resulting evacuation demand from a township population model, then computes a deterministic, capacity-bounded evacuation plan (nearest first) and writes it to the database and the vector index straight away. The frontend only replays that plan as an animation, so the loads the AI assistant reports match the map as soon as the simulation returns.
+- **Debris-flow hazard zones** — 531 debris-flow impact zones in Yilan, Hualien and Taitung from the Ministry of Agriculture are imported into PostGIS and drawn on the map. Flood simulations keep evacuees out of shelters inside a zone, and nearest-shelter answers warn when a shelter lies inside one.
 - **AI decision assistant** — A rules layer plus RAG and a local LLM answer questions from real shelter data, covering semantic lookups, geographic distance queries, capacity rankings, and simulation-result queries. Region, township, facility and capacity conditions become metadata filters, and questions about counties outside the coverage area are declined outright.
 
 ---
@@ -86,7 +87,7 @@ Edit `.env`:
 | `CHAT_RATE_LIMIT` / `CHAT_RATE_WINDOW` | How many `/api/chat` questions one source may ask per window, default 15 per 60 s. The concurrency cap only limits how many run at once; this limits how many one client can ask at all, because chat needs no login. Set `CHAT_RATE_LIMIT=0` to disable |
 | `DB_CONNECT_TIMEOUT` / `DB_STATEMENT_TIMEOUT_MS` | Database connect timeout (seconds, default 5) and per-statement timeout (milliseconds, default 15000), so a hung database fails requests within seconds instead of blocking every worker thread |
 
-Optional variables: `OLLAMA_MODEL` (default `llama3.2:3b`), `OLLAMA_TEMPERATURE`, `OLLAMA_NUM_CTX` (default 8192 — must hold the 20–30 shelter documents a list-style query retrieves), `OLLAMA_NUM_PREDICT` (default 800), `OLLAMA_TIMEOUT`, `EMBEDDING_PROVIDER` (`ollama` or `minilm`), `EMBEDDING_MODEL` (default `bge-m3`), `EMBEDDING_TIMEOUT`, `RAG_TOP_K`, `RAG_MAX_DISTANCE` (default 0.56 — cosine distance above which a plain semantic search is treated as "no relevant data"; questions about the weather or subsidies then get a fixed reply instead of ten unrelated shelters), `DB_POOL_MIN` / `DB_POOL_MAX` (default 1 / 10).
+Optional variables: `OLLAMA_MODEL` (default `llama3.2:3b`), `OLLAMA_TEMPERATURE`, `OLLAMA_NUM_CTX` (default 8192 — must hold the 20–30 shelter documents a list-style query retrieves), `OLLAMA_NUM_PREDICT` (default 800), `OLLAMA_TIMEOUT`, `EMBEDDING_PROVIDER` (`ollama` or `minilm`), `EMBEDDING_MODEL` (default `bge-m3`), `EMBEDDING_TIMEOUT`, `RAG_TOP_K`, `RAG_MAX_DISTANCE` (default 0.70 — cosine distance above which a plain semantic search is treated as "no relevant data"; a last-resort backstop, since off-topic questions are already refused by the earlier layers), `DB_POOL_MIN` / `DB_POOL_MAX` (default 1 / 10).
 
 Numeric settings are range-checked at startup (for example `SESSION_HOURS` must be positive and `DB_POOL_MAX` may not be smaller than `DB_POOL_MIN`); an out-of-range value stops the service with a clear message, and a value that cannot be parsed falls back to the default with a warning in the log.
 
@@ -160,6 +161,7 @@ DisasterHub/
 │   ├── embeddings.py           # Ollama / MiniLM embeddings
 │   ├── health.py               # Readiness dependency checks
 │   ├── population_service.py   # Coastline + township population model, evacuee estimation
+│   ├── evacuation.py           # Evacuation plan: townships → shelters, nearest first, capacity-bounded
 │   └── vector_store.py         # ChromaDB vector index (supports partial updates)
 │
 ├── data_for_refuge/
@@ -168,7 +170,11 @@ DisasterHub/
 │   └── yilan_shelter.json      # Yilan (20 entries)
 │
 ├── data_reference/
-│   └── east_taiwan_population.json  # Coastline polylines + population of 29 townships (shared by the frontend animation and the AI)
+│   ├── east_taiwan_population.json  # Coastline polylines + population of 29 townships (shared by the frontend animation and the AI)
+│   └── debris_flow_east.geojson     # Debris-flow impact zones in the three eastern counties (Ministry of Agriculture)
+│
+├── tools/
+│   └── build_hazard_zones.py   # Ministry of Agriculture SHP → debris_flow_east.geojson (TWD97 → WGS84)
 │
 ├── static/
 │   ├── index.html              # Page skeleton
@@ -187,6 +193,8 @@ DisasterHub/
     ├── test_shelter_profile.py
     ├── test_shelter_repository.py
     ├── test_population_service.py
+    ├── test_evacuation.py
+    ├── test_hazard_zones.py
     ├── test_query_rules.py
     ├── test_vector_store.py
     ├── test_chat_service.py
@@ -211,10 +219,11 @@ DisasterHub/
 | POST | `/api/login` | Log in with the administrator credentials; sets an HttpOnly session cookie. Five consecutive failures lock the source for 5 minutes |
 | POST | `/api/logout` | Log out and clear the cookie |
 | GET | `/api/me` | Current login state; the frontend uses it on load to decide whether to show the login panel |
-| POST | `/api/simulate_disaster` | Run the spatial disaster simulation; returns the affected shelters plus estimates of the population inside the radius, the evacuation demand, and the shelter shortfall (requires login, or `X-API-Key`) |
-| POST | `/api/occupancy` | Write back each shelter's current occupancy (called by the frontend once the evacuation animation ends); only the changed vector documents are recomputed (requires login, or `X-API-Key`) |
+| POST | `/api/simulate_disaster` | Run the spatial disaster simulation; returns the affected shelters, estimates of the population inside the radius, the evacuation demand and the shelter shortfall, the evacuation plan (`evacuation`) and the resulting occupancy, which is already written to the database (requires login, or `X-API-Key`) |
+| POST | `/api/occupancy` | Set each shelter's current occupancy directly (for external tools or manual correction; the simulation no longer needs it); only the changed vector documents are recomputed (requires login, or `X-API-Key`) |
 | POST | `/api/reset_simulation` | Clear the simulation state and restore occupancy to the initial values from the source data (requires login, or `X-API-Key`) |
 | POST | `/api/nearest_shelter` | Find the nearest shelters (PostGIS distance ordering) |
+| GET | `/api/hazard_zones` | Debris-flow impact zones as GeoJSON, for the map layer |
 | POST | `/api/chat` | AI decision assistant. Streams the answer back as Server-Sent Events. Returns 429 when all `CHAT_MAX_CONCURRENT` generation slots are busy |
 | POST | `/api/sync` | Trigger a data sync manually. Accepts `SYNC_API_KEY`, a logged-in session, or `WRITE_API_KEY` — the startup sync can fail, and an operator must be able to recover without restarting the container. The index is rebuilt into a staging collection and swapped in atomically, so chat keeps answering from the old index while embeddings are recomputed |
 
@@ -322,11 +331,38 @@ into it.
 
 ### Simulation State and Occupancy
 
-- The simulation flow: `/api/simulate_disaster` uses PostGIS to find the affected shelters and estimates the population inside the radius, the evacuation demand and the shelter shortfall from the township populations in `data_reference/east_taiwan_population.json`. The frontend runs the evacuation animation off that same estimate, and when the animation ends it writes each shelter's occupancy back to the database with `POST /api/occupancy`, recomputing vector documents only for the shelters that changed. From then on the loads the AI sees match the map, whether the answer comes from RAG, capacity ranking, geographic distance, or the simulation snapshot.
+- The simulation flow: `/api/simulate_disaster` uses PostGIS to find the affected shelters and estimates the population inside the radius, the evacuation demand and the shelter shortfall from the township populations in `data_reference/east_taiwan_population.json`. It then computes the evacuation plan (see [Evacuation Assignment](#evacuation-assignment)) and writes the resulting occupancy to the database before responding, recomputing vector documents only for the shelters that changed. From then on the loads the AI sees match the map, whether the answer comes from RAG, capacity ranking, geographic distance, or the simulation snapshot. The simulation summary itself is only added to the prompt for simulation questions: when it was also attached to ordinary questions, llama3.2:3b mixed the two, answering 「我們一家五口可以去哪」 with a simulated shelter's name next to another shelter's township and capacity.
 - The data sync at startup and via `/api/sync` only updates capacity, address and coordinates — it does **not** reset occupancy (it is only clamped down when the capacity shrinks below the current headcount). To clear occupancy, use "Clear all layers" in the UI or call `/api/reset_simulation`.
 - The sync also **deletes** shelters that are no longer in the source JSON. Without it, removing a shelter from the source left its row in the database forever and the AI kept recommending a place that is no longer a shelter; a rename left both the old and the new name. Because this is the only step that deletes data, it runs only when the sync is complete and trustworthy — every source row was written, no source file failed to parse, and no individual row was skipped. One source file is one county, so a single unparsable file would otherwise wipe that whole county. When any of those does not hold, the deletion is skipped, a warning says why, and `sync.prune_skipped` in `/api/stats` counts it; a counter that keeps rising means the source data is broken and nobody noticed.
 - After occupancy is written back, the snapshot's "current remaining space" is recomputed from the per-shelter figures, while "placeable / shortfall" stay as the planning numbers from the moment of simulation and the number of people already placed is reported separately, so the AI's totals never contradict its per-shelter list.
 - Simulation, write-back and reset all mutate the database or global state, and once deployed anyone who can reach the domain can call these endpoints directly, so they require a login. Operators log in once when they open the site; the session cookie is sent automatically by the browser and nothing has to be typed again while it is valid. Without logging in the UI is read-only (map and chat).
+
+### Evacuation Assignment
+
+The evacuation plan is computed on the backend (`services/evacuation.py`). It used to be done in the browser: crowd points were scattered at random and each one picked a shelter, so the same parameters gave a different allocation every run, and the figures the AI quoted only matched the map after the animation finished and the write-back succeeded.
+
+1. **Origins.** The evacuation demand is split across the affected townships in proportion to their population inside the radius, using the largest-remainder method so the parts add up exactly to the reported total. When the radius contains no township centroid (open sea, uninhabited mountains), a single origin is placed at the disaster center.
+2. **Assignment.** Every (township, shelter) pair is sorted by distance, nearest first, and each township's remaining people fill each shelter's remaining room in that order. Capacity is never exceeded, ties are broken by name so the result is reproducible, and the rule is easy to explain to an operator.
+3. **Write-back.** The plan is written to the database immediately (current occupancy plus the assigned people), and only the changed vector documents are recomputed. If the write fails, the simulation is cleared and the endpoint returns 500, so the AI never describes a plan the database does not hold.
+
+The response carries `evacuation` (`flows`, `assigned`, `placed`, `unplaced`, `excluded`, `near_hazard`) and `occupancy`. The frontend only replays `flows` as an animation and applies `occupancy` when it ends. The AI answer lists every shelter in the plan with its assigned headcount; a truncated list made the model invent shelter names to fill the gap.
+
+**Limitations:** distances are straight-line, not road-network distances, and the greedy rule does not minimise total travel distance (that is a transportation problem solved by min-cost flow).
+
+### Debris-Flow Hazard Zones
+
+Source: the Ministry of Agriculture's open dataset "115年度1753條土石流潛勢溪流影響範圍圖" ([data.gov.tw/dataset/176526](https://data.gov.tw/dataset/176526), Open Government Data License v1). `data_reference/debris_flow_east.geojson` keeps the 531 impact zones in Yilan, Hualien and Taitung, with stream number, township, village, risk level and household count.
+
+- **Rebuilding the file.** `python tools/build_hazard_zones.py <path to .shp without extension>` reads the SHP/DBF directly (no GDAL or pyshp needed) and converts TWD97 TM2 (EPSG:3826) to WGS84 with the inverse transverse Mercator formula. Checked against PostGIS `ST_Transform`, the results agree to 1e-8 degrees. Keep the downloaded archive in its own folder outside the project.
+- **Import.** The startup sync loads the GeoJSON into the `hazard_zones` table in one transaction (delete, then insert), repairing invalid polygons with `ST_MakeValid`. A failed import is logged and counted as `sync.hazard_failed`, but never fails the shelter sync.
+- **Flood simulation.** Heavy rain triggers both flooding and debris flows, so a flood simulation does not send evacuees to shelters inside a debris-flow zone. In practice: 澳花國小 lies inside the high-risk zone 宜縣DF139. Excluded shelters are listed in the response, and the AI answer ends with a fixed sentence naming them, appended by code rather than left to the model. If the hazard query fails, the simulation runs without exclusions instead of failing. Earthquake and fire have no matching hazard data yet, so nothing is excluded for them.
+- **Near a zone: warn, do not exclude.** A shelter outside a zone but within 200 m of one (`HAZARD_WARN_M`) is still assigned evacuees; the response lists it under `near_hazard` with the zone numbers and distance, and the same code-appended sentence tells the reader to stay alert during heavy rain. The impact zones already include the run-out area, and excluding near-misses would remove scarce capacity. Measured: only 南山國小 (121 m from 宜縣DF079) falls in that band; the next closest shelter is 482 m away.
+- **Nearest shelter.** For AI nearest-shelter questions, a shelter inside a zone is flagged in the context the model receives, with the zone number and a note not to go there during heavy rain; a shelter within 200 m of a zone is flagged with the distance and a note to stay alert. The `/api/nearest_shelter` endpoint itself returns plain distances.
+- **Map.** `GET /api/hazard_zones` serves the zones, and the map draws them in orange; clicking one shows its stream number and risk level.
+
+### Spatial Index
+
+Every distance query casts `geom` to `geography` to work in metres, but the original GiST index was built on `geom`, so PostgreSQL never used it and scanned the whole table. An index has to be built on the same expression the query uses, so `idx_shelters_geog` indexes `(geom::geography)`. `ensure_schema` creates it at startup, so existing databases get it too. `EXPLAIN` now shows an Index Scan; the hazard-zone table gets the same kind of index.
 
 ### Deployment notes
 
@@ -598,6 +634,14 @@ The three off-topic questions above are now the only scored questions whose outc
 model, and generation runs at `temperature=0.3`, so the same question can be refused on one run and
 answered on the next. Either set the temperature to 0 for reproducible numbers or report an average
 over several runs.
+
+**Update — the threshold was raised to 0.70.** Once the `off_topic` and `no_clue` layers
+existed, every question that must be refused (34 boundary questions, plus the 10 negatives in
+`rag_eval.jsonl`) was stopped before retrieval, and the gate's only remaining effect was refusing two
+legitimate questions: 「我們一家五口可以去哪」 (0.583) and 「土石流要撤離到哪」 (0.646). At 0.70 both
+are answered from the retrieved shelters, nothing that should be refused reaches the model, and the
+boundary set goes from 50/53 to 52/53. The gate stays as a backstop for wildly off-target phrasing.
+The one remaining failure is the occasional stray 「目前沒有相關資料」 tail after a correct answer.
 
 ### Nonexistent shelters
 
@@ -871,7 +915,8 @@ Give me evacuation advice
 
 - **真實地圖視覺化** — Leaflet.js + OpenStreetMap，宜花東 50 處避難所標記於真實座標，marker 大小依容量縮放，點擊顯示即時資訊
 - **PostGIS 空間模擬** — 設定災害中心點與影響半徑，後端透過 `ST_DWithin` 計算受影響避難所清單，支援強震、淹水、火災三種類型
-- **人群疏散動畫** — 後端以鄉鎮人口模型估算圈內人口與疏散需求，人群點就近前往仍有空位的避難所，負載率即時變化；動畫結束後把各避難所收容人數回寫資料庫與向量索引，AI 助手回答的負載跟地圖一致
+- **人群疏散動畫** — 後端以鄉鎮人口模型估算圈內人口與疏散需求，算出確定、不超過容量的疏散分配（近者優先），並立即寫入資料庫與向量索引；前端只負責把這份分配畫成動畫，模擬一回傳，AI 助手回答的負載就跟地圖一致
+- **土石流潛勢區域** — 匯入農業部宜花東 531 個土石流潛勢溪流影響範圍到 PostGIS 並顯示在地圖上；淹水模擬不把人送進範圍內的避難所，查最近避難所時若落在範圍內會加註警告
 - **AI 決策助手** — 整合規則層 + RAG + 本地 LLM，根據避難所真實資料回答問題，支援語意查詢、地理距離查詢、容量排序查詢、模擬結果查詢；地區 / 鄉鎮 / 設施 / 容量條件轉成 metadata 篩選，範圍外縣市直接拒答
 
 ---
@@ -937,7 +982,7 @@ cp .env.example .env
 | `CHAT_RATE_LIMIT` / `CHAT_RATE_WINDOW` | 單一來源在一段時間內最多能問幾題 `/api/chat`，預設 60 秒 15 題。併發上限只擋「同時幾個」，這個擋的是「同一個人總共能問幾次」——聊天端點不需要登入，不然任何人都能拿它當免費 LLM。設 `CHAT_RATE_LIMIT=0` 可停用 |
 | `DB_CONNECT_TIMEOUT` / `DB_STATEMENT_TIMEOUT_MS` | 資料庫連線逾時（秒，預設 5）與單一 SQL 逾時（毫秒，預設 15000），資料庫卡住時請求會在幾秒內失敗，不會把所有工作執行緒一起卡死 |
 
-可選變數：`OLLAMA_MODEL`（預設 `llama3.2:3b`）、`OLLAMA_TEMPERATURE`、`OLLAMA_NUM_CTX`（預設 8192，要放得下列舉題一次撈出的 20 至 30 筆避難所文件）、`OLLAMA_NUM_PREDICT`（預設 800）、`OLLAMA_TIMEOUT`、`EMBEDDING_PROVIDER`（`ollama` 或 `minilm`）、`EMBEDDING_MODEL`（預設 `bge-m3`）、`EMBEDDING_TIMEOUT`、`RAG_TOP_K`、`RAG_MAX_DISTANCE`（預設 0.56，純語意檢索的 cosine 距離超過此值就視為沒有相關資料，天氣、補助這類問題會得到固定回覆而不是十筆不相干的避難所）、`DB_POOL_MIN` / `DB_POOL_MAX`（預設 1 / 10）。
+可選變數：`OLLAMA_MODEL`（預設 `llama3.2:3b`）、`OLLAMA_TEMPERATURE`、`OLLAMA_NUM_CTX`（預設 8192，要放得下列舉題一次撈出的 20 至 30 筆避難所文件）、`OLLAMA_NUM_PREDICT`（預設 800）、`OLLAMA_TIMEOUT`、`EMBEDDING_PROVIDER`（`ollama` 或 `minilm`）、`EMBEDDING_MODEL`（預設 `bge-m3`）、`EMBEDDING_TIMEOUT`、`RAG_TOP_K`、`RAG_MAX_DISTANCE`（預設 0.70，純語意檢索的 cosine 距離超過此值就視為沒有相關資料；離題問題已經由前面幾層擋掉，這裡只是最後一道保險）、`DB_POOL_MIN` / `DB_POOL_MAX`（預設 1 / 10）。
 
 數值設定啟動時會檢查範圍（例如 `SESSION_HOURS` 必須大於 0、`DB_POOL_MAX` 不能小於 `DB_POOL_MIN`）；超出範圍會以清楚的訊息停止服務，解析不了的值會退回預設並在 log 提醒。
 
@@ -1011,6 +1056,7 @@ DisasterHub/
 │   ├── embeddings.py           # Ollama / MiniLM embedding
 │   ├── health.py               # readiness 依賴檢查
 │   ├── population_service.py   # 海岸線 + 鄉鎮人口模型，疏散人數估算
+│   ├── evacuation.py           # 疏散分配：鄉鎮 → 避難所，近者優先、不超過容量
 │   └── vector_store.py         # ChromaDB 向量索引（支援局部更新）
 │
 ├── data_for_refuge/
@@ -1019,7 +1065,11 @@ DisasterHub/
 │   └── yilan_shelter.json      # 宜蘭（20 筆）
 │
 ├── data_reference/
-│   └── east_taiwan_population.json  # 海岸線折線 + 29 個鄉鎮人口（前端動畫與 AI 共用）
+│   ├── east_taiwan_population.json  # 海岸線折線 + 29 個鄉鎮人口（前端動畫與 AI 共用）
+│   └── debris_flow_east.geojson     # 宜花東土石流潛勢溪流影響範圍（農業部）
+│
+├── tools/
+│   └── build_hazard_zones.py   # 農業部 SHP → debris_flow_east.geojson（TWD97 → WGS84）
 │
 ├── static/
 │   ├── index.html              # 頁面骨架
@@ -1038,6 +1088,8 @@ DisasterHub/
     ├── test_shelter_profile.py
     ├── test_shelter_repository.py
     ├── test_population_service.py
+    ├── test_evacuation.py
+    ├── test_hazard_zones.py
     ├── test_query_rules.py
     ├── test_vector_store.py
     ├── test_chat_service.py
@@ -1062,10 +1114,11 @@ DisasterHub/
 | POST | `/api/login` | 以管理者帳密登入，成功後發 HttpOnly session cookie；連續失敗 5 次會鎖 5 分鐘 |
 | POST | `/api/logout` | 登出，清除 cookie |
 | GET | `/api/me` | 目前登入狀態，前端載入時用來決定是否顯示登入面板 |
-| POST | `/api/simulate_disaster` | 執行災害空間模擬，回傳受影響避難所與圈內人口 / 疏散需求 / 收容缺口估算（需登入，或帶 `X-API-Key`）|
-| POST | `/api/occupancy` | 回寫各避難所目前收容人數（疏散動畫結束後由前端呼叫），只重算有變動的向量文件（需登入，或帶 `X-API-Key`）|
+| POST | `/api/simulate_disaster` | 執行災害空間模擬，回傳受影響避難所、圈內人口 / 疏散需求 / 收容缺口估算、疏散分配（`evacuation`）與分配後的收容人數（已寫入資料庫）（需登入，或帶 `X-API-Key`）|
+| POST | `/api/occupancy` | 直接設定各避難所目前收容人數（給外部工具或手動修正用，模擬已不需要呼叫），只重算有變動的向量文件（需登入，或帶 `X-API-Key`）|
 | POST | `/api/reset_simulation` | 清除模擬狀態，並把收容人數還原成來源資料的初始值（需登入，或帶 `X-API-Key`）|
 | POST | `/api/nearest_shelter` | 查詢最近避難所（PostGIS 距離排序）|
+| GET | `/api/hazard_zones` | 土石流潛勢溪流影響範圍（GeoJSON），地圖圖層用 |
 | POST | `/api/chat` | AI 決策助手，回答以 Server-Sent Events 逐段串流。`CHAT_MAX_CONCURRENT` 個生成名額都在忙時回 429 |
 | POST | `/api/sync` | 手動觸發資料同步。`SYNC_API_KEY`、登入的 session、`WRITE_API_KEY` 三者任一即可——啟動同步是會失敗的，操作員要能不重啟容器就把資料救回來。索引會先建到暫存 collection 再整個換過去，重算 embedding 期間問答仍用舊索引回答 |
 
@@ -1166,11 +1219,38 @@ curl -N -X POST http://localhost:8501/api/chat \
 
 ### 模擬狀態與收容人數
 
-- 模擬流程：`/api/simulate_disaster` 用 PostGIS 找出受影響避難所，並以 `data_reference/east_taiwan_population.json` 的鄉鎮人口估算圈內人口、疏散需求與收容缺口；前端依同一份估算跑疏散動畫；動畫結束後把各避難所收容人數 `POST /api/occupancy` 回寫資料庫，並只對有變動的避難所重算向量文件。此後不論走 RAG、容量排序、地理距離或模擬快照，AI 看到的負載都與地圖一致。
+- 模擬流程：`/api/simulate_disaster` 用 PostGIS 找出受影響避難所，並以 `data_reference/east_taiwan_population.json` 的鄉鎮人口估算圈內人口、疏散需求與收容缺口；接著算出疏散分配（見[疏散分配](#疏散分配)），回應前就把分配後的收容人數寫入資料庫，並只對有變動的避難所重算向量文件。此後不論走 RAG、容量排序、地理距離或模擬快照，AI 看到的負載都與地圖一致。模擬摘要只附在問模擬的問題上：一般問題也附的時候，llama3.2:3b 會把兩份資料混在一起，回答「我們一家五口可以去哪」時把模擬裡的避難所名稱配上另一間的鄉鎮與容量。
 - 啟動時與 `/api/sync` 的資料同步只更新容量、地址、座標，**不會**重設收容人數（容量縮到低於目前人數時才往下夾）。要清空收容人數請按「清除所有圖層」或呼叫 `/api/reset_simulation`。
 - 同步也會**刪掉**來源 JSON 裡已經不存在的避難所。沒有這一步的話，從來源移除一間避難所之後資料庫那一列會永遠留著，AI 會繼續推薦一個已經不是避難所的地點；改名則是舊名新名各留一列。因為這是整個流程裡唯一會刪資料的一步，只有在這次同步「完整可信」時才執行——每一筆來源資料都寫進去了、沒有任何來源檔案讀不起來、也沒有任何單筆資料被略過。一個檔案就是一個縣，所以單一個檔案壞掉時若照著清理，會把整個縣刪光。任何一項不成立就不清理，log 會寫出原因，`/api/stats` 的 `sync.prune_skipped` 會計數；這個數字持續上升代表來源資料壞了而沒人發現。
 - 回寫收容人數後，模擬快照裡的「目前剩餘空間合計」會跟著逐筆避難所重算；「可安置 / 收容缺口」則保留為模擬當下的規劃數字，並另外標示已安置人數，AI 的總計與明細才不會互相矛盾。
 - 模擬、回寫與重置都會改資料庫或全域狀態，部署出去之後任何連得到網域的人都能直接呼叫這些端點，因此需要先登入。操作員開網站時登入一次，session cookie 由瀏覽器自動帶，有效期內不必再輸入任何東西；不登入仍可瀏覽地圖與使用問答。
+
+### 疏散分配
+
+疏散分配在後端計算（`services/evacuation.py`）。以前是在瀏覽器裡做：人群起點用亂數撒，每個點各自挑避難所，所以同一組參數每次分配都不同；AI 引用的數字也要等動畫跑完、回寫成功之後才跟地圖對得上。
+
+1. **起點**：需疏散人數依各受影響鄉鎮在圈內的人口比例分攤，用最大餘數法，各鄉鎮加總恰好等於回報的總數。範圍內沒有任何鄉鎮人口重心時（海域、無人山區），起點就放在災害中心。
+2. **分配**：把所有（鄉鎮, 避難所）配對依距離由近到遠排序，依序把鄉鎮剩下的人放進避難所剩下的空位。容量一定守得住；距離相同時依名稱排序，結果可以重現；規則也容易跟操作員解釋。
+3. **回寫**：分配結果直接寫入資料庫（目前人數＋分配人數），只重算有變動的向量文件。寫入失敗就清除模擬並回 500，AI 不會描述一份資料庫裡沒有的分配。
+
+回應裡有 `evacuation`（`flows`、`assigned`、`placed`、`unplaced`、`excluded`、`near_hazard`）與 `occupancy`。前端只負責把 `flows` 畫成動畫，結束時套用 `occupancy`。AI 回答會列出分配表裡每一間避難所與分到的人數；以前清單被截斷時，模型會自己編避難所名稱補齊。
+
+**限制**：距離是直線距離而不是路網距離；貪婪規則也不保證總移動距離最小（那是運輸問題，要用最小成本流）。
+
+### 土石流潛勢區域
+
+資料來源：農業部「115年度1753條土石流潛勢溪流影響範圍圖」（[data.gov.tw/dataset/176526](https://data.gov.tw/dataset/176526)，政府資料開放授權條款第 1 版）。`data_reference/debris_flow_east.geojson` 保留宜花東三縣共 531 個影響範圍，含溪流編號、鄉鎮、村里、風險等級與保全戶數。
+
+- **重建資料**：`python tools/build_hazard_zones.py <.shp 去掉副檔名的路徑>`。直接讀 SHP/DBF，不需要 GDAL 或 pyshp；座標以橫麥卡托反算公式把 TWD97 二度分帶（EPSG:3826）轉成 WGS84，跟 PostGIS `ST_Transform` 比對誤差在 1e-8 度以內。下載的壓縮檔請放在專案外的獨立資料夾。
+- **匯入**：啟動同步時把 GeoJSON 匯入 `hazard_zones` 資料表，在同一個交易裡先刪後寫，並用 `ST_MakeValid` 修正有問題的多邊形。匯入失敗只記 log 並計入 `sync.hazard_failed`，不影響避難所同步。
+- **淹水模擬**：豪雨同時會引發淹水與土石流，所以淹水模擬不會把人送到位於土石流影響範圍內的避難所。實例：澳花國小位在高風險範圍「宜縣DF139」內。被排除的避難所會列在回應裡，AI 回答最後也會由程式固定加上一句說明（不交給模型寫）。潛勢查詢失敗時照常模擬、不做排除，不會讓整個模擬失敗。地震與火災目前沒有對應的潛勢圖資，不排除任何避難所。
+- **靠近範圍：只警告、不排除**：在影響範圍外、但距離 200 公尺內（`HAZARD_WARN_M`）的避難所照常分配，回應的 `near_hazard` 會列出範圍編號與距離，AI 回答最後由程式補上同一段提醒豪雨期間留意。影響範圍本身已經包含堆積區，連附近的都排除會讓本來就不多的空位再少一間。實測只有南山國小（距宜縣DF079 約 121 公尺）落在這個區間，下一間是 482 公尺。
+- **最近避難所**：問 AI 最近的避難所時，落在影響範圍內的避難所會在交給模型的資料裡標註範圍編號與「豪雨時不宜前往」，200 公尺內的則標註距離與「豪雨期間請留意」；`/api/nearest_shelter` 端點本身只回傳距離。
+- **地圖**：`GET /api/hazard_zones` 提供範圍資料，地圖以橘色顯示，點擊可看溪流編號與風險等級。
+
+### 空間索引
+
+所有距離查詢都把 `geom` 轉成 `geography` 以公尺計算，但原本的 GiST 索引建在 `geom` 上，PostgreSQL 根本用不到，每次都全表掃描。索引必須建在跟查詢一樣的運算式上，所以新增 `idx_shelters_geog`，索引 `(geom::geography)`。`ensure_schema` 啟動時會建立，既有的資料庫也會補上。現在 `EXPLAIN` 顯示走 Index Scan；潛勢區域資料表也建了同樣的索引。
 
 ### 部署建議
 
@@ -1429,6 +1509,12 @@ README 原本宣稱的縫隙（無答案 ≥ 0.588、有答案 ≤ 0.483）是�
 
 上面三道離題問題現在是唯一結果取決於模型的計分題，而生成跑在 `temperature=0.3`，
 同一題可能這次拒答、下次回答。要嘛把溫度設 0 拿可重現的數字，要嘛報幾次的平均。
+
+**後續：門檻已調高到 0.70。** 加上 `off_topic` 與 `no_clue` 兩層之後，所有該拒答的題目
+（34 道邊界題，加上 `rag_eval.jsonl` 的 10 道負例）在檢索前就被擋下，距離門檻剩下的作用只有誤擋兩道
+合法問題：「我們一家五口可以去哪」（0.583）與「土石流要撤離到哪」（0.646）。調到 0.70 後兩題都依檢索到
+的避難所回答，該拒答的沒有任何一題落到模型，邊界題從 50/53 提升到 52/53。門檻仍保留，作為極端偏離問句
+的最後保險。剩下唯一的錯誤是模型偶爾在正確答案後面多接一句「目前沒有相關資料」。
 
 ### 不存在的場所
 
