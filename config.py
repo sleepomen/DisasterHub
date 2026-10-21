@@ -66,8 +66,10 @@ EMBEDDING_TIMEOUT = _env_int("EMBEDDING_TIMEOUT", 120)
 
 RAG_TOP_K = _env_int("RAG_TOP_K", 10)
 # 純語意檢索的 cosine 距離上限：最接近的一筆超過這個值就當沒有相關資料。
-# 依 bge-m3 的評測：無關問題（天氣、補助）最近也在 0.59 左右，有相關資料的問題最遠約 0.48
-RAG_MAX_DISTANCE = _env_float("RAG_MAX_DISTANCE", 0.56)
+# 無關問題現在由前面的 off_topic / no_clue 擋掉，走到這裡的邊界題與 rag 負例沒有一題該拒答；
+# 原本的 0.56 只剩誤擋（「我們一家五口可以去哪」0.583、「土石流要撤離到哪」0.646），
+# 這裡只留給極端偏離的問句當最後一道保險
+RAG_MAX_DISTANCE = _env_float("RAG_MAX_DISTANCE", 0.70)
 # 同時進行的 LLM 生成上限。每次生成最長 OLLAMA_TIMEOUT 秒，佔用一條工作執行緒；
 # 不設上限的話幾個人同時發問就會把執行緒池吃光，地圖載入與 readiness 一起卡住
 CHAT_MAX_CONCURRENT = _env_int("CHAT_MAX_CONCURRENT", 2)
