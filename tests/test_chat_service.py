@@ -185,11 +185,35 @@ def test_simulation_with_nothing_to_report_answers_without_the_llm(svc):
 
 def test_prompt_includes_simulation_summary(svc):
     svc.set_simulation({"type": "earthquake", "lat": 23.9, "lon": 121.6, "radius_km": 5, "impacted_count": 3, "impacted_shelters": []})
-    prompt = svc.build_prompt("有什麼建議", "資料")
+    prompt = svc.build_prompt("有什麼建議", "資料", with_simulation=True)
     assert "【目前災害模擬結果】" in prompt
     assert "強震" in prompt
-    svc.clear_simulation()
+    # 一般檢索不附模擬摘要，小模型會把兩份資料混在一起
     assert "【目前災害模擬結果】" not in svc.build_prompt("有什麼建議", "資料")
+    svc.clear_simulation()
+    assert "【目前災害模擬結果】" not in svc.build_prompt("有什麼建議", "資料", with_simulation=True)
+
+
+def test_only_simulation_route_gets_the_simulation_summary_in_the_prompt(svc):
+    svc.set_simulation({"type": "flood", "lat": 24.44, "lon": 121.38, "radius_km": 5, "impacted_count": 1,
+                        "impacted_shelters": [Shelter("[YILAN] 南山國小", 200, 24.44, 121.38, 157)],
+                        "evacuation": {"assigned": {"[YILAN] 南山國小": 157}, "placed": 157, "unplaced": 0}})
+    prompts = []
+
+    def fake_post(url, json=None, **kwargs):
+        prompts.append(json["prompt"])
+        return FakeStream(ndjson("好"))
+
+    svc.vector_store.search.return_value = "- 二城國小是宜蘭地區的避難收容場所"
+    with (
+        patch("services.chat_service.requests.post", side_effect=fake_post),
+        patch.object(svc, "_lacks_shelter_clue", return_value=False),
+        patch.object(svc, "_unknown_shelter", return_value=None),
+    ):
+        svc.chat("我們一家五口可以去哪")
+        svc.chat("這次模擬每間避難所分配了多少人？")
+    assert "【目前災害模擬結果】" not in prompts[0]
+    assert "【目前災害模擬結果】" in prompts[1] and "南山國小：分配 157 人" in prompts[1]
 
 
 def test_errors_do_not_leak_details():
@@ -785,14 +809,22 @@ def test_nearest_results_warn_about_debris_flow_zones(svc):
         NearbyShelter(Shelter("[YILAN] 澳花國小", 150, 24.33, 121.73, 0), distance_km=1.2),
         NearbyShelter(Shelter("[YILAN] 南澳鄉綜合體育場", 550, 24.46, 121.80, 0), distance_km=3.4),
     ]
-    svc.repo.shelters_in_hazard_zones.return_value = {"[YILAN] 澳花國小": ["宜縣DF139"]}
+    svc.repo.shelter_hazard_distances.return_value = {"[YILAN] 澳花國小": [("宜縣DF139", 0.0)]}
     context, early = svc._get_nearest_context(24.33, 121.73)
     first, second = context.splitlines()[2:4]
     assert "宜縣DF139" in first and "豪雨時不宜前往" in first
     assert "土石流" not in second
+    svc.repo.shelter_hazard_distances.assert_called_with("debris_flow", 200)
+
+    # 範圍外但很近的只提醒留意，不說不宜前往
+    svc.repo.shelter_hazard_distances.return_value = {"[YILAN] 南澳鄉綜合體育場": [("宜縣DF094", 150.6)]}
+    context, early = svc._get_nearest_context(24.33, 121.73)
+    first, second = context.splitlines()[2:4]
+    assert "土石流" not in first
+    assert "宜縣DF094 約 151 公尺" in second and "豪雨期間請留意" in second and "不宜前往" not in second
 
     # 潛勢區域查壞了，最近避難所仍要答得出來
-    svc.repo.shelters_in_hazard_zones.side_effect = RuntimeError("db down")
+    svc.repo.shelter_hazard_distances.side_effect = RuntimeError("db down")
     context, early = svc._get_nearest_context(24.33, 121.73)
     assert early is None and "澳花國小" in context
 
@@ -801,10 +833,31 @@ def test_simulation_summary_names_the_excluded_shelters(svc):
     svc.set_simulation({
         "type": "flood", "radius_km": 10, "impacted_count": 2, "impacted_shelters": [],
         "evacuation": {"assigned": {"[YILAN] 安全": 100}, "placed": 100, "unplaced": 0,
-                       "excluded": {"[YILAN] 澳花國小": ["宜縣DF139"]}, "excluded_hazard": "debris_flow"},
+                       "excluded": {"[YILAN] 澳花國小": ["宜縣DF139"]}, "hazard": "debris_flow"},
     })
     summary = svc._simulation_summary()
     assert "澳花國小（宜縣DF139）" in summary and "土石流潛勢溪流影響範圍" in summary
+
+
+def test_near_hazard_shelters_are_warned_but_still_destinations(svc):
+    svc.set_simulation({
+        "type": "flood", "radius_km": 10, "impacted_count": 1,
+        "impacted_shelters": [Shelter("[YILAN] 南山國小", 200, 24.44, 121.38, 0)],
+        "evacuation": {"assigned": {"[YILAN] 南山國小": 120}, "placed": 120, "unplaced": 0, "excluded": {},
+                       "near_hazard": {"[YILAN] 南山國小": {"refs": ["宜縣DF079"], "distance_m": 121}},
+                       "hazard": "debris_flow"},
+    })
+    summary = svc._simulation_summary()
+    assert "南山國小：分配 120 人" in summary
+    assert "仍列為疏散目的地，豪雨期間請留意：南山國小（距土石流潛勢溪流影響範圍 宜縣DF079 約 121 公尺）" in summary
+    context, _ = svc._get_simulation_context()
+    assert "南山國小：容量 200 人，目前收容 0 人，剩餘空間 200 人（距土石流潛勢溪流影響範圍" in context
+    assert "未列為疏散目的地" not in context
+
+    # 警告也由程式補在回答最後
+    with patch("services.chat_service.requests.post", return_value=FakeStream(ndjson("南山國小分配 120 人"))):
+        reply = svc.chat("這次模擬每間避難所分配了多少人？")
+    assert reply.endswith("豪雨期間請留意：南山國小（距土石流潛勢溪流影響範圍 宜縣DF079 約 121 公尺）。")
 
 
 def test_excluded_shelters_are_appended_by_code_on_simulation_answers(svc):
@@ -813,7 +866,7 @@ def test_excluded_shelters_are_appended_by_code_on_simulation_answers(svc):
         "type": "flood", "radius_km": 15, "impacted_count": 1,
         "impacted_shelters": [Shelter("[YILAN] 澳花國小", 150, 24.33, 121.73, 0)],
         "evacuation": {"assigned": {}, "placed": 0, "unplaced": 0,
-                       "excluded": {"[YILAN] 澳花國小": ["宜縣DF139"]}, "excluded_hazard": "debris_flow"},
+                       "excluded": {"[YILAN] 澳花國小": ["宜縣DF139"]}, "hazard": "debris_flow"},
     })
     with patch("services.chat_service.requests.post", return_value=FakeStream(ndjson("澳花國小：剩餘空間 150 人"))):
         reply = svc.chat("這次模擬有沒有避難所被排除？")

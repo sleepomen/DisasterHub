@@ -52,3 +52,29 @@ def test_hazard_sync_failure_never_breaks_shelter_sync():
     svc.repository.replace_hazard_zones.side_effect = None
     svc.repository.replace_hazard_zones.return_value = 531
     assert svc.sync_hazard_zones() == {"debris_flow": 531}
+
+
+def test_hazard_distances_group_by_shelter_nearest_first():
+    from contextlib import contextmanager
+    from unittest.mock import patch
+
+    from repositories.shelter_repository import ShelterRepository
+
+    cursor = MagicMock()
+    cursor.fetchall.return_value = [
+        ("[YILAN] 南山國小", "宜縣DF079", 121.4),
+        ("[YILAN] 南山國小", "宜縣DF078", 180.2),
+        ("[YILAN] 澳花國小", "宜縣DF139", 0),
+    ]
+
+    @contextmanager
+    def fake_cursor(self):
+        yield cursor
+
+    with patch.object(ShelterRepository, "_cursor", fake_cursor):
+        hits = ShelterRepository().shelter_hazard_distances("debris_flow", 200)
+    assert hits == {
+        "[YILAN] 南山國小": [("宜縣DF079", 121.4), ("宜縣DF078", 180.2)],
+        "[YILAN] 澳花國小": [("宜縣DF139", 0.0)],
+    }
+    assert cursor.execute.call_args.args[1] == ("debris_flow", 200)

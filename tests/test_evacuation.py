@@ -1,5 +1,5 @@
 from models.shelter import Shelter
-from services.evacuation import FALLBACK_ORIGIN, Origin, apportion, origins_from, plan_evacuation
+from services.evacuation import FALLBACK_ORIGIN, Origin, apportion, origins_from, plan_evacuation, split_hazard_hits
 
 NEAR = Shelter(name="[HUALIEN] 近", capacity=100, lat=23.98, lon=121.60, current_people=40)   # 剩 60
 FAR = Shelter(name="[HUALIEN] 遠", capacity=500, lat=24.10, lon=121.60, current_people=0)     # 剩 500
@@ -50,3 +50,14 @@ def test_no_settlement_starts_from_the_disaster_center():
     origins = origins_from({"estimated_evacuees": 30, "townships": []}, 23.5, 121.5)
     assert [(o.name, o.lat, o.lon, o.people) for o in origins] == [(FALLBACK_ORIGIN, 23.5, 121.5, 30)]
     assert origins_from({"estimated_evacuees": 0, "townships": []}, 23.5, 121.5) == []
+
+
+def test_split_hazard_hits_separates_inside_from_near():
+    inside, near = split_hazard_hits({
+        # 在區域內，旁邊另一個區域只是靠近：只列所在的那個
+        "[YILAN] 澳花國小": [("宜縣DF139", 0.0), ("宜縣DF140", 80.0)],
+        "[YILAN] 南山國小": [("宜縣DF079", 121.4), ("宜縣DF078", 180.2)],
+    })
+    assert inside == {"[YILAN] 澳花國小": ["宜縣DF139"]}
+    assert near == {"[YILAN] 南山國小": {"refs": ["宜縣DF079", "宜縣DF078"], "distance_m": 121}}
+    assert split_hazard_hits({}) == ({}, {})

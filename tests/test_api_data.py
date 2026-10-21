@@ -655,25 +655,43 @@ def test_flood_simulation_skips_shelters_inside_debris_flow_zones(client):
     ]
     with (
         patch("repositories.shelter_repository.ShelterRepository.get_shelters_in_radius", return_value=impacted),
-        patch("repositories.shelter_repository.ShelterRepository.shelters_in_hazard_zones",
-              return_value={"[YILAN] 澳花國小": ["宜縣DF139"]}) as zones,
+        patch("repositories.shelter_repository.ShelterRepository.shelter_hazard_distances",
+              return_value={"[YILAN] 澳花國小": [("宜縣DF139", 0.0)]}) as zones,
     ):
         res = client.post("/api/simulate_disaster", headers=WRITE_HEADERS,
                           json={"lat": 24.35, "lon": 121.74, "radius": 10, "type": "flood"})
     assert res.status_code == 200
     plan, pop = res.json()["evacuation"], res.json()["population"]
-    zones.assert_called_once_with("debris_flow")
+    zones.assert_called_once_with("debris_flow", 200)
     assert "[YILAN] 澳花國小" not in plan["assigned"]
     assert plan["excluded"] == {"[YILAN] 澳花國小": ["宜縣DF139"]}
+    assert plan["hazard"] == "debris_flow"
     # 可安置空間只算能去的那間，才會跟分配結果對得上
     assert pop["placeable"] == plan["placed"] == plan["assigned"]["[YILAN] 安全"]
+
+
+def test_flood_simulation_only_warns_about_shelters_near_debris_flow_zones(client):
+    """南山國小在影響範圍外 121 公尺：照常分配，只附上警告"""
+    impacted = [Shelter(name="[YILAN] 南山國小", capacity=200, lat=24.44, lon=121.38, current_people=0)]
+    with (
+        patch("repositories.shelter_repository.ShelterRepository.get_shelters_in_radius", return_value=impacted),
+        patch("repositories.shelter_repository.ShelterRepository.shelter_hazard_distances",
+              return_value={"[YILAN] 南山國小": [("宜縣DF079", 121.4), ("宜縣DF078", 180.2)]}),
+    ):
+        res = client.post("/api/simulate_disaster", headers=WRITE_HEADERS,
+                          json={"lat": 24.44, "lon": 121.38, "radius": 10, "type": "flood"})
+    assert res.status_code == 200
+    plan = res.json()["evacuation"]
+    assert plan["excluded"] == {}
+    assert plan["near_hazard"] == {"[YILAN] 南山國小": {"refs": ["宜縣DF079", "宜縣DF078"], "distance_m": 121}}
+    assert plan["assigned"]["[YILAN] 南山國小"] > 0
 
 
 def test_earthquake_does_not_query_debris_flow_zones(client):
     impacted = [Shelter(name="[YILAN] 澳花國小", capacity=150, lat=24.33, lon=121.73, current_people=0)]
     with (
         patch("repositories.shelter_repository.ShelterRepository.get_shelters_in_radius", return_value=impacted),
-        patch("repositories.shelter_repository.ShelterRepository.shelters_in_hazard_zones") as zones,
+        patch("repositories.shelter_repository.ShelterRepository.shelter_hazard_distances") as zones,
     ):
         res = client.post("/api/simulate_disaster", headers=WRITE_HEADERS,
                           json={"lat": 24.35, "lon": 121.74, "radius": 10, "type": "earthquake"})
@@ -686,7 +704,7 @@ def test_hazard_query_failure_falls_back_to_no_exclusion(client):
     impacted = [Shelter(name="[YILAN] 澳花國小", capacity=150, lat=24.33, lon=121.73, current_people=0)]
     with (
         patch("repositories.shelter_repository.ShelterRepository.get_shelters_in_radius", return_value=impacted),
-        patch("repositories.shelter_repository.ShelterRepository.shelters_in_hazard_zones",
+        patch("repositories.shelter_repository.ShelterRepository.shelter_hazard_distances",
               side_effect=RuntimeError("db down")),
     ):
         res = client.post("/api/simulate_disaster", headers=WRITE_HEADERS,
