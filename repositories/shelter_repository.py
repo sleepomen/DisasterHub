@@ -80,6 +80,37 @@ HAZARD_SCHEMA_SQL = (
     "CREATE INDEX IF NOT EXISTS idx_hazard_zones_type ON hazard_zones (hazard_type)",
 )
 
+# 路網（pgRouting 的邊表）。cost / reverse_cost 是公尺；兩個方向一樣長，不考慮單行道——
+# 疏散時步行與車行都有，單行道對步行沒有意義。KNN 吸附用 geometry 的 GiST 索引
+ROAD_SCHEMA_SQL = (
+    """
+    CREATE TABLE IF NOT EXISTS roads (
+        id INTEGER PRIMARY KEY,
+        source INTEGER NOT NULL,
+        target INTEGER NOT NULL,
+        cost DOUBLE PRECISION NOT NULL,
+        reverse_cost DOUBLE PRECISION NOT NULL,
+        highway VARCHAR(20),
+        geom GEOMETRY(LineString, 4326)
+    )
+    """,
+    "CREATE INDEX IF NOT EXISTS idx_roads_geom ON roads USING GIST (geom)",
+    # 大檔案每次啟動都重灌太慢：記下匯入的是哪一版，內容沒變就跳過
+    """
+    CREATE TABLE IF NOT EXISTS dataset_versions (
+        name VARCHAR(40) PRIMARY KEY,
+        checksum VARCHAR(64) NOT NULL,
+        loaded_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+    """,
+)
+
+# 點離最近的道路超過這個距離就不吸附，該點不算道路距離（例如海上、深山）
+ROAD_SNAP_M = 1000
+# 路徑可能繞出起訖點的外接框（沿海岸繞過山）。框往外擴大這麼多度，再至少擴大框本身的一半
+ROUTE_MARGIN_DEG = 0.05
+FRACTION_EPS = 1e-6
+
 SELECT_COLUMNS ="name, capacity, current_ppl, ST_Y(geom::geometry), ST_X(geom::geometry), COALESCE(address, '')"
 
 
@@ -133,10 +164,17 @@ class ShelterRepository:
                 cursor.execute("ALTER TABLE shelters ADD COLUMN IF NOT EXISTS address VARCHAR(200) DEFAULT ''")
                 cursor.execute("CREATE INDEX IF NOT EXISTS idx_shelters_geom ON shelters USING GIST (geom)")
                 cursor.execute(GEOGRAPHY_INDEX_SQL)
-                for statement in HAZARD_SCHEMA_SQL:
+                for statement in HAZARD_SCHEMA_SQL + ROAD_SCHEMA_SQL:
                     cursor.execute(statement)
         except Exception as e:
             raise RuntimeError(f"ensure_schema 失敗：{e}") from e
+        # 路網是附加功能：映像沒有 pgRouting（還在用舊的 postgis 映像）時只記警告，
+        # 距離查詢會退回直線距離。放在自己的交易裡，失敗才不會連帶回滾上面的 schema
+        try:
+            with self._cursor() as cursor:
+                cursor.execute("CREATE EXTENSION IF NOT EXISTS pgrouting")
+        except Exception as e:
+            logger.warning("無法啟用 pgRouting，距離一律用直線計算：%s", e)
 
     # 同步只負責「靜態」欄位（容量 / 地址 / 座標）。
     # current_ppl 是模擬回寫的即時狀態，重啟或手動同步都不能把它洗掉；
@@ -330,3 +368,116 @@ class ShelterRepository:
                 return result
         except Exception as e:
             raise RuntimeError(f"shelter_hazard_distances 失敗：{e}") from e
+
+    # ── 路網 ─────────────────────────────────────────
+
+    def replace_road_network(self, edges: list[list], checksum: str) -> int | None:
+        """
+        整批換掉路網，回傳寫入的邊數；內容跟上次匯入的一樣（checksum 相同）就跳過、回 None。
+        邊的格式見 tools/build_road_network.py：[source, target, 長度公尺, 道路等級, encoded polyline]。
+        在同一個交易裡清空再寫入，寫到一半失敗會整批回滾
+        """
+        from psycopg2.extras import execute_values
+
+        try:
+            with self._cursor() as cursor:
+                cursor.execute("SELECT checksum FROM dataset_versions WHERE name = 'roads'")
+                row = cursor.fetchone()
+                if row and row[0] == checksum:
+                    return None
+                cursor.execute("TRUNCATE roads")
+                execute_values(
+                    cursor,
+                    "INSERT INTO roads (id, source, target, cost, reverse_cost, highway, geom) VALUES %s",
+                    [(i, s, t, length, length, highway, polyline)
+                     for i, (s, t, length, highway, polyline) in enumerate(edges, 1)],
+                    template="(%s, %s, %s, %s, %s, %s, ST_LineFromEncodedPolyline(%s, 5))",
+                    page_size=2000,
+                )
+                cursor.execute(
+                    """
+                    INSERT INTO dataset_versions (name, checksum) VALUES ('roads', %s)
+                    ON CONFLICT (name) DO UPDATE SET checksum = EXCLUDED.checksum, loaded_at = now()
+                    """,
+                    (checksum,),
+                )
+                cursor.execute("ANALYZE roads")
+            return len(edges)
+        except Exception as e:
+            raise RuntimeError(f"replace_road_network 失敗：{e}") from e
+
+    # 每個點吸附到最近的一條道路：邊的編號、在邊上的位置（0～1）、點到路的距離（公尺）。
+    # KNN 用 geometry 的 <->（單位是度，東部緯度下經緯度的比例差不到一成，挑最近的一條夠用）。
+    # 長度為 0 的邊（簡化後兩端落在同一公尺格內）算不出位置，不拿來吸附
+    SNAP_SQL = """
+        SELECT t.idx, r.id, ST_LineLocatePoint(r.geom, t.g), ST_Distance(r.geom::geography, t.g::geography)
+        FROM (
+            SELECT idx, ST_SetSRID(ST_Point(lon, lat), 4326) AS g
+            FROM unnest(%s::int[], %s::float8[], %s::float8[]) AS u(idx, lon, lat)
+        ) t
+        CROSS JOIN LATERAL (
+            SELECT id, geom FROM roads WHERE ST_Length(geom) > 0 ORDER BY geom <-> t.g LIMIT 1
+        ) r
+    """
+
+    def road_distances(
+        self, origins: list[tuple[float, float]], targets: list[tuple[float, float]], snap_m: float = ROAD_SNAP_M,
+    ) -> dict[tuple[int, int], float]:
+        """
+        起點 × 終點的道路距離（公尺），key 是 (起點序號, 終點序號)，座標是 (lat, lon)。
+        距離＝起點走到最近道路＋沿路網的最短路徑＋終點離開道路的那一段。
+        吸附不到道路（離路超過 snap_m）或路網不連通的組合不會出現在結果裡，由呼叫端退回直線距離
+        """
+        points = list(origins) + list(targets)
+        if not origins or not targets:
+            return {}
+        try:
+            with self._cursor() as cursor:
+                cursor.execute(self.SNAP_SQL, (
+                    list(range(len(points))), [lon for _, lon in points], [lat for lat, _ in points],
+                ))
+                # 吸附點常常剛好落在路段端點（fraction 0 或 1），pgRouting 3.4 的 withPoints 遇到這種點
+                # 會整組回傳空結果（實測花蓮火車站一筆都算不出來）。往內夾一點點，誤差不到一公釐
+                snaps = {
+                    idx: (edge_id, min(max(float(fraction), FRACTION_EPS), 1 - FRACTION_EPS), float(offset))
+                    for idx, edge_id, fraction, offset in cursor.fetchall()
+                    if offset <= snap_m
+                }
+                starts = [i for i in range(len(origins)) if i in snaps]
+                ends = [len(origins) + j for j in range(len(targets)) if len(origins) + j in snaps]
+                if not starts or not ends:
+                    return {}
+
+                lats = [points[i][0] for i in starts + ends]
+                lons = [points[i][1] for i in starts + ends]
+                pad_lat = ROUTE_MARGIN_DEG + (max(lats) - min(lats)) / 2
+                pad_lon = ROUTE_MARGIN_DEG + (max(lons) - min(lons)) / 2
+                # pgRouting 收的是 SQL 字串；放進去的只有這裡算出來的數字，不是使用者的文字
+                edges_sql = (
+                    "SELECT id, source, target, cost, reverse_cost FROM roads "
+                    f"WHERE geom && ST_MakeEnvelope({min(lons) - pad_lon}, {min(lats) - pad_lat}, "
+                    f"{max(lons) + pad_lon}, {max(lats) + pad_lat}, 4326)"
+                )
+                values = ", ".join(f"({i + 1}, {snaps[i][0]}, {snaps[i][1]})" for i in starts + ends)
+                points_sql = f"SELECT pid, edge_id, fraction FROM (VALUES {values}) AS p(pid, edge_id, fraction)"
+                cursor.execute(
+                    """
+                    SELECT start_pid, end_pid, agg_cost
+                    FROM pgr_withPointsCost(%s, %s, %s::bigint[], %s::bigint[], directed := false)
+                    """,
+                    (edges_sql, points_sql, [-(i + 1) for i in starts], [-(i + 1) for i in ends]),
+                )
+                routed = {(abs(s) - 1, abs(e) - 1): float(cost) for s, e, cost in cursor.fetchall()}
+        except Exception as e:
+            raise RuntimeError(f"road_distances 失敗：{e}") from e
+
+        result = {}
+        for i in starts:
+            for k in ends:
+                cost = routed.get((i, k))
+                # 起訖吸附到同一個位置時 pgRouting 不回傳這一組，路上距離就是 0
+                if cost is None and snaps[i][:2] == snaps[k][:2]:
+                    cost = 0.0
+                if cost is not None:
+                    result[(i, k - len(origins))] = cost + snaps[i][2] + snaps[k][2]
+        return result
