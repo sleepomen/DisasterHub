@@ -232,6 +232,14 @@ def hazard_lines(plan: dict) -> list[str]:
     return lines
 
 
+# 疏散分配依哪一種距離決定「近者優先」（evacuation.plan_evacuation 的 distance_basis）
+BASIS_TEXT = {
+    "road": "依道路距離由近到遠",
+    "mixed": "依道路距離由近到遠，少數算不出道路距離的路線用直線距離估算",
+    "straight": "道路距離無法計算，依直線距離由近到遠",
+}
+
+
 def evacuation_lines(plan: dict) -> list[str]:
     """
     後端算好的疏散分配 → prompt 文字。數字跟地圖動畫、資料庫是同一份。
@@ -243,7 +251,8 @@ def evacuation_lines(plan: dict) -> list[str]:
     if not assigned:
         return hazard_lines(plan)
     ranked = sorted(assigned.items(), key=lambda kv: (-kv[1], kv[0]))
-    lines = [f"疏散分配（共 {len(ranked)} 間，依直線距離由近到遠，並守住各避難所的剩餘空位）："]
+    basis = BASIS_TEXT.get(plan.get("distance_basis"), "依直線距離由近到遠")
+    lines = [f"疏散分配（共 {len(ranked)} 間，{basis}，並守住各避難所的剩餘空位）："]
     lines += [f"- {display_name(name)}：分配 {people} 人" for name, people in ranked]
     if plan.get("unplaced"):
         lines.append(f"範圍內避難所已全部額滿，仍有 {plan['unplaced']} 人無法安置。")
