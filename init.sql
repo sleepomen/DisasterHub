@@ -27,3 +27,30 @@ CREATE TABLE IF NOT EXISTS hazard_zones (
 );
 CREATE INDEX IF NOT EXISTS idx_hazard_zones_geog ON hazard_zones USING GIST ((geom::geography));
 CREATE INDEX IF NOT EXISTS idx_hazard_zones_type ON hazard_zones (hazard_type);
+
+-- 路網（pgRouting 的邊表，cost / reverse_cost 單位是公尺），由啟動同步從 data_reference/east_roads.json.gz 匯入。
+-- 映像沒有 pgRouting 時不讓初始化整個失敗，距離查詢會退回直線距離
+DO $$
+BEGIN
+    CREATE EXTENSION IF NOT EXISTS pgrouting;
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE 'pgRouting 無法啟用：%', SQLERRM;
+END $$;
+
+CREATE TABLE IF NOT EXISTS roads (
+    id INTEGER PRIMARY KEY,
+    source INTEGER NOT NULL,
+    target INTEGER NOT NULL,
+    cost DOUBLE PRECISION NOT NULL,
+    reverse_cost DOUBLE PRECISION NOT NULL,
+    highway VARCHAR(20),
+    geom GEOMETRY(LineString, 4326)
+);
+CREATE INDEX IF NOT EXISTS idx_roads_geom ON roads USING GIST (geom);
+
+-- 大型資料集匯入的是哪一版，內容沒變就不重灌
+CREATE TABLE IF NOT EXISTS dataset_versions (
+    name VARCHAR(40) PRIMARY KEY,
+    checksum VARCHAR(64) NOT NULL,
+    loaded_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);

@@ -1,6 +1,7 @@
 services:
   disaster_db:
-    image: postgis/postgis:15-3.3
+    # 同一套 PostgreSQL 15 + PostGIS 3.3，多了 pgRouting（路網距離）；舊的資料庫 volume 可以直接沿用
+    image: pgrouting/pgrouting:15-3.3-3.4.1
     container_name: disaster_db
     restart: unless-stopped
     env_file:
