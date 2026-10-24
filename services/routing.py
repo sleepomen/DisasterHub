@@ -10,13 +10,17 @@
 """
 import logging
 
+from repositories.shelter_repository import ORIGIN_SNAP_M
 from services.metrics import metrics
 
 logger = logging.getLogger(__name__)
 
 CANDIDATES = 10
 
-metrics.register("routing.road", "routing.fallback", "routing.failed")
+metrics.register(
+    "routing.road", "routing.fallback", "routing.failed",
+    "routing.evacuation_road", "routing.evacuation_fallback", "routing.evacuation_failed",
+)
 
 
 def nearest_by_road(repo, lat: float, lon: float, limit: int = 5) -> list:
@@ -38,3 +42,23 @@ def nearest_by_road(repo, lat: float, lon: float, limit: int = 5) -> list:
     metrics.incr("routing.road" if meters else "routing.fallback")
     ranked = sorted(candidates, key=lambda n: (n.road_km is None, n.road_km if n.road_km is not None else n.distance_km))
     return ranked[:limit]
+
+
+def evacuation_road_distances(repo, origins: list, shelters: list) -> dict[tuple[int, int], float]:
+    """
+    疏散起點（鄉鎮人口重心）× 目的地避難所的道路距離（公尺），給 plan_evacuation 用。
+    一次多對多查完：實測全部 29 個鄉鎮 × 50 間避難所 0.68 秒，所以不先篩候選。
+    查詢失敗回傳空 dict，分配整個退回直線距離，模擬本身不能因此失敗
+    """
+    if not origins or not shelters:
+        return {}
+    try:
+        meters = repo.road_distances(
+            [(o.lat, o.lon) for o in origins], [(s.lat, s.lon) for s in shelters], origin_snap_m=ORIGIN_SNAP_M,
+        )
+    except Exception:
+        metrics.incr("routing.evacuation_failed")
+        logger.exception("疏散分配的路網距離查詢失敗，改用直線距離")
+        return {}
+    metrics.incr("routing.evacuation_road" if meters else "routing.evacuation_fallback")
+    return meters
