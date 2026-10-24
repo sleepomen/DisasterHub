@@ -31,3 +31,5 @@ class NearbyShelter:
     """
     shelter: Shelter
     distance_km: float
+    # 沿路網的距離；路網算不出來（沒有 pgRouting、離路太遠、路網不連通）時是 None，只剩直線距離
+    road_km: float | None = None
