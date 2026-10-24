@@ -26,6 +26,7 @@ from services.map_service import MapService
 from services.metrics import metrics
 from services.population_service import PopulationModel
 from services.rate_limit import RateLimiter
+from services.routing import nearest_by_road
 from services.sync_service import HAZARD_FILES, DataSyncService
 from services.vector_store import VectorStore
 
@@ -512,13 +513,11 @@ async def reset_simulation(http_request: Request, x_api_key: str = Header(defaul
     return {"status": "success", **result}
 
 # 最近避難所查詢
-# 使用 PostGIS ST_Distance 真實地理距離排序
+# 先用 PostGIS 直線距離挑候選，再依 pgRouting 的道路距離排序；路網算不出來時退回直線距離
 # 解決 RAG 語意搜尋無法處理「最近/附近」等地理問題
 @app.post("/api/nearest_shelter")
 async def nearest_shelter(request: NearestRequest):
-    results = await asyncio.to_thread(
-        repo.get_nearest_shelters, request.lat, request.lon, request.limit
-    )
+    results = await asyncio.to_thread(nearest_by_road, repo, request.lat, request.lon, request.limit)
     return {
         "status": "success",
         "count": len(results),

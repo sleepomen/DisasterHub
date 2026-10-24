@@ -11,6 +11,7 @@ import config
 from services import query_rules
 from services.evacuation import HAZARD_LABELS, HAZARD_WARN_M, split_hazard_hits
 from services.metrics import metrics
+from services.routing import nearest_by_road
 from services.shelter_profile import aliases_of, strip_region_tag
 from services.vector_store import NO_DATA, NO_MATCH, VectorStore
 
@@ -406,14 +407,17 @@ class ChatService:
             logger.error("地理查詢無法進行：repo 未初始化")
             return None, GENERIC_ERROR
         try:
-            results = self.repo.get_nearest_shelters(lat, lon, limit=5)
+            results = nearest_by_road(self.repo, lat, lon, limit=5)
             if not results:
                 return None, NO_NEARBY_REPLY
 
             inside, near = self._debris_flow_shelters()
             label = HAZARD_LABELS["debris_flow"]
             lines = [f"使用者位置：緯度 {lat}、經度 {lon}"]
-            lines.append("距離最近的避難所（依距離由近到遠排序）：")
+            if any(n.road_km is not None for n in results):
+                lines.append("距離最近的避難所（依道路距離由近到遠排序，括號內是直線距離）：")
+            else:
+                lines.append("距離最近的避難所（道路距離無法計算，依直線距離由近到遠排序）：")
             for i, n in enumerate(results, 1):
                 s = n.shelter
                 if s.name in inside:
@@ -422,8 +426,12 @@ class ChatService:
                     warning = f"（注意：{near_hazard_note(near[s.name], label)}，豪雨期間請留意）"
                 else:
                     warning = ""
+                if n.road_km is not None:
+                    distance = f"道路距離 {n.road_km} 公里（直線 {n.distance_km} 公里）"
+                else:
+                    distance = f"直線距離 {n.distance_km} 公里"
                 lines.append(
-                    f"{i}. {display_name(s.name)}：距離 {n.distance_km} 公里，"
+                    f"{i}. {display_name(s.name)}：{distance}，"
                     f"容量 {s.capacity} 人，剩餘空間 {s.remaining} 人{warning}"
                 )
             return "\n".join(lines), None
