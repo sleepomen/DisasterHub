@@ -1,5 +1,13 @@
 from models.shelter import Shelter
-from services.evacuation import FALLBACK_ORIGIN, Origin, apportion, origins_from, plan_evacuation, split_hazard_hits
+from services.evacuation import (
+    DETOUR_FACTOR,
+    FALLBACK_ORIGIN,
+    Origin,
+    apportion,
+    origins_from,
+    plan_evacuation,
+    split_hazard_hits,
+)
 
 NEAR = Shelter(name="[HUALIEN] 近", capacity=100, lat=23.98, lon=121.60, current_people=40)   # 剩 60
 FAR = Shelter(name="[HUALIEN] 遠", capacity=500, lat=24.10, lon=121.60, current_people=0)     # 剩 500
@@ -32,6 +40,35 @@ def test_plan_is_deterministic():
     origins = [Origin("甲", 23.99, 121.60, 90), Origin("乙", 24.05, 121.60, 90)]
     first = plan_evacuation(origins, [NEAR, FAR])
     assert all(plan_evacuation(origins, [FAR, NEAR]) == first for _ in range(5))
+
+
+def test_road_distance_decides_who_is_nearest():
+    """直線最近的那間要繞山：道路距離比較短的先填"""
+    origin = Origin("南澳鄉", 24.40, 121.75, 200)
+    plan = plan_evacuation([origin], [NEAR, FAR], {(0, 0): 25600.0, (0, 1): 15550.0})
+    assert [f["to"] for f in plan["flows"]] == ["[HUALIEN] 遠"]
+    assert plan["flows"][0]["road_km"] == 15.55 and plan["flows"][0]["distance_km"] > 0
+    assert plan["distance_basis"] == "road"
+
+
+def test_unrouted_pairs_are_estimated_with_the_detour_factor():
+    """
+    算不出道路距離的配對不能拿直線距離跟道路距離比（直線一定比較短，會被排到前面）：
+    近的那間直線 10 公里、估算 11.5 公里，輸給道路 11 公里的遠的那間
+    """
+    origin = Origin("甲", 24.0, 121.6, 600)
+    near = Shelter(name="直線近", capacity=100, lat=24.0 + 10 / 111.2, lon=121.6)
+    far = Shelter(name="道路近", capacity=100, lat=24.0 - 10.5 / 111.2, lon=121.6)
+    plan = plan_evacuation([origin], [near, far], {(0, 1): 11000.0})
+    assert [(f["to"], f["road_km"]) for f in plan["flows"]] == [("道路近", 11.0), ("直線近", None)]
+    assert plan["distance_basis"] == "mixed"
+    assert 1 < DETOUR_FACTOR < 1.5
+
+
+def test_no_road_distances_falls_back_to_straight_line():
+    plan = plan_evacuation([Origin("花蓮市", 23.977, 121.601, 50)], [NEAR, FAR], {})
+    assert plan["distance_basis"] == "straight"
+    assert [f["road_km"] for f in plan["flows"]] == [None]
 
 
 def test_origins_follow_population_weights():

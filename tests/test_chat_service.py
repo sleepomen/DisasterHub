@@ -821,6 +821,15 @@ def test_simulation_summary_quotes_the_server_side_evacuation_plan(svc):
     assert "仍有 15 人無法安置" in summary
 
 
+def test_simulation_summary_says_which_distance_decided_the_plan(svc):
+    for basis, expected in [("road", "依道路距離由近到遠，並守住"), ("mixed", "用直線距離估算"),
+                            ("straight", "道路距離無法計算")]:
+        svc.set_simulation({"type": "flood", "radius_km": 10, "impacted_count": 1, "impacted_shelters": [],
+                            "evacuation": {"assigned": {"[HUALIEN] 甲": 90}, "placed": 90, "unplaced": 0,
+                                           "distance_basis": basis}})
+        assert expected in svc._simulation_summary()
+
+
 def test_every_assigned_shelter_is_listed_so_the_model_cannot_fill_gaps(svc):
     # 只列前 10 間加「其餘 4 間合計」時，模型會自己編名稱湊滿 14 間
     assigned = {f"[HUALIEN] 避難所{i:02d}": 100 + i for i in range(14)}

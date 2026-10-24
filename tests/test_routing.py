@@ -7,7 +7,8 @@ from unittest.mock import MagicMock, patch
 
 from models.shelter import NearbyShelter, Shelter
 from repositories.shelter_repository import FRACTION_EPS, ShelterRepository
-from services.routing import nearest_by_road
+from services.evacuation import Origin
+from services.routing import evacuation_road_distances, nearest_by_road
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools"))
@@ -98,6 +99,19 @@ def test_road_distances_add_the_walk_to_and_from_the_road():
     assert "(1, 10, 0.5)" in points_sql and "12" not in points_sql
 
 
+def test_origins_may_snap_farther_than_shelters():
+    """鄉鎮人口重心常常落在田裡：玉里鎮的重心離最近的道路 3.2 公里，起點的吸附上限另外設"""
+    _, fake_cursor = fake_repo_cursor([
+        [(0, 10, 0.5, 3200.0), (1, 11, 0.5, 30.0), (2, 12, 0.5, 3200.0)],
+        [(-1, -2, 1000.0)],
+    ])
+    with patch.object(ShelterRepository, "_cursor", fake_cursor):
+        result = ShelterRepository().road_distances(
+            [(23.33, 121.31)], [(23.34, 121.31), (23.5, 121.5)], origin_snap_m=5000,
+        )
+    assert result == {(0, 0): 4230.0}
+
+
 def test_endpoint_fractions_are_nudged_inside_the_edge():
     """pgRouting 3.4 遇到 fraction 剛好 0 或 1 的點會整組回傳空結果（實測花蓮火車站一筆都算不出來）"""
     cursor, fake_cursor = fake_repo_cursor([[(0, 10, 1.0, 5.0), (1, 11, 0.0, 5.0)], []])
@@ -153,3 +167,19 @@ def test_nearest_by_road_reorders_and_keeps_unroutable_last():
     assert [n.shelter.name for n in ranked] == ["遠但有路", "近但繞山", "到不了"]
     assert [n.road_km for n in ranked] == [15.55, 25.6, None]
     repo.get_nearest_shelters.assert_called_once_with(24.4, 121.75, limit=10)
+
+
+def test_evacuation_distances_use_the_wider_origin_snap():
+    repo = MagicMock()
+    repo.road_distances.return_value = {(0, 0): 4200.0}
+    origins = [Origin("玉里鎮", 23.33, 121.31, 100)]
+    shelters = [Shelter("玉里國小", 300, 23.34, 121.31)]
+    assert evacuation_road_distances(repo, origins, shelters) == {(0, 0): 4200.0}
+    assert repo.road_distances.call_args.kwargs["origin_snap_m"] == 5000
+    assert evacuation_road_distances(repo, [], shelters) == {}
+
+
+def test_evacuation_distances_failure_returns_empty():
+    repo = MagicMock()
+    repo.road_distances.side_effect = RuntimeError("no pgrouting")
+    assert evacuation_road_distances(repo, [Origin("甲", 24.0, 121.6, 1)], [Shelter("乙", 1, 24.1, 121.6)]) == {}
