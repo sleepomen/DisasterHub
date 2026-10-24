@@ -20,7 +20,7 @@ Built in response to the 2025 barrier-lake disaster in Guangfu Township, Hualien
 
 - **Real map visualization** — Leaflet.js + OpenStreetMap. 50 shelters across Yilan, Hualien and Taitung are plotted at their real coordinates; marker size scales with capacity, and clicking one shows live information.
 - **PostGIS spatial simulation** — Set a disaster epicenter and impact radius; the backend computes the list of affected shelters via `ST_DWithin`. Earthquake, flood and fire scenarios are supported.
-- **Road-network distance** — Nearest-shelter answers are ranked by distance along the OpenStreetMap road network (pgRouting), not straight-line distance, with a straight-line fallback.
+- **Road-network distance** — Nearest-shelter answers and the evacuation assignment use distance along the OpenStreetMap road network (pgRouting), not straight-line distance, with a straight-line fallback.
 - **Crowd evacuation animation** — The backend estimates the population inside the impact radius and the resulting evacuation demand from a township population model, then computes a deterministic, capacity-bounded evacuation plan (nearest first) and writes it to the database and the vector index straight away. The frontend only replays that plan as an animation, so the loads the AI assistant reports match the map as soon as the simulation returns.
 - **Debris-flow hazard zones** — 531 debris-flow impact zones in Yilan, Hualien and Taitung from the Ministry of Agriculture are imported into PostGIS and drawn on the map. Flood simulations keep evacuees out of shelters inside a zone, and nearest-shelter answers warn when a shelter lies inside one.
 - **AI decision assistant** — A rules layer plus RAG and a local LLM answer questions from real shelter data, covering semantic lookups, geographic distance queries, capacity rankings, and simulation-result queries. Region, township, facility and capacity conditions become metadata filters, and questions about counties outside the coverage area are declined outright.
@@ -163,7 +163,7 @@ DisasterHub/
 │   ├── health.py               # Readiness dependency checks
 │   ├── population_service.py   # Coastline + township population model, evacuee estimation
 │   ├── evacuation.py           # Evacuation plan: townships → shelters, nearest first, capacity-bounded
-│   ├── routing.py              # Nearest shelters ranked by road distance, straight-line fallback
+│   ├── routing.py              # Road distances for nearest shelters and evacuation, straight-line fallback
 │   └── vector_store.py         # ChromaDB vector index (supports partial updates)
 │
 ├── data_for_refuge/
@@ -347,12 +347,12 @@ into it.
 The evacuation plan is computed on the backend (`services/evacuation.py`). It used to be done in the browser: crowd points were scattered at random and each one picked a shelter, so the same parameters gave a different allocation every run, and the figures the AI quoted only matched the map after the animation finished and the write-back succeeded.
 
 1. **Origins.** The evacuation demand is split across the affected townships in proportion to their population inside the radius, using the largest-remainder method so the parts add up exactly to the reported total. When the radius contains no township centroid (open sea, uninhabited mountains), a single origin is placed at the disaster center.
-2. **Assignment.** Every (township, shelter) pair is sorted by distance, nearest first, and each township's remaining people fill each shelter's remaining room in that order. Capacity is never exceeded, ties are broken by name so the result is reproducible, and the rule is easy to explain to an operator.
+2. **Assignment.** Every (township, shelter) pair is sorted by road distance, nearest first, and each township's remaining people fill each shelter's remaining room in that order. Capacity is never exceeded, ties are broken by name so the result is reproducible, and the rule is easy to explain to an operator. Road distances for all pairs come from one many-to-many pgRouting query (all 29 townships × 50 shelters takes 0.68 s). Township centroids are only representative points and may lie in fields or riverbeds (Yuli's is 3.2 km from the nearest road), so origins snap to a road within 5 km instead of 1 km. A pair without a road distance is costed as straight-line × 1.15, the measured median road/straight ratio (317 centroid–shelter pairs within 30 km: median 1.149, p10 1.07, p90 1.37); comparing a raw straight-line distance against road distances would always favour the unrouted pair. If routing fails entirely, the whole plan falls back to straight-line distance.
 3. **Write-back.** The plan is written to the database immediately (current occupancy plus the assigned people), and only the changed vector documents are recomputed. If the write fails, the simulation is cleared and the endpoint returns 500, so the AI never describes a plan the database does not hold.
 
-The response carries `evacuation` (`flows`, `assigned`, `placed`, `unplaced`, `excluded`, `near_hazard`) and `occupancy`. The frontend only replays `flows` as an animation and applies `occupancy` when it ends. The AI answer lists every shelter in the plan with its assigned headcount; a truncated list made the model invent shelter names to fill the gap.
+The response carries `evacuation` (`flows` with `distance_km` and `road_km`, `assigned`, `placed`, `unplaced`, `distance_basis` = `road` / `mixed` / `straight`, `excluded`, `near_hazard`) and `occupancy`. Across 54 sample scenarios on a grid over the east coast, road distance changed the plan in 10; for example an earthquake centred offshore south-east of Taitung City (22.7, 121.25; 20 km radius) now sends Taitung City's evacuees to 馬蘭國小 (1.49 km by road) instead of 東海國中. The frontend only replays `flows` as an animation and applies `occupancy` when it ends. The AI answer lists every shelter in the plan with its assigned headcount; a truncated list made the model invent shelter names to fill the gap.
 
-**Limitations:** distances are straight-line, not road-network distances (only nearest-shelter answers use the road network so far), and the greedy rule does not minimise total travel distance (that is a transportation problem solved by min-cost flow).
+**Limitations:** each township starts from a single centroid, the frontend animation still draws straight lines rather than the actual routes, and the greedy rule does not minimise total travel distance (that is a transportation problem solved by min-cost flow).
 
 ### Debris-Flow Hazard Zones
 
@@ -376,7 +376,7 @@ Straight-line distance misleads in eastern Taiwan: mountains and rivers force lo
 - **Query.** The 10 nearest shelters by straight line (KNN on the index) are re-ranked by road distance. Each point snaps to the nearest road within 1 km, and `pgr_withPointsCost` routes on the edges inside the points' bounding box plus a margin. Road distance = walk to the road + shortest path + walk from the road. A query takes 10–60 ms.
 - **Fallback.** Shelters that cannot be routed (point more than 1 km from a road, disconnected network) are listed after the routed ones with their straight-line distance. If routing fails entirely the answer says so and uses straight-line distance; `routing.road` / `routing.fallback` / `routing.failed` in `/api/stats` count each case.
 - **pgRouting pitfall.** `pgr_withPointsCost` in 3.4 returns no rows at all when a point's `fraction` is exactly 0 or 1, which happens whenever a location snaps onto a road end; before the fix, a query from Hualien station returned nothing. Fractions are now nudged into (0, 1).
-- **Limitations.** Roads are treated as two-way (evacuees walk as well as drive) and costs are length only, with no speed or slope. Footpaths are not included. Evacuation assignment still uses straight-line distance; switching it to road distance is the next step.
+- **Limitations.** Roads are treated as two-way (evacuees walk as well as drive) and costs are length only, with no speed or slope. Footpaths are not included. Evacuation counters: `routing.evacuation_road` / `routing.evacuation_fallback` / `routing.evacuation_failed`.
 
 ### Spatial Index
 
@@ -933,7 +933,7 @@ Give me evacuation advice
 
 - **真實地圖視覺化** — Leaflet.js + OpenStreetMap，宜花東 50 處避難所標記於真實座標，marker 大小依容量縮放，點擊顯示即時資訊
 - **PostGIS 空間模擬** — 設定災害中心點與影響半徑，後端透過 `ST_DWithin` 計算受影響避難所清單，支援強震、淹水、火災三種類型
-- **路網距離** — 最近避難所依 OpenStreetMap 路網上的距離排序（pgRouting），不是直線距離；路網算不出來時退回直線距離
+- **路網距離** — 最近避難所與疏散分配都用 OpenStreetMap 路網上的距離（pgRouting），不是直線距離；路網算不出來時退回直線距離
 - **人群疏散動畫** — 後端以鄉鎮人口模型估算圈內人口與疏散需求，算出確定、不超過容量的疏散分配（近者優先），並立即寫入資料庫與向量索引；前端只負責把這份分配畫成動畫，模擬一回傳，AI 助手回答的負載就跟地圖一致
 - **土石流潛勢區域** — 匯入農業部宜花東 531 個土石流潛勢溪流影響範圍到 PostGIS 並顯示在地圖上；淹水模擬不把人送進範圍內的避難所，查最近避難所時若落在範圍內會加註警告
 - **AI 決策助手** — 整合規則層 + RAG + 本地 LLM，根據避難所真實資料回答問題，支援語意查詢、地理距離查詢、容量排序查詢、模擬結果查詢；地區 / 鄉鎮 / 設施 / 容量條件轉成 metadata 篩選，範圍外縣市直接拒答
@@ -1076,7 +1076,7 @@ DisasterHub/
 │   ├── health.py               # readiness 依賴檢查
 │   ├── population_service.py   # 海岸線 + 鄉鎮人口模型，疏散人數估算
 │   ├── evacuation.py           # 疏散分配：鄉鎮 → 避難所，近者優先、不超過容量
-│   ├── routing.py              # 最近避難所依道路距離排序，算不出來退回直線距離
+│   ├── routing.py              # 最近避難所與疏散分配的道路距離，算不出來退回直線距離
 │   └── vector_store.py         # ChromaDB 向量索引（支援局部更新）
 │
 ├── data_for_refuge/
@@ -1253,12 +1253,12 @@ curl -N -X POST http://localhost:8501/api/chat \
 疏散分配在後端計算（`services/evacuation.py`）。以前是在瀏覽器裡做：人群起點用亂數撒，每個點各自挑避難所，所以同一組參數每次分配都不同；AI 引用的數字也要等動畫跑完、回寫成功之後才跟地圖對得上。
 
 1. **起點**：需疏散人數依各受影響鄉鎮在圈內的人口比例分攤，用最大餘數法，各鄉鎮加總恰好等於回報的總數。範圍內沒有任何鄉鎮人口重心時（海域、無人山區），起點就放在災害中心。
-2. **分配**：把所有（鄉鎮, 避難所）配對依距離由近到遠排序，依序把鄉鎮剩下的人放進避難所剩下的空位。容量一定守得住；距離相同時依名稱排序，結果可以重現；規則也容易跟操作員解釋。
+2. **分配**：把所有（鄉鎮, 避難所）配對依道路距離由近到遠排序，依序把鄉鎮剩下的人放進避難所剩下的空位。容量一定守得住；距離相同時依名稱排序，結果可以重現；規則也容易跟操作員解釋。所有配對的道路距離用一次 pgRouting 多對多查詢算完（全部 29 個鄉鎮 × 50 間避難所 0.68 秒）。鄉鎮人口重心只是代表點，常常落在田裡或河床上（玉里鎮的重心離最近的道路 3.2 公里），所以起點可以吸附到 5 公里內的道路，而不是 1 公里。個別算不出道路距離的配對用「直線 × 1.15」估算，1.15 是實測的道路／直線比值中位數（30 公里內的鄉鎮重心－避難所配對共 317 組：中位數 1.149、p10 1.07、p90 1.37）；直接拿直線距離跟道路距離比，算不出來的配對一定會被排到前面。整個路網查詢失敗時，整份分配退回直線距離。
 3. **回寫**：分配結果直接寫入資料庫（目前人數＋分配人數），只重算有變動的向量文件。寫入失敗就清除模擬並回 500，AI 不會描述一份資料庫裡沒有的分配。
 
-回應裡有 `evacuation`（`flows`、`assigned`、`placed`、`unplaced`、`excluded`、`near_hazard`）與 `occupancy`。前端只負責把 `flows` 畫成動畫，結束時套用 `occupancy`。AI 回答會列出分配表裡每一間避難所與分到的人數；以前清單被截斷時，模型會自己編避難所名稱補齊。
+回應裡有 `evacuation`（`flows` 含直線 `distance_km` 與道路 `road_km`、`assigned`、`placed`、`unplaced`、`distance_basis`＝`road` / `mixed` / `straight`、`excluded`、`near_hazard`）與 `occupancy`。在東部沿海格點上取 54 個模擬情境，有 10 個的分配因為道路距離而改變；例如震央在臺東市東南方外海（22.7, 121.25）、半徑 20 公里的地震，臺東市的人現在去馬蘭國小（道路 1.49 公里），而不是東海國中。前端只負責把 `flows` 畫成動畫，結束時套用 `occupancy`。AI 回答會列出分配表裡每一間避難所與分到的人數；以前清單被截斷時，模型會自己編避難所名稱補齊。
 
-**限制**：距離是直線距離而不是路網距離（目前只有最近避難所改用路網）；貪婪規則也不保證總移動距離最小（那是運輸問題，要用最小成本流）。
+**限制**：每個鄉鎮只用一個人口重心當起點；前端動畫仍然畫直線，不是實際路線；貪婪規則也不保證總移動距離最小（那是運輸問題，要用最小成本流）。
 
 ### 土石流潛勢區域
 
@@ -1282,7 +1282,7 @@ curl -N -X POST http://localhost:8501/api/chat \
 - **查詢**：先用直線距離（索引 KNN）挑出最近的 10 間，再依道路距離重新排序。每個點吸附到 1 公里內最近的道路，`pgr_withPointsCost` 只在起訖點外接框加上邊界範圍內的路段上計算。道路距離＝走到道路＋最短路徑＋從道路走到避難所。一次查詢 10～60 毫秒。
 - **退路**：算不出道路距離的避難所（離路超過 1 公里、路網不連通）排在算得出來的後面，標示直線距離。整個路網查詢失敗時，回答會說明並改用直線距離；`/api/stats` 的 `routing.road` / `routing.fallback` / `routing.failed` 分別計數。
 - **pgRouting 的陷阱**：3.4 版的 `pgr_withPointsCost` 遇到 `fraction` 剛好是 0 或 1 的點會整組回傳空結果，而位置吸附到道路端點時就會這樣；修正前從花蓮火車站查詢一筆都算不出來。現在 fraction 會往 (0, 1) 內夾一點點。
-- **限制**：道路一律當作雙向（疏散時有步行也有車行），成本只看長度，不考慮速度或坡度；不含步道。疏散分配目前仍用直線距離，改成道路距離是下一步。
+- **限制**：道路一律當作雙向（疏散時有步行也有車行），成本只看長度，不考慮速度或坡度；不含步道。疏散分配另有 `routing.evacuation_road` / `routing.evacuation_fallback` / `routing.evacuation_failed` 計數。
 
 ### 空間索引
 
