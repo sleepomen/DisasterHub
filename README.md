@@ -20,6 +20,7 @@ Built in response to the 2025 barrier-lake disaster in Guangfu Township, Hualien
 
 - **Real map visualization** — Leaflet.js + OpenStreetMap. 50 shelters across Yilan, Hualien and Taitung are plotted at their real coordinates; marker size scales with capacity, and clicking one shows live information.
 - **PostGIS spatial simulation** — Set a disaster epicenter and impact radius; the backend computes the list of affected shelters via `ST_DWithin`. Earthquake, flood and fire scenarios are supported.
+- **Road-network distance** — Nearest-shelter answers are ranked by distance along the OpenStreetMap road network (pgRouting), not straight-line distance, with a straight-line fallback.
 - **Crowd evacuation animation** — The backend estimates the population inside the impact radius and the resulting evacuation demand from a township population model, then computes a deterministic, capacity-bounded evacuation plan (nearest first) and writes it to the database and the vector index straight away. The frontend only replays that plan as an animation, so the loads the AI assistant reports match the map as soon as the simulation returns.
 - **Debris-flow hazard zones** — 531 debris-flow impact zones in Yilan, Hualien and Taitung from the Ministry of Agriculture are imported into PostGIS and drawn on the map. Flood simulations keep evacuees out of shelters inside a zone, and nearest-shelter answers warn when a shelter lies inside one.
 - **AI decision assistant** — A rules layer plus RAG and a local LLM answer questions from real shelter data, covering semantic lookups, geographic distance queries, capacity rankings, and simulation-result queries. Region, township, facility and capacity conditions become metadata filters, and questions about counties outside the coverage area are declined outright.
@@ -29,7 +30,7 @@ Built in response to the 2025 barrier-lake disaster in Guangfu Township, Hualien
 ## Architecture
 
 ```
-Data          PostgreSQL + PostGIS (spatial data)
+Data          PostgreSQL + PostGIS + pgRouting (spatial data, road network)
               ChromaDB (semantic vector index)
 
 Backend       FastAPI + Uvicorn
@@ -162,6 +163,7 @@ DisasterHub/
 │   ├── health.py               # Readiness dependency checks
 │   ├── population_service.py   # Coastline + township population model, evacuee estimation
 │   ├── evacuation.py           # Evacuation plan: townships → shelters, nearest first, capacity-bounded
+│   ├── routing.py              # Nearest shelters ranked by road distance, straight-line fallback
 │   └── vector_store.py         # ChromaDB vector index (supports partial updates)
 │
 ├── data_for_refuge/
@@ -171,10 +173,12 @@ DisasterHub/
 │
 ├── data_reference/
 │   ├── east_taiwan_population.json  # Coastline polylines + population of 29 townships (shared by the frontend animation and the AI)
-│   └── debris_flow_east.geojson     # Debris-flow impact zones in the three eastern counties (Ministry of Agriculture)
+│   ├── debris_flow_east.geojson     # Debris-flow impact zones in the three eastern counties (Ministry of Agriculture)
+│   └── east_roads.json.gz           # Road network of the three eastern counties (OpenStreetMap, ODbL)
 │
 ├── tools/
-│   └── build_hazard_zones.py   # Ministry of Agriculture SHP → debris_flow_east.geojson (TWD97 → WGS84)
+│   ├── build_hazard_zones.py   # Ministry of Agriculture SHP → debris_flow_east.geojson (TWD97 → WGS84)
+│   └── build_road_network.py   # OpenStreetMap PBF → east_roads.json.gz (pgRouting edge table)
 │
 ├── static/
 │   ├── index.html              # Page skeleton
@@ -195,6 +199,7 @@ DisasterHub/
     ├── test_population_service.py
     ├── test_evacuation.py
     ├── test_hazard_zones.py
+    ├── test_routing.py
     ├── test_query_rules.py
     ├── test_vector_store.py
     ├── test_chat_service.py
@@ -222,7 +227,7 @@ DisasterHub/
 | POST | `/api/simulate_disaster` | Run the spatial disaster simulation; returns the affected shelters, estimates of the population inside the radius, the evacuation demand and the shelter shortfall, the evacuation plan (`evacuation`) and the resulting occupancy, which is already written to the database (requires login, or `X-API-Key`) |
 | POST | `/api/occupancy` | Set each shelter's current occupancy directly (for external tools or manual correction; the simulation no longer needs it); only the changed vector documents are recomputed (requires login, or `X-API-Key`) |
 | POST | `/api/reset_simulation` | Clear the simulation state and restore occupancy to the initial values from the source data (requires login, or `X-API-Key`) |
-| POST | `/api/nearest_shelter` | Find the nearest shelters (PostGIS distance ordering) |
+| POST | `/api/nearest_shelter` | Find the nearest shelters, ranked by road distance (`road_distance_km`; `null` when it cannot be computed) with the straight-line `distance_km` alongside |
 | GET | `/api/hazard_zones` | Debris-flow impact zones as GeoJSON, for the map layer |
 | POST | `/api/chat` | AI decision assistant. Streams the answer back as Server-Sent Events. Returns 429 when all `CHAT_MAX_CONCURRENT` generation slots are busy |
 | POST | `/api/sync` | Trigger a data sync manually. Accepts `SYNC_API_KEY`, a logged-in session, or `WRITE_API_KEY` — the startup sync can fail, and an operator must be able to recover without restarting the container. The index is rebuilt into a staging collection and swapped in atomically, so chat keeps answering from the old index while embeddings are recomputed |
@@ -347,7 +352,7 @@ The evacuation plan is computed on the backend (`services/evacuation.py`). It us
 
 The response carries `evacuation` (`flows`, `assigned`, `placed`, `unplaced`, `excluded`, `near_hazard`) and `occupancy`. The frontend only replays `flows` as an animation and applies `occupancy` when it ends. The AI answer lists every shelter in the plan with its assigned headcount; a truncated list made the model invent shelter names to fill the gap.
 
-**Limitations:** distances are straight-line, not road-network distances, and the greedy rule does not minimise total travel distance (that is a transportation problem solved by min-cost flow).
+**Limitations:** distances are straight-line, not road-network distances (only nearest-shelter answers use the road network so far), and the greedy rule does not minimise total travel distance (that is a transportation problem solved by min-cost flow).
 
 ### Debris-Flow Hazard Zones
 
@@ -359,6 +364,19 @@ Source: the Ministry of Agriculture's open dataset "115年度1753條土石流潛
 - **Near a zone: warn, do not exclude.** A shelter outside a zone but within 200 m of one (`HAZARD_WARN_M`) is still assigned evacuees; the response lists it under `near_hazard` with the zone numbers and distance, and the same code-appended sentence tells the reader to stay alert during heavy rain. The impact zones already include the run-out area, and excluding near-misses would remove scarce capacity. Measured: only 南山國小 (121 m from 宜縣DF079) falls in that band; the next closest shelter is 482 m away.
 - **Nearest shelter.** For AI nearest-shelter questions, a shelter inside a zone is flagged in the context the model receives, with the zone number and a note not to go there during heavy rain; a shelter within 200 m of a zone is flagged with the distance and a note to stay alert. The `/api/nearest_shelter` endpoint itself returns plain distances.
 - **Map.** `GET /api/hazard_zones` serves the zones, and the map draws them in orange; clicking one shows its stream number and risk level.
+
+### Road-Network Distance (pgRouting)
+
+Straight-line distance misleads in eastern Taiwan: mountains and rivers force long detours. From Nan'ao (24.40, 121.75), 澳花國小 is 7.9 km away in a straight line but 25.6 km by road, while 南澳鄉綜合體育場 is 8.8 km straight and only 15.6 km by road. Nearest-shelter answers (`/api/nearest_shelter` and the AI) now rank by road distance.
+
+- **Database image.** `pgrouting/pgrouting:15-3.3-3.4.1` is the same PostgreSQL 15 + PostGIS 3.3 as before, plus pgRouting, so an existing `db_data` volume keeps working: `docker compose up -d` recreates the container on the new image. `ensure_schema` runs `CREATE EXTENSION IF NOT EXISTS pgrouting` in its own transaction; on an image without pgRouting it only logs a warning and distances stay straight-line.
+- **Data.** `data_reference/east_roads.json.gz` (2.4 MB) holds the drivable roads of Yilan, Hualien and Taitung from OpenStreetMap: 109,059 edges, 86,727 junctions, 17,805 km. Roads are split at junctions, lengths are measured on the full geometry before it is simplified for storage, and fragments under 20 edges are dropped so a location cannot snap onto an isolated parking lane. © OpenStreetMap contributors, ODbL 1.0; the file is a derived database and is distributed under the same licence.
+- **Rebuilding.** Download `https://download.geofabrik.de/asia/taiwan-latest.osm.pbf` (about 330 MB) into its own folder outside the project, then run `tools/build_road_network.py` in a throwaway container (it needs pyosmium; the command is in the script's docstring). It takes about a minute. The county boundaries are stitched from OSM relations; part of the Yilan and Taitung boundaries lies at sea outside the Geofabrik extract, so open chains are joined across those gaps. The first version dropped them and lost both counties' mainland.
+- **Import.** The startup sync loads the file into the `roads` table in one transaction (about 3 seconds) and records its SHA-256 in `dataset_versions`, so unchanged data is skipped on later starts. A failure is logged and counted as `sync.roads_failed` and never fails the shelter sync.
+- **Query.** The 10 nearest shelters by straight line (KNN on the index) are re-ranked by road distance. Each point snaps to the nearest road within 1 km, and `pgr_withPointsCost` routes on the edges inside the points' bounding box plus a margin. Road distance = walk to the road + shortest path + walk from the road. A query takes 10–60 ms.
+- **Fallback.** Shelters that cannot be routed (point more than 1 km from a road, disconnected network) are listed after the routed ones with their straight-line distance. If routing fails entirely the answer says so and uses straight-line distance; `routing.road` / `routing.fallback` / `routing.failed` in `/api/stats` count each case.
+- **pgRouting pitfall.** `pgr_withPointsCost` in 3.4 returns no rows at all when a point's `fraction` is exactly 0 or 1, which happens whenever a location snaps onto a road end; before the fix, a query from Hualien station returned nothing. Fractions are now nudged into (0, 1).
+- **Limitations.** Roads are treated as two-way (evacuees walk as well as drive) and costs are length only, with no speed or slope. Footpaths are not included. Evacuation assignment still uses straight-line distance; switching it to road distance is the next step.
 
 ### Spatial Index
 
@@ -915,6 +933,7 @@ Give me evacuation advice
 
 - **真實地圖視覺化** — Leaflet.js + OpenStreetMap，宜花東 50 處避難所標記於真實座標，marker 大小依容量縮放，點擊顯示即時資訊
 - **PostGIS 空間模擬** — 設定災害中心點與影響半徑，後端透過 `ST_DWithin` 計算受影響避難所清單，支援強震、淹水、火災三種類型
+- **路網距離** — 最近避難所依 OpenStreetMap 路網上的距離排序（pgRouting），不是直線距離；路網算不出來時退回直線距離
 - **人群疏散動畫** — 後端以鄉鎮人口模型估算圈內人口與疏散需求，算出確定、不超過容量的疏散分配（近者優先），並立即寫入資料庫與向量索引；前端只負責把這份分配畫成動畫，模擬一回傳，AI 助手回答的負載就跟地圖一致
 - **土石流潛勢區域** — 匯入農業部宜花東 531 個土石流潛勢溪流影響範圍到 PostGIS 並顯示在地圖上；淹水模擬不把人送進範圍內的避難所，查最近避難所時若落在範圍內會加註警告
 - **AI 決策助手** — 整合規則層 + RAG + 本地 LLM，根據避難所真實資料回答問題，支援語意查詢、地理距離查詢、容量排序查詢、模擬結果查詢；地區 / 鄉鎮 / 設施 / 容量條件轉成 metadata 篩選，範圍外縣市直接拒答
@@ -924,7 +943,7 @@ Give me evacuation advice
 ## 技術架構
 
 ```
-資料層        PostgreSQL + PostGIS（空間資料）
+資料層        PostgreSQL + PostGIS + pgRouting（空間資料、路網）
               ChromaDB（語意向量索引）
 
 後端層        FastAPI + Uvicorn
@@ -1057,6 +1076,7 @@ DisasterHub/
 │   ├── health.py               # readiness 依賴檢查
 │   ├── population_service.py   # 海岸線 + 鄉鎮人口模型，疏散人數估算
 │   ├── evacuation.py           # 疏散分配：鄉鎮 → 避難所，近者優先、不超過容量
+│   ├── routing.py              # 最近避難所依道路距離排序，算不出來退回直線距離
 │   └── vector_store.py         # ChromaDB 向量索引（支援局部更新）
 │
 ├── data_for_refuge/
@@ -1066,10 +1086,12 @@ DisasterHub/
 │
 ├── data_reference/
 │   ├── east_taiwan_population.json  # 海岸線折線 + 29 個鄉鎮人口（前端動畫與 AI 共用）
-│   └── debris_flow_east.geojson     # 宜花東土石流潛勢溪流影響範圍（農業部）
+│   ├── debris_flow_east.geojson     # 宜花東土石流潛勢溪流影響範圍（農業部）
+│   └── east_roads.json.gz           # 宜花東路網（OpenStreetMap，ODbL）
 │
 ├── tools/
-│   └── build_hazard_zones.py   # 農業部 SHP → debris_flow_east.geojson（TWD97 → WGS84）
+│   ├── build_hazard_zones.py   # 農業部 SHP → debris_flow_east.geojson（TWD97 → WGS84）
+│   └── build_road_network.py   # OpenStreetMap PBF → east_roads.json.gz（pgRouting 邊表）
 │
 ├── static/
 │   ├── index.html              # 頁面骨架
@@ -1090,6 +1112,7 @@ DisasterHub/
     ├── test_population_service.py
     ├── test_evacuation.py
     ├── test_hazard_zones.py
+    ├── test_routing.py
     ├── test_query_rules.py
     ├── test_vector_store.py
     ├── test_chat_service.py
@@ -1117,7 +1140,7 @@ DisasterHub/
 | POST | `/api/simulate_disaster` | 執行災害空間模擬，回傳受影響避難所、圈內人口 / 疏散需求 / 收容缺口估算、疏散分配（`evacuation`）與分配後的收容人數（已寫入資料庫）（需登入，或帶 `X-API-Key`）|
 | POST | `/api/occupancy` | 直接設定各避難所目前收容人數（給外部工具或手動修正用，模擬已不需要呼叫），只重算有變動的向量文件（需登入，或帶 `X-API-Key`）|
 | POST | `/api/reset_simulation` | 清除模擬狀態，並把收容人數還原成來源資料的初始值（需登入，或帶 `X-API-Key`）|
-| POST | `/api/nearest_shelter` | 查詢最近避難所（PostGIS 距離排序）|
+| POST | `/api/nearest_shelter` | 查詢最近避難所，依道路距離排序（`road_distance_km`，算不出來時是 `null`），並附上直線距離 `distance_km` |
 | GET | `/api/hazard_zones` | 土石流潛勢溪流影響範圍（GeoJSON），地圖圖層用 |
 | POST | `/api/chat` | AI 決策助手，回答以 Server-Sent Events 逐段串流。`CHAT_MAX_CONCURRENT` 個生成名額都在忙時回 429 |
 | POST | `/api/sync` | 手動觸發資料同步。`SYNC_API_KEY`、登入的 session、`WRITE_API_KEY` 三者任一即可——啟動同步是會失敗的，操作員要能不重啟容器就把資料救回來。索引會先建到暫存 collection 再整個換過去，重算 embedding 期間問答仍用舊索引回答 |
@@ -1235,7 +1258,7 @@ curl -N -X POST http://localhost:8501/api/chat \
 
 回應裡有 `evacuation`（`flows`、`assigned`、`placed`、`unplaced`、`excluded`、`near_hazard`）與 `occupancy`。前端只負責把 `flows` 畫成動畫，結束時套用 `occupancy`。AI 回答會列出分配表裡每一間避難所與分到的人數；以前清單被截斷時，模型會自己編避難所名稱補齊。
 
-**限制**：距離是直線距離而不是路網距離；貪婪規則也不保證總移動距離最小（那是運輸問題，要用最小成本流）。
+**限制**：距離是直線距離而不是路網距離（目前只有最近避難所改用路網）；貪婪規則也不保證總移動距離最小（那是運輸問題，要用最小成本流）。
 
 ### 土石流潛勢區域
 
@@ -1247,6 +1270,19 @@ curl -N -X POST http://localhost:8501/api/chat \
 - **靠近範圍：只警告、不排除**：在影響範圍外、但距離 200 公尺內（`HAZARD_WARN_M`）的避難所照常分配，回應的 `near_hazard` 會列出範圍編號與距離，AI 回答最後由程式補上同一段提醒豪雨期間留意。影響範圍本身已經包含堆積區，連附近的都排除會讓本來就不多的空位再少一間。實測只有南山國小（距宜縣DF079 約 121 公尺）落在這個區間，下一間是 482 公尺。
 - **最近避難所**：問 AI 最近的避難所時，落在影響範圍內的避難所會在交給模型的資料裡標註範圍編號與「豪雨時不宜前往」，200 公尺內的則標註距離與「豪雨期間請留意」；`/api/nearest_shelter` 端點本身只回傳距離。
 - **地圖**：`GET /api/hazard_zones` 提供範圍資料，地圖以橘色顯示，點擊可看溪流編號與風險等級。
+
+### 路網距離（pgRouting）
+
+在東部，直線距離常常會誤導：山和溪會逼人繞遠路。從南澳（24.40, 121.75）出發，澳花國小直線 7.9 公里，走道路卻要 25.6 公里；南澳鄉綜合體育場直線 8.8 公里，道路只要 15.6 公里。最近避難所（`/api/nearest_shelter` 與 AI 回答）現在依道路距離排序。
+
+- **資料庫映像**：`pgrouting/pgrouting:15-3.3-3.4.1` 跟原本一樣是 PostgreSQL 15 + PostGIS 3.3，只是多了 pgRouting，所以既有的 `db_data` volume 可以直接沿用，`docker compose up -d` 會用新映像重建容器。`ensure_schema` 會在獨立的交易裡執行 `CREATE EXTENSION IF NOT EXISTS pgrouting`；映像沒有 pgRouting 時只記警告，距離維持直線。
+- **資料**：`data_reference/east_roads.json.gz`（2.4 MB）是 OpenStreetMap 上宜花東三縣車輛可通行的道路：109,059 條邊、86,727 個路口、總長 17,805 公里。道路在路口切開；長度用完整幾何計算，存檔時才簡化幾何；少於 20 條邊的孤立片段會被丟掉，避免使用者位置吸附到一段不相連的停車場車道。© OpenStreetMap contributors，ODbL 1.0；這個檔案是衍生資料庫，以同樣的授權散布。
+- **重建資料**：把 `https://download.geofabrik.de/asia/taiwan-latest.osm.pbf`（約 330 MB）下載到專案外的獨立資料夾，再用一次性容器執行 `tools/build_road_network.py`（需要 pyosmium，指令寫在腳本的 docstring 裡），約一分鐘。縣界從 OSM 的行政區 relation 接成環；宜蘭與臺東有一段縣界在海上、落在 Geofabrik 切片之外，所以接不起來的斷段會跨過這些缺口連起來。第一版把它們丟掉，兩縣的本島因此整個不見。
+- **匯入**：啟動同步時在同一個交易裡匯入 `roads` 資料表（約 3 秒），並把檔案的 SHA-256 記在 `dataset_versions`，之後啟動時內容沒變就跳過。失敗只記錄並計入 `sync.roads_failed`，不影響避難所同步。
+- **查詢**：先用直線距離（索引 KNN）挑出最近的 10 間，再依道路距離重新排序。每個點吸附到 1 公里內最近的道路，`pgr_withPointsCost` 只在起訖點外接框加上邊界範圍內的路段上計算。道路距離＝走到道路＋最短路徑＋從道路走到避難所。一次查詢 10～60 毫秒。
+- **退路**：算不出道路距離的避難所（離路超過 1 公里、路網不連通）排在算得出來的後面，標示直線距離。整個路網查詢失敗時，回答會說明並改用直線距離；`/api/stats` 的 `routing.road` / `routing.fallback` / `routing.failed` 分別計數。
+- **pgRouting 的陷阱**：3.4 版的 `pgr_withPointsCost` 遇到 `fraction` 剛好是 0 或 1 的點會整組回傳空結果，而位置吸附到道路端點時就會這樣；修正前從花蓮火車站查詢一筆都算不出來。現在 fraction 會往 (0, 1) 內夾一點點。
+- **限制**：道路一律當作雙向（疏散時有步行也有車行），成本只看長度，不考慮速度或坡度；不含步道。疏散分配目前仍用直線距離，改成道路距離是下一步。
 
 ### 空間索引
 
