@@ -26,7 +26,7 @@ from services.map_service import MapService
 from services.metrics import metrics
 from services.population_service import PopulationModel
 from services.rate_limit import RateLimiter
-from services.routing import nearest_by_road
+from services.routing import evacuation_road_distances, nearest_by_road
 from services.sync_service import HAZARD_FILES, DataSyncService
 from services.vector_store import VectorStore
 
@@ -436,8 +436,11 @@ async def simulate(request: SimulateRequest, http_request: Request, x_api_key: s
         request.lat, request.lon, request.radius, request.type, total_remaining
     )
     # 誰去哪一間由後端決定，結果確定、可重現；前端只把這份分配畫成動畫。
-    # 以前是瀏覽器用亂數分配、動畫跑完才回寫，AI 要等回寫成功才看得到同樣的數字
-    plan = plan_evacuation(origins_from(population, request.lat, request.lon), destinations)
+    # 以前是瀏覽器用亂數分配、動畫跑完才回寫，AI 要等回寫成功才看得到同樣的數字。
+    # 近者優先的「近」是道路距離；路網查不到時退回直線距離
+    origins = origins_from(population, request.lat, request.lon)
+    road_m = await asyncio.to_thread(evacuation_road_distances, repo, origins, destinations)
+    plan = plan_evacuation(origins, destinations, road_m)
     plan["excluded"] = excluded
     plan["near_hazard"] = near
     plan["hazard"] = hazard if excluded or near else None
