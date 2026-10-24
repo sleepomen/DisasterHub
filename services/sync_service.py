@@ -1,3 +1,5 @@
+import gzip
+import hashlib
 import json
 import logging
 from pathlib import Path
@@ -10,12 +12,14 @@ logger = logging.getLogger(__name__)
 
 # 清理步驟的結果：刪了幾筆，以及因為來源不完整而「不敢刪」了幾次。
 # 後者連續出現代表來源資料壞掉而沒人發現
-metrics.register("sync.pruned", "sync.prune_skipped", "sync.hazard_failed")
+metrics.register("sync.pruned", "sync.prune_skipped", "sync.hazard_failed", "sync.roads_failed")
 
 # 災害潛勢區域：hazard_type → data_reference/ 裡的 GeoJSON（由 tools/build_hazard_zones.py 產生）
 HAZARD_FILES = {
     "debris_flow": Path(__file__).resolve().parent.parent / "data_reference" / "debris_flow_east.geojson",
 }
+# 宜花東路網（由 tools/build_road_network.py 從 OpenStreetMap 產生）
+ROAD_NETWORK_FILE = Path(__file__).resolve().parent.parent / "data_reference" / "east_roads.json.gz"
 
 class DataSyncService:
     #初始化fetcher/repository
@@ -61,6 +65,7 @@ class DataSyncService:
 
         pruned = self._prune_removed(shelters, success_count)
         self.sync_hazard_zones()
+        self.sync_road_network()
         logger.info(
             "同步完成：%d / %d 筆（來源略過 %d 筆，清掉已移除 %d 筆）",
             success_count, len(shelters), self.fetcher.skipped, pruned,
@@ -113,4 +118,22 @@ class DataSyncService:
         if loaded:
             logger.info("災害潛勢區域匯入：%s", loaded)
         return loaded
+
+    def sync_road_network(self) -> int | None:
+        """
+        把路網匯入 roads，回傳寫入的邊數；檔案內容跟上次一樣就跳過（回 None），
+        四萬多條邊每次啟動都重灌要多花十幾秒。跟潛勢區域一樣是附加資訊：失敗只記錄，
+        距離查詢會退回直線距離
+        """
+        try:
+            raw = ROAD_NETWORK_FILE.read_bytes()
+            network = json.loads(gzip.decompress(raw))
+            written = self.repository.replace_road_network(network["edges"], hashlib.sha256(raw).hexdigest())
+        except Exception:
+            metrics.incr("sync.roads_failed")
+            logger.exception("匯入路網失敗")
+            return None
+        if written is not None:
+            logger.info("路網匯入：%d 條邊", written)
+        return written
 
