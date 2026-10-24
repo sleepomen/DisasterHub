@@ -107,6 +107,9 @@ ROAD_SCHEMA_SQL = (
 
 # 點離最近的道路超過這個距離就不吸附，該點不算道路距離（例如海上、深山）
 ROAD_SNAP_M = 1000
+# 疏散起點是鄉鎮人口重心，只是一個代表點，常常落在田裡或河床上（玉里鎮的重心離最近的道路 3.2 公里）。
+# 起點可以吸附得比較遠，那一段走到路上的距離照樣算進道路距離
+ORIGIN_SNAP_M = 5000
 # 路徑可能繞出起訖點的外接框（沿海岸繞過山）。框往外擴大這麼多度，再至少擴大框本身的一半
 ROUTE_MARGIN_DEG = 0.05
 FRACTION_EPS = 1e-6
@@ -421,13 +424,16 @@ class ShelterRepository:
     """
 
     def road_distances(
-        self, origins: list[tuple[float, float]], targets: list[tuple[float, float]], snap_m: float = ROAD_SNAP_M,
+        self, origins: list[tuple[float, float]], targets: list[tuple[float, float]],
+        snap_m: float = ROAD_SNAP_M, origin_snap_m: float | None = None,
     ) -> dict[tuple[int, int], float]:
         """
         起點 × 終點的道路距離（公尺），key 是 (起點序號, 終點序號)，座標是 (lat, lon)。
         距離＝起點走到最近道路＋沿路網的最短路徑＋終點離開道路的那一段。
-        吸附不到道路（離路超過 snap_m）或路網不連通的組合不會出現在結果裡，由呼叫端退回直線距離
+        吸附不到道路（終點離路超過 snap_m、起點超過 origin_snap_m，沒給就跟 snap_m 一樣）
+        或路網不連通的組合不會出現在結果裡，由呼叫端退回直線距離
         """
+        origin_snap_m = snap_m if origin_snap_m is None else origin_snap_m
         points = list(origins) + list(targets)
         if not origins or not targets:
             return {}
@@ -441,7 +447,7 @@ class ShelterRepository:
                 snaps = {
                     idx: (edge_id, min(max(float(fraction), FRACTION_EPS), 1 - FRACTION_EPS), float(offset))
                     for idx, edge_id, fraction, offset in cursor.fetchall()
-                    if offset <= snap_m
+                    if offset <= (origin_snap_m if idx < len(origins) else snap_m)
                 }
                 starts = [i for i in range(len(origins)) if i in snaps]
                 ends = [len(origins) + j for j in range(len(targets)) if len(origins) + j in snaps]
