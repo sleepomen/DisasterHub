@@ -595,14 +595,31 @@ def test_nearest_shelter_response_shape(client):
             distance_km=2.5,
         ),
     ]
-    with patch("repositories.shelter_repository.ShelterRepository.get_nearest_shelters", return_value=nearby):
+    with (
+        patch("repositories.shelter_repository.ShelterRepository.get_nearest_shelters", return_value=nearby),
+        patch("repositories.shelter_repository.ShelterRepository.road_distances", return_value={(0, 0): 3140.0}),
+    ):
         res = client.post("/api/nearest_shelter", json={"lat": 24.7, "lon": 121.7, "limit": 5})
     assert res.status_code == 200
     body = res.json()
     assert body["count"] == 1
     row = body["shelters"][0]
-    assert set(row) == {"name", "capacity", "current_ppl", "remaining", "lat", "lon", "address", "distance_km"}
-    assert (row["distance_km"], row["remaining"]) == (2.5, 280)
+    assert set(row) == {"name", "capacity", "current_ppl", "remaining", "lat", "lon", "address",
+                        "distance_km", "road_distance_km"}
+    assert (row["distance_km"], row["road_distance_km"], row["remaining"]) == (2.5, 3.14, 280)
+
+
+def test_nearest_shelter_falls_back_to_straight_line_when_routing_fails(client):
+    from models.shelter import NearbyShelter
+    nearby = [NearbyShelter(Shelter(name="[YILAN] 乙", capacity=300, lat=24.7, lon=121.7), distance_km=2.5)]
+    with (
+        patch("repositories.shelter_repository.ShelterRepository.get_nearest_shelters", return_value=nearby),
+        patch("repositories.shelter_repository.ShelterRepository.road_distances", side_effect=RuntimeError("no pgr")),
+    ):
+        res = client.post("/api/nearest_shelter", json={"lat": 24.7, "lon": 121.7, "limit": 5})
+    assert res.status_code == 200
+    row = res.json()["shelters"][0]
+    assert (row["distance_km"], row["road_distance_km"]) == (2.5, None)
 
 
 def test_simulate_plan_matches_population_and_is_written(client):

@@ -51,6 +51,9 @@ class FakeRepo:
     def get_nearest_shelters(self, lat, lon, limit=5):
         return [NearbyShelter(Shelter("[HUALIEN] 花蓮縣立體育館", 1500, 23.98, 121.6), distance_km=1.2)]
 
+    def road_distances(self, origins, targets):
+        return {(0, 0): 1850.0}
+
     def get_all_shelters(self):
         return [
             Shelter("[HUALIEN] 甲", 100, 23.9, 121.6, 20),
@@ -526,6 +529,33 @@ def test_nearest_query_failure_is_not_fed_to_the_model():
     assert events == [{"type": "delta", "text": GENERIC_ERROR}]
 
 
+def test_nearest_context_ranks_by_road_distance_and_shows_both(svc):
+    from models.shelter import NearbyShelter
+
+    svc.repo = MagicMock()
+    svc.repo.shelter_hazard_distances.return_value = {}
+    svc.repo.get_nearest_shelters.return_value = [
+        NearbyShelter(Shelter("[YILAN] 澳花國小", 150, 24.33, 121.73, 0), distance_km=7.87),
+        NearbyShelter(Shelter("[YILAN] 南澳鄉綜合體育場", 550, 24.46, 121.80, 0), distance_km=8.84),
+        NearbyShelter(Shelter("[YILAN] 離路太遠", 100, 24.50, 121.50, 0), distance_km=9.5),
+    ]
+    # 澳花國小直線比較近，但要繞山；第三間吸附不到道路，只有直線距離
+    svc.repo.road_distances.return_value = {(0, 0): 25600.0, (0, 1): 15550.0}
+    context, early = svc._get_nearest_context(24.40, 121.75)
+    lines = context.splitlines()
+    assert "依道路距離由近到遠排序" in lines[1]
+    assert lines[2].startswith("1. 南澳鄉綜合體育場：道路距離 15.55 公里（直線 8.84 公里）")
+    assert lines[3].startswith("2. 澳花國小：道路距離 25.6 公里（直線 7.87 公里）")
+    assert lines[4].startswith("3. 離路太遠：直線距離 9.5 公里")
+
+    # 路網查壞了：全部退回直線距離，標頭也要說清楚
+    svc.repo.road_distances.side_effect = RuntimeError("pgrouting missing")
+    context, early = svc._get_nearest_context(24.40, 121.75)
+    lines = context.splitlines()
+    assert early is None and "道路距離無法計算" in lines[1]
+    assert lines[2].startswith("1. 澳花國小：直線距離 7.87 公里")
+
+
 def test_nearest_query_with_no_results_replies_directly():
     class EmptyRepo:
         def get_nearest_shelters(self, lat, lon, limit=5):
@@ -805,6 +835,7 @@ def test_nearest_results_warn_about_debris_flow_zones(svc):
     from models.shelter import NearbyShelter, Shelter
 
     svc.repo = MagicMock()
+    svc.repo.road_distances.return_value = {}
     svc.repo.get_nearest_shelters.return_value = [
         NearbyShelter(Shelter("[YILAN] 澳花國小", 150, 24.33, 121.73, 0), distance_km=1.2),
         NearbyShelter(Shelter("[YILAN] 南澳鄉綜合體育場", 550, 24.46, 121.80, 0), distance_km=3.4),
