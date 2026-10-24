@@ -1,2 +1,4 @@
 # shell script 進容器要是 LF，Windows 上 autocrlf 不能把它轉成 CRLF
 *.sh text eol=lf
+# 壓縮資料檔（路網）不能被換行轉換動到
+*.gz binary
