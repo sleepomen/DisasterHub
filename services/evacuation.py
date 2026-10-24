@@ -7,7 +7,10 @@
 
 演算法是「全域最近優先」的貪婪分配：把所有（鄉鎮, 避難所）配對依距離由近到遠排序，
 依序把鄉鎮剩下的人塞進避難所剩下的空位。容量一定守得住、結果可重現、也容易對人解釋；
-它不保證總移動距離最小（那是運輸問題，要用最小成本流），距離也還是直線距離而不是路網距離。
+它不保證總移動距離最小（那是運輸問題，要用最小成本流）。
+
+距離用路網上的道路距離（services/routing.evacuation_road_distances）。個別算不出道路距離的配對
+不能直接拿直線距離來比，直線一定比較短，會被排到前面；改用「直線 × DETOUR_FACTOR」估算
 """
 from dataclasses import dataclass
 
@@ -21,6 +24,10 @@ HAZARD_LABELS = {"debris_flow": "土石流潛勢溪流影響範圍"}
 # 範圍外但離得很近的避難所只警告、不排除：影響範圍本身已經含堆積區，
 # 排除會讓本來就不多的空位再少一間。200 公尺內實測只有南山國小（121 公尺），下一間是 482 公尺
 HAZARD_WARN_M = 200
+
+# 道路距離／直線距離的中位數。2026-10-24 實測：29 個鄉鎮重心到 30 公里內的避難所共 317 組，
+# 中位數 1.149（p10 1.07、p90 1.37）。只用在個別算不出道路距離的配對上
+DETOUR_FACTOR = 1.15
 
 # 範圍內沒有任何鄉鎮人口重心時（海域、無人山區），疏散人數由面積保底估算，起點就放在災害中心
 FALLBACK_ORIGIN = "災害中心"
@@ -78,26 +85,29 @@ def split_hazard_hits(hits: dict[str, list[tuple[str, float]]]) -> tuple[dict[st
     return inside, near
 
 
-def plan_evacuation(origins: list[Origin], shelters: list) -> dict:
+def plan_evacuation(origins: list[Origin], shelters: list, road_m: dict[tuple[int, int], float] | None = None) -> dict:
     """
-    shelters 是 Shelter 物件（要有 name / lat / lon / remaining）。回傳：
-      flows     每一筆「從哪個鄉鎮、到哪間避難所、多少人、直線距離」，依距離由近到遠
+    shelters 是 Shelter 物件（要有 name / lat / lon / remaining）。
+    road_m 是 {(起點序號, 避難所序號): 道路距離公尺}，沒有的配對用直線 × DETOUR_FACTOR。回傳：
+      flows     每一筆「從哪個鄉鎮、到哪間避難所、多少人、直線距離、道路距離」，依距離由近到遠
       assigned  每間避難所分到的人數
       placed / unplaced  安置與安置不下的人數（總和等於需疏散人數）
+      distance_basis  分配用的距離："road"（全部是道路距離）、"mixed"、"straight"
     """
+    road_m = road_m or {}
     need = {o.name: o.people for o in origins}
     room = {s.name: max(0, int(s.remaining)) for s in shelters}
-    pairs = sorted(
-        (
-            (round(distance_km(o.lat, o.lon, s.lat, s.lon), 2), o.name, s.name, o, s)
-            for o in origins
-            for s in shelters
-        ),
-        key=lambda p: p[:3],
-    )
+    pairs = []
+    for i, o in enumerate(origins):
+        for j, s in enumerate(shelters):
+            straight = round(distance_km(o.lat, o.lon, s.lat, s.lon), 2)
+            road = round(road_m[(i, j)] / 1000, 2) if (i, j) in road_m else None
+            cost = road if road is not None else round(straight * DETOUR_FACTOR, 2)
+            pairs.append((cost, o.name, s.name, straight, road, o, s))
+    pairs.sort(key=lambda p: p[:3])
     flows = []
     assigned: dict[str, int] = {}
-    for dist, _, _, origin, shelter in pairs:
+    for _, _, _, dist, road, origin, shelter in pairs:
         moving = min(need[origin.name], room[shelter.name])
         if moving <= 0:
             continue
@@ -113,11 +123,14 @@ def plan_evacuation(origins: list[Origin], shelters: list) -> dict:
             "to_lon": shelter.lon,
             "people": moving,
             "distance_km": dist,
+            "road_km": road,
         })
     placed = sum(assigned.values())
+    routed = [f["road_km"] is not None for f in flows] or [bool(road_m)]
     return {
         "flows": flows,
         "assigned": assigned,
         "placed": placed,
         "unplaced": sum(o.people for o in origins) - placed,
+        "distance_basis": "road" if all(routed) else "mixed" if any(routed) else "straight",
     }
