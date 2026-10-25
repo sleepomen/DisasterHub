@@ -142,6 +142,11 @@ class RingIndex:
         return inside
 
 
+def in_any(indexes: list[RingIndex], coords: list[tuple[float, float]]) -> bool:
+    """道路的頭、中、尾任一點落在任一縣內就算"""
+    return any(index.contains(*coords[i]) for index in indexes for i in (0, len(coords) // 2, -1))
+
+
 def simplify(coords: list[tuple[float, float]], tolerance: float) -> list[tuple[float, float]]:
     """Douglas-Peucker，保留首尾"""
     if len(coords) <= 2:
@@ -296,15 +301,16 @@ def read_osm(path: str):
 
 def build(path: str) -> dict:
     boundary, roads = read_osm(path)
-    rings = []
+    # 每個縣各自一個索引，道路落在任一縣內就留下。不能把三縣的環丟進同一個奇偶索引：
+    # 臺東縣界補上海上缺口後的直線會切進花蓮南部，富里、玉里同時落在花蓮與臺東的環裡，
+    # 奇偶規則翻兩次變成「不在任何縣內」——第一版因此整個富里縱谷沒有道路
+    indexes = []
     for county, segments in sorted(boundary.items()):
         county_rings = stitch_rings(segments)
         print(f"{county}：{len(segments)} 條界線 → {len(county_rings)} 個封閉環")
-        rings += county_rings
-    index = RingIndex(rings)
+        indexes.append(RingIndex(county_rings))
 
-    kept = [w for w in roads
-            if any(index.contains(*w["coords"][i]) for i in (0, len(w["coords"]) // 2, -1))]
+    kept = [w for w in roads if in_any(indexes, w["coords"])]
     print(f"外接框內道路 {len(roads)} 條，三縣內 {len(kept)} 條")
 
     edges = split_at_junctions(kept)
