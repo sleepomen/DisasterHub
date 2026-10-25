@@ -21,13 +21,27 @@ from services.population_service import distance_km
 # 不能當成疏散目的地。地震與火災目前沒有對應的潛勢圖資，不排除
 EXCLUDED_HAZARDS = {"flood": "debris_flow"}
 HAZARD_LABELS = {"debris_flow": "土石流潛勢溪流影響範圍"}
+# 模擬的災害類型 → 消防署「適用災害類別」。沒列這一類的避難所不當疏散目的地；
+# 類別欄空白（51 間）是來源沒填，不代表不適用，照常分配。火災沒有對應的類別
+DESIGNATED_HAZARD = {"flood": "水災", "earthquake": "震災"}
+
+
+def undesignated(shelters: list, sim_type: str) -> list[str]:
+    """消防署資料明確列了適用災害、但不含這次災害類型的避難所名稱"""
+    label = DESIGNATED_HAZARD.get(sim_type)
+    if not label:
+        return []
+    return sorted(s.name for s in shelters if s.hazards and label not in s.hazards)
+
+
 # 範圍外但離得很近的避難所只警告、不排除：影響範圍本身已經含堆積區，
 # 排除會讓本來就不多的空位再少一間。200 公尺內實測只有南山國小（121 公尺），下一間是 482 公尺
 HAZARD_WARN_M = 200
 
-# 道路距離／直線距離的中位數。2026-10-24 實測：29 個鄉鎮重心到 30 公里內的避難所共 317 組，
-# 中位數 1.149（p10 1.07、p90 1.37）。只用在個別算不出道路距離的配對上
-DETOUR_FACTOR = 1.15
+# 道路距離／直線距離的中位數。2026-10-24 實測（消防署 644 間、修正後的路網）：
+# 29 個鄉鎮重心到 30 公里內的避難所共 4,287 組，中位數 1.163（p10 1.07、p90 1.55）。
+# 只用在個別算不出道路距離的配對上
+DETOUR_FACTOR = 1.16
 
 # 範圍內沒有任何鄉鎮人口重心時（海域、無人山區），疏散人數由面積保底估算，起點就放在災害中心
 FALLBACK_ORIGIN = "災害中心"

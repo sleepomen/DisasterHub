@@ -21,7 +21,15 @@ import config
 from repositories.shelter_repository import ShelterRepository
 from services import auth, health
 from services.chat_service import ChatService
-from services.evacuation import EXCLUDED_HAZARDS, HAZARD_WARN_M, origins_from, plan_evacuation, split_hazard_hits
+from services.evacuation import (
+    DESIGNATED_HAZARD,
+    EXCLUDED_HAZARDS,
+    HAZARD_WARN_M,
+    origins_from,
+    plan_evacuation,
+    split_hazard_hits,
+    undesignated,
+)
 from services.map_service import MapService
 from services.metrics import metrics
 from services.population_service import PopulationModel
@@ -427,7 +435,9 @@ async def simulate(request: SimulateRequest, http_request: Request, x_api_key: s
             near = {s.name: nearby[s.name] for s in impacted if s.name in nearby}
         except Exception:
             logger.exception("查詢災害潛勢區域失敗，本次模擬不排除任何避難所")
-    destinations = [s for s in impacted if s.name not in excluded]
+    # 消防署資料沒把這間列為這類災害的避難收容處所（例如只列水災的，地震時不去）
+    not_designated = undesignated(impacted, request.type)
+    destinations = [s for s in impacted if s.name not in excluded and s.name not in not_designated]
 
     # 人口估算與前端動畫、AI 回答共用同一份模型，三邊數字才會一致；
     # 可安置空間只算真的能去的避難所，否則「可安置」會跟分配結果對不上
@@ -444,6 +454,8 @@ async def simulate(request: SimulateRequest, http_request: Request, x_api_key: s
     plan["excluded"] = excluded
     plan["near_hazard"] = near
     plan["hazard"] = hazard if excluded or near else None
+    plan["undesignated"] = not_designated
+    plan["designation"] = DESIGNATED_HAZARD.get(request.type)
 
     chat_service.set_simulation({
         "type": request.type,
