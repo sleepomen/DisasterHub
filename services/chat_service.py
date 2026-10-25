@@ -9,6 +9,7 @@ import requests
 
 import config
 from services import query_rules
+from services.answer_guard import LineGuard, filter_lines, supported_names
 from services.evacuation import HAZARD_LABELS, HAZARD_WARN_M, split_hazard_hits
 from services.metrics import metrics
 from services.routing import nearest_by_road
@@ -94,6 +95,8 @@ OUTCOME_COUNTERS = (
     "chat.answer.early_reply",
     "chat.answer.generated",
     "chat.generation.ok",
+    # 回答防護拿掉的行數（提到 prompt 以外的避難所）
+    "chat.guard.dropped_lines",
     "chat.generation.interrupted",
     "chat.generation.unavailable",
     "chat.generation.empty",
@@ -229,7 +232,17 @@ def hazard_lines(plan: dict) -> list[str]:
             f"{display_name(name)}（{near_hazard_note(info, label)}）" for name, info in sorted(near.items())
         )
         lines.append(f"以下避難所靠近{label}，仍列為疏散目的地，豪雨期間請留意：{names}。")
+    lines += undesignated_lines(plan)
     return lines
+
+
+def undesignated_lines(plan: dict) -> list[str]:
+    """消防署資料沒列為這類災害避難所而被排除的（全部列出：只給數字的話模型會自己補名字）"""
+    names = (plan or {}).get("undesignated") or []
+    if not names:
+        return []
+    joined = "、".join(display_name(n) for n in names)
+    return [f"以下 {len(names)} 間避難所的適用災害不含{plan.get('designation')}，本次未列為疏散目的地：{joined}。"]
 
 
 # 疏散分配依哪一種距離決定「近者優先」（evacuation.plan_evacuation 的 distance_basis）
@@ -369,11 +382,14 @@ class ChatService:
         plan = sim.get("evacuation") or {}
         excluded = plan.get("excluded") or {}
         near = plan.get("near_hazard") or {}
+        not_designated = set(plan.get("undesignated") or [])
         label = HAZARD_LABELS.get(plan.get("hazard"), "災害潛勢區域")
         lines.append(f"受影響避難所共 {len(impacted)} 個：")
         for i, s in enumerate(impacted, 1):
             if s.name in excluded:
                 note = f"（位於{label}內，本次未列為疏散目的地）"
+            elif s.name in not_designated:
+                note = f"（適用災害不含{plan.get('designation')}，本次未列為疏散目的地）"
             elif s.name in near:
                 note = f"（{near_hazard_note(near[s.name], label)}，仍列為疏散目的地，豪雨期間請留意）"
             else:
@@ -459,7 +475,8 @@ class ChatService:
         5. 沒模擬卻要疏散建議 → 請先跑模擬
         6. 其餘 → 規則層篩選 + ChromaDB 語意檢索（容量排名也走這裡）
         """
-        plan = query_rules.analyze(user_message)
+        names = known_names_of(self._shelter_metadata() or [])
+        plan = query_rules.analyze(user_message, known_names=names)
         if plan.out_of_scope:
             metrics.route("out_of_scope")
             return None, query_rules.out_of_scope_reply(plan.out_of_scope)
@@ -476,7 +493,7 @@ class ChatService:
         corrected, _ = self.correct_typo(user_message)
         if corrected != user_message:
             user_message = corrected
-            plan = query_rules.analyze(user_message)
+            plan = query_rules.analyze(user_message, ignore_off_topic=True)
 
         if self._is_explicit_simulation_query(user_message):
             metrics.route("simulation")
@@ -617,11 +634,24 @@ class ChatService:
             yield {"type": "delta", "text": typo + "\n"}
         prompt = self.build_prompt(user_message, shelter_context, with_simulation=metrics.last_route() == "simulation")
         reply_chars = 0
+        guard = LineGuard(self.prompt_names(prompt))
         try:
             for chunk in self.generate_stream(prompt):
                 reply_chars += len(chunk)
-                yield {"type": "delta", "text": chunk}
+                text = guard.feed(chunk)
+                if text:
+                    yield {"type": "delta", "text": text}
+            tail = guard.finish()
+            if tail:
+                yield {"type": "delta", "text": tail}
+            if guard.dropped:
+                metrics.incr("chat.guard.dropped_lines", len(guard.dropped))
+                logger.info("拿掉 %d 行提到資料以外避難所的回答：%s", len(guard.dropped), guard.dropped)
         except Exception:
+            # 斷線前已經生成、還卡在防護緩衝裡的那一行照樣檢查後送出，使用者才看得到斷在哪裡
+            tail = guard.finish()
+            if tail:
+                yield {"type": "delta", "text": tail}
             # 已經吐出文字才斷掉是「中斷」，一個字都沒吐出來是「服務不可用」，兩者要分開看
             outcome = "interrupted" if reply_chars else "unavailable"
             metrics.incr("chat.generation." + outcome)
@@ -644,6 +674,14 @@ class ChatService:
                 yield {"type": "delta", "text": "\n\n" + "\n".join(notes)}
         metrics.incr("chat.generation.ok")
         self._log_summary("generated", "ok", len(shelter_context), reply_chars, started)
+
+    def prompt_names(self, prompt: str) -> list[str]:
+        """prompt 裡出現的避難所名稱（顯示名稱或別名）：回答只能講這些"""
+        return supported_names(prompt, known_names_of(self._shelter_metadata() or []))
+
+    def guard_reply(self, reply: str, prompt: str) -> tuple[str, list[str]]:
+        """非串流版的回答防護（評測用），跟 chat_stream 的 LineGuard 是同一套判斷"""
+        return filter_lines(reply, self.prompt_names(prompt))
 
     @staticmethod
     def _log_summary(source: str, outcome: str, context_chars: int, reply_chars: int, started: float) -> None:
