@@ -53,7 +53,7 @@ def load_cases(path: str) -> list[dict]:
 
 def classify(store: VectorStore, query: str) -> dict:
     """走一次真實的檢索路徑，記下是哪一層做了決定"""
-    plan = query_rules.analyze(query)
+    plan = query_rules.analyze(query, known_names=known_names_of(store.shelter_metadata()))
     if plan.out_of_scope:
         return {"layer": "rules", "refused": True, "filtered": None,
                 "top1_distance": None, "hits": 0, "matched_place": plan.out_of_scope}
@@ -138,7 +138,8 @@ def judge_named_answer(reply: str, shelter, catalog) -> dict:
     只看「有沒有拒答」的話，把涙強國小答成 250 人（實際 300）也會算對——那正是錯字題實際出過的錯
     """
     mentioned = mentioned_shelters(reply, catalog)
-    allowed = {shelter.capacity, shelter.remaining}
+    # 地址裡的門牌也是那一間自己的資料：「中正路210號」的 210 不能算成答錯的容量
+    allowed = {shelter.capacity, shelter.remaining, *integers_in(shelter.address or "")}
     numbers = sorted(n for n in integers_in(reply) if n >= MIN_CHECKED_NUMBER)
     wrong_numbers = [n for n in numbers if n not in allowed]
     named_ok = bool(mentioned) and mentioned[0] == shelter.name

@@ -1,5 +1,5 @@
 {"query": "宜蘭有哪些避難所", "expected_route": "rag", "simulation": false, "note": "列舉題"}
-{"query": "花蓮縣立體育館的容量是多少", "expected_route": "rag", "simulation": false, "note": "點名單一避難所"}
+{"query": "花蓮縣立體育場的容量是多少", "expected_route": "rag", "simulation": false, "note": "點名單一避難所"}
 {"query": "容量最大的避難所是哪一間", "expected_route": "rag", "simulation": false, "note": "容量排名仍走檢索，排序在向量層做"}
 {"query": "台東哪些國小可以避難", "expected_route": "rag", "simulation": false, "note": "地區＋設施"}
 {"query": "避難所有提供飲水嗎", "expected_route": "rag", "simulation": false, "note": "語意題"}
@@ -39,7 +39,7 @@
 {"query": "頭城國中在哪裡", "expected_route": "unknown_name", "simulation": false, "note": "資料裡只有頭城國小；llama3.2:3b 會替不存在的頭城國中編出容量，所以由程式直接回查無"}
 {"query": "花蓮縣立游泳池還有空位嗎", "expected_route": "unknown_name", "simulation": false, "note": "資料裡沒有游泳池這類場所"}
 {"query": "涙強國小還有空位嗎", "expected_route": "rag", "simulation": false, "note": "錯字（濤強國小）不是不存在的場所，照常檢索"}
-{"query": "原民會館", "expected_route": "rag", "simulation": false, "note": "簡稱（台東市原住民文化會館）不能被當成不存在"}
+{"query": "蘭嶼高中", "expected_route": "rag", "simulation": false, "note": "簡稱（蘭嶼完全高級中學）不能被當成不存在"}
 {"query": "有沒有可以借錢的地方", "expected_route": "no_clue", "simulation": false, "note": "沒有地名也沒有任何避難線索；距離 0.505 在門檻內，交給模型會列出一串避難所"}
 {"query": "我們一家五口可以去哪", "expected_route": "rag", "simulation": false, "note": "沒有地名但「去哪」是在找地方，不能被擋"}
 {"query": "地震了要去哪裡", "expected_route": "rag", "simulation": false, "note": "災害詞是線索"}

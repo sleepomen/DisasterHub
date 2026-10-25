@@ -16,10 +16,10 @@
 {"query": "宜蘭的國小有哪些", "expect": "refuse_or_answer", "kind": "ambiguous", "note": "字面是問學校，但在避難所系統裡合理解讀成避難所；標成兩者皆可，不計入正確率"}
 {"query": "花蓮縣立游泳池還有空位嗎", "expect": "refuse", "kind": "nonexistent_shelter", "name": "花蓮縣立游泳池", "note": "聽起來像避難所但資料裡沒有這一間"}
 {"query": "宜蘭縣立美術館可以避難嗎", "expect": "refuse", "kind": "nonexistent_shelter", "name": "宜蘭縣立美術館", "note": "同上"}
-{"query": "濤強國小還有空位嗎", "expect": "answer", "kind": "correct_name", "shelter": "[HUALIEN] 濤強國小", "note": "對照組：正確名稱必須答得出來"}
-{"query": "涙強國小還有空位嗎", "expect": "answer", "kind": "misspelled_name", "shelter": "[HUALIEN] 濤強國小", "note": "錯一個字；生成評測觀察到模型自己也會寫成涙強"}
+{"query": "中正國小還有空位嗎", "expect": "answer", "kind": "correct_name", "shelter": "[HUALIEN] 中正國小", "note": "對照組：正確名稱必須答得出來"}
+{"query": "鶴崗國小的容量多少", "expect": "answer", "kind": "misspelled_name", "shelter": "[HUALIEN] 花蓮縣鶴岡國民小學", "note": "岡寫成崗；資料是全名「花蓮縣鶴岡國民小學」，要靠去地名＋簡稱的別名才對得上"}
 {"query": "中正國少的容量", "expect": "answer", "kind": "misspelled_name", "shelter": "[HUALIEN] 中正國小", "note": "錯一個字"}
-{"query": "花蓮縣立體育官", "expect": "answer", "kind": "misspelled_name", "shelter": "[HUALIEN] 花蓮縣立體育館", "note": "館寫成官"}
+{"query": "花蓮縣立體育常", "expect": "answer", "kind": "misspelled_name", "shelter": "[HUALIEN] 花蓮縣立體育場", "note": "場寫成常"}
 {"query": "宜蘭有哪些避難所", "expect": "answer", "kind": "normal", "note": "對照組：正常列舉題"}
 {"query": "避難所有提供飲水嗎", "expect": "answer", "kind": "normal", "note": "對照組：語意題"}
 {"query": "怎麼聯絡里長", "expect": "refuse", "kind": "off_topic_unlisted", "note": "離題但不在黑名單也沒有地名 → 只剩距離門檻；0.570 剛好擋下"}
@@ -27,20 +27,20 @@
 {"query": "有沒有可以借錢的地方", "expect": "refuse", "kind": "off_topic_unlisted", "note": "0.502，比合法問題「避難所有提供飲水嗎」的 0.510 還近 → 門檻擋不到，且無法靠調門檻解決"}
 {"query": "哪裡可以洗衣服", "expect": "refuse", "kind": "off_topic_unlisted", "note": "0.554，在門檻之下 → 擋不到"}
 {"query": "有沒有人可以幫我顧小孩", "expect": "refuse", "kind": "off_topic_unlisted", "note": "0.526 → 擋不到"}
-{"query": "新生高中還有空位嗎", "expect": "refuse", "kind": "nonexistent_near_name", "name": "新生高中", "note": "資料裡有新生國中、新生國小，沒有新生高中；反事實評測裡最常見的失敗是直接拿近名的那間來答"}
-{"query": "東海高中的容量多少", "expect": "refuse", "kind": "nonexistent_near_name", "name": "東海高中", "note": "有東海國中、東海國小"}
-{"query": "頭城國中在哪裡", "expect": "refuse", "kind": "nonexistent_near_name", "name": "頭城國中", "note": "有頭城國小；鄉鎮＋學校篩選會撈到頭城國小、二城國小"}
-{"query": "礁溪國小還有空位嗎", "expect": "refuse", "kind": "nonexistent_near_name", "name": "礁溪國小", "note": "有礁溪國中"}
-{"query": "蘇澳國中的容量多少", "expect": "refuse", "kind": "nonexistent_near_name", "name": "蘇澳國中", "note": "有蘇澳國小"}
-{"query": "三星國小可以收幾個人", "expect": "refuse", "kind": "nonexistent_near_name", "name": "三星國小", "note": "有三星國中"}
-{"query": "卑南國小在哪裡", "expect": "refuse", "kind": "nonexistent_near_name", "name": "卑南國小", "note": "有卑南國中"}
-{"query": "知本國中還有空位嗎", "expect": "refuse", "kind": "nonexistent_near_name", "name": "知本國中", "note": "有知本國小"}
-{"query": "羅東高中的容量多少", "expect": "refuse", "kind": "nonexistent_near_name", "name": "羅東高中", "note": "有羅東國小"}
-{"query": "台東縣立游泳池還有空位嗎", "expect": "refuse", "kind": "nonexistent_near_name", "name": "台東縣立游泳池", "note": "有台東縣立體育館、體育場"}
-{"query": "馬籃國小的容量多少", "expect": "answer", "kind": "misspelled_name", "shelter": "[TAITUNG] 馬蘭國小", "note": "錯一字，只像馬蘭國小一間 → 改成真實名稱再檢索"}
-{"query": "康落國小還有空位嗎", "expect": "answer", "kind": "misspelled_name", "shelter": "[TAITUNG] 康樂國小", "note": "同上"}
+{"query": "新生高中還有空位嗎", "expect": "refuse", "kind": "nonexistent_near_name", "name": "新生高中", "note": "有新生國小體育館、新生社區活動中心；反事實評測裡最常見的失敗是直接拿近名的那間來答"}
+{"query": "中正高中的容量多少", "expect": "refuse", "kind": "nonexistent_near_name", "name": "中正高中", "note": "有中正國小、中正堂、中正體育館"}
+{"query": "頭城國中在哪裡", "expect": "refuse", "kind": "nonexistent_near_name", "name": "頭城國中", "note": "有武營里-頭城國小"}
+{"query": "礁溪高中還有空位嗎", "expect": "refuse", "kind": "nonexistent_near_name", "name": "礁溪高中", "note": "有礁溪國中、礁溪國小（舊資料沒有礁溪國小，那時這題問的是礁溪國小）"}
+{"query": "蘇澳高中的容量多少", "expect": "refuse", "kind": "nonexistent_near_name", "name": "蘇澳高中", "note": "有蘇澳國中、蘇澳國小、蘇澳海事"}
+{"query": "三星高中可以收幾個人", "expect": "refuse", "kind": "nonexistent_near_name", "name": "三星高中", "note": "有三星國中臨時收容站、三星國小臨時收容站"}
+{"query": "卑南國小在哪裡", "expect": "refuse", "kind": "nonexistent_near_name", "name": "卑南國小", "note": "有卑南里民眾活動中心"}
+{"query": "知本國中還有空位嗎", "expect": "refuse", "kind": "nonexistent_near_name", "name": "知本國中", "note": "有知本社區活動中心、知本金聯世紀酒店"}
+{"query": "羅東高中的容量多少", "expect": "refuse", "kind": "nonexistent_near_name", "name": "羅東高中", "note": "有羅東國中自強館"}
+{"query": "台東縣立游泳池還有空位嗎", "expect": "refuse", "kind": "nonexistent_near_name", "name": "台東縣立游泳池", "note": "資料裡沒有任何縣立場館叫這個名字"}
+{"query": "吳莎國中的容量", "expect": "answer", "kind": "misspelled_name", "shelter": "[YILAN] 吳沙國中", "note": "錯一字，只像吳沙國中一間 → 改成真實名稱再檢索"}
+{"query": "康落社區活動中心還有空位嗎", "expect": "answer", "kind": "misspelled_name", "shelter": "[HUALIEN] 康樂社區活動中心", "note": "同上；活動中心是消防署資料裡最多的類型"}
 {"query": "澳化國小在哪裡", "expect": "answer", "kind": "misspelled_name", "shelter": "[YILAN] 澳花國小", "note": "同上"}
-{"query": "清講國小可以收幾個人", "expect": "answer", "kind": "misspelled_name", "shelter": "[YILAN] 清溝國小", "note": "同上"}
+{"query": "公證國小體育館在哪", "expect": "answer", "kind": "misspelled_name", "shelter": "[YILAN] 公正國小體育館", "note": "同上"}
 {"query": "地震了要去哪裡", "expect": "answer", "kind": "no_place_need", "note": "沒有地名也沒有設施的正當問題：無線索規則不能擋。這組是寫規則的人出的題，不是獨立樣本"}
 {"query": "淹水的時候可以去哪", "expect": "answer", "kind": "no_place_need", "note": "同上"}
 {"query": "颱風天哪裡可以躲", "expect": "answer", "kind": "no_place_need", "note": "同上"}
