@@ -36,6 +36,15 @@ def _parse_item(item: dict, region_name: str) -> Shelter:
         raise ValueError("total_vessel / total_people 不是整數") from None
     if capacity < 0 or current < 0:
         raise ValueError("容量或人數不能是負數")
+    hazards = item.get("hazards") or []
+    if not isinstance(hazards, list) or not all(isinstance(h, str) for h in hazards):
+        raise ValueError("hazards 必須是字串陣列")
+    flags = {}
+    for key in ("indoor", "outdoor", "vulnerable_ok"):
+        value = item.get(key)
+        if value is not None and not isinstance(value, bool):
+            raise ValueError(f"{key} 必須是 true / false / null")
+        flags[key] = value
     return Shelter(
         name=f"[{region_name}] {name}",
         capacity=capacity,
@@ -43,6 +52,12 @@ def _parse_item(item: dict, region_name: str) -> Shelter:
         lat=lat,
         lon=lon,
         address=str(item.get("address") or "").strip(),
+        township=str(item.get("township") or "").strip(),
+        village=str(item.get("village") or "").strip(),
+        hazards=tuple(h.strip() for h in hazards if h.strip()),
+        phone=str(item.get("phone") or "").strip(),
+        serves=str(item.get("serves") or "").strip(),
+        **flags,
     )
 
 
