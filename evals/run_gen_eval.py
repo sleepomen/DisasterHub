@@ -93,9 +93,11 @@ def run(cases, store, shelters, progress_handle=None, done=None):
         else:
             prompt = svc.build_prompt(c["query"], context)
             raw = svc.generate(prompt)
-            reply = (raw.get("response") or "").strip()
+            # 跟線上一樣過回答防護：拿掉提到 prompt 以外避難所的行
+            reply, dropped = svc.guard_reply((raw.get("response") or "").strip(), prompt)
             generated = True
             meta = {
+                "dropped_lines": dropped,
                 "done_reason": raw.get("done_reason"),
                 "prompt_tokens": raw.get("prompt_eval_count"),
                 "output_tokens": raw.get("eval_count"),

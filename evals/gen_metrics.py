@@ -95,6 +95,10 @@ def suspected_invented_names(text: str, catalog: list[ShelterEntry], query: str 
         fragment = match.group(0)
         if any(form in fragment for form in known):
             continue
+        # 真實名稱的前段不是編造：消防署名稱常在設施字尾後面還有字（「礁溪鄉公所二樓」「三星國小臨時收容站」），
+        # 這裡的字尾規則會在「公所」「國小」就切斷，切出來的片段當然對不上任何名稱
+        if any(fragment in entry.name for entry in catalog):
+            continue
         if query and fragment in query:
             continue
         if fragment not in out:
@@ -110,8 +114,12 @@ def is_abstention(text: str) -> bool:
     return any(marker in text for marker in ABSTAIN_MARKERS)
 
 
-def format_issues(text: str) -> list[str]:
+def format_issues(text: str, catalog: list[ShelterEntry] | None = None) -> list[str]:
+    """catalog 裡的名稱照原樣引用不算違規：消防署名單裡有一間就叫「F Hotel」"""
     issues = []
+    for entry in catalog or []:
+        if ENGLISH_RE.search(entry.name):
+            text = text.replace(entry.name, "")
     if ENGLISH_RE.search(text):
         issues.append("english")
     if EMOJI_RE.search(text):
@@ -144,7 +152,7 @@ def score_reply(
     context_set = set(mentioned_shelters(context, catalog)) if context else set()
     invented = suspected_invented_names(reply, catalog, query)
     abstained = is_abstention(reply)
-    issues = format_issues(reply)
+    issues = format_issues(reply, catalog)
 
     row = {
         "mentioned": mentioned,

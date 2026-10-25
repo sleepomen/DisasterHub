@@ -67,13 +67,16 @@ def build_store(embedder_spec: str, label: str, doc_style: str = "current"):
 
 def run(cases, store, ks, top, threshold, use_rules=True):
     from services import query_rules
+    from services.chat_service import known_names_of
 
+    # 跟聊天層一樣：離題詞是避難所名稱的一部分（國軍805醫院）時不算離題
+    known_names = known_names_of(store.shelter_metadata())
     rows = []
     for c in cases:
         t0 = time.perf_counter()
         rejected = None
         if use_rules:
-            plan = query_rules.analyze(c["query"])
+            plan = query_rules.analyze(c["query"], known_names=known_names)
             # 規則層的兩種拒答都算：範圍外縣市，以及問的不是避難所（天氣、醫院、補助…）
             if plan.out_of_scope or plan.off_topic:
                 hits, rejected = [], plan.out_of_scope or plan.off_topic
