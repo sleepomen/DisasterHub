@@ -8,8 +8,7 @@
 import re
 from dataclasses import dataclass, field
 
-from services.population_service import PopulationModel
-from services.shelter_profile import FACILITY_LABELS
+from services.shelter_profile import FACILITY_LABELS, HAZARD_KEYS, TOWNSHIPS
 
 # 系統涵蓋的三個縣，對應 metadata 的 region 欄位
 REGION_ALIASES = {
@@ -33,7 +32,11 @@ FACILITY_KEYWORDS = [
     ("國中", ["國中"]),
     ("高中", ["高中"]),
     ("女中", ["高中"]),
-    ("學校", ["國小", "國中", "高中"]),
+    ("大學", ["大學"]),
+    ("學校", ["國小", "國中", "高中", "大學"]),
+    ("幼兒園", ["幼兒園"]),
+    ("幼稚園", ["幼兒園"]),
+    ("托兒所", ["幼兒園"]),
     ("體育館", ["體育場館"]),
     ("體育場", ["體育場館"]),
     ("運動中心", ["體育場館"]),
@@ -45,7 +48,38 @@ FACILITY_KEYWORDS = [
     ("縣政府", ["公所"]),
     ("會館", ["會館"]),
     ("文化館", ["會館"]),
+    ("活動中心", ["活動中心"]),
+    ("集會所", ["活動中心"]),
+    ("廟", ["宗教場所"]),
+    ("宮", ["宗教場所"]),
+    ("寺", ["宗教場所"]),
+    ("教會", ["宗教場所"]),
+    ("教堂", ["宗教場所"]),
+    ("宗教", ["宗教場所"]),
+    ("育幼院", ["社福機構"]),
+    ("安養", ["社福機構"]),
+    ("社福", ["社福機構"]),
+    ("營區", ["軍事營區"]),
+    ("軍營", ["軍事營區"]),
+    ("飯店", ["旅館"]),
+    ("旅館", ["旅館"]),
+    ("酒店", ["旅館"]),
 ]
+
+# 災害類型 → metadata 的適用災害欄位（消防署「適用災害類別」）。颱風、豪雨歸水災
+HAZARD_KEYWORDS = [
+    ("地震", "震災"), ("震災", "震災"),
+    ("土石流", "土石流"),
+    ("海嘯", "海嘯"),
+    ("淹水", "水災"), ("水災", "水災"), ("豪雨", "水災"), ("颱風", "水災"),
+]
+# 「適合老人」「行動不便的人可以去哪」才算條件；只出現「老人」不算——「大武老人會館」是名稱
+VULNERABLE_PATTERN = re.compile(
+    r"(?:適合|方便|給|帶|讓|有沒有)[^，。？?]{0,4}(?:老人|長者|長輩|老年人|行動不便|身障|身心障礙|輪椅|孕婦|弱者|弱勢)"
+    r"|無障礙|避難弱者"
+    r"|(?:老人|長者|長輩|行動不便|身障|輪椅)[^，。？?]{0,4}(?:可以|能|要)[^，。？?]{0,3}(?:去|住|避)"
+)
+INDOOR_PATTERN = re.compile(r"室內|有屋頂|遮風避雨|不要室外")
 
 # 查詢端用的標籤必須真的存在於索引端的詞彙裡。少了這道檢查，在這裡加一個
 # shelter_profile 沒有的標籤不會報錯：metadata 篩選只會永遠落空，然後退回一般檢索
@@ -105,28 +139,16 @@ ROAD_BLOCKLIST = {"走路", "網路", "道路", "公路", "馬路", "逛街", "�
 
 # 鄉鎮字尾；去掉字尾的「詞幹」也允許命中（「礁溪」→ 礁溪鄉），但這幾個詞幹太像一般用語，不做詞幹比對
 TOWNSHIP_SUFFIXES = ("市", "鄉", "鎮")
-STEM_BLOCKLIST = {"成功", "大同", "光復", "新城"}
+STEM_BLOCKLIST = {"成功", "大同", "光復", "新城", "延平"}  # 延平：宜蘭有延平路
 
 # 不做篩選時的一般檢索筆數上限；有篩選時最多回傳幾筆（涵蓋單一縣的全部避難所）
 MAX_FILTERED_RESULTS = 30
 # 「最大 / 排名」類問題依容量排序後最多列幾筆，太多反而讓模型抓不到重點
 MAX_RANKED_RESULTS = 10
 
-_township_cache: dict[str, str] | None = None
-
-
 def known_townships() -> dict[str, str]:
-    """鄉鎮全名 → 所屬地區（宜蘭 / 花蓮 / 台東），來自人口模型；載入失敗就是空表"""
-    global _township_cache
-    if _township_cache is None:
-        model = PopulationModel()
-        county_to_region = {"宜蘭縣": "宜蘭", "花蓮縣": "花蓮", "台東縣": "台東", "臺東縣": "台東"}
-        _township_cache = {
-            t["name"]: county_to_region.get(t["county"], "")
-            for t in model.townships
-            if t["name"].endswith(TOWNSHIP_SUFFIXES)
-        }
-    return _township_cache
+    """鄉鎮全名 → 所屬地區（宜蘭 / 花蓮 / 台東）"""
+    return {town: region for region, towns in TOWNSHIPS.items() for town in towns}
 
 
 @dataclass
@@ -138,6 +160,11 @@ class QueryPlan:
     capacity_min: int | None = None
     capacity_max: int | None = None
     size_class: str | None = None
+    # 以下三個只「收窄」已經有的地區 / 設施 / 容量條件，自己不構成篩選：
+    # 「地震了要去哪裡」沒有地點，篩出 442 間適用震災的避難所再隨便取 30 間沒有意義
+    hazard: str | None = None  # 適用災害類別（水災 / 震災 / 土石流 / 海嘯）
+    indoor: bool = False
+    vulnerable: bool = False
     order_by_capacity: bool = False
     capacity_order: str = "desc"  # desc = 由大到小；asc = 由小到大
     out_of_scope: str | None = None  # 命中的範圍外地名
@@ -172,6 +199,12 @@ class QueryPlan:
             clauses.append({"size_class": self.size_class})
         if not clauses:
             return None
+        if self.hazard:
+            clauses.append({HAZARD_KEYS[self.hazard]: True})
+        if self.indoor:
+            clauses.append({"indoor": True})
+        if self.vulnerable:
+            clauses.append({"vulnerable_ok": True})
         return clauses[0] if len(clauses) == 1 else {"$and": clauses}
 
     def describe(self) -> str:
@@ -190,6 +223,13 @@ class QueryPlan:
             parts.append(f"容量 ≤ {self.capacity_max}")
         elif self.size_class:
             parts.append(self.size_class)
+        if parts:
+            if self.hazard:
+                parts.append(f"適用{self.hazard}")
+            if self.indoor:
+                parts.append("室內")
+            if self.vulnerable:
+                parts.append("適合避難弱者")
         return "、".join(parts)
 
 
@@ -203,6 +243,7 @@ def _find_region(query: str) -> str | None:
 def _find_township(query: str) -> tuple[str | None, str | None]:
     """回傳 (鄉鎮全名, 所屬地區)。全名優先；詞幹只在不是縣名時才算"""
     towns = known_townships()
+    query = query.replace("臺", "台")
     # 全名：最長的先比，避免「台東市」被「台東」搶走
     for name in sorted(towns, key=len, reverse=True):
         if name in query:
@@ -257,7 +298,12 @@ def _find_capacity(query: str) -> tuple[int | None, int | None]:
     return cap_min, cap_max
 
 
-def analyze(query: str) -> QueryPlan:
+def analyze(query: str, ignore_off_topic: bool = False, known_names: list[str] | None = None) -> QueryPlan:
+    """
+    ignore_off_topic：呼叫端已經確認問句沒有離題（例如錯字改寫之後）。
+    known_names：避難所名稱與別名；離題詞是某個名稱的一部分（國軍805醫院）時不算離題。
+    放在這裡而不是聊天層，檢索評測走的也是同一個判斷
+    """
     query = query or ""
     plan = QueryPlan()
 
@@ -274,7 +320,9 @@ def analyze(query: str) -> QueryPlan:
                 return plan
 
     # 離題判定放在範圍外之後：「高雄的天氣」兩者都中，回報縣市涵蓋範圍比較精確
-    plan.off_topic = _find_off_topic(query)
+    plan.off_topic = None if ignore_off_topic else _find_off_topic(query)
+    if plan.off_topic and known_names and off_topic_word_is_a_name(query, plan.off_topic, known_names):
+        plan.off_topic = None
     if plan.off_topic:
         return plan
 
@@ -282,6 +330,9 @@ def analyze(query: str) -> QueryPlan:
     plan.facilities = _find_facilities(query)
     plan.capacity_min, plan.capacity_max = _find_capacity(query)
     plan.size_class = next((s for s in SIZE_CLASS_KEYWORDS if s in query), None)
+    plan.hazard = next((label for word, label in HAZARD_KEYWORDS if word in query), None)
+    plan.indoor = bool(INDOOR_PATTERN.search(query))
+    plan.vulnerable = bool(VULNERABLE_PATTERN.search(query))
     plan.order_by_capacity = bool(SUPERLATIVE.search(query))
     plan.capacity_order = "asc" if ASCENDING.search(query) else "desc"
     return plan
@@ -292,6 +343,24 @@ def _find_off_topic(query: str) -> str | None:
     if any(word in query for word in SHELTER_TOPIC_WORDS):
         return None
     return next((word for word in OFF_TOPIC_WORDS if word in query), None)
+
+
+def off_topic_word_is_a_name(query: str, word: str, known_names: list[str]) -> bool:
+    """
+    離題詞其實是避難所名稱的一部分：消防署資料裡有「國軍805醫院」「元新溫泉飯店」。
+    取離題詞連同前面 2～6 個字，只要是某個名稱的一段就算——「805醫院在哪」命中，
+    「花蓮的醫院」取到的「的醫院」「蓮的醫院」都不在任何名稱裡
+    """
+    start = query.find(word)
+    while start != -1:
+        for k in range(2, 7):
+            if k > start:
+                break
+            segment = query[start - k:start + len(word)]
+            if any(segment in name for name in known_names):
+                return True
+        start = query.find(word, start + 1)
+    return False
 
 
 def off_topic_reply(topic: str) -> str:
