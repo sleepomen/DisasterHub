@@ -301,9 +301,10 @@
 
         data.forEach(d => {
             const baseColor = d.name.includes('YILAN') ? '#4da6ff' : '#2ee6a8';
-            const size = Math.max(12, Math.min(26, d.z / 80));
+            // 消防署資料的容量中位數只有 70 人：用平方根才分得出大小，線性的話幾乎全部縮成最小值
+            const size = Math.max(10, Math.min(26, 6 + Math.sqrt(d.z || 0)));
             const occ = shelterOccupancy[d.name] || 0;
-            const rate = occ / d.z;
+            const rate = d.z > 0 ? occ / d.z : 0;
 
             const marker = L.marker([d.lat, d.lon], {
                 icon: createMarkerIcon(baseColor, size, rate)
@@ -318,25 +319,43 @@
         });
     }
 
+    function escapeHtml(text) {
+        return String(text ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+    }
+
     function buildPopup(d) {
+        const name = `<div class="popup-name">${escapeHtml(d.name.replace(/\[.*?\]\s*/,''))}</div>`;
+        // 消防署資料：沒填的欄位不顯示，不寫「否」
+        const details = [];
+        if (d.hazards && d.hazards.length) details.push(['適用災害', d.hazards.join('、')]);
+        const place = [d.indoor ? '室內' : '', d.outdoor ? '室外' : ''].filter(Boolean).join('、');
+        if (place) details.push(['場地', place]);
+        if (d.vulnerable_ok === true) details.push(['避難弱者', '適合安置']);
+        if (d.phone) details.push(['電話', d.phone]);
+        if (d.address) details.push(['地址', d.address]);
+        const detailRows = details
+            .map(([k, v]) => `<div class="popup-row"><span>${k}</span><span>${escapeHtml(v)}</span></div>`)
+            .join('');
+        if (!(d.z > 0)) {
+            return name + '<div class="popup-row"><span>總容量</span><span>未提供</span></div>' + detailRows;
+        }
         const occ = shelterOccupancy[d.name] || 0;
         const remaining = Math.max(0, d.z - occ);
         const rate = Math.min(100, Math.round(occ / d.z * 100));
         const barColor = rate < 50 ? '#2ee6a8' : rate < 80 ? '#ff7a3d' : '#ff3d5c';
-        return `
-            <div class="popup-name">${d.name.replace(/\[.*?\]\s*/,'')}</div>
+        return name + `
             <div class="popup-row"><span>總容量</span><span>${d.z} 人</span></div>
             <div class="popup-row"><span>目前入住</span><span>${occ} 人</span></div>
             <div class="popup-row"><span>剩餘空間</span><span>${remaining} 人</span></div>
             <div class="popup-row"><span>負載率</span><span style="color:${barColor};font-weight:600">${rate}%</span></div>
             <div class="popup-bar"><div class="popup-bar-fill" style="width:${rate}%;background:${barColor}"></div></div>
-        `;
+        ` + detailRows;
     }
 
     function updateMarkerColor(markerObj) {
         const d = markerObj.userData;
         const occ = shelterOccupancy[d.name] || 0;
-        const rate = occ / d.z;
+        const rate = d.z > 0 ? occ / d.z : 0;
         markerObj.setIcon(createMarkerIcon(markerObj.baseColor, markerObj.markerSize, rate));
     }
 

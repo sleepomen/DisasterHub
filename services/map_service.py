@@ -21,7 +21,7 @@ class MapService:
         }
 
     def to_map_points(self, shelters) -> list[dict]:
-        """地圖標記只要畫得出點與負載，欄位刻意比較短"""
+        """地圖標記：畫點與負載的欄位刻意比較短；其餘是 popup 顯示的消防署細節"""
         return [
             {
                 "name": s.name,
@@ -29,6 +29,12 @@ class MapService:
                 "lon": s.lon,
                 "z": s.capacity,
                 "ppl": s.current_people,
+                "address": s.address,
+                "hazards": list(s.hazards),
+                "indoor": s.indoor,
+                "outdoor": s.outdoor,
+                "vulnerable_ok": s.vulnerable_ok,
+                "phone": s.phone,
             }
             for s in shelters
         ]
