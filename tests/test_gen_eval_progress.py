@@ -33,6 +33,9 @@ class FakeChatService:
         FakeChatService.generated.append(prompt)
         return {"response": "宜蘭國小容量 500 人。", "done_reason": "stop", "eval_count": 12}
 
+    def guard_reply(self, reply, prompt):
+        return reply, []
+
 
 def test_progress_path_is_derived_from_output():
     assert progress_path_for("/tmp/x.json") == "/tmp/x.json.progress.jsonl"

@@ -25,9 +25,26 @@ def test_fetcher_region_tag_and_coords():
     for s in shelters:
         assert 21.5 <= s.lat <= 25.0, s.name
         assert 120.5 <= s.lon <= 122.5, s.name
-        assert s.capacity > 0, s.name
-        assert s.address.endswith("號") or s.address.endswith("路"), s.name
+        assert s.capacity >= 0, s.name
+        # tools/build_shelters.py 會把地址補成「縣 + 鄉鎮…」
+        assert s.address[:3] in ("宜蘭縣", "花蓮縣", "臺東縣"), s.name
+        assert s.township, s.name
         assert "ˇ" not in s.address, s.name
+    # 消防署點位檔：收容人數填 0 的只有少數幾筆，大多數都有數字
+    assert sum(s.capacity == 0 for s in shelters) < 10
+    assert len({s.name for s in shelters}) == len(shelters) > 600
+
+
+def test_official_detail_fields_are_loaded():
+    by_name = {s.name: s for s in DataFetcher().get_shelters()}
+    s = by_name["[TAITUNG] 大武國小"]
+    assert (s.township, s.village) == ("大武鄉", "大武村")
+    assert s.hazards == ("水災", "震災", "土石流", "海嘯")
+    assert (s.indoor, s.outdoor, s.vulnerable_ok) == (True, False, True)
+    # 座標修正表：官方座標在新竹山區，改用 OpenStreetMap 上的位置
+    assert abs(by_name["[YILAN] 澳花國小"].lat - 24.329) < 0.01
+    # 各鄉都有的同名活動中心加上鄉鎮區分
+    assert {"[YILAN] 南興社區活動中心（冬山鄉）", "[YILAN] 南興社區活動中心（蘇澳鎮）"} <= set(by_name)
 
 def test_fetcher_missing_folder(tmp_path):
     fetcher = DataFetcher()

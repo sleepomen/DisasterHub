@@ -17,6 +17,7 @@ from build_road_network import (  # noqa: E402
     RingIndex,
     drop_small_components,
     encode_polyline,
+    in_any,
     split_at_junctions,
     stitch_rings,
 )
@@ -56,6 +57,16 @@ def test_rings_with_a_gap_at_sea_are_still_closed():
     index = RingIndex(rings)
     assert index.contains(0.5, 0.5)
     assert not index.contains(1.5, 0.5)
+
+
+def test_a_road_inside_two_overlapping_county_rings_is_kept():
+    """臺東補缺口的直線切進花蓮南部：同一點落在兩縣的環裡，合成一個奇偶索引會被當成在外面"""
+    hualien = [(0.0, 0.0), (2.0, 0.0), (2.0, 2.0), (0.0, 2.0), (0.0, 0.0)]
+    taitung = [(1.0, -1.0), (3.0, -1.0), (3.0, 1.0), (1.0, 1.0), (1.0, -1.0)]
+    road = [(1.4, 0.5), (1.5, 0.5), (1.6, 0.5)]
+    assert in_any([RingIndex([hualien]), RingIndex([taitung])], road)
+    # 第一版的寫法：兩縣丟進同一個索引，重疊處被奇偶規則判成在外面
+    assert not RingIndex([hualien, taitung]).contains(1.5, 0.5)
 
 
 def test_ways_are_split_at_shared_nodes_only():
@@ -100,7 +111,7 @@ def test_road_distances_add_the_walk_to_and_from_the_road():
 
 
 def test_origins_may_snap_farther_than_shelters():
-    """鄉鎮人口重心常常落在田裡：玉里鎮的重心離最近的道路 3.2 公里，起點的吸附上限另外設"""
+    """鄉鎮人口重心只是代表點，可能離路比較遠：起點的吸附上限另外設，終點（避難所）維持 1 公里"""
     _, fake_cursor = fake_repo_cursor([
         [(0, 10, 0.5, 3200.0), (1, 11, 0.5, 30.0), (2, 12, 0.5, 3200.0)],
         [(-1, -2, 1000.0)],

@@ -136,3 +136,16 @@ def test_named_answer_must_name_the_shelter_and_use_its_numbers():
 
     row = {"expect": "answer", "refused": False, **wrong_number}
     assert not row_correct(row)
+
+
+
+def test_house_number_in_the_targets_address_is_not_a_wrong_number():
+    """實測「中正國小：花蓮縣花蓮市中正路210號，容量 187 人」被判數字錯——210 是門牌"""
+    from evals.gen_metrics import build_catalog
+    from evals.run_boundary_eval import judge_named_answer
+    from models.shelter import Shelter
+
+    target = Shelter("[HUALIEN] 中正國小", 187, 23.9, 121.6, 0, "花蓮縣花蓮市中正路210號")
+    catalog = build_catalog([target])
+    result = judge_named_answer("中正國小：花蓮縣花蓮市中正路210號，容量 187 人，剩餘空位 187 人。", target, catalog)
+    assert result["answer_ok"] and result["wrong_numbers"] == []

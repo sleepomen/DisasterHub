@@ -63,7 +63,7 @@ def test_metadata_fields(store):
     assert meta["county"] == "宜蘭縣"
     assert meta["township"] == "羅東鎮"
     assert meta["facility"] == "體育場館"
-    assert meta["size_class"] == "中型"
+    assert meta["size_class"] == "大型"
     assert meta["address"] == "宜蘭縣羅東鎮體育路15號"
     assert meta["capacity"] == 800
     assert meta["remaining"] == 700
@@ -78,7 +78,7 @@ def test_document_is_enriched(store):
     assert "花蓮縣花蓮市" in doc
     assert "花蓮縣花蓮市中正路210號" in doc
     assert "設施類型為國小" in doc
-    assert "容量 400 人，屬於中型避難所" in doc
+    assert "容量 400 人，屬於大型避難所" in doc
     assert "尚有 400 個空位" in doc
 
 
@@ -579,3 +579,60 @@ def test_empty_index_is_counted_as_no_data():
     s = VectorStore(embedding_function=KeywordEmbedding(), collection_name="test_vs_metrics_empty")
     assert "沒有避難所資料" in s.search("宜蘭")
     assert retrieval_counters()["retrieval.no_data"] == 1
+
+
+
+def test_official_fields_reach_document_and_metadata():
+    s = Shelter("[TAITUNG] 大武國小", 350, 22.36, 120.9, township="大武鄉", hazards=("水災", "震災"),
+                indoor=True, outdoor=False, vulnerable_ok=None, phone="089-791826")
+    doc = VectorStore.build_document(s)
+    assert "適用災害：水災、震災" in doc and "聯絡電話：089-791826" in doc
+    meta = VectorStore.build_metadata(s)
+    assert (meta["hz_flood"], meta["hz_quake"], meta["hz_debris"], meta["hz_tsunami"]) == (True, True, False, False)
+    # ChromaDB 不收 None：沒填的當 False，篩「適合避難弱者」時寧可少列
+    assert meta["indoor"] is True and meta["vulnerable_ok"] is False
+    assert meta["township"] == "大武鄉"
+
+
+def test_capacity_zero_is_written_as_not_provided():
+    """來源填 0：寫「容量 0 人、0 個空位」的話，模型會說那裡已經滿了"""
+    doc = VectorStore.build_document(Shelter("[HUALIEN] 松浦社區活動中心", 0, 23.43, 121.37))
+    assert "收容人數資料未提供" in doc and "容量 0" not in doc and "空位" not in doc
+
+
+def test_wide_filters_get_an_overview_instead_of_thirty_documents():
+    """
+    消防署資料「宜蘭有哪些避難所」符合 249 筆：送 30 筆全文的話一間一行就超過 num_predict，
+    模型列到一半被截斷。超過門檻改給總數、容量合計、各鄉鎮分布，再列最相關的幾筆
+    """
+    from services.query_rules import analyze
+    from services.vector_store import OVERVIEW_LIST, OVERVIEW_THRESHOLD
+
+    towns = ["宜蘭市", "羅東鎮", "蘇澳鎮"]
+    many = [
+        Shelter(f"[YILAN] 第{i:02d}活動中心", 0 if i == 0 else 40 + i, 24.6, 121.7, 0,
+                f"宜蘭縣{towns[i % 3]}中山路{i}號", township=towns[i % 3])
+        for i in range(OVERVIEW_THRESHOLD + 5)
+    ]
+    s = VectorStore(embedding_function=KeywordEmbedding(), collection_name="test_overview")
+    s.build_index(many)
+    text = s.search("宜蘭有哪些避難所", plan=analyze("宜蘭有哪些避難所"))
+    header, *rows = text.split("\n")
+    assert f"共 {len(many)} 筆，數量太多不逐筆列出" in header
+    capacity = sum(x.capacity for x in many)
+    assert f"容量合計 {capacity} 人" in header and "另有 1 筆未提供收容人數" in header
+    assert "依鄉鎮：宜蘭市 7 間、羅東鎮 7 間、蘇澳鎮 6 間" in header
+    listed = [r for r in rows if r.startswith("- ")]
+    assert len(listed) == OVERVIEW_LIST
+
+    # 縮小到單一鄉鎮後沒超過門檻：照常全部列出
+    text = s.search("宜蘭市的避難所", plan=analyze("宜蘭市的避難所"))
+    assert "共 7 筆：" in text
+
+
+def test_full_shelter_name_in_the_question_is_fetched_directly(store):
+    """長名稱 bge-m3 實測排不進前 10（內城國民中小學化育分校）：問句有完整名稱就直接拿，不靠向量排名"""
+    from services.query_rules import analyze
+    result = store.plan_retrieve("羅東鎮立體育館還有空位嗎", analyze("羅東鎮立體育館還有空位嗎"))
+    assert result.named and [h.name for h in result.hits] == ["[YILAN] 羅東鎮立體育館"]
+    assert store.exact_named("宜蘭有哪些避難所") == []

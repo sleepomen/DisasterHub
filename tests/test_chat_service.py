@@ -227,10 +227,8 @@ def test_errors_do_not_leak_details():
 def test_chat_stream_yields_ollama_chunks(svc):
     with patch("services.chat_service.requests.post", return_value=FakeStream(ndjson("建議前往", "乙避難所"))) as post:
         events = list(svc.chat_stream("避難所有提供飲水嗎"))
-    assert events == [
-        {"type": "delta", "text": "建議前往"},
-        {"type": "delta", "text": "乙避難所"},
-    ]
+    # 回答防護逐行判斷：同一行的片段累積到換行（或結束）才一起送出
+    assert events == [{"type": "delta", "text": "建議前往乙避難所"}]
     body = post.call_args.kwargs["json"]
     assert "RAG 結果" in body["prompt"]
     # 串流要同時開在請求參數與 payload 上，少一邊 Ollama 就會整段等生成完才回
@@ -915,3 +913,56 @@ def test_excluded_shelters_are_appended_by_code_on_simulation_answers(svc):
     # 一般檢索的回答不附加
     with patch("services.chat_service.requests.post", return_value=FakeStream(ndjson("中正國小"))):
         assert svc.chat("避難所有提供飲水嗎") == "中正國小"
+
+
+
+def test_simulation_summary_names_undesignated_shelters(svc):
+    from models.shelter import Shelter
+    svc.set_simulation({
+        "type": "flood", "radius_km": 10, "impacted_count": 2,
+        "impacted_shelters": [Shelter("[HUALIEN] 只收震災", 500, 23.98, 121.6, hazards=("震災",)),
+                              Shelter("[HUALIEN] 收水災", 100, 24.0, 121.6, hazards=("水災",))],
+        "evacuation": {"assigned": {"[HUALIEN] 收水災": 100}, "placed": 100, "unplaced": 0,
+                       "undesignated": ["[HUALIEN] 只收震災"], "designation": "水災"},
+    })
+    assert "以下 1 間避難所的適用災害不含水災，本次未列為疏散目的地：只收震災。" in svc._simulation_summary()
+    # 受影響清單裡也要標出來：它還有 500 個空位，不標的話模型會把它當成可以去的地方
+    context, _ = svc._get_simulation_context()
+    assert "只收震災：容量 500 人，目前收容 0 人，剩餘空間 500 人（適用災害不含水災，本次未列為疏散目的地）" in context
+
+
+def test_shelter_name_containing_an_off_topic_word_is_answered(svc):
+    """消防署資料有「國軍805醫院」：問它不能被當成問醫院而拒答"""
+    svc.repo = MagicMock()
+    svc.vector_store.shelter_metadata.return_value = [{"name": "[HUALIEN] 國軍805醫院"}]
+    context, early = svc.build_context("805醫院在哪")
+    assert early is None or "本系統只涵蓋" not in early
+
+
+def test_stream_drops_lines_naming_shelters_outside_the_context(svc):
+    """點名題實測：答完那一間又自己湊出「花蓮社區活動中心 50 人」這種不存在的避難所"""
+    svc.vector_store.shelter_metadata.return_value = [{"name": "[HUALIEN] 新城社區活動中心"}]
+    svc.vector_store.search.return_value = "- 新城社區活動中心是花蓮地區的避難收容場所，容量 23 人。"
+    reply = ndjson("新城社區活動中心：容量 23 人。\n", "花蓮社區活動中心：容量 50 人。\n", "宜蘭社區活動中心", "：容量 30 人。")
+    with patch("services.chat_service.requests.post", return_value=FakeStream(reply)):
+        text = svc.chat("新城社區活動中心")
+    assert text == "新城社區活動中心：容量 23 人。"
+
+
+def test_filter_lines_keeps_prefixes_of_real_names_and_never_returns_empty():
+    from services.answer_guard import filter_lines
+    names = ["礁溪鄉公所二樓", "和平社區活動中心"]
+    kept, dropped = filter_lines("1. 礁溪鄉公所：容量 38 人\n2. 和平社區活動中心：40 人\n3. 宜蘭社區活動中心：30 人", names)
+    assert dropped == ["3. 宜蘭社區活動中心：30 人"] and "礁溪鄉公所" in kept
+    # 全部都會被拿掉時原樣保留，不給空白回答
+    assert filter_lines("花蓮社區活動中心：50 人", names) == ("花蓮社區活動中心：50 人", [])
+
+
+def test_guard_ignores_road_names_and_tai_variants():
+    """生成評測實測的誤擋：地址裡的「女中路」被當成場所名稱、「台東大學」對不上「國立臺東大學」"""
+    from services.answer_guard import filter_lines
+    names = ["三聖宮", "國立臺東大學"]
+    text = "三聖宮：宜蘭市女中路一段148號，容量85人。\n台東大學：卑南鄉，容量 50 人。\n宜蘭社區活動中心：30 人"
+    kept, dropped = filter_lines(text, names)
+    assert dropped == ["宜蘭社區活動中心：30 人"]
+    assert "三聖宮" in kept and "台東大學" in kept

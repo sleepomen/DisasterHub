@@ -3,12 +3,25 @@ import pytest
 from services.query_rules import analyze, known_townships, out_of_scope_reply
 
 
-def test_known_townships_come_from_population_model():
+def test_known_townships_cover_all_three_counties():
     towns = known_townships()
     assert towns["羅東鎮"] == "宜蘭"
     assert towns["花蓮市"] == "花蓮"
     assert towns["台東市"] == "台東"
-    assert len(towns) == 29
+    # 人口模型只有 29 個；消防署資料裡的卓溪、蘭嶼、海端也要篩得到
+    assert towns["卓溪鄉"] == "花蓮" and towns["蘭嶼鄉"] == "台東"
+    assert len(towns) == 41
+
+
+def test_every_township_in_the_shelter_data_is_known():
+    from services.data_fetcher import DataFetcher
+    from services.shelter_profile import normalize_place
+    towns = known_townships()
+    assert {normalize_place(s.township) for s in DataFetcher().get_shelters()} <= set(towns)
+
+
+def test_township_with_traditional_tai_is_found():
+    assert analyze("臺東市的避難所").township == "台東市"
 
 
 @pytest.mark.parametrize("query,region,township", [
@@ -43,7 +56,10 @@ def test_ambiguous_stems_are_not_townships():
 
 
 @pytest.mark.parametrize("query,facilities", [
-    ("花蓮有哪些學校可以避難", ["國小", "國中", "高中"]),
+    ("花蓮有哪些學校可以避難", ["國小", "國中", "高中", "大學"]),
+    ("宜蘭的活動中心", ["活動中心"]),
+    ("花蓮有廟可以避難嗎", ["宗教場所"]),
+    ("台東的托兒所", ["幼兒園"]),
     ("宜蘭的國小避難所", ["國小"]),
     ("台東的國中", ["國中"]),
     ("花蓮的體育館", ["體育場館"]),
@@ -133,7 +149,7 @@ def test_where_clause_composition():
     plan = analyze("宜蘭有哪些學校可以避難")
     assert plan.to_where() == {"$and": [
         {"region": "宜蘭"},
-        {"facility": {"$in": ["國小", "國中", "高中"]}},
+        {"facility": {"$in": ["國小", "國中", "高中", "大學"]}},
     ]}
     # 有明確數字時不再重複加 size_class
     plan = analyze("宜蘭的小型避難所，容量300人以下")
@@ -354,3 +370,44 @@ def test_no_positive_retrieval_question_lacks_a_clue_on_the_unfiltered_path():
         if c["relevant"] and unfiltered and not has_shelter_clue(c["query"], names):
             blocked.append(c["query"])
     assert blocked == []
+
+
+
+def test_hazard_indoor_and_vulnerable_only_narrow_existing_filters():
+    plan = analyze("花蓮地震時適合老人去的室內避難所")
+    assert (plan.hazard, plan.indoor, plan.vulnerable) == ("震災", True, True)
+    assert plan.to_where() == {"$and": [
+        {"region": "花蓮"}, {"hz_quake": True}, {"indoor": True}, {"vulnerable_ok": True},
+    ]}
+    assert "適用震災" in plan.describe() and "適合避難弱者" in plan.describe()
+    # 沒有地點：篩出 442 間適用震災的避難所沒有意義，照一般檢索
+    plan = analyze("地震了要去哪裡")
+    assert plan.hazard == "震災" and not plan.has_filter and plan.to_where() is None
+
+
+@pytest.mark.parametrize("query,vulnerable", [
+    ("宜蘭有適合長者的避難所嗎", True),
+    ("行動不便的人可以去哪", True),
+    ("羅東有無障礙的避難所嗎", True),
+    ("大武老人會館在哪", False),  # 名稱裡的「老人」不是條件
+])
+def test_vulnerable_condition(query, vulnerable):
+    assert analyze(query).vulnerable is vulnerable
+
+
+def test_off_topic_word_inside_a_shelter_name_is_not_off_topic():
+    from services.query_rules import off_topic_word_is_a_name
+    names = ["國軍805醫院", "元新溫泉飯店", "花蓮市公所"]
+    assert analyze("805醫院在哪").off_topic == "醫院"
+    assert off_topic_word_is_a_name("805醫院在哪", "醫院", names)
+    assert off_topic_word_is_a_name("元新溫泉飯店還有空位嗎", "飯店", names)
+    assert not off_topic_word_is_a_name("花蓮的醫院在哪", "醫院", names)
+    assert not off_topic_word_is_a_name("附近有飯店嗎", "飯店", names)
+    assert analyze("805醫院在哪", ignore_off_topic=True).off_topic is None
+
+
+def test_analyze_skips_off_topic_when_the_word_belongs_to_a_shelter_name():
+    """檢索評測與聊天層走同一個判斷：以前只有聊天層會豁免，評測裡「805醫院」一筆都沒撈"""
+    names = ["國軍805醫院"]
+    assert analyze("805醫院在哪", known_names=names).off_topic is None
+    assert analyze("花蓮的醫院在哪", known_names=names).off_topic == "醫院"

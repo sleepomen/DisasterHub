@@ -134,3 +134,20 @@ def test_capacity_check_is_skipped_for_location_questions():
 def test_truncation_is_recorded():
     s = score_reply("宜蘭國小容量 500 人", ["[YILAN] 宜蘭國小"], CONTEXT, CATALOG, truncated=True)
     assert s["truncated"] == 1.0
+
+
+def test_prefix_of_a_real_official_name_is_not_invented():
+    """「礁溪鄉公所二樓」被字尾規則切成「礁溪鄉公所」：真實名稱的前段不算編造"""
+    from evals.gen_metrics import build_catalog, suspected_invented_names
+    from models.shelter import Shelter
+    catalog = build_catalog([Shelter("[YILAN] 礁溪鄉公所二樓", 38, 24.8, 121.77)])
+    assert suspected_invented_names("礁溪鄉公所二樓：容量 38 人", catalog) == []
+    assert suspected_invented_names("宜蘭社區活動中心：容量 30 人", catalog) == ["宜蘭社區活動中心"]
+
+
+def test_official_name_with_latin_letters_is_not_a_format_issue():
+    from evals.gen_metrics import build_catalog, format_issues
+    from models.shelter import Shelter
+    catalog = build_catalog([Shelter("[TAITUNG] F Hotel", 30, 22.75, 121.15)])
+    assert format_issues("F Hotel：卑南鄉，容量 30 人", catalog) == []
+    assert format_issues("Hotel 很近", catalog) == ["english"]

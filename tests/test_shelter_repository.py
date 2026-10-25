@@ -117,3 +117,38 @@ def test_distance_queries_have_a_matching_geography_index():
     assert len(re.findall(r"geom::geography|ST_DWithin\(\s*geom,", source)) >= 3
     init_sql = (pathlib.Path(shelter_repository.__file__).resolve().parent.parent / "init.sql").read_text(encoding="utf-8")
     assert "USING GIST ((geom::geography))" in init_sql
+
+
+# 消防署點位檔的欄位：一筆完整的資料列（SELECT_COLUMNS 的 14 欄）
+FULL_ROW = ("[TAITUNG] 大武國小", 350, 0, 22.365, 120.905, "臺東縣大武鄉民族街2巷49號",
+            "大武鄉", "大武村", ["水災", "震災"], True, False, True, "089-791826", "大鳥村1-6鄰")
+
+
+def _repo_returning(rows):
+    cursor = MagicMock()
+    cursor.fetchall.return_value = rows
+    pool, conn = fake_pool([None])
+    conn.cursor.return_value.__enter__.return_value = cursor
+    return pool
+
+
+def test_full_rows_map_to_shelters_with_official_fields():
+    with patch.object(shelter_repository, "_get_pool", return_value=_repo_returning([FULL_ROW])):
+        (s,) = ShelterRepository().get_all_shelters()
+    assert (s.township, s.village, s.hazards, s.indoor, s.outdoor, s.vulnerable_ok) == (
+        "大武鄉", "大武村", ("水災", "震災"), True, False, True)
+    assert (s.phone, s.serves) == ("089-791826", "大鳥村1-6鄰")
+
+
+def test_nearest_distance_is_read_after_all_shelter_columns():
+    """距離以前寫死在 row[6]；SELECT_COLUMNS 加了欄位之後讀到的是鄉鎮名稱，最近避難所整個壞掉"""
+    with patch.object(shelter_repository, "_get_pool", return_value=_repo_returning([FULL_ROW + (2.5,)])):
+        (n,) = ShelterRepository().get_nearest_shelters(22.36, 120.90, limit=1)
+    assert n.distance_km == 2.5 and n.shelter.township == "大武鄉"
+
+
+def test_upsert_placeholders_match_its_parameters():
+    from models.shelter import Shelter
+    params = ShelterRepository._upsert_params(Shelter("甲", 10, 24.0, 121.0, hazards=("水災",)))
+    assert ShelterRepository.UPSERT_SQL.count("%s") == len(params)
+    assert params[8] == ["水災"]  # psycopg2 把 list 轉成 TEXT[]，tuple 會變成 record

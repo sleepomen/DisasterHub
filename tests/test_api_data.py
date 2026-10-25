@@ -41,6 +41,7 @@ def client():
     with patch("repositories.shelter_repository.ShelterRepository.get_all_shelters", return_value=FAKE_SHELTERS), \
          patch("repositories.shelter_repository.ShelterRepository.get_shelters_in_radius", return_value=[]), \
          patch("repositories.shelter_repository.ShelterRepository.road_distances", return_value={}), \
+         patch("repositories.shelter_repository.ShelterRepository.shelter_hazard_distances", return_value={}), \
          patch("repositories.shelter_repository.ShelterRepository.ensure_schema"), \
          patch("repositories.shelter_repository.ShelterRepository.set_occupancy", return_value=0), \
          patch("services.vector_store.VectorStore.upsert_shelters", return_value=0), \
@@ -755,3 +756,19 @@ def test_hazard_zones_endpoint_serves_the_bundled_geojson(client):
     assert res.status_code == 200
     body = res.json()
     assert body["type"] == "FeatureCollection" and len(body["features"]) > 500
+
+
+
+def test_flood_simulation_skips_shelters_not_designated_for_floods(client):
+    """消防署資料只列震災的避難所，淹水時不送人過去"""
+    impacted = [
+        Shelter(name="[HUALIEN] 只收震災", capacity=500, lat=23.98, lon=121.60, hazards=("震災",)),
+        Shelter(name="[HUALIEN] 收水災", capacity=50000, lat=24.00, lon=121.60, hazards=("水災", "震災")),
+    ]
+    with patch("repositories.shelter_repository.ShelterRepository.get_shelters_in_radius", return_value=impacted):
+        res = client.post("/api/simulate_disaster", headers=WRITE_HEADERS,
+                          json={"lat": 23.977, "lon": 121.601, "radius": 10, "type": "flood"})
+    plan, pop = res.json()["evacuation"], res.json()["population"]
+    assert plan["undesignated"] == ["[HUALIEN] 只收震災"] and plan["designation"] == "水災"
+    assert list(plan["assigned"]) == ["[HUALIEN] 收水災"]
+    assert pop["placeable"] == plan["placed"]

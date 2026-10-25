@@ -36,6 +36,9 @@ class TestMapService(unittest.TestCase):
         self.assertIn('lon', result[0])
         self.assertIn('z', result[0])
         self.assertIn('ppl', result[0])
+        # popup 顯示的消防署細節
+        for key in ('address', 'hazards', 'indoor', 'outdoor', 'vulnerable_ok', 'phone'):
+            self.assertIn(key, result[0])
 
     def test_empty_input(self):
         self.assertEqual(MapService().to_map_points([]), [])

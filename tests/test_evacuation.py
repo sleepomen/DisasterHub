@@ -7,6 +7,7 @@ from services.evacuation import (
     origins_from,
     plan_evacuation,
     split_hazard_hits,
+    undesignated,
 )
 
 NEAR = Shelter(name="[HUALIEN] 近", capacity=100, lat=23.98, lon=121.60, current_people=40)   # 剩 60
@@ -98,3 +99,13 @@ def test_split_hazard_hits_separates_inside_from_near():
     assert inside == {"[YILAN] 澳花國小": ["宜縣DF139"]}
     assert near == {"[YILAN] 南山國小": {"refs": ["宜縣DF079", "宜縣DF078"], "distance_m": 121}}
     assert split_hazard_hits({}) == ({}, {})
+
+
+def test_undesignated_shelters_follow_the_official_hazard_types():
+    quake_only = Shelter(name="只收震災", capacity=50, lat=24.0, lon=121.6, hazards=("震災",))
+    both = Shelter(name="都收", capacity=50, lat=24.0, lon=121.6, hazards=("水災", "震災"))
+    blank = Shelter(name="沒填", capacity=50, lat=24.0, lon=121.6)
+    assert undesignated([quake_only, both, blank], "flood") == ["只收震災"]
+    # 類別沒填不代表不適用；火災沒有對應類別
+    assert undesignated([quake_only, both, blank], "earthquake") == []
+    assert undesignated([quake_only], "fire") == []

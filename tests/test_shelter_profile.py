@@ -3,6 +3,7 @@ import pytest
 from services.shelter_profile import (
     aliases_of,
     county_of,
+    details_text,
     facility_of,
     profile,
     region_of,
@@ -59,12 +60,15 @@ def test_facility_of(name, facility):
 
 
 def test_size_class_boundaries():
-    assert size_class_of(100) == "小型"
-    assert size_class_of(300) == "小型"
-    assert size_class_of(301) == "中型"
-    assert size_class_of(800) == "中型"
-    assert size_class_of(801) == "大型"
+    # 消防署資料的收容人數中位數 70：分界在 50 / 150
+    assert size_class_of(30) == "小型"
+    assert size_class_of(50) == "小型"
+    assert size_class_of(51) == "中型"
+    assert size_class_of(150) == "中型"
+    assert size_class_of(151) == "大型"
     assert size_class_of(2000) == "大型"
+    # 填 0 是來源沒提供，不是小型
+    assert size_class_of(0) == "未提供"
 
 
 def test_aliases_strip_owner_and_place():
@@ -126,9 +130,12 @@ def test_profile_bundle():
         "street": "礁溪路四段",
         "road": "礁溪路",
         "facility": "國中",
-        "size_class": "中型",
+        "size_class": "大型",
         "aliases": ["礁溪國民中學"],
     }
+    # 資料自帶鄉鎮時以它為準（地址可能寫別的鄉鎮），臺 / 台 統一成台
+    assert profile("[TAITUNG] F Hotel", "臺東縣台東市大順路33號", 100, "卑南鄉")["township"] == "卑南鄉"
+    assert profile("[TAITUNG] 臺東市公所", "臺東縣臺東市中山路", 100, "臺東市")["township"] == "台東市"
 
 
 def test_facility_labels_come_from_the_rules_table():
@@ -148,3 +155,32 @@ def test_query_side_labels_all_exist_on_the_index_side():
     from services.shelter_profile import FACILITY_LABELS
     used = {label for _, labels in FACILITY_KEYWORDS for label in labels}
     assert used <= FACILITY_LABELS, used - FACILITY_LABELS
+
+
+@pytest.mark.parametrize("name,label", [
+    ("[HUALIEN] 大同活動中心", "活動中心"),
+    ("[TAITUNG] 初鹿村多功能暨老人活動中心", "活動中心"),
+    ("[HUALIEN] 勝安宮", "宗教場所"),
+    ("[TAITUNG] 金崙溫泉長老教會", "宗教場所"),
+    ("[YILAN] 佛光大學", "大學"),
+    ("[TAITUNG] 大武鄉立托兒所", "幼兒園"),
+    ("[TAITUNG] 關山鎮關山國民小學", "國小"),
+    ("[HUALIEN] 禪光育幼院", "社福機構"),
+    ("[HUALIEN] 南美崙營區", "軍事營區"),
+    ("[TAITUNG] 知本金聯世紀酒店", "旅館"),
+    ("[YILAN] 南澳村辦公處", "公所"),
+])
+def test_official_dataset_facility_types(name, label):
+    """消防署資料一半以上是活動中心，還有宮廟、教會、托兒所；舊規則下 644 間有 505 間落在「其他」"""
+    assert facility_of(name) == label
+
+
+def test_details_text_skips_missing_fields():
+    from models.shelter import Shelter
+    s = Shelter("[TAITUNG] 大武國小", 350, 22.36, 120.9, hazards=("水災", "震災"), indoor=True, outdoor=False,
+                vulnerable_ok=True, phone="089-791826", serves="大鳥村1-6鄰")
+    text = details_text(s)
+    assert "適用災害：水災、震災" in text and "室內場地" in text and "適合安置避難弱者" in text
+    assert "聯絡電話：089-791826" in text and "預計收容：大鳥村1-6鄰" in text
+    # 沒填就整句省略：寫「未知」模型會講成「不適合」
+    assert details_text(Shelter("[YILAN] 甲", 10, 24.0, 121.0)) == ""
