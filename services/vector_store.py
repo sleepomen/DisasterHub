@@ -12,7 +12,7 @@ import config
 from services.embeddings import build_embedding_function
 from services.metrics import metrics
 from services.query_rules import MAX_FILTERED_RESULTS, MAX_RANKED_RESULTS, QueryPlan
-from services.shelter_profile import profile, strip_region_tag
+from services.shelter_profile import HAZARD_KEYS, details_text, profile, strip_region_tag
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ SEPARATOR = b"|--|"
 # build_document 裡的「（別名：…）」段落
 ALIAS_PATTERN = re.compile(r"（別名：[^）]*）")
 # build_metadata 的欄位版本：新增或改動欄位時加一，落地的舊索引才會重建
-METADATA_VERSION = 2
+METADATA_VERSION = 3
 
 
 @dataclass
@@ -47,6 +47,15 @@ class PlannedResult:
     fell_back: bool = False
     ranked: bool = False
     named: bool = False
+    # 符合的太多（超過 OVERVIEW_THRESHOLD）時改給概況：總數、容量合計、分布，hits 只留最相關的幾筆
+    overview: dict | None = None
+
+
+# 消防署資料有 644 間，「宜蘭有哪些避難所」符合 249 筆。以前是送最相關的 30 筆全文，
+# 但 30 間一間一行就超過 num_predict（800 token），模型列到一半被截斷，而且 30/249 本來就不是「全部」。
+# 超過這個筆數就改送概況，讓模型講總數與分布、列出最相關的幾間，再請使用者縮小範圍
+OVERVIEW_THRESHOLD = 15
+OVERVIEW_LIST = 10
 
 
 # 檢索結果的形狀：規則層篩選命中、篩選落空退回、容量排名、點名、無篩選的純語意，
@@ -58,6 +67,7 @@ RETRIEVAL_COUNTERS = (
     "retrieval.named",
     "retrieval.unfiltered",
     "retrieval.truncated",
+    "retrieval.overview",
     "retrieval.no_data",
     "retrieval.no_match",
 )
@@ -156,24 +166,33 @@ class VectorStore:
     @staticmethod
     def build_document(s) -> str:
         clean_name = strip_region_tag(s.name)
-        p = profile(s.name, s.address, s.capacity)
+        p = profile(s.name, s.address, s.capacity, getattr(s, "township", ""))
         alias_text = f"（別名：{'、'.join(p['aliases'])}）" if p["aliases"] else ""
         location = f"{p['county']}{p['township']}" if p["township"] else p["county"]
         address_text = f"，地址在{s.address}" if s.address else ""
         facility_text = p["facility"] if p["facility"] != "其他" else "公共設施"
+        if s.capacity > 0:
+            capacity_text = (
+                f"容量 {s.capacity} 人，屬於{p['size_class']}避難所，"
+                f"目前收容 {s.current_people} 人，尚有 {s.remaining} 個空位，"
+                f"負載率 {s.occupancy_rate:.0f}%。"
+            )
+        else:
+            # 來源填 0：寫「容量 0 人、0 個空位」模型會講成「已經滿了」
+            capacity_text = "收容人數資料未提供。"
         return (
             f"{clean_name}{alias_text}是{p['region']}地區的避難收容場所，"
             f"位於{location}{address_text}。"
             f"設施類型為{facility_text}。"
-            f"容量 {s.capacity} 人，屬於{p['size_class']}避難所，"
-            f"目前收容 {s.current_people} 人，尚有 {s.remaining} 個空位，"
-            f"負載率 {s.occupancy_rate:.0f}%。"
+            + capacity_text
+            + details_text(s)
         )
 
     #同樣的字串存成metadata
     @staticmethod
     def build_metadata(s) -> dict:
-        p = profile(s.name, s.address, s.capacity)
+        p = profile(s.name, s.address, s.capacity, getattr(s, "township", ""))
+        hazards = set(getattr(s, "hazards", ()) or ())
         return {
             "name": s.name,
             "region": p["region"],
@@ -189,6 +208,10 @@ class VectorStore:
             "current_people": s.current_people,
             "remaining": s.remaining,
             "occupancy_rate": round(s.occupancy_rate, 1),
+            # ChromaDB 的 metadata 不收 None：來源沒填的一律當 False（篩選「適合避難弱者」時寧可少列，不能多列）
+            "indoor": bool(getattr(s, "indoor", None)),
+            "vulnerable_ok": bool(getattr(s, "vulnerable_ok", None)),
+            **{key: label in hazards for label, key in HAZARD_KEYS.items()},
         }
 
     def build_index(self, shelters: list, force: bool = False) -> None:
@@ -360,6 +383,12 @@ class VectorStore:
                 ranked=True,
             )
 
+        # 問句裡有完整的避難所名稱就直接拿那幾間，不靠向量排名：
+        # 「內城國民中小學化育分校」「泰源活動中心村辦公處」這種長名稱，bge-m3 的前 10 名裡實測沒有它
+        exact = self.exact_named(query)
+        if exact:
+            return PlannedResult(exact, total=len(exact), filtered=where is not None, named=True)
+
         hits, total = self.retrieve_with_total(query, n_results, where=where) if where is not None else ([], 0)
         fell_back = False
         if not hits:
@@ -373,10 +402,52 @@ class VectorStore:
                 named, total=len(named),
                 filtered=where is not None and not fell_back, fell_back=fell_back, named=True,
             )
+        if where is not None and not fell_back and total > OVERVIEW_THRESHOLD:
+            return PlannedResult(
+                hits[:OVERVIEW_LIST], total=total, filtered=True,
+                overview=self._overview(where, by_township=plan.township is None),
+            )
         return PlannedResult(
             hits, total=total,
             filtered=where is not None and not fell_back, fell_back=fell_back,
         )
+
+    def exact_named(self, query: str) -> list[Hit]:
+        """
+        問句裡完整出現的避難所名稱（去掉 [REGION]）。只取最長的那些：「中正國小附幼」出現時不另外算「中正國小」。
+        別名不算：別名短，「花蓮體育館」這種會同時是好幾間的一部分
+        """
+        with self._lock:
+            stored = self.collection.get(include=["documents", "metadatas"])
+        found = [
+            (strip_region_tag(meta["name"]), doc, meta)
+            for doc, meta in zip(stored.get("documents") or [], stored.get("metadatas") or [], strict=True)
+            if strip_region_tag(meta["name"]) in query
+        ]
+        names = {name for name, _, _ in found}
+        return [
+            Hit(name=meta["name"], document=doc, distance=0.0, metadata=meta)
+            for name, doc, meta in found
+            if not any(name != other and name in other for other in names)
+        ]
+
+    def _overview(self, where: dict, by_township: bool) -> dict:
+        """符合條件的全部避難所的彙總（只讀 metadata，不必算 embedding）"""
+        with self._lock:
+            metas = self.collection.get(where=where, include=["metadatas"]).get("metadatas") or []
+        known = [m for m in metas if m.get("capacity", 0) > 0]
+        key = "township" if by_township else "facility"
+        groups: dict[str, int] = {}
+        for m in metas:
+            label = m.get(key) or "其他"
+            groups[label] = groups.get(label, 0) + 1
+        return {
+            "capacity": sum(m["capacity"] for m in known),
+            "remaining": sum(m.get("remaining", 0) for m in known),
+            "unknown_capacity": len(metas) - len(known),
+            "group_by": "鄉鎮" if by_township else "設施類型",
+            "groups": sorted(groups.items(), key=lambda kv: (-kv[1], kv[0])),
+        }
 
     def retrieve_planned(self, query: str, plan: QueryPlan, n_results: int | None = None) -> list[Hit]:
         return self.plan_retrieve(query, plan, n_results).hits
@@ -397,7 +468,9 @@ class VectorStore:
             metrics.incr("retrieval.ranked")
         if unfiltered:
             metrics.incr("retrieval.unfiltered")
-        if result.total > len(result.hits):
+        if result.overview:
+            metrics.incr("retrieval.overview")
+        elif result.total > len(result.hits):
             metrics.incr("retrieval.truncated")
 
     @staticmethod
@@ -422,6 +495,17 @@ class VectorStore:
                     f"以下是依容量{order}排序的前 {shown} 筆："
                 )
             return f"符合「{condition}」的避難所依容量{order}排序（共 {shown} 筆）："
+        if result.overview:
+            o = result.overview
+            unknown = f"（另有 {o['unknown_capacity']} 筆未提供收容人數）" if o["unknown_capacity"] else ""
+            groups = "、".join(f"{label} {n} 間" for label, n in o["groups"])
+            return (
+                f"符合「{condition}」的避難所共 {result.total} 筆，數量太多不逐筆列出。"
+                f"容量合計 {o['capacity']} 人，目前剩餘空間 {o['remaining']} 人{unknown}。"
+                f"依{o['group_by']}：{groups}。\n"
+                f"以下是最相關的 {shown} 筆。回答時先說明總數與分布，再列出這 {shown} 筆，"
+                f"最後建議使用者指定鄉鎮、設施類型或其他條件，以列出完整清單："
+            )
         if result.filtered:
             if truncated:
                 return f"符合「{condition}」的避難所共 {result.total} 筆，以下列出最相關的 {shown} 筆："
