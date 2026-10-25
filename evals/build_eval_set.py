@@ -29,7 +29,7 @@ def load_shelters():
                     "region_zh": REGION_ZH[region],
                     "capacity": int(item["total_vessel"]),
                     "address": addr,
-                    "township": township_of(addr),
+                    "township": item.get("township") or township_of(addr),
                     "facility": facility_of(tagged),
                 })
     return rows
@@ -39,15 +39,16 @@ def case(query, relevant, category, note=""):
     return {"query": query, "relevant": sorted(relevant), "category": category, "note": note}
 
 
+# 消防署資料有 644 間：名稱題只抽樣，題庫大小維持在原本 50 間時的規模
 def exact_name_cases(rows):
-    return [case(r["name"], [r["id"]], "exact_name") for i, r in enumerate(rows) if i % 5 in (0, 2)]
+    return [case(r["name"], [r["id"]], "exact_name") for i, r in enumerate(rows) if i % 15 == 0]
 
 
 def name_variant_cases(rows):
     templates = ["{}在哪裡", "{}的容量多少", "{}還有空位嗎", "我想去{}避難", "{}目前收容幾人"]
     out = []
     for i, r in enumerate(rows):
-        if i % 10 in (1, 4, 7):
+        if i % 20 == 7:
             out.append(case(templates[i % len(templates)].format(r["name"]), [r["id"]], "name_variant"))
     return out
 
@@ -81,6 +82,8 @@ def facility_cases(rows):
         ("{}的國小避難所", {"國小"}),
         ("{}的國中", {"國中"}),
         ("{}的體育館", {"體育場館"}),
+        ("{}的活動中心", {"活動中心"}),
+        ("{}有廟可以避難嗎", {"宗教場所"}),
     ]
     out = []
     for region, zh in REGION_ZH.items():
@@ -92,10 +95,10 @@ def facility_cases(rows):
 
 
 def capacity_cases(rows):
+    # 消防署資料的收容人數中位數 70 人：門檻改在 200 / 300（舊資料用的是 1000 / 500 / 300 以下）
     specs = [
-        ("{}能收上千人的地方", lambda c: c >= 1000),
-        ("{}容量超過500人的避難所", lambda c: c > 500),
-        ("{}的小型避難所，容量300人以下", lambda c: c <= 300),
+        ("{}容量超過300人的避難所", lambda c: c > 300),
+        ("{}能收200人以上的地方", lambda c: c >= 200),
     ]
     out = []
     for region, zh in REGION_ZH.items():
@@ -107,41 +110,40 @@ def capacity_cases(rows):
 
 
 MANUAL_CASES = [
-    ("縣立體育館", ["[HUALIEN] 花蓮縣立體育館", "[TAITUNG] 台東縣立體育館"], "alias"),
-    ("花蓮體育館", ["[HUALIEN] 花蓮縣立體育館", "[HUALIEN] 花蓮市中正體育館"], "alias"),
-    ("中正體育館", ["[HUALIEN] 花蓮市中正體育館"], "alias"),
-    ("台東體育場", ["[TAITUNG] 台東縣立體育場"], "alias"),
-    ("羅東體育館", ["[YILAN] 羅東鎮立體育館"], "alias"),
-    ("蘇澳體育館", ["[YILAN] 蘇澳鎮立體育館"], "alias"),
-    ("宜蘭運動中心", ["[YILAN] 宜蘭市國民運動中心"], "alias"),
-    ("運動公園的體育館", ["[YILAN] 宜蘭運動公園體育館"], "alias"),
-    ("原民會館", ["[TAITUNG] 台東市原住民文化會館"], "alias"),
-    ("原住民文化館", ["[TAITUNG] 台東市原住民文化會館"], "alias"),
-    ("花蓮市政府可以避難嗎", ["[HUALIEN] 花蓮市公所"], "alias"),
-    ("台東市政府", ["[TAITUNG] 台東市公所"], "alias"),
-    ("女子中學", ["[TAITUNG] 台東女中"], "alias"),
-    ("台東的高中職", ["[TAITUNG] 台東高中", "[TAITUNG] 台東女中"], "alias"),
-    ("圖書館可以避難嗎", ["[HUALIEN] 花蓮市立圖書館"], "alias"),
-    ("有附設幼兒園的避難所", ["[YILAN] 中興國小附幼"], "alias"),
-    ("知本附近", ["[TAITUNG] 知本國小"], "semantic"),
-    ("馬蘭那邊有避難所嗎", ["[TAITUNG] 馬蘭國小"], "semantic"),
-    ("礁溪", ["[YILAN] 礁溪國中"], "semantic"),
-    ("南澳有哪裡可以躲", ["[YILAN] 南澳鄉綜合體育場", "[YILAN] 澳花國小"], "semantic"),
-    ("三星鄉的收容地點", ["[YILAN] 三星國中", "[YILAN] 三星鄉綜合運動場"], "semantic"),
-    ("頭城鎮附近的學校", ["[YILAN] 頭城國小", "[YILAN] 二城國小"], "semantic"),
-    ("冬山", ["[YILAN] 清溝國小"], "semantic"),
-    ("五結鄉", ["[YILAN] 中興國小附幼"], "semantic"),
-    ("壯圍有哪些", ["[YILAN] 壯圍國小", "[YILAN] 壯圍國中"], "semantic"),
-    ("大同鄉可以去哪", ["[YILAN] 大同鄉公所", "[YILAN] 南山國小"], "semantic"),
-    ("花蓮市區最大的收容場所", ["[HUALIEN] 花蓮縣立體育館"], "semantic"),
-    ("台東可以容納最多人的地方", ["[TAITUNG] 台東縣立體育館"], "semantic"),
-    ("宜蘭最大的避難所", ["[YILAN] 宜蘭市國民運動中心"], "semantic"),
-    ("鄉公所或市公所", ["[HUALIEN] 花蓮市公所", "[TAITUNG] 台東市公所", "[YILAN] 大同鄉公所"], "semantic"),
-    ("桂林北路的避難所", ["[TAITUNG] 台東縣立體育館", "[TAITUNG] 台東縣立體育場"], "semantic"),
-    ("中華路一段附近", ["[TAITUNG] 台東高中", "[TAITUNG] 東海國中"], "semantic"),
-    ("更生路上", ["[TAITUNG] 卑南國中", "[TAITUNG] 新生國小"], "semantic"),
-    ("達固湖灣大路", ["[HUALIEN] 花蓮縣立體育館"], "semantic"),
-    ("四維路", ["[TAITUNG] 台東女中", "[TAITUNG] 寶桑國小"], "semantic"),
+    # 別名：名稱的常見說法或簡稱（2026-10 換成消防署避難收容處所點位檔後重新標註）
+    ("宜蘭大學體育館", ["[YILAN] 國立宜蘭大學體育館"], "alias"),
+    ("宜蘭高中體育館", ["[YILAN] 國立宜蘭高中體育館"], "alias"),
+    ("花蓮體育場", ["[HUALIEN] 花蓮縣立體育場"], "alias"),
+    ("中正體育館", ["[HUALIEN] 中正體育館"], "alias"),
+    ("台東市公所", ["[TAITUNG] 臺東市公所"], "alias"),
+    ("淡江蘭陽校區", ["[YILAN] 淡江大學蘭陽校園"], "alias"),
+    ("台東大學", ["[TAITUNG] 國立臺東大學"], "alias"),
+    ("慈惠堂", ["[HUALIEN] 聖地慈惠堂", "[HUALIEN] 玉里慈惠堂"], "alias"),
+    ("外役監", ["[HUALIEN] 光復自強外役監獄"], "alias"),
+    ("805醫院", ["[HUALIEN] 國軍805醫院"], "alias"),
+    ("蘭嶼高中", ["[TAITUNG] 蘭嶼完全高級中學"], "alias"),
+    ("四維高中", ["[HUALIEN] 私立四維高級中學"], "alias"),
+    ("羅東展演廳", ["[YILAN] 羅東鎮展演廳"], "alias"),
+    ("馬蘭榮家", ["[TAITUNG] 行政院國軍退除役官兵輔導委員會馬蘭榮譽國民之家"], "alias"),
+    ("原住民文化館", ["[HUALIEN] 新城鄉原住民文化館"], "alias"),
+    ("慈濟大學", ["[HUALIEN] 慈濟大學人文社會學院", "[HUALIEN] 慈濟大學附設國民中學,小學"], "alias"),
+    # 語意：地名、街道、最大
+    ("知本附近", ["[TAITUNG] 知本金聯世紀酒店", "[TAITUNG] 知本社區活動中心"], "semantic"),
+    ("礁溪", ["[YILAN] 礁溪國中", "[YILAN] 礁溪國小", "[YILAN] 礁溪鄉公所二樓"], "semantic"),
+    ("南澳的學校", ["[YILAN] 南澳國小", "[YILAN] 南澳高中"], "semantic"),
+    ("宜蘭最大的避難所", ["[YILAN] 公正國小體育館"], "semantic"),
+    ("花蓮可以容納最多人的地方", ["[HUALIEN] 勝安宮"], "semantic"),
+    ("林森路的避難所", ["[HUALIEN] 光復國中", "[HUALIEN] 花蓮市公所", "[HUALIEN] 森榮里辦公處"], "semantic"),
+    ("慈惠三街", ["[HUALIEN] 勝安宮", "[HUALIEN] 聖地慈惠堂"], "semantic"),
+    ("介仁街附近", ["[HUALIEN] 慈濟大學人文社會學院", "[HUALIEN] 慈濟大學附設國民中學,小學"], "semantic"),
+    ("都歷路上", ["[TAITUNG] 成功鎮信義國民小學", "[TAITUNG] 都歷活動中心"], "semantic"),
+    ("大武街", ["[TAITUNG] 大武村社區活動中心", "[TAITUNG] 大武老人會館",
+              "[TAITUNG] 大武鄉多功能綜合活動中心暨避難收容所"], "semantic"),
+    ("營區可以避難嗎", ["[HUALIEN] 復興南營區", "[HUALIEN] 南美崙營區"], "semantic"),
+    ("廟宇可以避難嗎", ["[HUALIEN] 五穀宮", "[HUALIEN] 勝安宮", "[HUALIEN] 玉寶宮", "[HUALIEN] 花蓮港天宮",
+                  "[YILAN] 大福補天宮", "[YILAN] 三聖宮", "[YILAN] 梅洲里鎮平宮", "[YILAN] 碧霞宮",
+                  "[YILAN] 德陽宮弘道大樓", "[YILAN] 聖安宮", "[YILAN] 大坑里-協天宮"], "semantic"),
+    # 負例：東部三縣以外、或跟避難所無關
     ("高雄的避難所", [], "negative"),
     ("台北車站附近哪裡可以避難", [], "negative"),
     ("今天天氣如何", [], "negative"),
