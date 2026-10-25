@@ -18,7 +18,7 @@ Built in response to the 2025 barrier-lake disaster in Guangfu Township, Hualien
 
 ## Features
 
-- **Real map visualization** — Leaflet.js + OpenStreetMap. 50 shelters across Yilan, Hualien and Taitung are plotted at their real coordinates; marker size scales with capacity, and clicking one shows live information.
+- **Real map visualization** — Leaflet.js + OpenStreetMap. 644 official shelters (National Fire Agency open data) across Yilan, Hualien and Taitung are plotted at their real coordinates; marker size scales with capacity, and clicking one shows live information.
 - **PostGIS spatial simulation** — Set a disaster epicenter and impact radius; the backend computes the list of affected shelters via `ST_DWithin`. Earthquake, flood and fire scenarios are supported.
 - **Road-network distance** — Nearest-shelter answers and the evacuation assignment use distance along the OpenStreetMap road network (pgRouting), not straight-line distance, with a straight-line fallback.
 - **Crowd evacuation animation** — The backend estimates the population inside the impact radius and the resulting evacuation demand from a township population model, then computes a deterministic, capacity-bounded evacuation plan (nearest first) and writes it to the database and the vector index straight away. The frontend only replays that plan as an animation, so the loads the AI assistant reports match the map as soon as the simulation returns.
@@ -157,6 +157,7 @@ DisasterHub/
 │   ├── rate_limit.py           # Per-source sliding-window request limit (chat)
 │   ├── sync_service.py         # Data synchronization
 │   ├── chat_service.py         # Intent detection + RAG + LLM
+│   ├── answer_guard.py         # Drops reply lines naming a place that is not in the prompt's shelter data
 │   ├── query_rules.py          # Query rules layer: region / township / facility / capacity → metadata filters, out-of-scope rejection
 │   ├── shelter_profile.py      # Name/address → township, facilities, aliases
 │   ├── embeddings.py           # Ollama / MiniLM embeddings
@@ -167,17 +168,19 @@ DisasterHub/
 │   └── vector_store.py         # ChromaDB vector index (supports partial updates)
 │
 ├── data_for_refuge/
-│   ├── hualien_shelter.json    # Hualien (14 entries)
-│   ├── taitung_shelter.json    # Taitung (16 entries)
-│   └── yilan_shelter.json      # Yilan (20 entries)
+│   ├── hualien_shelter.json    # Hualien (197 entries, National Fire Agency)
+│   ├── taitung_shelter.json    # Taitung (198 entries)
+│   └── yilan_shelter.json      # Yilan (249 entries)
 │
 ├── data_reference/
 │   ├── east_taiwan_population.json  # Coastline polylines + population of 29 townships (shared by the frontend animation and the AI)
 │   ├── debris_flow_east.geojson     # Debris-flow impact zones in the three eastern counties (Ministry of Agriculture)
-│   └── east_roads.json.gz           # Road network of the three eastern counties (OpenStreetMap, ODbL)
+│   ├── east_roads.json.gz           # Road network of the three eastern counties (OpenStreetMap, ODbL)
+│   └── shelter_coordinate_fixes.json # Official shelter coordinates corrected from OpenStreetMap
 │
 ├── tools/
 │   ├── build_hazard_zones.py   # Ministry of Agriculture SHP → debris_flow_east.geojson (TWD97 → WGS84)
+│   ├── build_shelters.py       # National Fire Agency CSV → data_for_refuge/*.json
 │   └── build_road_network.py   # OpenStreetMap PBF → east_roads.json.gz (pgRouting edge table)
 │
 ├── static/
@@ -347,12 +350,62 @@ into it.
 The evacuation plan is computed on the backend (`services/evacuation.py`). It used to be done in the browser: crowd points were scattered at random and each one picked a shelter, so the same parameters gave a different allocation every run, and the figures the AI quoted only matched the map after the animation finished and the write-back succeeded.
 
 1. **Origins.** The evacuation demand is split across the affected townships in proportion to their population inside the radius, using the largest-remainder method so the parts add up exactly to the reported total. When the radius contains no township centroid (open sea, uninhabited mountains), a single origin is placed at the disaster center.
-2. **Assignment.** Every (township, shelter) pair is sorted by road distance, nearest first, and each township's remaining people fill each shelter's remaining room in that order. Capacity is never exceeded, ties are broken by name so the result is reproducible, and the rule is easy to explain to an operator. Road distances for all pairs come from one many-to-many pgRouting query (all 29 townships × 50 shelters takes 0.68 s). Township centroids are only representative points and may lie in fields or riverbeds (Yuli's is 3.2 km from the nearest road), so origins snap to a road within 5 km instead of 1 km. A pair without a road distance is costed as straight-line × 1.15, the measured median road/straight ratio (317 centroid–shelter pairs within 30 km: median 1.149, p10 1.07, p90 1.37); comparing a raw straight-line distance against road distances would always favour the unrouted pair. If routing fails entirely, the whole plan falls back to straight-line distance.
+2. **Assignment.** Every (township, shelter) pair is sorted by road distance, nearest first, and each township's remaining people fill each shelter's remaining room in that order. Capacity is never exceeded, ties are broken by name so the result is reproducible, and the rule is easy to explain to an operator. Road distances for all pairs come from one many-to-many pgRouting query (all 29 townships × 644 shelters takes 0.54 s). Township centroids are only representative points, so origins may snap to a road within 5 km instead of 1 km; all 29 are currently within 734 m (新城鄉), so this is only a margin. A pair without a road distance is costed as straight-line × 1.16, the measured median road/straight ratio (4,287 centroid–shelter pairs within 30 km: median 1.163, p10 1.07, p90 1.55); comparing a raw straight-line distance against road distances would always favour the unrouted pair. If routing fails entirely, the whole plan falls back to straight-line distance.
 3. **Write-back.** The plan is written to the database immediately (current occupancy plus the assigned people), and only the changed vector documents are recomputed. If the write fails, the simulation is cleared and the endpoint returns 500, so the AI never describes a plan the database does not hold.
 
-The response carries `evacuation` (`flows` with `distance_km` and `road_km`, `assigned`, `placed`, `unplaced`, `distance_basis` = `road` / `mixed` / `straight`, `excluded`, `near_hazard`) and `occupancy`. Across 54 sample scenarios on a grid over the east coast, road distance changed the plan in 10; for example an earthquake centred offshore south-east of Taitung City (22.7, 121.25; 20 km radius) now sends Taitung City's evacuees to 馬蘭國小 (1.49 km by road) instead of 東海國中. The frontend only replays `flows` as an animation and applies `occupancy` when it ends. The AI answer lists every shelter in the plan with its assigned headcount; a truncated list made the model invent shelter names to fill the gap.
+The response carries `evacuation` (`flows` with `distance_km` and `road_km`, `assigned`, `placed`, `unplaced`, `distance_basis` = `road` / `mixed` / `straight`, `excluded`, `near_hazard`, `undesignated`, `designation`) and `occupancy`. Across 112 sample scenarios on a grid over the east coast, road distance changed the plan in 66; for example 太麻里鄉's evacuees now go to 香蘭國小 (4.39 km by road, 3.08 km straight) before 北里活動中心, which is closer in a straight line (2.16 km) but 5.44 km by road. The frontend only replays `flows` as an animation and applies `occupancy` when it ends. The AI answer lists every shelter in the plan with its assigned headcount; a truncated list made the model invent shelter names to fill the gap.
 
 **Limitations:** each township starts from a single centroid, the frontend animation still draws straight lines rather than the actual routes, and the greedy rule does not minimise total travel distance (that is a transportation problem solved by min-cost flow).
+
+### Shelter Data
+
+The shelters come from the National Fire Agency's open dataset 避難收容處所點位檔 ([data.gov.tw/dataset/73242](https://data.gov.tw/dataset/73242), updated 2025-12-16, Open Government Data License v1). Until October 2026 the project used 50 hand-compiled shelters; only 9 of them appear in the official list, and their capacities did not match (澳花國小 was 150 there, 50 officially), so the data was replaced rather than merged.
+
+- **Rebuilding.** Download the CSV into its own folder outside the project and run `python tools/build_shelters.py <csv>`. It writes `data_for_refuge/{yilan,hualien,taitung}_shelter.json`, one shelter per line so a rebuild shows up in the diff shelter by shelter.
+- **Fields.** Besides name, capacity (預計收容人數), address and coordinates, each shelter carries its township and village, the disasters it is designated for (`hazards`: 水災 / 震災 / 土石流 / 海嘯), indoor / outdoor, whether it suits vulnerable evacuees, the villages it is planned to receive (`serves`) and the contact phone. The manager's personal name is not imported.
+- **Cleaning.** The three counties have 650 rows; 644 are kept.
+  - Coordinates outside the county are dropped: 澳花國小 sat in the Hsinchu mountains, 礁溪鄉公所 in Fujian, and three Changbin activity centres in Taipei.
+  - Coordinates more than 40 km from the median of the same township's other shelters are also dropped. 賓朗村活動中心 was placed in Hualien, 0.7° of latitude off.
+  - Four of these (澳花國小, 礁溪鄉公所二樓, 介達國小, 大南國民小學) match an OpenStreetMap object on both name and address. They are kept at the OSM position, recorded with the OSM id in `data_reference/shelter_coordinate_fixes.json`.
+  - The other six are dropped. A one-digit house-number mismatch (474巷3號 vs 474巷3-1號) is not treated as a match.
+  - Names that repeat within a county get their township appended, e.g. 南興社區活動中心（冬山鄉）, since the name is the database key.
+  - English tails such as 介達國小 Jieda Elementary School are removed, and addresses are completed with county and township.
+- **Known quirks of the source.**
+  - 12 coordinate pairs are shared by several shelters; four in Changbin share one point, probably the village office.
+  - 8 shelters list capacity 0. They are kept as locations but never receive evacuees.
+  - A few rare characters were lost upstream and appear as `?` (台?基督教會).
+  - One name is truncated (行政院國軍退除役官兵輔導委員會花).
+- **Schema.** The new columns are added to existing databases with `ADD COLUMN IF NOT EXISTS` and filled by the next sync. The sync's delete-missing step removes the 41 old shelters that are not in the official list.
+
+**How the new fields are used.**
+
+- **Simulation.** Shelters whose official disaster types do not include the simulated one are not destinations. Floods require 水災 and earthquakes 震災; fire has no matching type.
+  - A blank type list (51 shelters) means the source left it empty, so those shelters stay eligible.
+  - The response lists the excluded shelters in `undesignated` (with `designation` naming the type). The AI's affected-shelter list marks each one, and the appended note names them all.
+  - A 10 km flood around Hualien City excludes 7 of 65; a 10 km earthquake around Yilan City excludes 6 of 140.
+- **Query rules.**
+  - 地震 / 淹水 / 颱風 / 土石流 / 海嘯 map to the disaster type. 「適合長者」「行動不便的人可以去哪」「無障礙」 mean suitable for vulnerable evacuees; 室內 means indoor.
+  - These conditions only narrow an existing place, facility or capacity filter. 「地震了要去哪裡」 on its own would otherwise match 442 shelters with no place to rank them by.
+  - The bare word 老人 is not a condition, because 大武老人會館 is a name.
+  - Townships come from a fixed list of all 41 in the three counties, not the 29 in the population model, and 臺 / 台 are treated as the same.
+  - An off-topic word that is part of a shelter name (國軍805醫院, 元新溫泉飯店) no longer triggers the off-topic refusal.
+- **Facility types.** New labels: 活動中心, 宗教場所, 大學, 幼兒園, 社福機構, 軍事營區, 旅館. Under the old rules 505 of the 644 shelters fell into 其他; now 48 do.
+- **Size classes.** Small is ≤ 50 people, medium ≤ 150, large above that, roughly 40 / 41 / 19 %. The old 300 / 800 split put almost every official shelter in "small". A capacity of 0 is 未提供, and the document says the capacity was not provided, because 「容量 0 人、0 個空位」 reads as "full".
+- **Documents and map.** Each shelter's vector document now ends with its disaster types, indoor / outdoor, suitability for vulnerable evacuees, planned villages and phone. Fields the source left empty are omitted rather than written as "unknown", which the model read as "no". The map popup shows the same fields, and marker size scales with the square root of capacity.
+
+**Answering at 644 shelters.**
+
+- **Overview instead of a long list.** 「宜蘭有哪些避難所」 now matches 249 shelters.
+  - The old path sent the 30 most relevant full documents. That is about 4,800 prompt tokens, which fits the 8,192-token context, but listing 30 shelters one per line needs more than the 800-token output budget, so answers were cut off. Thirty was never "all" either.
+  - When more than 15 shelters match, the prompt now gets an overview: total count, total capacity and remaining space (plus how many have no capacity listed), a breakdown by township (or by facility type when a township is already given) and the 10 most relevant shelters.
+  - The model is told to state the total and the distribution, list those 10 and suggest narrowing the question. `retrieval.overview` counts these answers.
+- **Full names are fetched directly.** If the question contains a complete shelter name, that shelter is fetched by metadata before dense retrieval runs. Long official names such as 內城國民中小學化育分校 were not in bge-m3's top 10.
+- **Off-topic check uses shelter names everywhere.** The "this off-topic word is part of a shelter name" check moved into `query_rules.analyze(known_names=…)`, so the retrieval eval follows the same path as the chat. Before, 「805醫院」 was answered in chat but retrieved nothing in the eval.
+- **Aliases for long official names.**
+  - Leading place names now cover all 41 townships, and stripping one also yields the short form: 花蓮縣鶴岡國民小學 → 鶴岡國小, so 「鶴崗國小」 is corrected instead of reported as nonexistent.
+  - When the place name is the name itself (成功國小體育館 → 國小體育館, 大同活動中心 → 活動中心), no alias is produced. Such generic aliases made the typo matcher see several candidates and correct none (「公證國小體育館」 stopped resolving).
+
+The retrieval eval set was regenerated for this data (207 questions; name questions are sampled so the set stays the size it had with 50 shelters, and the hand-labeled alias / semantic cases were rewritten against the new names). The boundary eval's named, misspelled and near-name questions were rewritten too, and each replacement was checked against the actual typo and unknown-name rules. For example, 礁溪國小 and 蘇澳國中 used to be nonexistent near-names but exist in the official data, so they became 礁溪高中 and 蘇澳高中.
 
 ### Debris-Flow Hazard Zones
 
@@ -367,11 +420,11 @@ Source: the Ministry of Agriculture's open dataset "115年度1753條土石流潛
 
 ### Road-Network Distance (pgRouting)
 
-Straight-line distance misleads in eastern Taiwan: mountains and rivers force long detours. From Nan'ao (24.40, 121.75), 澳花國小 is 7.9 km away in a straight line but 25.6 km by road, while 南澳鄉綜合體育場 is 8.8 km straight and only 15.6 km by road. Nearest-shelter answers (`/api/nearest_shelter` and the AI) now rank by road distance.
+Straight-line distance misleads in eastern Taiwan: mountains and rivers force long detours. From the population centroid of 太麻里鄉, 北里活動中心 is 2.16 km away in a straight line but 5.44 km by road, while 香蘭國小 is 3.08 km straight and only 4.39 km by road. Nearest-shelter answers (`/api/nearest_shelter` and the AI) now rank by road distance.
 
 - **Database image.** `pgrouting/pgrouting:15-3.3-3.4.1` is the same PostgreSQL 15 + PostGIS 3.3 as before, plus pgRouting, so an existing `db_data` volume keeps working: `docker compose up -d` recreates the container on the new image. `ensure_schema` runs `CREATE EXTENSION IF NOT EXISTS pgrouting` in its own transaction; on an image without pgRouting it only logs a warning and distances stay straight-line.
-- **Data.** `data_reference/east_roads.json.gz` (2.4 MB) holds the drivable roads of Yilan, Hualien and Taitung from OpenStreetMap: 109,059 edges, 86,727 junctions, 17,805 km. Roads are split at junctions, lengths are measured on the full geometry before it is simplified for storage, and fragments under 20 edges are dropped so a location cannot snap onto an isolated parking lane. © OpenStreetMap contributors, ODbL 1.0; the file is a derived database and is distributed under the same licence.
-- **Rebuilding.** Download `https://download.geofabrik.de/asia/taiwan-latest.osm.pbf` (about 330 MB) into its own folder outside the project, then run `tools/build_road_network.py` in a throwaway container (it needs pyosmium; the command is in the script's docstring). It takes about a minute. The county boundaries are stitched from OSM relations; part of the Yilan and Taitung boundaries lies at sea outside the Geofabrik extract, so open chains are joined across those gaps. The first version dropped them and lost both counties' mainland.
+- **Data.** `data_reference/east_roads.json.gz` (2.6 MB) holds the drivable roads of Yilan, Hualien and Taitung from OpenStreetMap: 118,641 edges, 94,891 junctions, 19,395 km. Roads are split at junctions, lengths are measured on the full geometry before it is simplified for storage, and fragments under 20 edges are dropped so a location cannot snap onto an isolated parking lane. © OpenStreetMap contributors, ODbL 1.0; the file is a derived database and is distributed under the same licence.
+- **Rebuilding.** Download `https://download.geofabrik.de/asia/taiwan-latest.osm.pbf` (about 330 MB) into its own folder outside the project, then run `tools/build_road_network.py` in a throwaway container (it needs pyosmium; the command is in the script's docstring). It takes about a minute. The county boundaries are stitched from OSM relations; part of the Yilan and Taitung boundaries lies at sea outside the Geofabrik extract, so open chains are joined across those gaps. The first version dropped them and lost both counties' mainland. The straight lines that close Taitung's gaps cut into southern Hualien, so 富里 and 玉里 lie inside both the Hualien and the Taitung ring; with all rings in one even-odd index such a point flips twice and counts as outside, and the second version had no roads in the whole 富里 valley (玉里's centroid was 3.2 km from the "nearest road", 富里鄉公所 3.8 km). Each county now has its own index and a road is kept if it lies in any of them. Since the fix every mainland shelter is within 1 km of a road; the 14 shelters on 綠島 and 蘭嶼 have roads but no road link to the main island, and two 西林 entries in 萬榮鄉 are about 4.4 km from any road (their coordinates are probably off), so these fall back to straight-line distance.
 - **Import.** The startup sync loads the file into the `roads` table in one transaction (about 3 seconds) and records its SHA-256 in `dataset_versions`, so unchanged data is skipped on later starts. A failure is logged and counted as `sync.roads_failed` and never fails the shelter sync.
 - **Query.** The 10 nearest shelters by straight line (KNN on the index) are re-ranked by road distance. Each point snaps to the nearest road within 1 km, and `pgr_withPointsCost` routes on the edges inside the points' bounding box plus a margin. Road distance = walk to the road + shortest path + walk from the road. A query takes 10–60 ms.
 - **Fallback.** Shelters that cannot be routed (point more than 1 km from a road, disconnected network) are listed after the routed ones with their straight-line distance. If routing fails entirely the answer says so and uses straight-line distance; `routing.road` / `routing.fallback` / `routing.failed` in `/api/stats` count each case.
@@ -434,6 +487,23 @@ followed by the tests *inside* the image — the last one is what proves the ima
 needs and that the "no compiler required" assumption still holds.
 
 ## RAG Recall Evaluation
+
+### On the official data (644 shelters, 207 questions)
+
+`--label official_bge-m3_rules`, bge-m3 + enriched documents + rules layer:
+
+```
+          n   |rel|   metrics that apply
+single   92   1       MRR 0.984   hit@3 0.989   hit@10 0.989   R@all 0.989
+multi   105   35.8    R-Prec 0.658   R@all 0.658   P@all 0.951   (R@10 0.621, its ceiling 0.634)
+negatives 10/10 rejected by the rules layer
+```
+
+- **Single-answer questions are nearly saturated.** One question still misses: 「馬蘭榮家」, an abbreviation of 行政院國軍退除役官兵輔導委員會馬蘭榮譽國民之家 that no rule produces and bge-m3 does not connect.
+- **List recall is low by design.** Listing questions now average 35.8 correct shelters each. A filtered result returns at most 30 shelters, and above 15 matches the prompt gets the overview with 10. Region questions (≈ 200 each) score R@all 0.047, and that is exactly what the model is shown.
+- **What the listing numbers mean now.** Precision on listing questions stays at 0.951: whatever is returned matches the condition. For listings, the useful number is now whether the answer gives the right total and distribution, not R@all.
+
+The tables below are the history on the previous 50-shelter data, where a county had at most 20 shelters and every listing fit in the prompt.
 
 The evaluation set `evals/rag_eval.jsonl` (130 questions across 9 categories) is generated from `data_for_refuge/` by `evals/build_eval_set.py`. Ground truth for the structured categories (name, region, township, facilities, capacity) is derived programmatically; alias, semantic and negative cases are labeled by hand.
 
@@ -526,6 +596,20 @@ DisasterHub/
 
 ## Generation Quality Evaluation
 
+> **On the official data (644 shelters, 207 questions, llama3.2:3b, 2026-10-25):**
+>
+> | Run | ansR | ansP | full | halluc | f_abst | num_ok | fmt_ok | negatives | p50 |
+> |---|---|---|---|---|---|---|---|---|---|
+> | first run on the official data | 0.624 | 0.831 | 0.521 | 0.320 | 0.008 | 0.978 | 0.931 | 1.000 | 21.2 s |
+> | + metric fixes + answer guard | 0.621 | 0.830 | 0.512 | 0.000 | 0.008 | 0.997 | 0.996 | 1.000 | 19.7 s |
+>
+> - **Metric fixes.** `halluc` no longer flags a fragment of a real name (the facility-suffix rule cuts 礁溪鄉公所二樓 at 礁溪鄉公所), and `fmt_ok` no longer flags English letters that are part of a real name (F Hotel). Most of the first run's township `halluc` 0.516 and region 0.667 were these false positives.
+> - **Answer guard** (`services/answer_guard.py`). A reply line that names something place-like (ends in 國小, 活動中心, 公所…) that matches none of the shelters sent in the prompt is removed; streaming is buffered one line at a time, so a removed line never reaches the screen. If every line would be removed, the reply is kept as is. In this run it removed 69 lines from 22 of 207 replies. 46 of them were in 9 single-shelter questions, where the 3B model answered the one shelter and then kept going with invented entries such as 「宜蘭社區活動中心：容量 30 人」.
+> - **`halluc` 0.000 is not independent evidence.** The guard and the hallucination metric use similar rules, so a large part of the drop is one rule removing what the other rule would have flagged. What it does show is that no remaining line contains an unsupported place-like name; an invented name without a facility suffix passes both.
+> - Reviewing the 69 removed lines found 3 wrong removals, fixed after the run and not reflected in the numbers above: the road name 女中路 in an address was read as a school (三聖宮's line), and 台東大學 did not match 國立臺東大學 (臺 / 台). Two near-correct names are still removed: 八桑安社區活動中心 (the data has 八桑安社區社活動中心) and 鳳禮活動中心 (the data has 鳳禮,鳳智里活動中心).
+> - Recall did not change (0.624 → 0.621, 95% CI [0.565, 0.679]). Low recall on listing questions is by design: a wide question gets totals plus the ten most relevant shelters instead of all of them (region `ansR` 0.047, see [On the official data](#on-the-official-data-644-shelters-207-questions)).
+> - The tables below were measured on the previous 50-shelter data.
+
 Retrieval recall only says whether the right documents reached the model. `evals/run_gen_eval.py` measures what the model finally says: every question goes through the real `ChatService` path (rules layer, retrieval, prompt, Ollama) and the reply is scored by the rules in `evals/gen_metrics.py`. No LLM judge is involved, so the numbers are reproducible and do not depend on a second model.
 
 ```bash
@@ -575,6 +659,13 @@ What remains on both models is dropped or mistyped names rather than invented fa
 ---
 
 ## Abstention and Boundary Questions
+
+> **On the official data (644 shelters, 2026-10-24):** 52 of 53 scored questions correct (0.981).
+>
+> - All 34 should-refuse questions are stopped before the LLM: 2 by out-of-area rules, 13 by off-topic, 12 by nonexistent name, 7 by no-clue, 0 by the distance gate. All 12 nonexistent shelters are acknowledged, with none fabricated or substituted.
+> - 7 of 8 named and misspelled questions name the right shelter with the right numbers. The one miss is the known llama3.2:3b habit of appending 「目前沒有相關資料」 after a correct answer (「公證國小體育館在哪」).
+> - The named-answer judge now also accepts numbers from the shelter's own address. Before, 「中正國小：花蓮縣花蓮市中正路210號」 was marked as a wrong number because of the house number 210.
+> - The analysis below was written on the previous 50-shelter data.
 
 The generation evaluation reported abstention as perfect (`negatives: abstain_correct 1.000`), but its
 ten negatives were eight out-of-area county names — caught by the rules layer — plus two with no place
@@ -931,7 +1022,7 @@ Give me evacuation advice
 
 ## 功能特色
 
-- **真實地圖視覺化** — Leaflet.js + OpenStreetMap，宜花東 50 處避難所標記於真實座標，marker 大小依容量縮放，點擊顯示即時資訊
+- **真實地圖視覺化** — Leaflet.js + OpenStreetMap，宜花東 644 處官方避難所（消防署開放資料）標記於真實座標，marker 大小依容量縮放，點擊顯示即時資訊
 - **PostGIS 空間模擬** — 設定災害中心點與影響半徑，後端透過 `ST_DWithin` 計算受影響避難所清單，支援強震、淹水、火災三種類型
 - **路網距離** — 最近避難所與疏散分配都用 OpenStreetMap 路網上的距離（pgRouting），不是直線距離；路網算不出來時退回直線距離
 - **人群疏散動畫** — 後端以鄉鎮人口模型估算圈內人口與疏散需求，算出確定、不超過容量的疏散分配（近者優先），並立即寫入資料庫與向量索引；前端只負責把這份分配畫成動畫，模擬一回傳，AI 助手回答的負載就跟地圖一致
@@ -1070,6 +1161,7 @@ DisasterHub/
 │   ├── rate_limit.py           # 按來源的滑動視窗用量上限（聊天）
 │   ├── sync_service.py         # 資料同步
 │   ├── chat_service.py         # 意圖判斷 + RAG + LLM
+│   ├── answer_guard.py         # 回覆中提到 prompt 資料裡沒有的場所，整行拿掉
 │   ├── query_rules.py          # 查詢規則層：地區 / 鄉鎮 / 設施 / 容量 → metadata 篩選，範圍外拒答
 │   ├── shelter_profile.py      # 名稱/地址 → 鄉鎮、設施、別名
 │   ├── embeddings.py           # Ollama / MiniLM embedding
@@ -1080,17 +1172,19 @@ DisasterHub/
 │   └── vector_store.py         # ChromaDB 向量索引（支援局部更新）
 │
 ├── data_for_refuge/
-│   ├── hualien_shelter.json    # 花蓮（14 筆）
-│   ├── taitung_shelter.json    # 台東（16 筆）
-│   └── yilan_shelter.json      # 宜蘭（20 筆）
+│   ├── hualien_shelter.json    # 花蓮（197 筆，消防署）
+│   ├── taitung_shelter.json    # 台東（198 筆）
+│   └── yilan_shelter.json      # 宜蘭（249 筆）
 │
 ├── data_reference/
 │   ├── east_taiwan_population.json  # 海岸線折線 + 29 個鄉鎮人口（前端動畫與 AI 共用）
 │   ├── debris_flow_east.geojson     # 宜花東土石流潛勢溪流影響範圍（農業部）
-│   └── east_roads.json.gz           # 宜花東路網（OpenStreetMap，ODbL）
+│   ├── east_roads.json.gz           # 宜花東路網（OpenStreetMap，ODbL）
+│   └── shelter_coordinate_fixes.json # 用 OpenStreetMap 修正的官方避難所座標
 │
 ├── tools/
 │   ├── build_hazard_zones.py   # 農業部 SHP → debris_flow_east.geojson（TWD97 → WGS84）
+│   ├── build_shelters.py       # 消防署 CSV → data_for_refuge/*.json
 │   └── build_road_network.py   # OpenStreetMap PBF → east_roads.json.gz（pgRouting 邊表）
 │
 ├── static/
@@ -1253,12 +1347,62 @@ curl -N -X POST http://localhost:8501/api/chat \
 疏散分配在後端計算（`services/evacuation.py`）。以前是在瀏覽器裡做：人群起點用亂數撒，每個點各自挑避難所，所以同一組參數每次分配都不同；AI 引用的數字也要等動畫跑完、回寫成功之後才跟地圖對得上。
 
 1. **起點**：需疏散人數依各受影響鄉鎮在圈內的人口比例分攤，用最大餘數法，各鄉鎮加總恰好等於回報的總數。範圍內沒有任何鄉鎮人口重心時（海域、無人山區），起點就放在災害中心。
-2. **分配**：把所有（鄉鎮, 避難所）配對依道路距離由近到遠排序，依序把鄉鎮剩下的人放進避難所剩下的空位。容量一定守得住；距離相同時依名稱排序，結果可以重現；規則也容易跟操作員解釋。所有配對的道路距離用一次 pgRouting 多對多查詢算完（全部 29 個鄉鎮 × 50 間避難所 0.68 秒）。鄉鎮人口重心只是代表點，常常落在田裡或河床上（玉里鎮的重心離最近的道路 3.2 公里），所以起點可以吸附到 5 公里內的道路，而不是 1 公里。個別算不出道路距離的配對用「直線 × 1.15」估算，1.15 是實測的道路／直線比值中位數（30 公里內的鄉鎮重心－避難所配對共 317 組：中位數 1.149、p10 1.07、p90 1.37）；直接拿直線距離跟道路距離比，算不出來的配對一定會被排到前面。整個路網查詢失敗時，整份分配退回直線距離。
+2. **分配**：把所有（鄉鎮, 避難所）配對依道路距離由近到遠排序，依序把鄉鎮剩下的人放進避難所剩下的空位。容量一定守得住；距離相同時依名稱排序，結果可以重現；規則也容易跟操作員解釋。所有配對的道路距離用一次 pgRouting 多對多查詢算完（全部 29 個鄉鎮 × 644 間避難所 0.54 秒）。鄉鎮人口重心只是代表點，所以起點可以吸附到 5 公里內的道路，而不是 1 公里；目前 29 個重心離路最遠的是新城鄉 734 公尺，這個寬限只是保險。個別算不出道路距離的配對用「直線 × 1.16」估算，1.16 是實測的道路／直線比值中位數（30 公里內的鄉鎮重心－避難所配對共 4,287 組：中位數 1.163、p10 1.07、p90 1.55）；直接拿直線距離跟道路距離比，算不出來的配對一定會被排到前面。整個路網查詢失敗時，整份分配退回直線距離。
 3. **回寫**：分配結果直接寫入資料庫（目前人數＋分配人數），只重算有變動的向量文件。寫入失敗就清除模擬並回 500，AI 不會描述一份資料庫裡沒有的分配。
 
-回應裡有 `evacuation`（`flows` 含直線 `distance_km` 與道路 `road_km`、`assigned`、`placed`、`unplaced`、`distance_basis`＝`road` / `mixed` / `straight`、`excluded`、`near_hazard`）與 `occupancy`。在東部沿海格點上取 54 個模擬情境，有 10 個的分配因為道路距離而改變；例如震央在臺東市東南方外海（22.7, 121.25）、半徑 20 公里的地震，臺東市的人現在去馬蘭國小（道路 1.49 公里），而不是東海國中。前端只負責把 `flows` 畫成動畫，結束時套用 `occupancy`。AI 回答會列出分配表裡每一間避難所與分到的人數；以前清單被截斷時，模型會自己編避難所名稱補齊。
+回應裡有 `evacuation`（`flows` 含直線 `distance_km` 與道路 `road_km`、`assigned`、`placed`、`unplaced`、`distance_basis`＝`road` / `mixed` / `straight`、`excluded`、`near_hazard`、`undesignated`、`designation`）與 `occupancy`。在東部沿海格點上取 112 個模擬情境，有 66 個的分配因為道路距離而改變；例如太麻里鄉的人現在先去香蘭國小（道路 4.39 公里、直線 3.08 公里），而不是直線比較近（2.16 公里）、道路卻要 5.44 公里的北里活動中心。前端只負責把 `flows` 畫成動畫，結束時套用 `occupancy`。AI 回答會列出分配表裡每一間避難所與分到的人數；以前清單被截斷時，模型會自己編避難所名稱補齊。
 
 **限制**：每個鄉鎮只用一個人口重心當起點；前端動畫仍然畫直線，不是實際路線；貪婪規則也不保證總移動距離最小（那是運輸問題，要用最小成本流）。
+
+### 避難所資料
+
+避難所來自消防署開放資料「避難收容處所點位檔」（[data.gov.tw/dataset/73242](https://data.gov.tw/dataset/73242)，2025-12-16 更新，政府資料開放授權條款第 1 版）。2026 年 10 月以前用的是手動整理的 50 間；其中只有 9 間在官方名單上，而且容量對不上（澳花國小原本寫 150 人，官方是 50 人），所以整份換掉，不做合併。
+
+- **重建資料**：把 CSV 下載到專案外的獨立資料夾，執行 `python tools/build_shelters.py <csv>`，會寫出 `data_for_refuge/{yilan,hualien,taitung}_shelter.json`。每行一間，重建後的 diff 直接看得出哪幾間變了。
+- **欄位**：除了名稱、容量（預計收容人數）、地址與座標，每間還有鄉鎮與村里、適用災害（`hazards`：水災／震災／土石流／海嘯）、室內／室外、是否適合避難弱者、預計收容村里（`serves`）與聯絡電話。管理人姓名不收。
+- **清理**：三縣原始資料 650 筆，保留 644 筆。
+  - 座標不在所屬縣內的丟掉：澳花國小被放在新竹山區、礁溪鄉公所在福建、長濱三間活動中心在臺北市。
+  - 離同鄉鎮其他避難所中位位置超過 40 公里的也丟掉：賓朗村活動中心被放在花蓮，緯度差了 0.7 度。
+  - 其中 4 筆（澳花國小、礁溪鄉公所二樓、介達國小、大南國民小學）在 OpenStreetMap 上名稱與地址都對得上，改用 OSM 的位置保留，連同 OSM 編號記在 `data_reference/shelter_coordinate_fixes.json`。
+  - 另外 6 筆直接丟掉。門牌差一號（474巷3號對 474巷3-1號）不算對上。
+  - 同一縣裡同名的加上鄉鎮，例如「南興社區活動中心（冬山鄉）」，因為名稱是資料庫的唯一鍵。
+  - 名稱後面夾的英文（「介達國小 Jieda Elementary School」）去掉，地址補上縣市鄉鎮。
+- **來源資料已知的問題**：
+  - 有 12 組座標被多間共用，長濱有 4 間在同一點，大概是村辦公處的位置。
+  - 8 間收容人數填 0，保留地點，但不會被分配到人。
+  - 少數罕用字在上游就遺失了，顯示成 `?`（台?基督教會）。
+  - 有一個名稱被截斷（行政院國軍退除役官兵輔導委員會花）。
+- **資料表**：新欄位用 `ADD COLUMN IF NOT EXISTS` 補進既有資料庫，下一次同步就會填好。同步時「清掉來源已移除的」那一步會刪掉不在官方名單上的 41 間舊資料。
+
+**新欄位的用途**
+
+- **模擬**：適用災害不含這次災害類型的避難所，不列為疏散目的地。淹水要列「水災」、地震要列「震災」；火災沒有對應的類別。
+  - 類別欄空白的 51 間是來源沒填，照常分配。
+  - 回應的 `undesignated` 列出被排除的避難所，`designation` 是對應的類別；AI 的受影響清單會逐間標註，附加在回答後的說明也會列出全部名稱。
+  - 花蓮市半徑 10 公里淹水，65 間裡排除 7 間；宜蘭市半徑 10 公里地震，140 間裡排除 6 間。
+- **查詢規則**：
+  - 地震、淹水、颱風、土石流、海嘯對應適用災害；「適合長者」「行動不便的人可以去哪」「無障礙」對應適合避難弱者；「室內」對應室內場地。
+  - 這三種條件只收窄已經有的地點、設施或容量篩選，自己不構成篩選：只問「地震了要去哪裡」會篩出 442 間，又沒有地點可以排序。
+  - 單獨出現「老人」不算條件，因為「大武老人會館」是名稱。
+  - 鄉鎮改用三縣全部 41 個的固定清單，不再取自人口模型的 29 個；「臺」和「台」視為同一個字。
+  - 離題詞如果是避難所名稱的一部分（國軍805醫院、元新溫泉飯店），不再被當成離題拒答。
+- **設施類型**：新增活動中心、宗教場所、大學、幼兒園、社福機構、軍事營區、旅館。舊規則下 644 間有 505 間落在「其他」，現在剩 48 間。
+- **規模分級**：小型 ≤ 50 人、中型 ≤ 150 人、其餘為大型，大約各占 40% / 41% / 19%。舊的 300 / 800 分界會把幾乎所有官方避難所都歸成小型。收容人數為 0 的分級是「未提供」，文件也寫成「收容人數資料未提供」，因為「容量 0 人、0 個空位」會被讀成已經滿了。
+- **文件與地圖**：每間避難所的向量文件最後加上適用災害、室內／室外、是否適合避難弱者、預計收容村里與電話。來源沒填的欄位直接省略，不寫「未知」，因為模型會把「未知」講成「不適合」。地圖 popup 顯示同樣的欄位，標記大小改成依容量的平方根縮放。
+
+**644 間時怎麼回答**
+
+- **改給概況，不再列長清單**：「宜蘭有哪些避難所」現在符合 249 間。
+  - 以前送最相關的 30 筆全文，大約 4,800 個 prompt token，放得進 8,192 的上下文；但 30 間一間一行需要超過 800 token 的輸出上限，回答會被截斷，而且 30 間本來就不是「全部」。
+  - 現在符合超過 15 間時，prompt 改給概況：總數、容量合計與剩餘空間（另註明幾間沒提供收容人數）、依鄉鎮的分布（已指定鄉鎮時改依設施類型），以及最相關的 10 間。
+  - 模型被要求先說明總數與分布，列出這 10 間，再建議使用者縮小範圍。`retrieval.overview` 計數這類回答。
+- **完整名稱直接取**：問句裡有某間避難所的完整名稱時，在向量檢索之前先用 metadata 直接取那一間。內城國民中小學化育分校這種長的官方名稱，bge-m3 的前 10 名裡實測沒有它。
+- **離題判斷一律參考避難所名稱**：「離題詞是避難所名稱的一部分」的判斷移進 `query_rules.analyze(known_names=…)`，檢索評測和聊天走同一條路。以前聊天會回答「805醫院」，評測裡卻一筆都撈不到。
+- **長官方名稱的別名**：
+  - 開頭地名改用 41 個鄉鎮全部，去掉地名後也產生簡稱：花蓮縣鶴岡國民小學 → 鶴岡國小，所以「鶴崗國小」會被改成正確名稱，不再回報查無。
+  - 地名本身就是名稱的一部分時（成功國小體育館 → 國小體育館、大同活動中心 → 活動中心）不產生別名。這種通用別名會讓錯字比對同時像好幾間，結果一間都改不了（「公證國小體育館」一度改不回來）。
+
+檢索評測集已針對新資料重新產生：207 題。名稱題改成抽樣，題庫維持原本 50 間時的規模；人工標註的別名與語意題也改用新名稱重寫。邊界評測裡的點名、錯字、近名題也改寫了，每一題都先用實際的錯字與查無規則驗證過。例如礁溪國小、蘇澳國中以前是「不存在的近名」，官方資料裡卻有，所以改成礁溪高中、蘇澳高中。
 
 ### 土石流潛勢區域
 
@@ -1273,11 +1417,11 @@ curl -N -X POST http://localhost:8501/api/chat \
 
 ### 路網距離（pgRouting）
 
-在東部，直線距離常常會誤導：山和溪會逼人繞遠路。從南澳（24.40, 121.75）出發，澳花國小直線 7.9 公里，走道路卻要 25.6 公里；南澳鄉綜合體育場直線 8.8 公里，道路只要 15.6 公里。最近避難所（`/api/nearest_shelter` 與 AI 回答）現在依道路距離排序。
+在東部，直線距離常常會誤導：山和溪會逼人繞遠路。從太麻里鄉的人口重心出發，北里活動中心直線 2.16 公里，走道路卻要 5.44 公里；香蘭國小直線 3.08 公里，道路只要 4.39 公里。最近避難所（`/api/nearest_shelter` 與 AI 回答）現在依道路距離排序。
 
 - **資料庫映像**：`pgrouting/pgrouting:15-3.3-3.4.1` 跟原本一樣是 PostgreSQL 15 + PostGIS 3.3，只是多了 pgRouting，所以既有的 `db_data` volume 可以直接沿用，`docker compose up -d` 會用新映像重建容器。`ensure_schema` 會在獨立的交易裡執行 `CREATE EXTENSION IF NOT EXISTS pgrouting`；映像沒有 pgRouting 時只記警告，距離維持直線。
-- **資料**：`data_reference/east_roads.json.gz`（2.4 MB）是 OpenStreetMap 上宜花東三縣車輛可通行的道路：109,059 條邊、86,727 個路口、總長 17,805 公里。道路在路口切開；長度用完整幾何計算，存檔時才簡化幾何；少於 20 條邊的孤立片段會被丟掉，避免使用者位置吸附到一段不相連的停車場車道。© OpenStreetMap contributors，ODbL 1.0；這個檔案是衍生資料庫，以同樣的授權散布。
-- **重建資料**：把 `https://download.geofabrik.de/asia/taiwan-latest.osm.pbf`（約 330 MB）下載到專案外的獨立資料夾，再用一次性容器執行 `tools/build_road_network.py`（需要 pyosmium，指令寫在腳本的 docstring 裡），約一分鐘。縣界從 OSM 的行政區 relation 接成環；宜蘭與臺東有一段縣界在海上、落在 Geofabrik 切片之外，所以接不起來的斷段會跨過這些缺口連起來。第一版把它們丟掉，兩縣的本島因此整個不見。
+- **資料**：`data_reference/east_roads.json.gz`（2.6 MB）是 OpenStreetMap 上宜花東三縣車輛可通行的道路：118,641 條邊、94,891 個路口、總長 19,395 公里。道路在路口切開；長度用完整幾何計算，存檔時才簡化幾何；少於 20 條邊的孤立片段會被丟掉，避免使用者位置吸附到一段不相連的停車場車道。© OpenStreetMap contributors，ODbL 1.0；這個檔案是衍生資料庫，以同樣的授權散布。
+- **重建資料**：把 `https://download.geofabrik.de/asia/taiwan-latest.osm.pbf`（約 330 MB）下載到專案外的獨立資料夾，再用一次性容器執行 `tools/build_road_network.py`（需要 pyosmium，指令寫在腳本的 docstring 裡），約一分鐘。縣界從 OSM 的行政區 relation 接成環；宜蘭與臺東有一段縣界在海上、落在 Geofabrik 切片之外，所以接不起來的斷段會跨過這些缺口連起來。第一版把它們丟掉，兩縣的本島因此整個不見。臺東補缺口的直線會切進花蓮南部，富里、玉里同時落在花蓮與臺東的環裡；三縣的環放在同一個奇偶索引時，這種點會翻兩次變成「不在任何縣內」，第二版因此整個富里縱谷沒有道路（玉里鎮重心離「最近的道路」3.2 公里、富里鄉公所 3.8 公里）。現在每個縣各自一個索引，道路落在任一縣內就留下。修正後本島每一間避難所都在道路 1 公里內；綠島、蘭嶼的 14 間島上有路、但跟本島沒有道路相連，萬榮鄉西林的兩筆離路約 4.4 公里（座標大概有誤），這些都退回直線距離。
 - **匯入**：啟動同步時在同一個交易裡匯入 `roads` 資料表（約 3 秒），並把檔案的 SHA-256 記在 `dataset_versions`，之後啟動時內容沒變就跳過。失敗只記錄並計入 `sync.roads_failed`，不影響避難所同步。
 - **查詢**：先用直線距離（索引 KNN）挑出最近的 10 間，再依道路距離重新排序。每個點吸附到 1 公里內最近的道路，`pgr_withPointsCost` 只在起訖點外接框加上邊界範圍內的路段上計算。道路距離＝走到道路＋最短路徑＋從道路走到避難所。一次查詢 10～60 毫秒。
 - **退路**：算不出道路距離的避難所（離路超過 1 公里、路網不連通）排在算得出來的後面，標示直線距離。整個路網查詢失敗時，回答會說明並改用直線距離；`/api/stats` 的 `routing.road` / `routing.fallback` / `routing.failed` 分別計數。
@@ -1339,6 +1483,23 @@ CI 有三個 job：`ruff check .`；在乾淨的 Python 3.12 上從 lock 檔安�
 跑測試——最後這個才證明映像自己帶齊了依賴，而且「不需要編譯器」的前提還成立。
 
 ## RAG 召回率評測
+
+### 官方資料上的結果（644 間、207 題）
+
+`--label official_bge-m3_rules`，bge-m3 + 擴充文件 + 規則層：
+
+```
+          n   |rel|   適用的指標
+single   92   1       MRR 0.984   hit@3 0.989   hit@10 0.989   R@all 0.989
+multi   105   35.8    R-Prec 0.658   R@all 0.658   P@all 0.951   （R@10 0.621，上限 0.634）
+negatives 10/10 被規則層擋下
+```
+
+- **單一答案題接近飽和**：只剩「馬蘭榮家」一題找不到。它是「行政院國軍退除役官兵輔導委員會馬蘭榮譽國民之家」的簡稱，沒有任何規則產生得出來，bge-m3 也連不起來。
+- **列舉題召回率低是設計使然**：列舉題平均每題 35.8 個正確答案。有篩選時最多回傳 30 間，超過 15 間時 prompt 改給概況與 10 間；地區題每題約 200 間，R@all 0.047，這正是模型實際看到的量。
+- **列舉題的數字現在代表什麼**：列舉題的精確率維持 0.951，回傳的都符合條件。對列舉題來說，有用的指標變成「回答是否講對總數與分布」，而不是 R@all。
+
+下面幾張表是舊的 50 間資料上的歷史結果；當時一個縣最多 20 間，每次列舉都放得進 prompt。
 
 評測集 `evals/rag_eval.jsonl`（130 題，9 個類別）由 `evals/build_eval_set.py` 從 `data_for_refuge/` 產生，結構化類別（名稱、地區、鄉鎮、設施、容量）的正解由程式推導，別名／語意／負例為人工標註。
 
@@ -1427,6 +1588,20 @@ DisasterHub/
 
 ## 生成品質評測
 
+> **官方資料（644 間、207 題、llama3.2:3b，2026-10-25）上的結果：**
+>
+> | 版本 | ansR | ansP | full | halluc | f_abst | num_ok | fmt_ok | negatives | p50 |
+> |---|---|---|---|---|---|---|---|---|---|
+> | 換成官方資料後第一次 | 0.624 | 0.831 | 0.521 | 0.320 | 0.008 | 0.978 | 0.931 | 1.000 | 21.2 秒 |
+> | + 指標修正 + 回答防護 | 0.621 | 0.830 | 0.512 | 0.000 | 0.008 | 0.997 | 0.996 | 1.000 | 19.7 秒 |
+>
+> - **指標修正**：`halluc` 不再把真實名稱的前段當成編造（設施字尾規則會把「礁溪鄉公所二樓」切在「礁溪鄉公所」）；`fmt_ok` 不再把真實名稱裡的英文字母（F Hotel）當成格式錯誤。第一次跑出來的鄉鎮題 `halluc` 0.516、地區題 0.667，大部分是這兩種誤判。
+> - **回答防護**（`services/answer_guard.py`）：回覆裡某一行出現看起來像場所的名稱（國小、活動中心、公所…結尾），卻對不上 prompt 裡送出的任何一間，就整行拿掉；串流時一次緩衝一行，被拿掉的那行不會出現在畫面上。如果每一行都會被拿掉，就原樣保留。這次在 207 題中的 22 題拿掉 69 行，其中 46 行在 9 道點名題：3B 模型答完那一間，又自己往下湊出「宜蘭社區活動中心：容量 30 人」這種不存在的避難所。
+> - **`halluc` 0.000 不是獨立證據**：防護跟幻覺指標用的是類似的規則，下降的很大一部分是「一條規則把另一條規則會抓的東西先擋掉」。它能說明的是：留下來的回覆裡沒有對不上資料的場所名稱；沒有設施字尾的編造名稱兩邊都抓不到。
+> - 逐行檢查被拿掉的 69 行，有 3 行是誤擋，已在跑完後修正，但上表數字還沒反映：地址裡的路名「女中路」被當成學校（三聖宮那一行），以及「台東大學」對不上「國立臺東大學」（臺／台）。還有兩個接近正確的名稱仍會被拿掉：「八桑安社區活動中心」（資料寫「八桑安社區社活動中心」）、「鳳禮活動中心」（資料寫「鳳禮,鳳智里活動中心」）。
+> - 召回率沒有變（0.624 → 0.621，95% 信賴區間 [0.565, 0.679]）。清單題召回低是設計上的取捨：範圍大的問題只給總數加最相關的 10 間，不全部列出（地區題 `ansR` 0.047，見「官方資料上的結果（644 間、207 題）」一節）。
+> - 以下各表是在舊的 50 間資料上量的。
+
 檢索召回率只能說明「對的資料有沒有送到模型面前」。`evals/run_gen_eval.py` 量的是模型最後講出來的話：每一題都走真實的 `ChatService` 路徑（規則層、檢索、組 prompt、Ollama 生成），再用 `evals/gen_metrics.py` 的規則對回覆評分。不用另一個 LLM 當裁判，數字可以重現，也不受第二個模型影響。
 
 ```bash
@@ -1476,6 +1651,13 @@ baseline 那一列的 `capacity_stated` 不能跟下面兩列比：這個欄位�
 ---
 
 ## 拒答與邊界題
+
+> **官方資料（644 間，2026-10-24）上的結果**：計分 53 題，答對 52 題（0.981）。
+>
+> - 該拒答的 34 題全部在進到模型之前擋下：範圍外規則 2、離題 13、不存在場所 12、無線索 7、距離門檻 0。12 間不存在的場所全部交代查無，沒有編造，也沒有拿別間代替。
+> - 點名與錯字題 8 題中 7 題答對那一間而且數字正確。唯一錯的是 llama3.2:3b 已知的毛病：在正確答案後面多接一句「目前沒有相關資料」（「公證國小體育館在哪」）。
+> - 點名題的判定現在也接受那一間地址裡的數字。以前「中正國小：花蓮縣花蓮市中正路210號」會因為門牌 210 被判成數字錯。
+> - 以下分析是在舊的 50 間資料上寫的。
 
 生成評測原本把拒答報成完美（`negatives: abstain_correct 1.000`），但那 10 道負例是
 8 道範圍外縣市名（規則層擋下）加 2 道完全沒有地名的問題。也就是說 `RAG_MAX_DISTANCE = 0.56`
