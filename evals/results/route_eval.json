@@ -101,7 +101,7 @@
       "note": "列舉題"
     },
     {
-      "query": "花蓮縣立體育館的容量是多少",
+      "query": "花蓮縣立體育場的容量是多少",
       "simulation": false,
       "expected": "rag",
       "actual": "rag",
@@ -421,12 +421,12 @@
       "note": "錯字（濤強國小）不是不存在的場所，照常檢索"
     },
     {
-      "query": "原民會館",
+      "query": "蘭嶼高中",
       "simulation": false,
       "expected": "rag",
       "actual": "rag",
       "answered_without_llm": false,
-      "note": "簡稱（台東市原住民文化會館）不能被當成不存在"
+      "note": "簡稱（蘭嶼完全高級中學）不能被當成不存在"
     },
     {
       "query": "有沒有可以借錢的地方",
