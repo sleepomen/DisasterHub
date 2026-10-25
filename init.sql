@@ -6,7 +6,16 @@ CREATE TABLE IF NOT EXISTS shelters (
     geom GEOMETRY(Point, 4326),
     capacity INTEGER,
     current_ppl INTEGER DEFAULT 0,
-    address VARCHAR(200) DEFAULT ''
+    address VARCHAR(200) DEFAULT '',
+    -- 以下來自消防署避難收容處所點位檔
+    township VARCHAR(20) DEFAULT '',
+    village VARCHAR(20) DEFAULT '',
+    hazards TEXT[] DEFAULT '{}',
+    indoor BOOLEAN,
+    outdoor BOOLEAN,
+    vulnerable_ok BOOLEAN,
+    phone VARCHAR(40) DEFAULT '',
+    serves TEXT DEFAULT ''
 );
 
 CREATE INDEX IF NOT EXISTS idx_shelters_geom ON shelters USING GIST (geom);
