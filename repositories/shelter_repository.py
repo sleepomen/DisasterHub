@@ -107,14 +107,32 @@ ROAD_SCHEMA_SQL = (
 
 # 點離最近的道路超過這個距離就不吸附，該點不算道路距離（例如海上、深山）
 ROAD_SNAP_M = 1000
-# 疏散起點是鄉鎮人口重心，只是一個代表點，常常落在田裡或河床上（玉里鎮的重心離最近的道路 3.2 公里）。
-# 起點可以吸附得比較遠，那一段走到路上的距離照樣算進道路距離
+# 疏散起點是鄉鎮人口重心，只是一個代表點，可能落在田裡或河床上，所以起點可以吸附得比較遠，
+# 那一段走到路上的距離照樣算進道路距離。目前 29 個重心離路最遠的是新城鄉 734 公尺，都在 1 公里內；
+# 當初看到「玉里鎮重心離路 3.2 公里」其實是路網缺了富里縱谷（見 tools/build_road_network.py 的 build），
+# 修好之後這個寬限只是保險
 ORIGIN_SNAP_M = 5000
 # 路徑可能繞出起訖點的外接框（沿海岸繞過山）。框往外擴大這麼多度，再至少擴大框本身的一半
 ROUTE_MARGIN_DEG = 0.05
 FRACTION_EPS = 1e-6
 
-SELECT_COLUMNS ="name, capacity, current_ppl, ST_Y(geom::geometry), ST_X(geom::geometry), COALESCE(address, '')"
+SELECT_COLUMNS = (
+    "name, capacity, current_ppl, ST_Y(geom::geometry), ST_X(geom::geometry), COALESCE(address, ''), "
+    "COALESCE(township, ''), COALESCE(village, ''), COALESCE(hazards, '{}'), indoor, outdoor, vulnerable_ok, "
+    "COALESCE(phone, ''), COALESCE(serves, '')"
+)
+
+# 消防署點位檔帶來的欄位。舊資料庫用 ADD COLUMN IF NOT EXISTS 補上，既有的列先是 NULL，下一次同步就會填好
+SHELTER_DETAIL_COLUMNS_SQL = (
+    "ALTER TABLE shelters ADD COLUMN IF NOT EXISTS township VARCHAR(20) DEFAULT ''",
+    "ALTER TABLE shelters ADD COLUMN IF NOT EXISTS village VARCHAR(20) DEFAULT ''",
+    "ALTER TABLE shelters ADD COLUMN IF NOT EXISTS hazards TEXT[] DEFAULT '{}'",
+    "ALTER TABLE shelters ADD COLUMN IF NOT EXISTS indoor BOOLEAN",
+    "ALTER TABLE shelters ADD COLUMN IF NOT EXISTS outdoor BOOLEAN",
+    "ALTER TABLE shelters ADD COLUMN IF NOT EXISTS vulnerable_ok BOOLEAN",
+    "ALTER TABLE shelters ADD COLUMN IF NOT EXISTS phone VARCHAR(40) DEFAULT ''",
+    "ALTER TABLE shelters ADD COLUMN IF NOT EXISTS serves TEXT DEFAULT ''",
+)
 
 
 def _row_to_shelter(row) -> Shelter:
@@ -125,6 +143,14 @@ def _row_to_shelter(row) -> Shelter:
         lat=row[3],
         lon=row[4],
         address=row[5],
+        township=row[6],
+        village=row[7],
+        hazards=tuple(row[8] or ()),
+        indoor=row[9],
+        outdoor=row[10],
+        vulnerable_ok=row[11],
+        phone=row[12],
+        serves=row[13],
     )
 
 
@@ -165,6 +191,8 @@ class ShelterRepository:
         try:
             with self._cursor() as cursor:
                 cursor.execute("ALTER TABLE shelters ADD COLUMN IF NOT EXISTS address VARCHAR(200) DEFAULT ''")
+                for statement in SHELTER_DETAIL_COLUMNS_SQL:
+                    cursor.execute(statement)
                 cursor.execute("CREATE INDEX IF NOT EXISTS idx_shelters_geom ON shelters USING GIST (geom)")
                 cursor.execute(GEOGRAPHY_INDEX_SQL)
                 for statement in HAZARD_SCHEMA_SQL + ROAD_SCHEMA_SQL:
@@ -179,17 +207,26 @@ class ShelterRepository:
         except Exception as e:
             logger.warning("無法啟用 pgRouting，距離一律用直線計算：%s", e)
 
-    # 同步只負責「靜態」欄位（容量 / 地址 / 座標）。
+    # 同步只負責「靜態」欄位（容量 / 地址 / 座標 / 消防署點位檔的其他欄位）。
     # current_ppl 是模擬回寫的即時狀態，重啟或手動同步都不能把它洗掉；
     # 只有在容量縮小到低於目前人數時才往下壓，避免出現負的剩餘空間。
     UPSERT_SQL = """
-        INSERT INTO shelters (name, capacity, current_ppl, address, geom)
-        VALUES (%s, %s, %s, %s, ST_SetSRID(ST_Point(%s, %s), 4326))
+        INSERT INTO shelters (name, capacity, current_ppl, address, geom,
+                              township, village, hazards, indoor, outdoor, vulnerable_ok, phone, serves)
+        VALUES (%s, %s, %s, %s, ST_SetSRID(ST_Point(%s, %s), 4326), %s, %s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (name) DO UPDATE SET
             capacity = EXCLUDED.capacity,
             current_ppl = LEAST(shelters.current_ppl, EXCLUDED.capacity),
             address = EXCLUDED.address,
-            geom = EXCLUDED.geom;
+            geom = EXCLUDED.geom,
+            township = EXCLUDED.township,
+            village = EXCLUDED.village,
+            hazards = EXCLUDED.hazards,
+            indoor = EXCLUDED.indoor,
+            outdoor = EXCLUDED.outdoor,
+            vulnerable_ok = EXCLUDED.vulnerable_ok,
+            phone = EXCLUDED.phone,
+            serves = EXCLUDED.serves;
     """
 
     # 一次更新多筆佔用數；人數夾在 [0, capacity] 之間，名稱不存在的列直接略過
@@ -209,6 +246,14 @@ class ShelterRepository:
             shelter.address,
             shelter.lon,
             shelter.lat,
+            shelter.township,
+            shelter.village,
+            list(shelter.hazards),
+            shelter.indoor,
+            shelter.outdoor,
+            shelter.vulnerable_ok,
+            shelter.phone,
+            shelter.serves,
         )
 
     def upsert_shelter(self, shelter: Shelter):
@@ -315,7 +360,8 @@ class ShelterRepository:
                 """
                 cursor.execute(sql, (lon, lat, lon, lat, limit))
                 nearest = [
-                    NearbyShelter(shelter=_row_to_shelter(row), distance_km=float(row[6]))
+                    # 距離是 SELECT_COLUMNS 之後的最後一欄；寫死位置的話，SELECT_COLUMNS 一加欄位就會讀錯
+                    NearbyShelter(shelter=_row_to_shelter(row), distance_km=float(row[-1]))
                     for row in cursor.fetchall()
                 ]
         except Exception as e:
