@@ -70,6 +70,10 @@ RAG_TOP_K = _env_int("RAG_TOP_K", 10)
 # 原本的 0.56 只剩誤擋（「我們一家五口可以去哪」0.583、「土石流要撤離到哪」0.646），
 # 這裡只留給極端偏離的問句當最後一道保險
 RAG_MAX_DISTANCE = _env_float("RAG_MAX_DISTANCE", 0.70)
+# 防災知識檢索的 cosine 距離上限（bge-m3）。正常知識題最接近的一段都在 0.40 以內；
+# 語料沒有的題目（火災逃生 0.34、颱風補助 0.37、防災包 0.43）有的也在 0.40 以內，分不開，
+# 所以「是不是知識題」由 query_rules.knowledge_request 先用規則判斷，這裡只擋完全對不上的
+KNOWLEDGE_MAX_DISTANCE = _env_float("KNOWLEDGE_MAX_DISTANCE", 0.45)
 # 同時進行的 LLM 生成上限。每次生成最長 OLLAMA_TIMEOUT 秒，佔用一條工作執行緒；
 # 不設上限的話幾個人同時發問就會把執行緒池吃光，地圖載入與 readiness 一起卡住
 CHAT_MAX_CONCURRENT = _env_int("CHAT_MAX_CONCURRENT", 2)
@@ -119,6 +123,7 @@ def _bounds_errors() -> list[str]:
         ("DB_STATEMENT_TIMEOUT_MS", DB_STATEMENT_TIMEOUT_MS, DB_STATEMENT_TIMEOUT_MS >= 1000, "至少要 1000 毫秒"),
         ("RAG_TOP_K", RAG_TOP_K, RAG_TOP_K >= 1, "至少要 1"),
         ("RAG_MAX_DISTANCE", RAG_MAX_DISTANCE, 0 < RAG_MAX_DISTANCE <= 2, "必須介於 0 到 2（cosine 距離）"),
+        ("KNOWLEDGE_MAX_DISTANCE", KNOWLEDGE_MAX_DISTANCE, 0 < KNOWLEDGE_MAX_DISTANCE <= 2, "必須介於 0 到 2（cosine 距離）"),
         ("CHAT_MAX_CONCURRENT", CHAT_MAX_CONCURRENT, CHAT_MAX_CONCURRENT >= 1, "至少要 1"),
         ("CHAT_RATE_LIMIT", CHAT_RATE_LIMIT, CHAT_RATE_LIMIT >= 0, "不能是負數（0 代表停用）"),
         ("CHAT_RATE_WINDOW", CHAT_RATE_WINDOW, CHAT_RATE_WINDOW >= 1, "至少要 1 秒"),

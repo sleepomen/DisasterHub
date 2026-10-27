@@ -30,6 +30,7 @@ from services.evacuation import (
     split_hazard_hits,
     undesignated,
 )
+from services.knowledge import KnowledgeStore
 from services.map_service import MapService
 from services.metrics import metrics
 from services.population_service import PopulationModel
@@ -77,7 +78,9 @@ INDEX_FILE = STATIC_DIR / "index.html"
 repo = ShelterRepository()
 map_service = MapService()
 vector_store = VectorStore()
-chat_service = ChatService(vector_store=vector_store, repo=repo)
+# 防災知識文件跟避難所索引共用同一個 ChromaDB client 與 embedding 模型，各自一個 collection
+knowledge_store = KnowledgeStore(embedding_function=vector_store.ef, client=vector_store.client)
+chat_service = ChatService(vector_store=vector_store, repo=repo, knowledge=knowledge_store)
 population_model = PopulationModel()
 session_manager = auth.SessionManager()
 login_throttle = auth.LoginThrottle()
@@ -110,7 +113,19 @@ def sync_and_reindex(force: bool = False) -> int:
     DataSyncService().sync()
     shelters = repo.get_all_shelters()
     vector_store.build_index(shelters, force=force)
+    build_knowledge()
     return len(shelters)
+
+
+def build_knowledge() -> None:
+    """
+    知識文件跟資料庫無關，壞了（格式錯、embedding 失敗）也不該讓避難所同步一起失敗：
+    記下錯誤就好，知識題會回「目前無法使用」，下次同步再試
+    """
+    try:
+        knowledge_store.build()
+    except Exception:
+        logger.exception("防災知識索引建立失敗，知識題暫時無法回答")
 
 
 @functools.cache
