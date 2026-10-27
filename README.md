@@ -24,6 +24,7 @@ Built in response to the 2025 barrier-lake disaster in Guangfu Township, Hualien
 - **Crowd evacuation animation** — The backend estimates the population inside the impact radius and the resulting evacuation demand from a township population model, then computes a deterministic, capacity-bounded evacuation plan (nearest first) and writes it to the database and the vector index straight away. The frontend only replays that plan as an animation, so the loads the AI assistant reports match the map as soon as the simulation returns.
 - **Debris-flow hazard zones** — 531 debris-flow impact zones in Yilan, Hualien and Taitung from the Ministry of Agriculture are imported into PostGIS and drawn on the map. Flood simulations keep evacuees out of shelters inside a zone, and nearest-shelter answers warn when a shelter lies inside one.
 - **AI decision assistant** — A rules layer plus RAG and a local LLM answer questions from real shelter data, covering semantic lookups, geographic distance queries, capacity rankings, and simulation-result queries. Region, township, facility and capacity conditions become metadata filters, and questions about counties outside the coverage area are declined outright.
+- **Disaster-preparedness knowledge** — "What should I prepare before a typhoon?" or "What does a yellow debris-flow alert mean?" is answered from 34 short passages rewritten from official Central Weather Administration, National Fire Agency and Agency of Rural Development and Soil and Water Conservation pages, with the sources appended to every answer.
 
 ---
 
@@ -37,6 +38,7 @@ Backend       FastAPI + Uvicorn
               ShelterRepository (database access, connection pool)
               ChatService (intent detection + RAG + LLM)
               VectorStore (ChromaDB management)
+              KnowledgeStore (disaster-preparedness passages, separate collection)
 
 Frontend      Leaflet.js + OpenStreetMap
               Canvas API (crowd evacuation animation)
@@ -88,7 +90,7 @@ Edit `.env`:
 | `CHAT_RATE_LIMIT` / `CHAT_RATE_WINDOW` | How many `/api/chat` questions one source may ask per window, default 15 per 60 s. The concurrency cap only limits how many run at once; this limits how many one client can ask at all, because chat needs no login. Set `CHAT_RATE_LIMIT=0` to disable |
 | `DB_CONNECT_TIMEOUT` / `DB_STATEMENT_TIMEOUT_MS` | Database connect timeout (seconds, default 5) and per-statement timeout (milliseconds, default 15000), so a hung database fails requests within seconds instead of blocking every worker thread |
 
-Optional variables: `OLLAMA_MODEL` (default `llama3.2:3b`), `OLLAMA_TEMPERATURE`, `OLLAMA_NUM_CTX` (default 8192 — must hold the 20–30 shelter documents a list-style query retrieves), `OLLAMA_NUM_PREDICT` (default 800), `OLLAMA_TIMEOUT`, `EMBEDDING_PROVIDER` (`ollama` or `minilm`), `EMBEDDING_MODEL` (default `bge-m3`), `EMBEDDING_TIMEOUT`, `RAG_TOP_K`, `RAG_MAX_DISTANCE` (default 0.70 — cosine distance above which a plain semantic search is treated as "no relevant data"; a last-resort backstop, since off-topic questions are already refused by the earlier layers), `DB_POOL_MIN` / `DB_POOL_MAX` (default 1 / 10).
+Optional variables: `OLLAMA_MODEL` (default `llama3.2:3b`), `OLLAMA_TEMPERATURE`, `OLLAMA_NUM_CTX` (default 8192 — must hold the 20–30 shelter documents a list-style query retrieves), `OLLAMA_NUM_PREDICT` (default 800), `OLLAMA_TIMEOUT`, `EMBEDDING_PROVIDER` (`ollama` or `minilm`), `EMBEDDING_MODEL` (default `bge-m3`), `EMBEDDING_TIMEOUT`, `RAG_TOP_K`, `RAG_MAX_DISTANCE` (default 0.70 — cosine distance above which a plain semantic search is treated as "no relevant data"; a last-resort backstop, since off-topic questions are already refused by the earlier layers), `KNOWLEDGE_MAX_DISTANCE` (default 0.45 — the same cutoff for knowledge passages), `DB_POOL_MIN` / `DB_POOL_MAX` (default 1 / 10).
 
 Numeric settings are range-checked at startup (for example `SESSION_HOURS` must be positive and `DB_POOL_MAX` may not be smaller than `DB_POOL_MIN`); an out-of-range value stops the service with a clear message, and a value that cannot be parsed falls back to the default with a warning in the log.
 
@@ -158,6 +160,7 @@ DisasterHub/
 │   ├── sync_service.py         # Data synchronization
 │   ├── chat_service.py         # Intent detection + RAG + LLM
 │   ├── answer_guard.py         # Drops reply lines naming a place that is not in the prompt's shelter data
+│   ├── knowledge.py            # Disaster-preparedness passages: parsing, index, retrieval, source lines
 │   ├── query_rules.py          # Query rules layer: region / township / facility / capacity → metadata filters, out-of-scope rejection
 │   ├── shelter_profile.py      # Name/address → township, facilities, aliases
 │   ├── embeddings.py           # Ollama / MiniLM embeddings
@@ -176,7 +179,8 @@ DisasterHub/
 │   ├── east_taiwan_population.json  # Coastline polylines + population of 29 townships (shared by the frontend animation and the AI)
 │   ├── debris_flow_east.geojson     # Debris-flow impact zones in the three eastern counties (Ministry of Agriculture)
 │   ├── east_roads.json.gz           # Road network of the three eastern counties (OpenStreetMap, ODbL)
-│   └── shelter_coordinate_fixes.json # Official shelter coordinates corrected from OpenStreetMap
+│   ├── shelter_coordinate_fixes.json # Official shelter coordinates corrected from OpenStreetMap
+│   └── knowledge/                   # Disaster-preparedness passages, one Markdown file per hazard (README explains the format)
 │
 ├── tools/
 │   ├── build_hazard_zones.py   # Ministry of Agriculture SHP → debris_flow_east.geojson (TWD97 → WGS84)
@@ -407,6 +411,21 @@ The shelters come from the National Fire Agency's open dataset 避難收容處�
 
 The retrieval eval set was regenerated for this data (207 questions; name questions are sampled so the set stays the size it had with 50 shelters, and the hand-labeled alias / semantic cases were rewritten against the new names). The boundary eval's named, misspelled and near-name questions were rewritten too, and each replacement was checked against the actual typo and unknown-name rules. For example, 礁溪國小 and 蘇澳國中 used to be nonexistent near-names but exist in the official data, so they became 礁溪高中 and 蘇澳高中.
 
+### Disaster-Preparedness Knowledge
+
+The shelter index answers *where to go*. `data_reference/knowledge/` answers *what to do* and *what an alert means*: 34 passages across typhoon, earthquake, debris flow, tsunami and heavy rain / flooding, covering before / during / after and every alert level (typhoon warnings and intensity, seismic intensity 0–7, debris-flow yellow / red, tsunami information types and wave-height grades, heavy-rain levels, flood alerts).
+
+- **Sources.** Each passage is a short rewrite of an official page: the Central Weather Administration's 颱風百問, seismic-intensity table and 2025 tsunami information rules, the National Fire Agency's 消防防災館, and the Agency of Rural Development and Soil and Water Conservation's debris-flow site. All are published under the Open Government Data License v1 with attribution. Numbers (rain thresholds, hours, wave heights, intensity levels) are copied verbatim; sentences the sources do not support were removed in review. Every passage carries its source URL and retrieval date. The flood-alert passage is the only one based on a news quote of the Water Resources Agency, and is marked unconfirmed.
+- **Separate collection.** The passages live in their own ChromaDB collection (`knowledge`), on the same client and embedding model as the shelters. Mixed into the shelter index they would compete with 644 shelters for the top-k slots, and none of the shelter metadata filters apply to them.
+- **Routing.** `query_rules.knowledge_request` treats a question as a knowledge question when it names a hazard or an alert *and* asks how or what it means (怎麼辦, 要準備什麼, 是什麼意思, 差在哪, a yes/no 「要撤離嗎」…).
+  - Having a hazard word alone is not enough: 「地震了要去哪裡」 and 「土石流要撤離到哪」 still go to the shelters.
+  - When the same question also asks for shelters (「颱風要準備什麼，花蓮市有哪些避難所」), both are retrieved and the knowledge side is searched with the how-to clause only.
+  - Knowledge questions are checked before the out-of-area rule, because what to do in an earthquake does not depend on the county. Simulation questions still win.
+  - Off-topic words other than weather (subsidy, insurance, and now 停班停課) still refuse.
+- **Answering: the passage itself, not the model.** A knowledge question is answered with the closest one or two passages verbatim, followed by their sources, without calling the LLM. The first version let llama3.2:3b rewrite the passages under a strict system prompt (no additions, no inference, numbers verbatim). In the knowledge evaluation, 20 of 46 answers still contained sentences with no source, and one turned 「往溪流兩側的高地疏散」 (evacuate to the high ground on either side of the stream) into "evacuate downstream", the opposite direction. The passages are already written as short answers (each title is a question), so the model added only risk. Answers now take under a second instead of about 11 s.
+- **Mixed questions.** The passage is sent first by code, and the model only lists the shelters. It sees the shelter data and the shelter half of the question (「花蓮市有哪些避難所」), not the passage, so it cannot rewrite it. The shelter half is also routed on its own, so it behaves exactly as if asked alone. 「地震了在家要怎麼辦，附近收容所還有空位嗎」 gets the passage plus the request for coordinates, instead of a model listing shelters from nothing.
+- **Fixed replies.** If no passage is within `KNOWLEDGE_MAX_DISTANCE` (0.45), the reply is a fixed "no data" sentence. If the index failed to build, knowledge questions get a fixed "unavailable" sentence while everything else keeps working.
+
 ### Debris-Flow Hazard Zones
 
 Source: the Ministry of Agriculture's open dataset "115年度1753條土石流潛勢溪流影響範圍圖" ([data.gov.tw/dataset/176526](https://data.gov.tw/dataset/176526), Open Government Data License v1). `data_reference/debris_flow_east.geojson` keeps the 531 impact zones in Yilan, Hualien and Taitung, with stream number, township, village, risk level and household count.
@@ -585,8 +604,10 @@ DisasterHub/
 │   ├── run_boundary_eval.py    # Reports which layer refused, --generate hits the real LLM
 │   ├── faithfulness.py         # Counterfactual context perturbations and their scoring
 │   ├── run_faithfulness_eval.py # Does the model follow a changed / incomplete context?
-│   ├── route_eval.jsonl        # Routing test set (42 questions, all eight routes)
+│   ├── route_eval.jsonl        # Routing test set (56 questions, all ten routes)
 │   ├── run_route_eval.py       # Runs the routing evaluation (no services needed)
+│   ├── knowledge_eval.jsonl    # Knowledge questions (positive / not covered / mixed / shelter look-alikes)
+│   ├── run_knowledge_eval.py   # Knowledge routing, retrieval and, with --generate, answer faithfulness
 │   ├── run_gen_eval.py         # Runs the generation evaluation (real ChatService + Ollama)
 │   ├── gen_metrics.py          # Answer recall / hallucination / number faithfulness / format rules
 │   └── results/                # Output of each run
@@ -929,7 +950,7 @@ coverage at all**, including both of the non-RAG paths that make the routing "hy
 `evals/route_eval.jsonl` is a separate 42-question set labelled with the route each question *should*
 take, including the state-dependent case ("請給我疏散建議" must go to `no_simulation_advice` with no
 simulation and to `simulation` while one is running). Two routes were added later: `off_topic` and
-`unknown_name` (see [Nonexistent shelters](#nonexistent-shelters)). The runner stubs the vector store and
+`unknown_name` (see [Nonexistent shelters](#nonexistent-shelters)), and with the disaster-preparedness passages `knowledge` and `knowledge_mixed` (10 more questions, 56 in total; the runner stubs the knowledge store as well, returning the first passage of the hazard so a mixed question has knowledge hits). The runner stubs the vector store and
 the repository, because `metrics.route()` is recorded in `build_context` *before* retrieval or the
 database is touched. The stub returns the real shelter list read from the JSON files in
 `data_for_refuge/`, since `unknown_name` must be decided against real names. So it needs no Ollama, no
@@ -968,6 +989,56 @@ is that all eight routes are now covered, the state-dependent case is pinned, an
 drops. An independent routing number needs the same thing the retrieval evaluation needs — questions
 written by someone who has not seen the code.
 
+## Knowledge Evaluation
+
+`evals/knowledge_eval.jsonl` (56 questions) checks the knowledge route end to end:
+
+- **40 positive questions.** Each lists the passage that should be returned and the key facts the answer must contain (「18 小時」, 「趴下、掩護、穩住」, 「往兩側」).
+- **8 questions the passages do not cover**: fire escape, school closures, subsidies, insurance, SMS alerts, earthquake prediction.
+- **4 mixed questions** that ask for steps and shelters together.
+- **4 shelter look-alikes**: 「地震了要去哪裡」 must stay on the shelter route.
+
+```bash
+docker exec -it disaster_app python evals/run_knowledge_eval.py                      # routing + retrieval, no LLM
+docker exec -it disaster_app python evals/run_knowledge_eval.py --generate --label knowledge_gen_llama3.2-3b
+```
+
+Routing and retrieval (bge-m3):
+
+| Set | n | Correct route | Right passage returned | Right passage first | Precision of returned passages |
+|---|---|---|---|---|---|
+| positive | 40 | 1.000 | 1.000 | 0.975 | 0.912 |
+| mixed | 4 | 1.000 | 1.000 | 1.000 | 0.875 |
+| shelter look-alikes | 4 | 1.000 | – | – | – |
+| not covered | 8 | refused 6 of 8 | | | |
+
+- **The first run caught five routing gaps**, all in the rules, not in retrieval:
+  - yes/no questions (「住山坡地颱風前要撤離嗎」, 「地震時可以跑出去嗎」)
+  - 「什麼是土石流」
+  - 「往哪個方向」
+  - 「海水突然退很多」, which never says 海嘯
+  
+  After they were added, positive coverage went from 0.875 to 1.000.
+- **The cost of the yes/no rule.** 「地震可以預測嗎」 now also routes to knowledge and gets the earthquake-preparation passage. Together with 「颱風警報怎麼收到簡訊通知」 that is 2 of 8 uncovered questions answered with a passage that does not answer them. No rule was added for these two, because the questions, the passages and the rules share an author, and tuning rules to this set would only make the numbers circular.
+- **Distance does not separate covered from uncovered questions.** The nearest passage is 0.156–0.424 for positives and 0.327–0.461 for uncovered questions, the same overlap seen with shelter retrieval. So `KNOWLEDGE_MAX_DISTANCE = 0.45` only catches the far end. The rules decide what counts as a knowledge question.
+
+Answers (llama3.2:3b, the 44 questions that return a passage):
+
+| Version | Key facts | Numbers in source | Sentences with no source | Stray English | p50 |
+|---|---|---|---|---|---|
+| model rewrites the passages | 0.909 | 1.000 | 0.181 | 4 answers | 11.3 s |
+| **passages verbatim (current)** | 1.000 | 1.000 | 0.003 | 0 | < 1 s |
+
+- **What the rewrite got wrong.**
+  - 「往溪流的下游方向撤離」 for a question about which way to evacuate from a debris flow. The source says the high ground on either side of the stream.
+  - 「需要立即離開危險區域」 added to intensity 4.
+  - The instruction itself echoed back (「將震度7級的定義簡述出來」).
+  - English labels such as 「warning：」.
+- **How "sentences with no source" is measured.** A sentence counts when fewer than half of its character trigrams appear in the material. This is an approximation for comparing versions.
+- **The current numbers are partly true by construction.** A verbatim passage scores full marks on facts and faithfulness. What matters for knowledge-only questions is the retrieval table above, because the user sees exactly the passage that was retrieved. The remaining 0.003 is a mixed answer's 「花蓮市有以下避難所」 heading.
+- **Mixed questions still call the model** for the shelter list (about 40 s), and those numbers checked out against the shelter data.
+- **The eval set needs an independent author.** It was written by the same person as the passages and the rules, like the other evaluation sets here.
+
 ## Example AI Queries
 
 ```
@@ -991,6 +1062,12 @@ Shelters in Kaohsiung?
 
 Give me evacuation advice
 → With a simulation active, answers from the affected shelters and population estimate; otherwise asks you to run a simulation first
+
+What should I prepare before a typhoon? / What does a yellow debris-flow alert mean?
+→ Answered from the official disaster-preparedness passages, with the sources appended
+
+What should I prepare for a typhoon, and which shelters are in Hualien City?
+→ Both: the preparation steps from the passages, then the shelters
 ```
 
 ---
@@ -1028,6 +1105,7 @@ Give me evacuation advice
 - **人群疏散動畫** — 後端以鄉鎮人口模型估算圈內人口與疏散需求，算出確定、不超過容量的疏散分配（近者優先），並立即寫入資料庫與向量索引；前端只負責把這份分配畫成動畫，模擬一回傳，AI 助手回答的負載就跟地圖一致
 - **土石流潛勢區域** — 匯入農業部宜花東 531 個土石流潛勢溪流影響範圍到 PostGIS 並顯示在地圖上；淹水模擬不把人送進範圍內的避難所，查最近避難所時若落在範圍內會加註警告
 - **AI 決策助手** — 整合規則層 + RAG + 本地 LLM，根據避難所真實資料回答問題，支援語意查詢、地理距離查詢、容量排序查詢、模擬結果查詢；地區 / 鄉鎮 / 設施 / 容量條件轉成 metadata 篩選，範圍外縣市直接拒答
+- **防災知識** — 「颱風前要準備什麼」「土石流黃色警戒是什麼意思」這類問題，依中央氣象署、內政部消防署、農村水保署官方頁面改寫的 34 段知識文件回答，每個回答最後都附上出處
 
 ---
 
@@ -1041,6 +1119,7 @@ Give me evacuation advice
               ShelterRepository（資料庫操作，連線池）
               ChatService（意圖判斷 + RAG + LLM）
               VectorStore（ChromaDB 管理）
+              KnowledgeStore（防災知識文件，獨立的 collection）
 
 前端層        Leaflet.js + OpenStreetMap
               Canvas API（人群疏散動畫）
@@ -1092,7 +1171,7 @@ cp .env.example .env
 | `CHAT_RATE_LIMIT` / `CHAT_RATE_WINDOW` | 單一來源在一段時間內最多能問幾題 `/api/chat`，預設 60 秒 15 題。併發上限只擋「同時幾個」，這個擋的是「同一個人總共能問幾次」——聊天端點不需要登入，不然任何人都能拿它當免費 LLM。設 `CHAT_RATE_LIMIT=0` 可停用 |
 | `DB_CONNECT_TIMEOUT` / `DB_STATEMENT_TIMEOUT_MS` | 資料庫連線逾時（秒，預設 5）與單一 SQL 逾時（毫秒，預設 15000），資料庫卡住時請求會在幾秒內失敗，不會把所有工作執行緒一起卡死 |
 
-可選變數：`OLLAMA_MODEL`（預設 `llama3.2:3b`）、`OLLAMA_TEMPERATURE`、`OLLAMA_NUM_CTX`（預設 8192，要放得下列舉題一次撈出的 20 至 30 筆避難所文件）、`OLLAMA_NUM_PREDICT`（預設 800）、`OLLAMA_TIMEOUT`、`EMBEDDING_PROVIDER`（`ollama` 或 `minilm`）、`EMBEDDING_MODEL`（預設 `bge-m3`）、`EMBEDDING_TIMEOUT`、`RAG_TOP_K`、`RAG_MAX_DISTANCE`（預設 0.70，純語意檢索的 cosine 距離超過此值就視為沒有相關資料；離題問題已經由前面幾層擋掉，這裡只是最後一道保險）、`DB_POOL_MIN` / `DB_POOL_MAX`（預設 1 / 10）。
+可選變數：`OLLAMA_MODEL`（預設 `llama3.2:3b`）、`OLLAMA_TEMPERATURE`、`OLLAMA_NUM_CTX`（預設 8192，要放得下列舉題一次撈出的 20 至 30 筆避難所文件）、`OLLAMA_NUM_PREDICT`（預設 800）、`OLLAMA_TIMEOUT`、`EMBEDDING_PROVIDER`（`ollama` 或 `minilm`）、`EMBEDDING_MODEL`（預設 `bge-m3`）、`EMBEDDING_TIMEOUT`、`RAG_TOP_K`、`RAG_MAX_DISTANCE`（預設 0.70，純語意檢索的 cosine 距離超過此值就視為沒有相關資料；離題問題已經由前面幾層擋掉，這裡只是最後一道保險）、`KNOWLEDGE_MAX_DISTANCE`（預設 0.45，知識文件的同一種門檻）、`DB_POOL_MIN` / `DB_POOL_MAX`（預設 1 / 10）。
 
 數值設定啟動時會檢查範圍（例如 `SESSION_HOURS` 必須大於 0、`DB_POOL_MAX` 不能小於 `DB_POOL_MIN`）；超出範圍會以清楚的訊息停止服務，解析不了的值會退回預設並在 log 提醒。
 
@@ -1162,6 +1241,7 @@ DisasterHub/
 │   ├── sync_service.py         # 資料同步
 │   ├── chat_service.py         # 意圖判斷 + RAG + LLM
 │   ├── answer_guard.py         # 回覆中提到 prompt 資料裡沒有的場所，整行拿掉
+│   ├── knowledge.py            # 防災知識文件：解析、索引、檢索、出處
 │   ├── query_rules.py          # 查詢規則層：地區 / 鄉鎮 / 設施 / 容量 → metadata 篩選，範圍外拒答
 │   ├── shelter_profile.py      # 名稱/地址 → 鄉鎮、設施、別名
 │   ├── embeddings.py           # Ollama / MiniLM embedding
@@ -1180,7 +1260,8 @@ DisasterHub/
 │   ├── east_taiwan_population.json  # 海岸線折線 + 29 個鄉鎮人口（前端動畫與 AI 共用）
 │   ├── debris_flow_east.geojson     # 宜花東土石流潛勢溪流影響範圍（農業部）
 │   ├── east_roads.json.gz           # 宜花東路網（OpenStreetMap，ODbL）
-│   └── shelter_coordinate_fixes.json # 用 OpenStreetMap 修正的官方避難所座標
+│   ├── shelter_coordinate_fixes.json # 用 OpenStreetMap 修正的官方避難所座標
+│   └── knowledge/                   # 防災知識文件，每種災害一個 Markdown 檔（格式見資料夾內 README）
 │
 ├── tools/
 │   ├── build_hazard_zones.py   # 農業部 SHP → debris_flow_east.geojson（TWD97 → WGS84）
@@ -1404,6 +1485,21 @@ curl -N -X POST http://localhost:8501/api/chat \
 
 檢索評測集已針對新資料重新產生：207 題。名稱題改成抽樣，題庫維持原本 50 間時的規模；人工標註的別名與語意題也改用新名稱重寫。邊界評測裡的點名、錯字、近名題也改寫了，每一題都先用實際的錯字與查無規則驗證過。例如礁溪國小、蘇澳國中以前是「不存在的近名」，官方資料裡卻有，所以改成礁溪高中、蘇澳高中。
 
+### 防災知識文件
+
+避難所索引回答「去哪裡」；`data_reference/knowledge/` 回答「該怎麼做」與「警戒是什麼意思」。共 34 段，涵蓋颱風、地震、土石流、海嘯、豪雨與淹水的災前、災時、災後，以及每一種警戒分級：颱風警報與強度、地震震度 0～7 級、土石流黃色／紅色警戒、海嘯資訊種類與波高分級、大雨豪雨分級、淹水警戒。
+
+- **來源**：每一段都是官方頁面的改寫摘要。來源包括中央氣象署《颱風百問》、地震震度分級表、114 年版海嘯資訊發布作業要點，內政部消防署「消防防災館」，以及農村水保署土石流防災資訊網，都以《政府資料開放授權條款－第1版》提供，註明出處即可改作。雨量門檻、時數、波高、震度等數字照抄原文；審稿時刪掉了來源沒有支持的句子。每段都標有出處網址與擷取日期。只有淹水警戒那一段是依中央社引述水利署的說法寫的，標為待確認。
+- **獨立的 collection**：知識文件放在自己的 ChromaDB collection（`knowledge`），跟避難所共用同一個 client 與 embedding 模型。混進避難所索引的話，要跟 644 筆避難所搶 top-k，避難所那套 metadata 篩選也套不上。
+- **路由**：`query_rules.knowledge_request` 的判斷是：問句提到災害或警戒，**而且**在問做法或意義（怎麼辦、要準備什麼、是什麼意思、差在哪、「要撤離嗎」這種是非問句…），才算知識題。
+  - 只有災害詞不算：「地震了要去哪裡」「土石流要撤離到哪」照樣查避難所。
+  - 同一句還在要避難所時（「颱風要準備什麼，花蓮市有哪些避難所」），兩邊都查，知識那邊只拿問做法的那半句去檢索。
+  - 知識題的判斷排在範圍外縣市之前：地震時該怎麼做跟縣市無關。模擬相關的問題仍然優先走模擬。
+  - 天氣以外的離題詞（補助、保險，以及新加的停班停課）照樣拒答。
+- **回答：直接給原文，不交給模型**：知識題直接回最接近的一到兩段原文，後面附上出處，不打 LLM。第一版是讓 llama3.2:3b 依原文改寫，系統提示寫明不可以補充、不可以推論、數字原樣引用；知識評測 46 題裡仍有 20 題出現找不到出處的句子，其中一題把「往溪流兩側的高地疏散」答成「往溪流的下游方向撤離」，方向正好相反。知識文件本來就是寫成回答用的短段落（每段標題就是一個問題），模型只增加風險。改成直接給原文後，回答從約 11 秒變成不到 1 秒。
+- **混合題**：程式先送出知識原文，模型只負責列避難所。模型看到的只有避難所資料，以及問避難所的那半句（「花蓮市有哪些避難所」），看不到知識原文，也就改寫不了。避難所那半句也單獨走一次路由，行為跟單獨問一模一樣：「地震了在家要怎麼辦，附近收容所還有空位嗎」會得到知識原文，加上請使用者提供座標，而不是讓模型憑空列出避難所。
+- **固定回覆**：最接近的一段超過 `KNOWLEDGE_MAX_DISTANCE`（0.45）時，回固定的「目前沒有相關資料」。知識索引建立失敗時，知識題回固定的「目前無法使用」，其他功能照常。
+
 ### 土石流潛勢區域
 
 資料來源：農業部「115年度1753條土石流潛勢溪流影響範圍圖」（[data.gov.tw/dataset/176526](https://data.gov.tw/dataset/176526)，政府資料開放授權條款第 1 版）。`data_reference/debris_flow_east.geojson` 保留宜花東三縣共 531 個影響範圍，含溪流編號、鄉鎮、村里、風險等級與保全戶數。
@@ -1577,8 +1673,10 @@ DisasterHub/
 │   ├── run_boundary_eval.py    # 報出是哪一層拒答，--generate 會真的打 LLM
 │   ├── faithfulness.py         # 反事實上下文的改動方式與評分
 │   ├── run_faithfulness_eval.py # 資料被改動或不完整時，模型是否照資料回答
-│   ├── route_eval.jsonl        # 路由測試集（42 題，涵蓋全部八條路由）
+│   ├── route_eval.jsonl        # 路由測試集（56 題，涵蓋全部十條路由）
 │   ├── run_route_eval.py       # 執行路由評測（不需要任何服務）
+│   ├── knowledge_eval.jsonl    # 知識題（正例 / 語料沒有 / 混合 / 其實在問避難所）
+│   ├── run_knowledge_eval.py   # 知識路由與檢索；--generate 量回答是否忠於原文
 │   ├── run_gen_eval.py         # 執行生成評測（真實 ChatService + Ollama）
 │   ├── gen_metrics.py          # 回答召回 / 幻覺 / 數字忠實 / 格式規則
 │   └── results/                # 各次評測輸出
@@ -1891,7 +1989,7 @@ docker exec -it disaster_app python evals/compare_runs.py   evals/results/gen_qw
 
 `evals/route_eval.jsonl` 是另一份 42 題的測試集，每題標上它*應該*走的路由，包含狀態相依的案例
 （「請給我疏散建議」在沒有模擬時該走 `no_simulation_advice`，模擬進行中該走 `simulation`）。
-後來又加了兩條路由：`off_topic` 與 `unknown_name`（見[不存在的場所](#不存在的場所)）。
+後來又加了兩條路由：`off_topic` 與 `unknown_name`（見[不存在的場所](#不存在的場所)）；加入防災知識文件時再加 `knowledge` 與 `knowledge_mixed`（多 10 題，共 56 題；執行器也把知識庫換成替身，回傳該災害的第一段，混合題才會有知識結果）。
 執行器把向量庫與 repository 換成替身，因為 `metrics.route()` 是在 `build_context` 裡
 「碰到檢索或資料庫之前」就記下的。替身回傳的是從 `data_for_refuge/` JSON 讀出來的真實避難所名單，
 因為 `unknown_name` 必須拿真實名稱來判斷。所以它不需要 Ollama、ChromaDB 或 PostgreSQL，
@@ -1927,6 +2025,56 @@ unknown_name             2        2   1.000
 而且正確率掉下來 CI 會失敗。要拿到獨立的路由數字，需要的跟檢索評測一樣——
 請沒看過程式的人出題。
 
+## 防災知識評測
+
+`evals/knowledge_eval.jsonl`（56 題）從頭到尾檢查知識路由：
+
+- **40 題正例**：每題標出應該回哪一段，以及回答必須包含的關鍵事實（「18 小時」「趴下、掩護、穩住」「往兩側」）。
+- **8 題語料沒有的**：火災逃生、停班停課、補助、保險、簡訊通知、地震預測。
+- **4 題混合題**：同時問做法和避難所。
+- **4 題其實在問避難所**：「地震了要去哪裡」必須留在避難所路由。
+
+```bash
+docker exec -it disaster_app python evals/run_knowledge_eval.py                      # 路由與檢索，不需要 LLM
+docker exec -it disaster_app python evals/run_knowledge_eval.py --generate --label knowledge_gen_llama3.2-3b
+```
+
+路由與檢索（bge-m3）：
+
+| 題組 | 題數 | 路由正確 | 有回到對的段落 | 第一段就是對的 | 回傳段落的精確率 |
+|---|---|---|---|---|---|
+| 正例 | 40 | 1.000 | 1.000 | 0.975 | 0.912 |
+| 混合題 | 4 | 1.000 | 1.000 | 1.000 | 0.875 |
+| 其實在問避難所 | 4 | 1.000 | – | – | – |
+| 語料沒有的 | 8 | 8 題擋下 6 題 | | | |
+
+- **第一輪抓到 5 個路由漏洞**，問題都在規則，不在檢索：
+  - 是非問句（「住山坡地颱風前要撤離嗎」「地震時可以跑出去嗎」）
+  - 「什麼是土石流」
+  - 「往哪個方向」
+  - 「海水突然退很多」（整句沒有「海嘯」兩個字）
+  
+  補上之後，正例的命中率從 0.875 變成 1.000。
+- **是非問句規則的代價**：「地震可以預測嗎」也被當成知識題，回了地震前準備那一段。加上「颱風警報怎麼收到簡訊通知」，8 題語料沒有的題目裡，有 2 題回了答非所問的段落。這兩題沒有另外加規則：題目、知識文件、規則都出自同一個人，照著這組題目調規則，只會讓數字變成循環論證。
+- **距離分不開「有涵蓋」和「沒涵蓋」**：最接近一段的距離，正例是 0.156～0.424，語料沒有的題目是 0.327～0.461，跟避難所檢索一樣是重疊的。所以 `KNOWLEDGE_MAX_DISTANCE = 0.45` 只擋得住最遠的那一端，哪些算知識題要靠規則決定。
+
+回答品質（llama3.2:3b，有回段落的 44 題）：
+
+| 版本 | 關鍵事實 | 數字都在原文 | 找不到出處的句子 | 夾雜英文 | p50 |
+|---|---|---|---|---|---|
+| 模型改寫段落 | 0.909 | 1.000 | 0.181 | 4 題 | 11.3 秒 |
+| **直接給原文（目前）** | 1.000 | 1.000 | 0.003 | 0 | < 1 秒 |
+
+- **模型改寫時的錯誤**：
+  - 問土石流往哪個方向撤離，答「往溪流的下游方向撤離」，原文是往溪流兩側的高地。
+  - 震度 4 級多加一句「需要立即離開危險區域」。
+  - 把指令原樣抄進回答（「將震度7級的定義簡述出來」）。
+  - 冒出「warning：」這種英文標籤。
+- **「找不到出處的句子」怎麼算**：一句話的字元三連組有不到一半出現在資料裡，就算一句。這是用來比較版本的近似值。
+- **目前的數字有一部分是設計使然**：直接給原文，關鍵事實與忠實度自然是滿分。純知識題真正要看的是上面的檢索表，因為使用者看到的就是檢索到的那一段。剩下的 0.003 是混合題回答開頭的「花蓮市有以下避難所」。
+- **混合題的避難所清單仍由模型產生**（約 40 秒），這部分的數字都對得上避難所資料。
+- **評測集還需要由別人來寫**：這組題目跟其他評測集一樣，跟知識文件和規則出自同一個人。
+
 ## AI 查詢範例
 
 ```
@@ -1950,6 +2098,12 @@ unknown_name             2        2   1.000
 
 請給我疏散建議
 → 有模擬時依受影響避難所與人口估算回答；沒有模擬時提示先執行模擬
+
+颱風來之前要準備什麼？／土石流黃色警戒是什麼意思？
+→ 依官方防災知識文件回答，最後附上出處
+
+颱風要準備什麼，花蓮市有哪些避難所？
+→ 兩邊都答：先講知識文件裡的準備事項，再列出避難所
 ```
 
 ---
