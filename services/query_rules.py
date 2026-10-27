@@ -531,12 +531,14 @@ def typo_correction(query: str, known_names: list[str]) -> tuple[str, str] | Non
 
 
 # ---- 防災知識路由 ----------------------------------------------------------
-# 災害詞 → 知識文件的 hazard（data_reference/knowledge）。「海水倒灌」在淹水那份文件裡
+# 災害詞 → 知識文件的 hazard（data_reference/knowledge）。依序比對，比到的詞會從問句拿掉：
+# 「海水倒灌」在淹水那份文件裡，拿掉之後剩下的「海水」才不會再被算成海嘯；
+# 單獨的「海水」算海嘯：「海水突然退很多代表什麼」沒有海嘯兩個字，問的是海嘯前兆
 KNOWLEDGE_HAZARD_WORDS = [
     ("颱風", "typhoon"), ("海警", "typhoon"), ("陸警", "typhoon"),
     ("地震", "earthquake"), ("震度", "earthquake"), ("餘震", "earthquake"), ("強震", "earthquake"),
     ("土石流", "debris_flow"), ("崩塌", "debris_flow"),
-    ("海水倒灌", "flood"), ("海嘯", "tsunami"),
+    ("海水倒灌", "flood"), ("海嘯", "tsunami"), ("海水", "tsunami"),
     ("淹水", "flood"), ("水災", "flood"), ("豪雨", "flood"), ("大雨", "flood"), ("積水", "flood"),
 ]
 # 本身就在問警戒或分級的詞：「黃色警戒是什麼意思」「震度 5 弱」沒有災害名稱也知道是知識題
@@ -545,8 +547,11 @@ ALERT_WORDS = ["警報", "警戒", "特報", "警訊", "震度", "波高", "分�
 KNOWLEDGE_INTENT = re.compile(
     r"怎麼辦|怎麼做|要怎麼|該怎麼|如何|怎樣|做什麼|該做|要做|準備|注意|須知|"
     r"是什麼|什麼意思|意思|代表|差別|差在|不同|區別|標準|定義|前兆|徵兆|跡象|"
-    r"什麼時候|何時|為什麼|多少算|才算|可以回|能回|會怎|出門"
+    r"什麼時候|何時|為什麼|多少算|才算|可以回|能回|會怎|出門|什麼是|方向"
 )
+# 是非問句也是在問做法：「住山坡地颱風前要撤離嗎」「地震時可以跑出去嗎」。
+# 只在沒有要避難所時算：「颱風天避難所還有空位嗎」問的是避難所
+YES_NO_INTENT = re.compile(r"(?:可以|能不能|能|要不要|要|該|需要|會)[^，,。？?]{0,6}嗎")
 # 同一句還在要避難所：兩邊都查（「颱風要準備什麼，花蓮市有哪些避難所」）。
 # 「往哪裡跑」不算：海嘯的答案是「往高處」，不是一串避難所
 SHELTER_REQUEST_WORDS = ["避難所", "收容所", "收容處所", "避難處所", "避難收容", "空位", "容量"]
@@ -558,6 +563,30 @@ WEATHER_WORDS = {"天氣", "下雨", "氣溫", "溫度", "降雨"}
 class KnowledgeRequest:
     hazards: list[str]
     mixed: bool  # 同時要避難所資料
+    # 拿去檢索知識文件的句子。混合題只用問做法的那半句：
+    # 整句去比的話「花蓮市有哪些避難所」會把結果帶偏（實測第一段只對一半）
+    search_text: str = ""
+
+
+CLAUSE_SPLIT = re.compile(r"[，,。；;？?！!]")
+
+
+def _split_clauses(query: str) -> tuple[list[str], list[str]]:
+    """(問做法的子句, 要避難所的子句)"""
+    clauses = [c for c in CLAUSE_SPLIT.split(query) if c.strip()]
+    shelter = [c for c in clauses if any(word in c for word in SHELTER_REQUEST_WORDS)]
+    return [c for c in clauses if c not in shelter], shelter
+
+
+def _knowledge_clauses(query: str) -> str:
+    kept, _ = _split_clauses(query)
+    return "，".join(kept) if kept else query
+
+
+def shelter_clauses(query: str) -> str:
+    """混合題交給模型的那半句：「颱風要準備什麼，花蓮市有哪些避難所」→「花蓮市有哪些避難所」"""
+    _, kept = _split_clauses(query)
+    return "，".join(kept) if kept else query
 
 
 def knowledge_request(query: str) -> KnowledgeRequest | None:
@@ -567,14 +596,19 @@ def knowledge_request(query: str) -> KnowledgeRequest | None:
     """
     query = query or ""
     hazards = []
+    rest = query
     for word, hazard in KNOWLEDGE_HAZARD_WORDS:
-        if word in query and hazard not in hazards:
-            hazards.append(hazard)
+        if word in rest:
+            rest = rest.replace(word, "")
+            if hazard not in hazards:
+                hazards.append(hazard)
     has_alert = any(word in query for word in ALERT_WORDS)
     if not (hazards or has_alert):
         return None
-    if not (has_alert or KNOWLEDGE_INTENT.search(query)):
+    mixed = any(word in query for word in SHELTER_REQUEST_WORDS)
+    asks_how = KNOWLEDGE_INTENT.search(query) or (not mixed and YES_NO_INTENT.search(query))
+    if not (has_alert or asks_how):
         return None
     if any(word in query for word in OFF_TOPIC_WORDS if word not in WEATHER_WORDS):
         return None
-    return KnowledgeRequest(hazards=hazards, mixed=any(word in query for word in SHELTER_REQUEST_WORDS))
+    return KnowledgeRequest(hazards=hazards, mixed=mixed, search_text=_knowledge_clauses(query) if mixed else query)
