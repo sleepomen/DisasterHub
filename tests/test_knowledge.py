@@ -7,12 +7,10 @@ import pytest
 from services import query_rules
 from services.chat_service import (
     KNOWLEDGE_HEADER,
-    KNOWLEDGE_SYSTEM_PROMPT,
     KNOWLEDGE_UNAVAILABLE,
     NO_KNOWLEDGE_REPLY,
     NO_RELEVANT_REPLY,
     SHELTER_HEADER,
-    SYSTEM_PROMPT,
     ChatService,
 )
 from services.knowledge import (
@@ -202,15 +200,26 @@ def make_service(knowledge):
     return ChatService(vs, FakeRepo(), knowledge=knowledge)
 
 
-def test_knowledge_question_gets_knowledge_context_filtered_by_hazard():
+def test_knowledge_question_is_answered_with_the_passage_itself():
+    """純知識題不打模型：回答就是原文加出處（實測 3B 模型把撤離方向講反）"""
     knowledge = FakeKnowledge()
     svc = make_service(knowledge)
     context, early = svc.build_context("土石流紅色警戒是什麼意思")
-    assert early is None
-    assert context.startswith(KNOWLEDGE_HEADER) and "■ 土石流黃色警戒" in context
-    assert SHELTER_HEADER not in context
+    assert context is None
+    assert early == (
+        f"■ {CHUNK.title}\n{CHUNK.text}\n\n資料來源：\n"
+        "- 農村水保署〈警戒發布及作為〉 https://246.ardswc.gov.tw/DebrisFlow/AlertPublish"
+    )
     assert knowledge.searched == [("土石流紅色警戒是什麼意思", ["debris_flow"])]
     svc.vector_store.search.assert_not_called()
+
+
+def test_knowledge_answer_never_calls_the_model():
+    svc = make_service(FakeKnowledge())
+    with patch("services.chat_service.requests.post") as post:
+        text = svc.chat("土石流紅色警戒是什麼意思")
+    post.assert_not_called()
+    assert text.startswith("■ 土石流黃色警戒") and "https://246.ardswc.gov.tw" in text
 
 
 def test_knowledge_question_far_from_every_chunk_gets_fixed_reply():
@@ -239,32 +248,38 @@ def test_mixed_question_without_knowledge_hits_is_a_plain_shelter_question():
     assert early is None and KNOWLEDGE_HEADER not in context
 
 
-def test_knowledge_prompt_uses_knowledge_rules_and_system_prompt():
+def test_mixed_prompt_gives_the_model_only_the_shelter_half():
+    """知識原文由程式送，模型只看到避難所資料與「富里鄉有哪些避難所」，沒機會改寫知識"""
     svc = make_service(FakeKnowledge())
-    context, _ = svc.build_context("土石流紅色警戒是什麼意思")
-    prompt = svc.build_prompt("土石流紅色警戒是什麼意思", context)
-    assert prompt.startswith(KNOWLEDGE_HEADER) and SHELTER_HEADER not in prompt
-    assert svc._payload(prompt, False)["system"] == KNOWLEDGE_SYSTEM_PROMPT
-    shelter_prompt = svc.build_prompt("富里鄉有哪些避難所", "- 富里國小")
-    assert svc._payload(shelter_prompt, False)["system"] == SYSTEM_PROMPT
+    question = "土石流紅色警戒要準備什麼，富里鄉有哪些避難所"
+    context, _ = svc.build_context(question)
+    prompt = svc.build_prompt(question, context)
+    assert KNOWLEDGE_HEADER not in prompt and CHUNK.text not in prompt
+    assert "富里國小" in prompt
+    assert "【使用者問題】\n富里鄉有哪些避難所\n" in prompt
 
 
-def test_stream_appends_sources_and_keeps_lines_quoting_the_material():
-    """「公所」「避難處所」是資料原文：回答防護不能把引用知識資料的那一行當成編造的避難所拿掉"""
+def test_mixed_stream_sends_passage_then_shelters_then_sources():
     svc = make_service(FakeKnowledge())
-    reply = ndjson("紅色警戒時：\n", "1. 依鄉鎮市區公所與警消單位的安排前往安全的避難處所。\n", "2. 立即疏散。")
+    reply = ndjson("富里國小：富里鄉，容量 120 人。\n")
     with patch("services.chat_service.requests.post", return_value=FakeStream(reply)):
-        text = svc.chat("土石流紅色警戒是什麼意思")
-    assert "依鄉鎮市區公所與警消單位的安排" in text
-    assert text.endswith("- 農村水保署〈警戒發布及作為〉 https://246.ardswc.gov.tw/DebrisFlow/AlertPublish")
+        text = svc.chat("土石流紅色警戒要準備什麼，富里鄉有哪些避難所")
+    passage = text.index(CHUNK.text)
+    shelters = text.index("富里國小：富里鄉")
+    sources = text.index("資料來源：")
+    assert passage < shelters < sources
 
 
-def test_stream_drops_invented_shelter_lines_in_knowledge_answers():
+def test_mixed_question_with_no_shelter_data_still_gets_the_passage():
     svc = make_service(FakeKnowledge())
-    reply = ndjson("1. 立即疏散。\n", "2. 可以前往花蓮社區活動中心，容量 50 人。\n")
-    with patch("services.chat_service.requests.post", return_value=FakeStream(reply)):
-        text = svc.chat("土石流紅色警戒是什麼意思")
-    assert "花蓮社區活動中心" not in text and "立即疏散" in text
+    svc.vector_store.search.return_value = "找不到相關避難所資料。"
+    context, early = svc.build_context("土石流紅色警戒要準備什麼，富里鄉有哪些避難所")
+    assert context is None and early.startswith(f"■ {CHUNK.title}")
+
+
+def test_shelter_clauses_keeps_only_the_shelter_half():
+    assert query_rules.shelter_clauses("颱風要準備什麼，花蓮市有哪些避難所") == "花蓮市有哪些避難所"
+    assert query_rules.shelter_clauses("宜蘭有哪些避難所") == "宜蘭有哪些避難所"
 
 
 def test_fixed_replies_have_no_sources():
@@ -276,3 +291,37 @@ def test_no_knowledge_reply_counts_as_an_abstention():
     from evals.gen_metrics import is_abstention
     assert is_abstention(NO_KNOWLEDGE_REPLY)
     assert NO_RELEVANT_REPLY != NO_KNOWLEDGE_REPLY
+
+
+@pytest.mark.parametrize("query, hazards", [
+    ("住山坡地颱風前要撤離嗎", ["typhoon"]),   # 是非問句也是問做法
+    ("地震時可以跑出去嗎", ["earthquake"]),
+    ("什麼是土石流", ["debris_flow"]),
+    ("土石流要撤離的時候要往哪個方向", ["debris_flow"]),
+    ("海水突然退很多代表什麼", ["tsunami"]),    # 沒有「海嘯」兩個字
+    ("海水倒灌要注意什麼", ["flood"]),          # 「海水倒灌」是淹水，不能再被算成海嘯
+])
+def test_knowledge_request_covers_misses_found_by_the_eval(query, hazards):
+    req = query_rules.knowledge_request(query)
+    assert req is not None and req.hazards == hazards
+
+
+def test_yes_no_question_about_shelters_is_not_a_knowledge_question():
+    assert query_rules.knowledge_request("颱風天避難所還有空位嗎") is None
+
+
+def test_mixed_question_searches_knowledge_with_the_how_to_clause_only():
+    req = query_rules.knowledge_request("颱風要準備什麼，花蓮市有哪些避難所")
+    assert req.mixed and req.search_text == "颱風要準備什麼"
+    knowledge = FakeKnowledge()
+    make_service(knowledge).build_context("土石流紅色警戒要準備什麼，富里鄉有哪些避難所")
+    assert knowledge.searched == [("土石流紅色警戒要準備什麼", ["debris_flow"])]
+
+
+def test_mixed_question_asking_for_nearby_shelters_gets_passage_and_coordinate_request():
+    """避難所那半句單獨看就是「附近收容所還有空位嗎」：要座標，不能交給模型憑空列避難所"""
+    svc = make_service(FakeKnowledge())
+    with patch("services.chat_service.requests.post") as post:
+        text = svc.chat("土石流紅色警戒要準備什麼，附近收容所還有空位嗎")
+    post.assert_not_called()
+    assert text.index(CHUNK.text) < text.index("請提供您的座標") < text.index("資料來源：")
