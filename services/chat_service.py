@@ -11,6 +11,7 @@ import config
 from services import query_rules
 from services.answer_guard import LineGuard, filter_lines, supported_names
 from services.evacuation import HAZARD_LABELS, HAZARD_WARN_M, split_hazard_hits
+from services.knowledge import KnowledgeChunk, KnowledgeHit, KnowledgeStore, sources_text
 from services.metrics import metrics
 from services.routing import nearest_by_road
 from services.shelter_profile import aliases_of, strip_region_tag
@@ -28,6 +29,29 @@ SYSTEM_PROMPT = """你是台灣東部（宜蘭、花蓮、台東）災害避難�
 4. 只有在【避難所資料】明確寫著沒有資料，或問題與避難所完全無關（例如天氣、補助申請）時，才回答「目前沒有相關資料」。
 5. 回答要簡潔務實，重點放在避難所名稱、地點、容量與剩餘空位。
 6. 不要自我介紹、不要寒暄、不要反問，直接回答。"""
+
+# 防災知識題（應變方式、警戒等級）用的系統提示。避難所那份的規則是「只能根據【避難所資料】」，
+# 套在知識題上模型會回「目前沒有相關資料」
+KNOWLEDGE_SYSTEM_PROMPT = """你是台灣東部（宜蘭、花蓮、台東）災害避難所管理系統的防災助手。
+規則：
+1. 只能使用繁體中文，不可以出現任何英文單字、簡體中文或 emoji，也不要用符號裝飾。
+2. 只能根據【防災知識資料】與【避難所資料】回答，不可以推測，也不可以補充資料裡沒有的做法。雨量、風速、震度、時數、波高等數字要原樣引用。
+3. 每個數字只能用在資料裡它所屬的那一項，不可以自己比較或歸納出資料沒寫的差異。
+4. 資料是系統依照問題挑出來的官方防災須知，問題問到的部分直接用它回答；資料沒有提到的部分，說明資料裡沒有這部分的說明，不要自己補。
+5. 回答要簡潔，用條列寫出要做的事，最重要的行動放在最前面。
+6. 不要自我介紹、不要寒暄、不要反問，直接回答。不要寫出處或網址，系統會自動附上。"""
+
+# prompt 裡的知識資料區塊；每段以「■ 標題」開頭，回答後依標題找回出處
+KNOWLEDGE_HEADER = "【防災知識資料】"
+SHELTER_HEADER = "【避難所資料】"
+KNOWLEDGE_MARK = "■ "
+# 知識路由的固定回覆。開頭用「目前沒有相關資料」：evals/gen_metrics.py 的 ABSTAIN_MARKERS 認得
+NO_KNOWLEDGE_REPLY = (
+    "目前沒有相關資料：防災知識資料裡沒有這個問題的說明。"
+    "本系統的防災知識涵蓋颱風、地震、土石流、海嘯、豪雨與淹水的應變方式與警戒等級；"
+    "實際的警戒與撤離，請以中央氣象署、農村水保署與地方政府的公告為準。"
+)
+KNOWLEDGE_UNAVAILABLE = "防災知識資料目前無法使用，請稍後再試。"
 
 # 檢索層判定沒有相關資料（索引空的、或最接近的文件也離得太遠）時的固定回覆，不必打 LLM
 NO_RELEVANT_REPLY = "目前沒有相關資料。本系統只回答宜蘭、花蓮、台東三縣的避難所資訊，請改問避難所的位置、容量或剩餘空位。"
@@ -88,6 +112,9 @@ ROUTE_COUNTERS = (
     "chat.route.unknown_name",
     "chat.route.no_clue",
     "chat.route.rag",
+    # 防災知識：只有知識、知識加避難所
+    "chat.route.knowledge",
+    "chat.route.knowledge_mixed",
     "chat.route.context_error",
 )
 # 答案從哪裡來，以及生成的結局
@@ -160,6 +187,19 @@ def unknown_shelter_reply(name: str, shelters: list[dict]) -> str:
     example = next((m["township"] for m in similar if m.get("township")), "頭城鎮")
     lines.append(f"如果要找的是其他地方，可以告訴我鄉鎮名稱，例如「{example}有哪些避難所」。")
     return "\n".join(lines)
+
+
+def knowledge_context(hits: list[KnowledgeHit]) -> str:
+    blocks = [f"{KNOWLEDGE_MARK}{h.chunk.title}\n{h.chunk.text}" for h in hits]
+    return KNOWLEDGE_HEADER + "\n" + "\n\n".join(blocks)
+
+
+def knowledge_section(text: str) -> str:
+    """prompt 或 context 裡知識資料那一段（到下一個【…】為止）；沒有就回空字串"""
+    if KNOWLEDGE_HEADER not in text:
+        return ""
+    section = text.split(KNOWLEDGE_HEADER, 1)[1]
+    return section.split("【", 1)[0]
 
 
 def format_people(n) -> str:
@@ -274,9 +314,11 @@ def evacuation_lines(plan: dict) -> list[str]:
 
 
 class ChatService:
-    def __init__(self, vector_store: VectorStore, repo=None):
+    def __init__(self, vector_store: VectorStore, repo=None, knowledge: KnowledgeStore | None = None):
         self.vector_store = vector_store
         self.repo = repo
+        # 沒有給（測試、評測腳本）時知識題回固定的「無法使用」，其他路由照常
+        self.knowledge = knowledge
         # 模擬快照是全域共用狀態，會被請求執行緒同時讀寫：
         # 寫入一律持鎖，讀取一律拿深拷貝，就不會讀到改到一半的清單
         self._lock = threading.Lock()
@@ -474,7 +516,63 @@ class ChatService:
         4. 模擬進行中的追問（建議 / 空間 / 缺口）→ 模擬快照
         5. 沒模擬卻要疏散建議 → 請先跑模擬
         6. 其餘 → 規則層篩選 + ChromaDB 語意檢索（容量排名也走這裡）
+
+        在這些之前先看是不是防災知識題（「颱風前要準備什麼」「黃色警戒是什麼意思」）：
+        只問知識的直接查知識文件；同時要避難所的，兩邊都查、資料合在一起。
+        模擬相關的問題優先走模擬，「模擬中怎麼疏散」要的是這次的分配，不是一般須知
         """
+        knowledge = query_rules.knowledge_request(user_message)
+        if knowledge is None or self._is_simulation_query(user_message):
+            return self._shelter_context(user_message)
+
+        if not knowledge.mixed:
+            metrics.route("knowledge")
+            hits = self._knowledge_hits(user_message, knowledge.hazards)
+            if hits is None:
+                return None, KNOWLEDGE_UNAVAILABLE
+            if not hits:
+                return None, NO_KNOWLEDGE_REPLY
+            return knowledge_context(hits), None
+
+        hits = self._knowledge_hits(user_message, knowledge.hazards)
+        context, early_reply = self._shelter_context(user_message)
+        if not hits:
+            # 知識那邊沒東西就跟沒有這條路由一樣
+            return context, early_reply
+        metrics.route("knowledge_mixed")
+        if context is None:
+            # 避難所那邊只是「沒有相關資料」時，知識照樣回答；範圍外、要座標這些固定回覆照舊
+            if early_reply == NO_RELEVANT_REPLY:
+                return knowledge_context(hits), None
+            return None, early_reply
+        return f"{knowledge_context(hits)}\n\n{SHELTER_HEADER}\n{context}", None
+
+    def _knowledge_hits(self, user_message: str, hazards: list[str]) -> list[KnowledgeHit] | None:
+        """距離門檻以內的知識段落；知識庫沒載入或查詢失敗回 None"""
+        if self.knowledge is None or not self.knowledge.ready():
+            return None
+        try:
+            hits = self.knowledge.search(user_message, hazards=hazards)
+        except Exception:
+            logger.exception("防災知識檢索失敗")
+            return None
+        hits = [h for h in hits if h.distance <= config.KNOWLEDGE_MAX_DISTANCE]
+        metrics.incr("knowledge.hit" if hits else "knowledge.no_match")
+        return hits
+
+    def knowledge_chunks(self, context: str | None) -> list[KnowledgeChunk]:
+        """context 裡送給模型的知識段落（依「■ 標題」找回），用來附出處"""
+        if self.knowledge is None or not context:
+            return []
+        by_title = {c.title: c for c in self.knowledge.chunks.values()}
+        titles = [
+            line[len(KNOWLEDGE_MARK):] for line in knowledge_section(context).splitlines()
+            if line.startswith(KNOWLEDGE_MARK)
+        ]
+        return [by_title[t] for t in titles if t in by_title]
+
+    def _shelter_context(self, user_message: str):
+        """避難所這一側的路由（build_context 的 1～6）"""
         names = known_names_of(self._shelter_metadata() or [])
         plan = query_rules.analyze(user_message, known_names=names)
         if plan.out_of_scope:
@@ -587,7 +685,9 @@ class ChatService:
         配上檢索結果裡另一間學校的鄉鎮與容量。收容人數本來就已經回寫進資料庫與向量文件，
         一般檢索看到的負載跟模擬一致，不需要再靠摘要補
         """
-        full_context = f"【避難所資料】\n{shelter_context}"
+        if shelter_context.startswith(KNOWLEDGE_HEADER):
+            return self.build_knowledge_prompt(user_message, shelter_context)
+        full_context = f"{SHELTER_HEADER}\n{shelter_context}"
         summary = self._simulation_summary() if with_simulation else ""
         if summary:
             full_context += f"\n\n【目前災害模擬結果】\n{summary}"
@@ -603,6 +703,21 @@ class ChatService:
 2. 列舉多間避難所時每間一行，格式「名稱：鄉鎮，容量 N 人，剩餘空位 M 人」，把資料裡符合的全部列完，不要省略。
 3. 資料裡的數字原樣引用，不要自行加總或改寫。
 4. 只能用繁體中文，不得出現英文。"""
+
+    @staticmethod
+    def build_knowledge_prompt(user_message: str, context: str) -> str:
+        rules = ["先回答問題本身：依【防災知識資料】條列要做的事，或說明警戒、分級的意義，數字原樣引用。"]
+        if SHELTER_HEADER in context:
+            rules.append("接著依【避難所資料】列出相關避難所，每間一行，格式「名稱：鄉鎮，容量 N 人，剩餘空位 M 人」。")
+        rules += ["只回答資料裡有的內容，不要寫出處或網址。", "只能用繁體中文，不得出現英文。"]
+        numbered = "\n".join(f"{i}. {rule}" for i, rule in enumerate(rules, 1))
+        return f"""{context}
+
+【使用者問題】
+{user_message}
+
+回答要求：
+{numbered}"""
 
     def chat_stream(self, user_message: str):
         """
@@ -633,6 +748,8 @@ class ChatService:
         if typo:
             yield {"type": "delta", "text": typo + "\n"}
         prompt = self.build_prompt(user_message, shelter_context, with_simulation=metrics.last_route() == "simulation")
+        # 出處由程式附在最後：模型會把網址抄錯，系統提示也不准它寫英文
+        cited = self.knowledge_chunks(shelter_context)
         reply_chars = 0
         guard = LineGuard(self.prompt_names(prompt))
         try:
@@ -672,12 +789,19 @@ class ChatService:
             notes = hazard_lines((self._snapshot() or {}).get("evacuation") or {})
             if notes:
                 yield {"type": "delta", "text": "\n\n" + "\n".join(notes)}
+        if cited:
+            yield {"type": "delta", "text": "\n\n" + sources_text(cited)}
         metrics.incr("chat.generation.ok")
         self._log_summary("generated", "ok", len(shelter_context), reply_chars, started)
 
     def prompt_names(self, prompt: str) -> list[str]:
-        """prompt 裡出現的避難所名稱（顯示名稱或別名）：回答只能講這些"""
-        return supported_names(prompt, known_names_of(self._shelter_metadata() or []))
+        """
+        prompt 裡出現的避難所名稱（顯示名稱或別名）：回答只能講這些。
+        知識題另外把知識資料整段當成「有根據」：「依鄉鎮市區公所的安排」裡的「公所」是資料原文，不是編出來的避難所
+        """
+        names = supported_names(prompt, known_names_of(self._shelter_metadata() or []))
+        section = knowledge_section(prompt)
+        return names + [section] if section else names
 
     def guard_reply(self, reply: str, prompt: str) -> tuple[str, list[str]]:
         """非串流版的回答防護（評測用），跟 chat_stream 的 LineGuard 是同一套判斷"""
@@ -705,7 +829,7 @@ class ChatService:
         """生成請求的內容。串流與非串流共用同一份，評測量到的才跟線上同一個模型設定"""
         return {
             "model": config.OLLAMA_MODEL,
-            "system": SYSTEM_PROMPT,
+            "system": KNOWLEDGE_SYSTEM_PROMPT if KNOWLEDGE_HEADER in prompt else SYSTEM_PROMPT,
             "prompt": prompt,
             "stream": stream,
             "options": {
