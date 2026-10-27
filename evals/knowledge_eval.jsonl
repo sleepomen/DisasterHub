@@ -1,0 +1,56 @@
+{"query": "颱風來之前要準備什麼", "kind": "positive", "relevant": ["typhoon-before-home"], "facts": ["門窗", "水溝"], "note": "最基本的災前準備"}
+{"query": "颱風快來了家裡該做哪些準備", "kind": "positive", "relevant": ["typhoon-before-home"], "facts": ["門窗"], "note": "換個說法"}
+{"query": "住山坡地颱風前要撤離嗎", "kind": "positive", "relevant": ["typhoon-before-evacuate"], "facts": ["預防性疏散撤離"], "note": "誰要提早撤離"}
+{"query": "陸上颱風警報什麼時候發布", "kind": "positive", "relevant": ["typhoon-warning"], "facts": ["18 小時"], "note": "警報發布時機的數字"}
+{"query": "海上颱風警報是什麼意思", "kind": "positive", "relevant": ["typhoon-warning"], "facts": ["24 小時", "100 公里"], "note": "海警的定義"}
+{"query": "颱風警報什麼時候解除", "kind": "positive", "relevant": ["typhoon-warning-lifted"], "facts": ["7 級風暴風範圍"], "note": "解除條件"}
+{"query": "中度颱風的標準是什麼", "kind": "positive", "relevant": ["typhoon-intensity"], "facts": ["32.7", "50.9"], "note": "強度分級數字"}
+{"query": "颱風來的時候要注意什麼", "kind": "positive", "relevant": ["typhoon-during"], "facts": ["地下室"], "note": "颱風時"}
+{"query": "颱風風突然變小可以出門嗎", "kind": "positive", "relevant": ["typhoon-during"], "facts": ["颱風眼"], "note": "颱風眼"}
+{"query": "颱風時要怎麼疏散避難", "kind": "positive", "relevant": ["typhoon-evacuation", "typhoon-before-evacuate"], "facts": ["防災避難看板"], "note": "疏散方式（沒有模擬時）"}
+{"query": "颱風過後要注意什麼", "kind": "positive", "relevant": ["typhoon-after"], "facts": ["煮沸"], "note": "災後"}
+{"query": "地震的時候在家裡要怎麼辦", "kind": "positive", "relevant": ["earthquake-during-indoor"], "facts": ["趴下、掩護、穩住"], "note": "最常見的地震題"}
+{"query": "地震時可以跑出去嗎", "kind": "positive", "relevant": ["earthquake-during-indoor", "earthquake-during-outdoor"], "facts": ["不要"], "note": "不要衝出去"}
+{"query": "開車遇到地震怎麼辦", "kind": "positive", "relevant": ["earthquake-during-outdoor"], "facts": ["警示燈"], "note": "開車"}
+{"query": "地震前要先準備什麼", "kind": "positive", "relevant": ["earthquake-before"], "facts": ["滅火器"], "note": "地震前"}
+{"query": "地震過後要做什麼", "kind": "positive", "relevant": ["earthquake-after"], "facts": ["瓦斯"], "note": "地震後"}
+{"query": "地震後房子有裂縫怎麼辦", "kind": "positive", "relevant": ["earthquake-after-damaged"], "facts": ["集合地點"], "note": "房屋受損"}
+{"query": "地震被困住出不去該怎麼做", "kind": "positive", "relevant": ["earthquake-trapped"], "facts": ["119"], "note": "受困"}
+{"query": "震度5弱會怎樣", "kind": "positive", "relevant": ["earthquake-intensity-mid"], "facts": ["難以走動"], "note": "單一震度"}
+{"query": "震度4級是什麼感覺", "kind": "positive", "relevant": ["earthquake-intensity-mid"], "facts": ["恐懼"], "note": "4 級在中段那一段"}
+{"query": "震度7級代表什麼", "kind": "positive", "relevant": ["earthquake-intensity-high"], "facts": ["劇震"], "note": "最高級"}
+{"query": "震度跟規模有什麼不同", "kind": "positive", "relevant": ["earthquake-intensity-scale"], "facts": ["能量"], "note": "概念題"}
+{"query": "土石流黃色警戒是什麼意思", "kind": "positive", "relevant": ["debris-flow-alert"], "facts": ["準備"], "note": "黃色警戒"}
+{"query": "土石流紅色警戒要撤離嗎", "kind": "positive", "relevant": ["debris-flow-alert"], "facts": ["疏散"], "note": "紅色警戒"}
+{"query": "紅色警戒是什麼意思", "kind": "positive", "relevant": ["debris-flow-alert"], "facts": ["警戒值"], "note": "沒有災害名稱：只有土石流有紅色警戒"}
+{"query": "土石流發生前有什麼徵兆", "kind": "positive", "relevant": ["debris-flow-signs"], "facts": ["混濁"], "note": "前兆"}
+{"query": "土石流警戒值怎麼訂的", "kind": "positive", "relevant": ["debris-flow-threshold"], "facts": ["200", "650"], "note": "警戒基準值"}
+{"query": "土石流要撤離的時候要往哪個方向", "kind": "positive", "relevant": ["debris-flow-evacuate"], "facts": ["兩側"], "note": "撤離方向"}
+{"query": "什麼是土石流", "kind": "positive", "relevant": ["debris-flow-about"], "facts": ["重力"], "note": "定義"}
+{"query": "海嘯警報和海嘯警訊差在哪", "kind": "positive", "relevant": ["tsunami-info-types"], "facts": ["3 小時", "6 小時"], "note": "三種海嘯資訊"}
+{"query": "海嘯警報發布了要怎麼避難", "kind": "positive", "relevant": ["tsunami-response"], "facts": ["高處"], "note": "應變"}
+{"query": "海水突然退很多代表什麼", "kind": "positive", "relevant": ["tsunami-signs"], "facts": ["高處"], "note": "前兆，問法跟文件不一樣"}
+{"query": "海嘯第一波過後可以回家嗎", "kind": "positive", "relevant": ["tsunami-after"], "facts": ["第二波"], "note": "不能回去"}
+{"query": "海嘯波高分級是什麼", "kind": "positive", "relevant": ["tsunami-wave-grades"], "facts": ["0.3"], "note": "分級表"}
+{"query": "豪雨的標準是多少", "kind": "positive", "relevant": ["heavy-rain-levels"], "facts": ["200"], "note": "豪雨門檻"}
+{"query": "下雨多少算超大豪雨", "kind": "positive", "relevant": ["heavy-rain-levels"], "facts": ["500"], "note": "有離題詞「下雨」"}
+{"query": "淹水警戒一級是什麼意思", "kind": "positive", "relevant": ["flood-alert"], "facts": ["1 小時"], "note": "待確認的那段"}
+{"query": "家裡快淹水了要準備什麼", "kind": "positive", "relevant": ["flood-before"], "facts": ["高處"], "note": "淹水前"}
+{"query": "淹水的時候要怎麼避難", "kind": "positive", "relevant": ["flood-during"], "facts": ["垂直避難"], "note": "淹水時"}
+{"query": "台北地震的時候要怎麼辦", "kind": "positive", "relevant": ["earthquake-during-indoor", "earthquake-during-outdoor"], "facts": ["趴下"], "note": "範圍外縣市：應變方式一樣要能答"}
+{"query": "火災要怎麼逃生", "kind": "negative", "note": "語料沒有火災；也沒有災害詞，不走知識路由"}
+{"query": "颱風天會停班停課嗎", "kind": "negative", "note": "停班停課不在語料"}
+{"query": "颱風要怎麼申請補助", "kind": "negative", "note": "補助是離題詞"}
+{"query": "地震保險要怎麼買", "kind": "negative", "note": "保險是離題詞"}
+{"query": "颱風警報怎麼收到簡訊通知", "kind": "negative", "note": "有警報詞但語料沒寫推播方式：只能靠距離門檻或模型自己說沒有"}
+{"query": "地震可以預測嗎", "kind": "negative", "note": "語料沒有地震預測"}
+{"query": "被土石流沖走的車子保險理賠怎麼辦", "kind": "negative", "note": "理賠、保險"}
+{"query": "颱風名字是怎麼取的", "kind": "negative", "note": "颱風命名不在語料"}
+{"query": "颱風要準備什麼，花蓮市有哪些避難所", "kind": "mixed", "relevant": ["typhoon-before-home"], "facts": ["門窗"], "note": "做法＋地區避難所"}
+{"query": "地震了在家要怎麼辦，附近收容所還有空位嗎", "kind": "mixed", "relevant": ["earthquake-during-indoor"], "facts": ["趴下"], "note": "做法＋收容所空位"}
+{"query": "土石流紅色警戒是什麼意思，富里鄉有哪些避難所", "kind": "mixed", "relevant": ["debris-flow-alert"], "facts": ["警戒值"], "note": "警戒＋鄉鎮避難所"}
+{"query": "海嘯警報要怎麼避難，台東市的避難所有哪些", "kind": "mixed", "relevant": ["tsunami-response"], "facts": ["高處"], "note": "海嘯＋鄉鎮避難所"}
+{"query": "地震了要去哪裡", "kind": "shelter", "note": "要的是避難所：不能被拉去知識路由"}
+{"query": "土石流要撤離到哪", "kind": "shelter", "note": "同上"}
+{"query": "颱風天哪裡可以躲", "kind": "shelter", "note": "同上"}
+{"query": "適用土石流的避難所有哪些", "kind": "shelter", "note": "災害詞是篩選條件，不是知識題"}
