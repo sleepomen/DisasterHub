@@ -20,6 +20,7 @@ sys.path.insert(0, ROOT)
 
 from models.shelter import NearbyShelter, Shelter  # noqa: E402
 from services.chat_service import ChatService  # noqa: E402
+from services.knowledge import KnowledgeHit, load_chunks  # noqa: E402
 from services.metrics import metrics  # noqa: E402
 
 DEFAULT_CASES = os.path.join(ROOT, "evals", "route_eval.jsonl")
@@ -50,6 +51,23 @@ class StubVectorStore:
         return [VectorStore.build_metadata(s) for s in DataFetcher().get_shelters()]
 
 
+class StubKnowledge:
+    """
+    知識路由也只看規則判斷，不需要 embedding。但「知識加避難所」要知識那邊真的有結果才算數，
+    所以替身回傳該災害的第一段（距離 0，一定在門檻內）
+    """
+
+    def __init__(self):
+        self.chunks = {c.id: c for c in load_chunks()}
+
+    def ready(self):
+        return True
+
+    def search(self, query, hazards=None, n=3):
+        pool = [c for c in self.chunks.values() if not hazards or c.hazard in hazards]
+        return [KnowledgeHit(pool[0], 0.0)] if pool else []
+
+
 class StubRepo:
     def get_nearest_shelters(self, lat, lon, limit=5):
         return [NearbyShelter(Shelter("[HUALIEN] 測試避難所", 100, 23.98, 121.60), distance_km=1.0)]
@@ -61,7 +79,7 @@ def load_cases(path: str) -> list[dict]:
 
 
 def run(cases: list[dict]) -> list[dict]:
-    service = ChatService(vector_store=StubVectorStore(), repo=StubRepo())
+    service = ChatService(vector_store=StubVectorStore(), repo=StubRepo(), knowledge=StubKnowledge())
     rows = []
     for case in cases:
         if case.get("simulation"):

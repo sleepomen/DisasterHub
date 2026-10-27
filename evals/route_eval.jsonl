@@ -44,3 +44,13 @@
 {"query": "我們一家五口可以去哪", "expected_route": "rag", "simulation": false, "note": "沒有地名但「去哪」是在找地方，不能被擋"}
 {"query": "地震了要去哪裡", "expected_route": "rag", "simulation": false, "note": "災害詞是線索"}
 {"query": "這次模擬每間避難所分配了多少人？有沒有避難所被排除？", "expected_route": "simulation", "simulation": true, "note": "模擬進行中問分配與排除：走全域檢索時模型會把不相干的避難所混進來"}
+{"query": "颱風來之前要準備什麼", "expected_route": "knowledge", "simulation": false, "note": "災害詞＋「準備」：問的是做法，不是避難所"}
+{"query": "土石流黃色警戒是什麼意思", "expected_route": "knowledge", "simulation": false, "note": "警戒詞＋「什麼意思」"}
+{"query": "震度5弱會怎樣", "expected_route": "knowledge", "simulation": false, "note": "震度本身就是在問分級"}
+{"query": "台北地震的時候要怎麼辦", "expected_route": "knowledge", "simulation": false, "note": "應變方式跟縣市無關，不能被範圍外擋掉"}
+{"query": "下雨多少算豪雨", "expected_route": "knowledge", "simulation": false, "note": "「下雨」是離題詞，但在知識題裡是正常用語"}
+{"query": "颱風要準備什麼，花蓮市有哪些避難所", "expected_route": "knowledge_mixed", "simulation": false, "note": "同時問做法與避難所：兩邊都查"}
+{"query": "地震了在家要怎麼辦，附近收容所還有空位嗎", "expected_route": "knowledge_mixed", "simulation": false, "note": "做法＋收容所空位"}
+{"query": "颱風天會停班停課嗎", "expected_route": "off_topic", "simulation": false, "note": "知識文件沒有停班停課；不擋的話會拿颱風注意事項來答"}
+{"query": "颱風要怎麼申請補助", "expected_route": "off_topic", "simulation": false, "note": "有災害詞也有「怎麼」，但補助不是知識文件的範圍"}
+{"query": "地震時有什麼建議", "expected_route": "simulation", "simulation": true, "note": "模擬進行中的「建議」要看這次的模擬，不是一般須知"}
