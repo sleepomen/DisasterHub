@@ -102,6 +102,8 @@ OFF_TOPIC_WORDS = [
     "補助", "紓困", "津貼", "理賠", "保險",
     "醫院", "診所", "藥局", "加油站", "超商", "便利商店", "停車場", "郵局", "銀行",
     "餐廳", "飯店", "民宿", "公車", "火車", "機場",
+    # 防災知識文件沒有停班停課的規定；不擋的話「颱風天會停班停課嗎」會拿颱風注意事項來答
+    "停班", "停課",
 ]
 
 # 同一句話同時提到避難主題時就不算離題：「下雨天要去哪個避難所」問的是避難所，
@@ -526,3 +528,53 @@ def typo_correction(query: str, known_names: list[str]) -> tuple[str, str] | Non
     """問句點名的場所跟某間避難所只差一個字時，回傳 (問句裡的寫法, 真實名稱)"""
     found = match_named_facility(query, known_names)
     return (found.fragment, found.typo_of) if found and found.typo_of else None
+
+
+# ---- 防災知識路由 ----------------------------------------------------------
+# 災害詞 → 知識文件的 hazard（data_reference/knowledge）。「海水倒灌」在淹水那份文件裡
+KNOWLEDGE_HAZARD_WORDS = [
+    ("颱風", "typhoon"), ("海警", "typhoon"), ("陸警", "typhoon"),
+    ("地震", "earthquake"), ("震度", "earthquake"), ("餘震", "earthquake"), ("強震", "earthquake"),
+    ("土石流", "debris_flow"), ("崩塌", "debris_flow"),
+    ("海水倒灌", "flood"), ("海嘯", "tsunami"),
+    ("淹水", "flood"), ("水災", "flood"), ("豪雨", "flood"), ("大雨", "flood"), ("積水", "flood"),
+]
+# 本身就在問警戒或分級的詞：「黃色警戒是什麼意思」「震度 5 弱」沒有災害名稱也知道是知識題
+ALERT_WORDS = ["警報", "警戒", "特報", "警訊", "震度", "波高", "分級", "等級", "幾級", "輕度颱風", "中度颱風", "強烈颱風"]
+# 問「怎麼做、是什麼意思」的說法。光有災害詞不算：「地震了要去哪裡」「土石流要撤離到哪」問的是避難所
+KNOWLEDGE_INTENT = re.compile(
+    r"怎麼辦|怎麼做|要怎麼|該怎麼|如何|怎樣|做什麼|該做|要做|準備|注意|須知|"
+    r"是什麼|什麼意思|意思|代表|差別|差在|不同|區別|標準|定義|前兆|徵兆|跡象|"
+    r"什麼時候|何時|為什麼|多少算|才算|可以回|能回|會怎|出門"
+)
+# 同一句還在要避難所：兩邊都查（「颱風要準備什麼，花蓮市有哪些避難所」）。
+# 「往哪裡跑」不算：海嘯的答案是「往高處」，不是一串避難所
+SHELTER_REQUEST_WORDS = ["避難所", "收容所", "收容處所", "避難處所", "避難收容", "空位", "容量"]
+# 天氣、下雨這類離題詞在知識題裡是正常用語（「下雨多少算豪雨」），不擋；其餘離題詞（補助、保險）照擋
+WEATHER_WORDS = {"天氣", "下雨", "氣溫", "溫度", "降雨"}
+
+
+@dataclass
+class KnowledgeRequest:
+    hazards: list[str]
+    mixed: bool  # 同時要避難所資料
+
+
+def knowledge_request(query: str) -> KnowledgeRequest | None:
+    """
+    問句是不是在問防災知識（應變方式、警戒等級）。判斷順序在範圍外與離題之前：
+    「台北地震時要怎麼辦」的答案跟縣市無關，不該被範圍外擋掉
+    """
+    query = query or ""
+    hazards = []
+    for word, hazard in KNOWLEDGE_HAZARD_WORDS:
+        if word in query and hazard not in hazards:
+            hazards.append(hazard)
+    has_alert = any(word in query for word in ALERT_WORDS)
+    if not (hazards or has_alert):
+        return None
+    if not (has_alert or KNOWLEDGE_INTENT.search(query)):
+        return None
+    if any(word in query for word in OFF_TOPIC_WORDS if word not in WEATHER_WORDS):
+        return None
+    return KnowledgeRequest(hazards=hazards, mixed=any(word in query for word in SHELTER_REQUEST_WORDS))
