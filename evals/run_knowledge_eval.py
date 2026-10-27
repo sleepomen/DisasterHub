@@ -7,7 +7,9 @@
   mixed     同時問做法與避難所：知識那邊要送對段落
   shelter   帶災害詞但其實在要避難所（「地震了要去哪裡」）：不能被拉去知識路由
 
-第一段只量路由與檢索，不需要 LLM；--generate 再對送出知識資料的題目真的生成，量：
+第一段只量路由與檢索，不需要 LLM。純知識題的回答就是程式直接給的原文（不經過模型），
+所以使用者看到的品質取決於 top1 / precision。--generate 再對混合題真的生成避難所那一半，
+並對所有送出知識的題目計分：
   facts      關鍵事實講到幾成（去掉空白後比對）
   num_ok     回答裡的每個數字都在送出的資料裡（條列編號不算）
   novel      找不到出處的句子比例：句子的字元三連組在資料裡出現不到一半就算。
@@ -15,7 +17,7 @@
   latin_ok   沒有資料以外的英文（PTWC、PGA 是原文就有的）
   abstained  正例被回成「沒有資料」的比例
 
-避難所那一側用路由評測的替身：混合題的避難所部分由生成評測負責，這裡只量知識部分。
+混合題的避難所那一半用真實資料（ShelterTextStore：依規則層抽出的鄉鎮直接挑文件，不做向量檢索）。
 
     python evals/run_knowledge_eval.py
     python evals/run_knowledge_eval.py --generate --label knowledge_llama3.2-3b
@@ -33,6 +35,8 @@ sys.path.insert(0, ROOT)
 
 import config  # noqa: E402
 from evals.gen_metrics import is_abstention  # noqa: E402
+from services import query_rules  # noqa: E402
+from services.chat_service import knowledge_text  # noqa: E402
 from services.metrics import metrics  # noqa: E402
 
 DEFAULT_CASES = os.path.join(ROOT, "evals", "knowledge_eval.jsonl")
@@ -41,8 +45,9 @@ KNOWLEDGE_ROUTES = {"knowledge", "knowledge_mixed"}
 EXPECTED_ROUTE = {"positive": "knowledge", "mixed": "knowledge_mixed"}
 
 NUMBER_RE = re.compile(r"\d+(?:\.\d+)?")
-# 條列編號：「1.」「2、」「(3)」開頭的數字不是內容
-ENUMERATOR_RE = re.compile(r"^\s*(?:\(\d+\)|\d+\s*[.、．)）])", re.M)
+# 條列編號：「1.」「2、」「(3)」開頭的數字不是內容。
+# 模型常把「1. … 2. …」寫在同一行，所以行首或空白後面都算；後面不能再接數字，32.7 這種小數才不會被吃掉
+ENUMERATOR_RE = re.compile(r"(?:^|(?<=\s))(?:\(\d+\)|\d+\s*[.、．)）](?!\d))", re.M)
 LATIN_RE = re.compile(r"[A-Za-z]{2,}")
 SENTENCE_SPLIT = re.compile(r"[。！？；\n]")
 # 句子短於這個長度不判斷（「不要。」「立即疏散」這種短句三連組太少，比例沒意義）
@@ -122,14 +127,52 @@ def build_service(embedder_spec: str):
     import chromadb
 
     from evals.run_rag_eval import make_embedder
-    from evals.run_route_eval import StubRepo, StubVectorStore
+    from evals.run_route_eval import StubRepo
     from services.chat_service import ChatService
     from services.knowledge import KnowledgeStore
 
     knowledge = KnowledgeStore(embedding_function=make_embedder(embedder_spec), client=chromadb.Client())
     t0 = time.perf_counter()
     knowledge.build()
-    return ChatService(StubVectorStore(), StubRepo(), knowledge=knowledge), time.perf_counter() - t0
+    return ChatService(ShelterTextStore(), StubRepo(), knowledge=knowledge), time.perf_counter() - t0
+
+
+class ShelterTextStore:
+    """
+    混合題的避難所那一半用真實資料：依規則層抽出的鄉鎮／地區直接挑出避難所文件，不做向量檢索。
+    原本用路由評測的替身（一句「不是真的檢索結果」），實測模型就自己編出「花蓮市民中心 200 人」，
+    量到的是替身的問題，不是系統的
+    """
+    LIMIT = 10
+
+    def __init__(self):
+        from services.data_fetcher import DataFetcher
+        from services.vector_store import VectorStore
+        self.shelters = DataFetcher().get_shelters()
+        self.metadata = [VectorStore.build_metadata(s) for s in self.shelters]
+        self.documents = [VectorStore.build_document(s) for s in self.shelters]
+
+    def shelter_metadata(self):
+        return self.metadata
+
+    def search(self, query, n_results=None, plan=None):
+        picked = [
+            doc for doc, meta in zip(self.documents, self.metadata, strict=True)
+            # 沒有地點條件時回前幾間，對應正式服務的語意檢索 top-k
+            if plan is None or not (plan.township or plan.region)
+            or (plan.township and meta["township"] == plan.township)
+            or (not plan.township and plan.region and meta["region"] == plan.region)
+        ]
+        return "\n".join(f"- {doc}" for doc in picked[:self.LIMIT])
+
+
+def _generate_with_retry(svc, prompt: str, attempts: int = 2) -> dict | None:
+    for attempt in range(1, attempts + 1):
+        try:
+            return svc.generate(prompt)
+        except Exception as e:
+            print(f"  生成失敗（第 {attempt} 次）：{type(e).__name__}", flush=True)
+    return None
 
 
 def run(cases: list[dict], svc, generate: bool = False) -> list[dict]:
@@ -138,14 +181,11 @@ def run(cases: list[dict], svc, generate: bool = False) -> list[dict]:
         metrics.clear_route()
         context, early = svc.build_context(case["query"])
         route = metrics.last_route()
-        sent = [c.id for c in svc.knowledge_chunks(context)]
+        # 純知識題的段落在 early_reply（程式直接回原文），混合題的在 context
+        sent = [c.id for c in svc.knowledge_chunks(context or early)]
         # 不經門檻與差距篩選的原始距離：校準 KNOWLEDGE_MAX_DISTANCE 與 FOLLOWER_MARGIN 用
-        req_hazards = None
-        from services import query_rules
         req = query_rules.knowledge_request(case["query"])
-        if req is not None:
-            req_hazards = req.hazards
-        raw = svc.knowledge.search(case["query"], hazards=req_hazards, n=5)
+        raw = svc.knowledge.search(req.search_text if req else case["query"], hazards=req.hazards if req else None, n=5)
         relevant = case.get("relevant") or []
         row = {
             "query": case["query"],
@@ -167,16 +207,29 @@ def run(cases: list[dict], svc, generate: bool = False) -> list[dict]:
             row["held"] = not sent
         else:
             row["route_ok"] = route not in KNOWLEDGE_ROUTES
-        if generate and sent:
+        if generate and sent and context is None:
+            # 純知識題：回答就是程式給的原文，不打模型。分數照算，忠實度依構造是滿分，
+            # 這一類真正要看的是上面的 top1 / precision（使用者看到的是不是對的那一段）
+            row["reply"] = early
+            row["dropped_lines"] = []
+            row["latency_s"] = 0.0
+            row["scores"] = score_reply(early, early, case.get("facts") or [])
+        elif generate and sent:
+            # 混合題：程式先送原文，模型只列避難所
             prompt = svc.build_prompt(case["query"], context)
             t0 = time.perf_counter()
-            raw_reply = svc.generate(prompt)
-            reply, dropped = svc.guard_reply((raw_reply.get("response") or "").strip(), prompt)
-            row["reply"] = reply
-            row["dropped_lines"] = dropped
-            row["latency_s"] = round(time.perf_counter() - t0, 1)
-            row["scores"] = score_reply(reply, context, case.get("facts") or [])
-        print(f"[{i:2d}/{len(cases)}] {case['kind']:8s} {route or '-':16s} {','.join(sent) or '-':50s} {case['query']}")
+            raw_reply = _generate_with_retry(svc, prompt)
+            if raw_reply is None:
+                # 一題逾時不該讓整輪中止（實測 Ollama 偶爾 120 秒沒有回應）；記下來，不算進分數
+                row["error"] = "generation failed twice"
+            else:
+                generated, dropped = svc.guard_reply((raw_reply.get("response") or "").strip(), prompt)
+                reply = f"{knowledge_text(svc.knowledge_chunks(context))}\n\n{generated}"
+                row["reply"] = reply
+                row["dropped_lines"] = dropped
+                row["latency_s"] = round(time.perf_counter() - t0, 1)
+                row["scores"] = score_reply(reply, context, case.get("facts") or [])
+        print(f"[{i:2d}/{len(cases)}] {case['kind']:8s} {route or '-':16s} {','.join(sent) or '-':50s} {case['query']}", flush=True)
         rows.append(row)
     return rows
 
@@ -226,6 +279,7 @@ def summarize(rows: list[dict]) -> dict:
             "abstained": _mean(float(r["scores"]["abstained"]) for r in answered),
             "dropped_lines": sum(len(r["dropped_lines"]) for r in answered),
             "latency_p50": _mean([statistics.median(r["latency_s"] for r in answered)]),
+            "errors": sum(1 for r in rows if "error" in r),
         }
         leaked = [r for r in generated if r["kind"] == "negative"]
         if leaked:
@@ -251,7 +305,7 @@ def print_report(summary: dict, rows: list[dict]) -> None:
     if gen:
         print(f"generation n={gen['n']}  facts={gen['facts']}  num_ok={gen['num_ok']}  novel={gen['novel']}  "
               f"latin_ok={gen['latin_ok']}  abstained={gen['abstained']}  dropped_lines={gen['dropped_lines']}  "
-              f"p50={gen['latency_p50']}s")
+              f"p50={gen['latency_p50']}s  errors={gen['errors']}")
         if "negative_leaked" in gen:
             print(f"送進模型的負例 {gen['negative_leaked']} 題，模型自己拒答 {gen['negative_abstained']}")
     misses = [r for r in rows if r.get("route_ok") is False or r.get("hit") is False or r.get("held") is False]
