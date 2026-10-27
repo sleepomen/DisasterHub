@@ -483,7 +483,7 @@
       "simulation": false,
       "expected": "knowledge",
       "actual": "knowledge",
-      "answered_without_llm": false,
+      "answered_without_llm": true,
       "note": "災害詞＋「準備」：問的是做法，不是避難所"
     },
     {
@@ -491,7 +491,7 @@
       "simulation": false,
       "expected": "knowledge",
       "actual": "knowledge",
-      "answered_without_llm": false,
+      "answered_without_llm": true,
       "note": "警戒詞＋「什麼意思」"
     },
     {
@@ -499,7 +499,7 @@
       "simulation": false,
       "expected": "knowledge",
       "actual": "knowledge",
-      "answered_without_llm": false,
+      "answered_without_llm": true,
       "note": "震度本身就是在問分級"
     },
     {
@@ -507,7 +507,7 @@
       "simulation": false,
       "expected": "knowledge",
       "actual": "knowledge",
-      "answered_without_llm": false,
+      "answered_without_llm": true,
       "note": "應變方式跟縣市無關，不能被範圍外擋掉"
     },
     {
@@ -515,7 +515,7 @@
       "simulation": false,
       "expected": "knowledge",
       "actual": "knowledge",
-      "answered_without_llm": false,
+      "answered_without_llm": true,
       "note": "「下雨」是離題詞，但在知識題裡是正常用語"
     },
     {
@@ -531,7 +531,7 @@
       "simulation": false,
       "expected": "knowledge_mixed",
       "actual": "knowledge_mixed",
-      "answered_without_llm": false,
+      "answered_without_llm": true,
       "note": "做法＋收容所空位"
     },
     {

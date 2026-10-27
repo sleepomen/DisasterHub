@@ -1,0 +1,2086 @@
+{
+  "meta": {
+    "label": "knowledge_gen_llama3.2-3b",
+    "embedder": "ollama:bge-m3",
+    "model": "llama3.2:3b",
+    "knowledge_max_distance": 0.45,
+    "index_build_s": 33.2
+  },
+  "summary": {
+    "positive": {
+      "n": 40,
+      "route_ok": 1.0,
+      "hit": 1.0,
+      "top1": 0.975,
+      "precision": 0.912,
+      "chunks_sent": 1.225
+    },
+    "mixed": {
+      "n": 4,
+      "route_ok": 1.0,
+      "hit": 1.0,
+      "top1": 1.0,
+      "precision": 0.875,
+      "chunks_sent": 1.25
+    },
+    "negative": {
+      "n": 8,
+      "held": 0.75
+    },
+    "shelter": {
+      "n": 4,
+      "route_ok": 1.0
+    },
+    "best_distance": {
+      "positive": {
+        "max": 0.424,
+        "min": 0.156
+      },
+      "negative": {
+        "max": 0.461,
+        "min": 0.327
+      },
+      "mixed": {
+        "max": 0.259,
+        "min": 0.173
+      },
+      "shelter": {
+        "max": 0.381,
+        "min": 0.325
+      }
+    },
+    "generation": {
+      "n": 44,
+      "facts": 1.0,
+      "num_ok": 1.0,
+      "novel": 0.003,
+      "latin_ok": 1.0,
+      "abstained": 0.0,
+      "dropped_lines": 0,
+      "latency_p50": 0.0,
+      "errors": 0,
+      "negative_leaked": 2,
+      "negative_abstained": 0.0
+    }
+  },
+  "rows": [
+    {
+      "query": "颱風來之前要準備什麼",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 颱風來之前：居家要準備什麼\n隨時透過電視、廣播、網路或 166、167 氣象錄音電話掌握颱風動向。\n關閉非必要的門窗，必要時加釘木板。清理水溝渠道，避免堵塞積水。\n把屋外、庭院的懸掛物（廣告招牌、陽台花盆）取下或固定，以免被風吹落傷人；庭園樹木加支架並修剪樹枝。\n怕淋濕的物品移到適當地方存放。\n多準備三、四天份的食物、飲水與乾糧；準備蠟燭、手電筒、電池與手機電池，以備停電。檢查電路、注意爐火，以防火災。\n\n資料來源：\n- 內政部消防署 消防防災館〈颱風前要準備什麼〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=57&article_id=165\n- 中央氣象署《颱風百問》第 61 題 https://www.cwa.gov.tw/V8/C/K/Encyclopedia/typhoon/typhoon.pdf",
+      "sent": [
+        "typhoon-before-home"
+      ],
+      "relevant": [
+        "typhoon-before-home"
+      ],
+      "distances": [
+        [
+          "typhoon-before-home",
+          0.242
+        ]
+      ],
+      "note": "最基本的災前準備",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 颱風來之前：居家要準備什麼\n隨時透過電視、廣播、網路或 166、167 氣象錄音電話掌握颱風動向。\n關閉非必要的門窗，必要時加釘木板。清理水溝渠道，避免堵塞積水。\n把屋外、庭院的懸掛物（廣告招牌、陽台花盆）取下或固定，以免被風吹落傷人；庭園樹木加支架並修剪樹枝。\n怕淋濕的物品移到適當地方存放。\n多準備三、四天份的食物、飲水與乾糧；準備蠟燭、手電筒、電池與手機電池，以備停電。檢查電路、注意爐火，以防火災。\n\n資料來源：\n- 內政部消防署 消防防災館〈颱風前要準備什麼〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=57&article_id=165\n- 中央氣象署《颱風百問》第 61 題 https://www.cwa.gov.tw/V8/C/K/Encyclopedia/typhoon/typhoon.pdf",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "颱風快來了家裡該做哪些準備",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 颱風來之前：居家要準備什麼\n隨時透過電視、廣播、網路或 166、167 氣象錄音電話掌握颱風動向。\n關閉非必要的門窗，必要時加釘木板。清理水溝渠道，避免堵塞積水。\n把屋外、庭院的懸掛物（廣告招牌、陽台花盆）取下或固定，以免被風吹落傷人；庭園樹木加支架並修剪樹枝。\n怕淋濕的物品移到適當地方存放。\n多準備三、四天份的食物、飲水與乾糧；準備蠟燭、手電筒、電池與手機電池，以備停電。檢查電路、注意爐火，以防火災。\n\n資料來源：\n- 內政部消防署 消防防災館〈颱風前要準備什麼〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=57&article_id=165\n- 中央氣象署《颱風百問》第 61 題 https://www.cwa.gov.tw/V8/C/K/Encyclopedia/typhoon/typhoon.pdf",
+      "sent": [
+        "typhoon-before-home"
+      ],
+      "relevant": [
+        "typhoon-before-home"
+      ],
+      "distances": [
+        [
+          "typhoon-before-home",
+          0.216
+        ]
+      ],
+      "note": "換個說法",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 颱風來之前：居家要準備什麼\n隨時透過電視、廣播、網路或 166、167 氣象錄音電話掌握颱風動向。\n關閉非必要的門窗，必要時加釘木板。清理水溝渠道，避免堵塞積水。\n把屋外、庭院的懸掛物（廣告招牌、陽台花盆）取下或固定，以免被風吹落傷人；庭園樹木加支架並修剪樹枝。\n怕淋濕的物品移到適當地方存放。\n多準備三、四天份的食物、飲水與乾糧；準備蠟燭、手電筒、電池與手機電池，以備停電。檢查電路、注意爐火，以防火災。\n\n資料來源：\n- 內政部消防署 消防防災館〈颱風前要準備什麼〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=57&article_id=165\n- 中央氣象署《颱風百問》第 61 題 https://www.cwa.gov.tw/V8/C/K/Encyclopedia/typhoon/typhoon.pdf",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "住山坡地颱風前要撤離嗎",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 颱風來之前：哪些人要提早撤離\n住在山坡地、土石容易崩落的地方：配合政府的「預防性疏散撤離」，及早撤到安全地區；沒有親友家可以住，可以到緊急開設的收容所。\n住在地勢低窪、可能淹水的地方，或住在河邊：及早遷到較高的地方。\n住在沿海：注意潮汐，防止海水倒灌。\n竹造或土塊房屋：暫時遷到安全處所較妥。\n正在登山露營的人要盡早返家，並跟家人聯繫行程與路線；還沒出發的應取消行程。\n不要到河邊搶收作物或工作，也不要到海岸、溪流觀浪、戲水、撿石頭、捕魚、釣魚。\n\n資料來源：\n- 內政部消防署 消防防災館〈颱風前要準備什麼〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=57&article_id=165\n- 中央氣象署《颱風百問》第 61、62 題 https://www.cwa.gov.tw/V8/C/K/Encyclopedia/typhoon/typhoon.pdf",
+      "sent": [
+        "typhoon-before-evacuate"
+      ],
+      "relevant": [
+        "typhoon-before-evacuate"
+      ],
+      "distances": [
+        [
+          "typhoon-before-evacuate",
+          0.26
+        ]
+      ],
+      "note": "誰要提早撤離",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 颱風來之前：哪些人要提早撤離\n住在山坡地、土石容易崩落的地方：配合政府的「預防性疏散撤離」，及早撤到安全地區；沒有親友家可以住，可以到緊急開設的收容所。\n住在地勢低窪、可能淹水的地方，或住在河邊：及早遷到較高的地方。\n住在沿海：注意潮汐，防止海水倒灌。\n竹造或土塊房屋：暫時遷到安全處所較妥。\n正在登山露營的人要盡早返家，並跟家人聯繫行程與路線；還沒出發的應取消行程。\n不要到河邊搶收作物或工作，也不要到海岸、溪流觀浪、戲水、撿石頭、捕魚、釣魚。\n\n資料來源：\n- 內政部消防署 消防防災館〈颱風前要準備什麼〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=57&article_id=165\n- 中央氣象署《颱風百問》第 61、62 題 https://www.cwa.gov.tw/V8/C/K/Encyclopedia/typhoon/typhoon.pdf",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "陸上颱風警報什麼時候發布",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 颱風警報：海上警報與陸上警報\n颱風警報分成海上颱風警報與陸上颱風警報，都是在颱風的 7 級風暴風範圍「可能侵襲之前」預先發布，所以警報發布時當地不一定已經有風雨。\n海上颱風警報：預測 7 級風暴風範圍可能侵襲臺灣本島或澎湖、金門、馬祖 100 公里以內海域之前 24 小時發布。\n陸上颱風警報：預測 7 級風暴風範圍可能侵襲臺灣本島或澎湖、金門、馬祖陸上之前 18 小時發布。\n兩種警報發布後都是每 3 小時發布一次，必要時加發。發布海上警報時，若預測暴風範圍可能侵襲綠島、蘭嶼陸上，綠島、蘭嶼也會列入警戒區域。\n\n資料來源：\n- 中央氣象署《颱風百問》第 88 題「臺灣地區颱風警報發布之標準為何？」 https://www.cwa.gov.tw/V8/C/K/Encyclopedia/typhoon/typhoon.pdf",
+      "sent": [
+        "typhoon-warning"
+      ],
+      "relevant": [
+        "typhoon-warning"
+      ],
+      "distances": [
+        [
+          "typhoon-warning",
+          0.304
+        ]
+      ],
+      "note": "警報發布時機的數字",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 颱風警報：海上警報與陸上警報\n颱風警報分成海上颱風警報與陸上颱風警報，都是在颱風的 7 級風暴風範圍「可能侵襲之前」預先發布，所以警報發布時當地不一定已經有風雨。\n海上颱風警報：預測 7 級風暴風範圍可能侵襲臺灣本島或澎湖、金門、馬祖 100 公里以內海域之前 24 小時發布。\n陸上颱風警報：預測 7 級風暴風範圍可能侵襲臺灣本島或澎湖、金門、馬祖陸上之前 18 小時發布。\n兩種警報發布後都是每 3 小時發布一次，必要時加發。發布海上警報時，若預測暴風範圍可能侵襲綠島、蘭嶼陸上，綠島、蘭嶼也會列入警戒區域。\n\n資料來源：\n- 中央氣象署《颱風百問》第 88 題「臺灣地區颱風警報發布之標準為何？」 https://www.cwa.gov.tw/V8/C/K/Encyclopedia/typhoon/typhoon.pdf",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "海上颱風警報是什麼意思",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 颱風警報：海上警報與陸上警報\n颱風警報分成海上颱風警報與陸上颱風警報，都是在颱風的 7 級風暴風範圍「可能侵襲之前」預先發布，所以警報發布時當地不一定已經有風雨。\n海上颱風警報：預測 7 級風暴風範圍可能侵襲臺灣本島或澎湖、金門、馬祖 100 公里以內海域之前 24 小時發布。\n陸上颱風警報：預測 7 級風暴風範圍可能侵襲臺灣本島或澎湖、金門、馬祖陸上之前 18 小時發布。\n兩種警報發布後都是每 3 小時發布一次，必要時加發。發布海上警報時，若預測暴風範圍可能侵襲綠島、蘭嶼陸上，綠島、蘭嶼也會列入警戒區域。\n\n資料來源：\n- 中央氣象署《颱風百問》第 88 題「臺灣地區颱風警報發布之標準為何？」 https://www.cwa.gov.tw/V8/C/K/Encyclopedia/typhoon/typhoon.pdf",
+      "sent": [
+        "typhoon-warning"
+      ],
+      "relevant": [
+        "typhoon-warning"
+      ],
+      "distances": [
+        [
+          "typhoon-warning",
+          0.271
+        ]
+      ],
+      "note": "海警的定義",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 颱風警報：海上警報與陸上警報\n颱風警報分成海上颱風警報與陸上颱風警報，都是在颱風的 7 級風暴風範圍「可能侵襲之前」預先發布，所以警報發布時當地不一定已經有風雨。\n海上颱風警報：預測 7 級風暴風範圍可能侵襲臺灣本島或澎湖、金門、馬祖 100 公里以內海域之前 24 小時發布。\n陸上颱風警報：預測 7 級風暴風範圍可能侵襲臺灣本島或澎湖、金門、馬祖陸上之前 18 小時發布。\n兩種警報發布後都是每 3 小時發布一次，必要時加發。發布海上警報時，若預測暴風範圍可能侵襲綠島、蘭嶼陸上，綠島、蘭嶼也會列入警戒區域。\n\n資料來源：\n- 中央氣象署《颱風百問》第 88 題「臺灣地區颱風警報發布之標準為何？」 https://www.cwa.gov.tw/V8/C/K/Encyclopedia/typhoon/typhoon.pdf",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "颱風警報什麼時候解除",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 颱風警報什麼時候解除\n颱風的 7 級風暴風範圍離開臺灣本島及澎湖、金門、馬祖陸上時，解除陸上颱風警報；暴風範圍離開臺灣及金門、馬祖近海時，解除海上颱風警報。颱風轉向或消散時，可以直接解除颱風警報。\n兩者的解除條件不同，所以陸上警報解除時，海上警報可能還在。\n\n資料來源：\n- 中央氣象署《颱風百問》第 88 題 https://www.cwa.gov.tw/V8/C/K/Encyclopedia/typhoon/typhoon.pdf",
+      "sent": [
+        "typhoon-warning-lifted"
+      ],
+      "relevant": [
+        "typhoon-warning-lifted"
+      ],
+      "distances": [
+        [
+          "typhoon-warning-lifted",
+          0.262
+        ]
+      ],
+      "note": "解除條件",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 颱風警報什麼時候解除\n颱風的 7 級風暴風範圍離開臺灣本島及澎湖、金門、馬祖陸上時，解除陸上颱風警報；暴風範圍離開臺灣及金門、馬祖近海時，解除海上颱風警報。颱風轉向或消散時，可以直接解除颱風警報。\n兩者的解除條件不同，所以陸上警報解除時，海上警報可能還在。\n\n資料來源：\n- 中央氣象署《颱風百問》第 88 題 https://www.cwa.gov.tw/V8/C/K/Encyclopedia/typhoon/typhoon.pdf",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "中度颱風的標準是什麼",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 颱風強度：輕度、中度、強烈\n中央氣象署依颱風近中心最大平均風速把颱風分成三級：\n輕度颱風：每秒 17.2～32.6 公尺（每小時 62～117 公里），相當蒲福風級 8～11 級。\n中度颱風：每秒 32.7～50.9 公尺（每小時 118～183 公里），相當 12～15 級。\n強烈颱風：每秒 51.0 公尺以上（每小時 184 公里以上），相當 16 級以上。\n颱風中心從海上移到陸地稱為颱風登陸；風雨最強的部分在颱風中心四周，所以登陸地點附近常發生嚴重災害。\n\n資料來源：\n- 中央氣象署《颱風百問》第 18 題「颱風的強度是如何劃分的？」 https://www.cwa.gov.tw/V8/C/K/Encyclopedia/typhoon/typhoon.pdf",
+      "sent": [
+        "typhoon-intensity"
+      ],
+      "relevant": [
+        "typhoon-intensity"
+      ],
+      "distances": [
+        [
+          "typhoon-intensity",
+          0.353
+        ]
+      ],
+      "note": "強度分級數字",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 颱風強度：輕度、中度、強烈\n中央氣象署依颱風近中心最大平均風速把颱風分成三級：\n輕度颱風：每秒 17.2～32.6 公尺（每小時 62～117 公里），相當蒲福風級 8～11 級。\n中度颱風：每秒 32.7～50.9 公尺（每小時 118～183 公里），相當 12～15 級。\n強烈颱風：每秒 51.0 公尺以上（每小時 184 公里以上），相當 16 級以上。\n颱風中心從海上移到陸地稱為颱風登陸；風雨最強的部分在颱風中心四周，所以登陸地點附近常發生嚴重災害。\n\n資料來源：\n- 中央氣象署《颱風百問》第 18 題「颱風的強度是如何劃分的？」 https://www.cwa.gov.tw/V8/C/K/Encyclopedia/typhoon/typhoon.pdf",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "颱風來的時候要注意什麼",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 颱風來的時候要注意什麼\n住宅堅固、沒有特別必要時，留在家中不要外出。風勢突然減弱可能是颱風眼經過，不可貿然外出。\n注意水庫洩洪、災情與道路封鎖的消息。住在低窪易淹水地區，要注意河川與排水，一旦有災情，配合救災人員指揮疏散。\n不要進入淹水的地下室，以免觸電或溺水；經過地下道要注意積水高度，不要強行通過。\n在外開車要減速慢行，不要闖封鎖區；遇強風時停到路邊或安全地點暫避。\n停電時優先用手電筒；用蠟燭要遠離易燃物並固定好。看到垂落或斷落的電線不要觸摸，通知電力公司或撥 1999。\n不要到海邊釣魚、觀潮或戲水；在室外不要躲在樹下避雨。\n\n資料來源：\n- 內政部消防署 消防防災館〈颱風來時注意事項〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=58&article_id=189",
+      "sent": [
+        "typhoon-during"
+      ],
+      "relevant": [
+        "typhoon-during"
+      ],
+      "distances": [
+        [
+          "typhoon-during",
+          0.192
+        ]
+      ],
+      "note": "颱風時",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 颱風來的時候要注意什麼\n住宅堅固、沒有特別必要時，留在家中不要外出。風勢突然減弱可能是颱風眼經過，不可貿然外出。\n注意水庫洩洪、災情與道路封鎖的消息。住在低窪易淹水地區，要注意河川與排水，一旦有災情，配合救災人員指揮疏散。\n不要進入淹水的地下室，以免觸電或溺水；經過地下道要注意積水高度，不要強行通過。\n在外開車要減速慢行，不要闖封鎖區；遇強風時停到路邊或安全地點暫避。\n停電時優先用手電筒；用蠟燭要遠離易燃物並固定好。看到垂落或斷落的電線不要觸摸，通知電力公司或撥 1999。\n不要到海邊釣魚、觀潮或戲水；在室外不要躲在樹下避雨。\n\n資料來源：\n- 內政部消防署 消防防災館〈颱風來時注意事項〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=58&article_id=189",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "颱風風突然變小可以出門嗎",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 颱風來的時候要注意什麼\n住宅堅固、沒有特別必要時，留在家中不要外出。風勢突然減弱可能是颱風眼經過，不可貿然外出。\n注意水庫洩洪、災情與道路封鎖的消息。住在低窪易淹水地區，要注意河川與排水，一旦有災情，配合救災人員指揮疏散。\n不要進入淹水的地下室，以免觸電或溺水；經過地下道要注意積水高度，不要強行通過。\n在外開車要減速慢行，不要闖封鎖區；遇強風時停到路邊或安全地點暫避。\n停電時優先用手電筒；用蠟燭要遠離易燃物並固定好。看到垂落或斷落的電線不要觸摸，通知電力公司或撥 1999。\n不要到海邊釣魚、觀潮或戲水；在室外不要躲在樹下避雨。\n\n■ 颱風過後要注意什麼\n確定颱風遠離後才外出。外出時注意掉落物；發現物品掉落、淹水或交通受阻，撥 110 或 119 通報。\n被水淹蓋的水溝、坑洞看不見，不要強行通過。斷落的電線不可用手觸摸，通知電力公司檢修。\n打電話報平安要長話短說，避免佔線。\n自來水、井水或天然水源要煮沸後才能喝。清除花瓶、水缸、輪胎、盆栽墊盤等處的積水，避免病媒蚊孳生；易腐敗的垃圾分開存放，配合環保單位清運。\n颱風過後容易有傳染病，要盡快整理環境、清除污物；發現傳染病立即就醫。\n\n資料來源：\n- 內政部消防署 消防防災館〈颱風來時注意事項〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=58&article_id=189\n- 內政部消防署 消防防災館〈颱風過後應注意事項〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=59&article_id=192\n- 中央氣象署《颱風百問》第 65 題 https://www.cwa.gov.tw/V8/C/K/Encyclopedia/typhoon/typhoon.pdf",
+      "sent": [
+        "typhoon-during",
+        "typhoon-after"
+      ],
+      "relevant": [
+        "typhoon-during"
+      ],
+      "distances": [
+        [
+          "typhoon-during",
+          0.327
+        ],
+        [
+          "typhoon-after",
+          0.358
+        ]
+      ],
+      "note": "颱風眼",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 0.5,
+      "reply": "■ 颱風來的時候要注意什麼\n住宅堅固、沒有特別必要時，留在家中不要外出。風勢突然減弱可能是颱風眼經過，不可貿然外出。\n注意水庫洩洪、災情與道路封鎖的消息。住在低窪易淹水地區，要注意河川與排水，一旦有災情，配合救災人員指揮疏散。\n不要進入淹水的地下室，以免觸電或溺水；經過地下道要注意積水高度，不要強行通過。\n在外開車要減速慢行，不要闖封鎖區；遇強風時停到路邊或安全地點暫避。\n停電時優先用手電筒；用蠟燭要遠離易燃物並固定好。看到垂落或斷落的電線不要觸摸，通知電力公司或撥 1999。\n不要到海邊釣魚、觀潮或戲水；在室外不要躲在樹下避雨。\n\n■ 颱風過後要注意什麼\n確定颱風遠離後才外出。外出時注意掉落物；發現物品掉落、淹水或交通受阻，撥 110 或 119 通報。\n被水淹蓋的水溝、坑洞看不見，不要強行通過。斷落的電線不可用手觸摸，通知電力公司檢修。\n打電話報平安要長話短說，避免佔線。\n自來水、井水或天然水源要煮沸後才能喝。清除花瓶、水缸、輪胎、盆栽墊盤等處的積水，避免病媒蚊孳生；易腐敗的垃圾分開存放，配合環保單位清運。\n颱風過後容易有傳染病，要盡快整理環境、清除污物；發現傳染病立即就醫。\n\n資料來源：\n- 內政部消防署 消防防災館〈颱風來時注意事項〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=58&article_id=189\n- 內政部消防署 消防防災館〈颱風過後應注意事項〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=59&article_id=192\n- 中央氣象署《颱風百問》第 65 題 https://www.cwa.gov.tw/V8/C/K/Encyclopedia/typhoon/typhoon.pdf",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "颱風時要怎麼疏散避難",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 颱風時要怎麼疏散、避難\n村里周邊或主要道路旁設有「防災避難看板」，標示避難收容處所的名稱、方向與可收容人數。水災時原則上就地避難或垂直避難，低窪地區則要前往收容處所；疏散時通常由里長、警察或消防人員引導。\n事前：了解社區可能的災害與疏散收容計畫，熟悉收容所位置與替代路線，準備緊急避難包，確認集合地點；有寵物的話先確認能否暫放。\n避難時：聽從政府指示並持續收聽廣播；及早出發，告訴家人要去哪裡、何時到；離家前鎖好門窗；穿堅固的鞋子、長袖長褲並戴安全帽；照應鄰居，可以共乘互助；依政府指示的路線走，不抄捷徑，注意土石流與橋梁中斷，不要涉險過河。\n\n資料來源：\n- 內政部消防署 消防防災館〈颱風發生時該如何疏散、避難〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=58&article_id=187",
+      "sent": [
+        "typhoon-evacuation"
+      ],
+      "relevant": [
+        "typhoon-evacuation",
+        "typhoon-before-evacuate"
+      ],
+      "distances": [
+        [
+          "typhoon-evacuation",
+          0.207
+        ]
+      ],
+      "note": "疏散方式（沒有模擬時）",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 颱風時要怎麼疏散、避難\n村里周邊或主要道路旁設有「防災避難看板」，標示避難收容處所的名稱、方向與可收容人數。水災時原則上就地避難或垂直避難，低窪地區則要前往收容處所；疏散時通常由里長、警察或消防人員引導。\n事前：了解社區可能的災害與疏散收容計畫，熟悉收容所位置與替代路線，準備緊急避難包，確認集合地點；有寵物的話先確認能否暫放。\n避難時：聽從政府指示並持續收聽廣播；及早出發，告訴家人要去哪裡、何時到；離家前鎖好門窗；穿堅固的鞋子、長袖長褲並戴安全帽；照應鄰居，可以共乘互助；依政府指示的路線走，不抄捷徑，注意土石流與橋梁中斷，不要涉險過河。\n\n資料來源：\n- 內政部消防署 消防防災館〈颱風發生時該如何疏散、避難〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=58&article_id=187",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "颱風過後要注意什麼",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 颱風過後要注意什麼\n確定颱風遠離後才外出。外出時注意掉落物；發現物品掉落、淹水或交通受阻，撥 110 或 119 通報。\n被水淹蓋的水溝、坑洞看不見，不要強行通過。斷落的電線不可用手觸摸，通知電力公司檢修。\n打電話報平安要長話短說，避免佔線。\n自來水、井水或天然水源要煮沸後才能喝。清除花瓶、水缸、輪胎、盆栽墊盤等處的積水，避免病媒蚊孳生；易腐敗的垃圾分開存放，配合環保單位清運。\n颱風過後容易有傳染病，要盡快整理環境、清除污物；發現傳染病立即就醫。\n\n資料來源：\n- 內政部消防署 消防防災館〈颱風過後應注意事項〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=59&article_id=192\n- 中央氣象署《颱風百問》第 65 題 https://www.cwa.gov.tw/V8/C/K/Encyclopedia/typhoon/typhoon.pdf",
+      "sent": [
+        "typhoon-after"
+      ],
+      "relevant": [
+        "typhoon-after"
+      ],
+      "distances": [
+        [
+          "typhoon-after",
+          0.212
+        ]
+      ],
+      "note": "災後",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 颱風過後要注意什麼\n確定颱風遠離後才外出。外出時注意掉落物；發現物品掉落、淹水或交通受阻，撥 110 或 119 通報。\n被水淹蓋的水溝、坑洞看不見，不要強行通過。斷落的電線不可用手觸摸，通知電力公司檢修。\n打電話報平安要長話短說，避免佔線。\n自來水、井水或天然水源要煮沸後才能喝。清除花瓶、水缸、輪胎、盆栽墊盤等處的積水，避免病媒蚊孳生；易腐敗的垃圾分開存放，配合環保單位清運。\n颱風過後容易有傳染病，要盡快整理環境、清除污物；發現傳染病立即就醫。\n\n資料來源：\n- 內政部消防署 消防防災館〈颱風過後應注意事項〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=59&article_id=192\n- 中央氣象署《颱風百問》第 65 題 https://www.cwa.gov.tw/V8/C/K/Encyclopedia/typhoon/typhoon.pdf",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "地震的時候在家裡要怎麼辦",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 地震時在室內怎麼辦：趴下、掩護、穩住\n地震搖晃時最重要的是保護頭部與頸部，立刻做「趴下、掩護、穩住」，不要慌張衝到戶外。\n附近有桌子就躲到桌下並抓住桌腳，桌子移動時人跟著移動，桌子就是保護屏障；沒有桌子就移到牆角趴下護住頭頸。躲在牆角或柱子旁要留意周圍的傢俱、電器、燈具、書櫃或貨架，也要遠離窗戶，以防玻璃破碎。\n趴下後除非頭頂有東西可能掉落，否則不要再移動；不要抬頭往上看，以免被掉落的燈具或碎片砸傷。\n在學校要躲在桌下並背向窗戶，不要衝出教室或上下樓梯；在公共場所不要推擠，也不要搭電梯。\n\n■ 地震時在戶外或開車怎麼辦\n在戶外相對安全，不要衝回室內；用隨身的包包護住頭頸，等搖晃結束。離開建築物旁、樹下與高架橋下，注意上方可能掉落的招牌與磁磚，遠離施工中的建築與電線桿。在郊外要遠離崖邊、河邊與海邊。\n開車時不要緊急煞車：安全減速、打開警示燈，停到路邊空曠處（避開建築旁、樹下與高架橋下），確認震動停止後再繼續行駛。\n在火車或捷運上，抓住固定的把手或鋼條並放低重心；在車站候車時就地趴下、掩護、穩住，人多不便趴下時就蹲低並保護頭頸。\n\n資料來源：\n- 內政部消防署 消防防災館〈在室內時該怎麼避難呢?〉〈地震了！該怎麼辦？!〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=52&article_id=121 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=52&article_id=123\n- 中央氣象署地震測報中心〈地震防護〉 https://scweb.cwa.gov.tw/zh-tw/page/intro/11\n- 內政部消防署 消防防災館〈在戶外時，要注意什麼地方呢?〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=52&article_id=122",
+      "sent": [
+        "earthquake-during-indoor",
+        "earthquake-during-outdoor"
+      ],
+      "relevant": [
+        "earthquake-during-indoor"
+      ],
+      "distances": [
+        [
+          "earthquake-during-indoor",
+          0.213
+        ],
+        [
+          "earthquake-during-outdoor",
+          0.261
+        ]
+      ],
+      "note": "最常見的地震題",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 0.5,
+      "reply": "■ 地震時在室內怎麼辦：趴下、掩護、穩住\n地震搖晃時最重要的是保護頭部與頸部，立刻做「趴下、掩護、穩住」，不要慌張衝到戶外。\n附近有桌子就躲到桌下並抓住桌腳，桌子移動時人跟著移動，桌子就是保護屏障；沒有桌子就移到牆角趴下護住頭頸。躲在牆角或柱子旁要留意周圍的傢俱、電器、燈具、書櫃或貨架，也要遠離窗戶，以防玻璃破碎。\n趴下後除非頭頂有東西可能掉落，否則不要再移動；不要抬頭往上看，以免被掉落的燈具或碎片砸傷。\n在學校要躲在桌下並背向窗戶，不要衝出教室或上下樓梯；在公共場所不要推擠，也不要搭電梯。\n\n■ 地震時在戶外或開車怎麼辦\n在戶外相對安全，不要衝回室內；用隨身的包包護住頭頸，等搖晃結束。離開建築物旁、樹下與高架橋下，注意上方可能掉落的招牌與磁磚，遠離施工中的建築與電線桿。在郊外要遠離崖邊、河邊與海邊。\n開車時不要緊急煞車：安全減速、打開警示燈，停到路邊空曠處（避開建築旁、樹下與高架橋下），確認震動停止後再繼續行駛。\n在火車或捷運上，抓住固定的把手或鋼條並放低重心；在車站候車時就地趴下、掩護、穩住，人多不便趴下時就蹲低並保護頭頸。\n\n資料來源：\n- 內政部消防署 消防防災館〈在室內時該怎麼避難呢?〉〈地震了！該怎麼辦？!〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=52&article_id=121 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=52&article_id=123\n- 中央氣象署地震測報中心〈地震防護〉 https://scweb.cwa.gov.tw/zh-tw/page/intro/11\n- 內政部消防署 消防防災館〈在戶外時，要注意什麼地方呢?〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=52&article_id=122",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "地震時可以跑出去嗎",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 地震時在戶外或開車怎麼辦\n在戶外相對安全，不要衝回室內；用隨身的包包護住頭頸，等搖晃結束。離開建築物旁、樹下與高架橋下，注意上方可能掉落的招牌與磁磚，遠離施工中的建築與電線桿。在郊外要遠離崖邊、河邊與海邊。\n開車時不要緊急煞車：安全減速、打開警示燈，停到路邊空曠處（避開建築旁、樹下與高架橋下），確認震動停止後再繼續行駛。\n在火車或捷運上，抓住固定的把手或鋼條並放低重心；在車站候車時就地趴下、掩護、穩住，人多不便趴下時就蹲低並保護頭頸。\n\n■ 地震時在室內怎麼辦：趴下、掩護、穩住\n地震搖晃時最重要的是保護頭部與頸部，立刻做「趴下、掩護、穩住」，不要慌張衝到戶外。\n附近有桌子就躲到桌下並抓住桌腳，桌子移動時人跟著移動，桌子就是保護屏障；沒有桌子就移到牆角趴下護住頭頸。躲在牆角或柱子旁要留意周圍的傢俱、電器、燈具、書櫃或貨架，也要遠離窗戶，以防玻璃破碎。\n趴下後除非頭頂有東西可能掉落，否則不要再移動；不要抬頭往上看，以免被掉落的燈具或碎片砸傷。\n在學校要躲在桌下並背向窗戶，不要衝出教室或上下樓梯；在公共場所不要推擠，也不要搭電梯。\n\n資料來源：\n- 內政部消防署 消防防災館〈在戶外時，要注意什麼地方呢?〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=52&article_id=122\n- 中央氣象署地震測報中心〈地震防護〉 https://scweb.cwa.gov.tw/zh-tw/page/intro/11\n- 內政部消防署 消防防災館〈在室內時該怎麼避難呢?〉〈地震了！該怎麼辦？!〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=52&article_id=121 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=52&article_id=123",
+      "sent": [
+        "earthquake-during-outdoor",
+        "earthquake-during-indoor"
+      ],
+      "relevant": [
+        "earthquake-during-indoor",
+        "earthquake-during-outdoor"
+      ],
+      "distances": [
+        [
+          "earthquake-during-outdoor",
+          0.324
+        ],
+        [
+          "earthquake-during-indoor",
+          0.345
+        ],
+        [
+          "earthquake-after-damaged",
+          0.367
+        ],
+        [
+          "earthquake-after",
+          0.37
+        ]
+      ],
+      "note": "不要衝出去",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 地震時在戶外或開車怎麼辦\n在戶外相對安全，不要衝回室內；用隨身的包包護住頭頸，等搖晃結束。離開建築物旁、樹下與高架橋下，注意上方可能掉落的招牌與磁磚，遠離施工中的建築與電線桿。在郊外要遠離崖邊、河邊與海邊。\n開車時不要緊急煞車：安全減速、打開警示燈，停到路邊空曠處（避開建築旁、樹下與高架橋下），確認震動停止後再繼續行駛。\n在火車或捷運上，抓住固定的把手或鋼條並放低重心；在車站候車時就地趴下、掩護、穩住，人多不便趴下時就蹲低並保護頭頸。\n\n■ 地震時在室內怎麼辦：趴下、掩護、穩住\n地震搖晃時最重要的是保護頭部與頸部，立刻做「趴下、掩護、穩住」，不要慌張衝到戶外。\n附近有桌子就躲到桌下並抓住桌腳，桌子移動時人跟著移動，桌子就是保護屏障；沒有桌子就移到牆角趴下護住頭頸。躲在牆角或柱子旁要留意周圍的傢俱、電器、燈具、書櫃或貨架，也要遠離窗戶，以防玻璃破碎。\n趴下後除非頭頂有東西可能掉落，否則不要再移動；不要抬頭往上看，以免被掉落的燈具或碎片砸傷。\n在學校要躲在桌下並背向窗戶，不要衝出教室或上下樓梯；在公共場所不要推擠，也不要搭電梯。\n\n資料來源：\n- 內政部消防署 消防防災館〈在戶外時，要注意什麼地方呢?〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=52&article_id=122\n- 中央氣象署地震測報中心〈地震防護〉 https://scweb.cwa.gov.tw/zh-tw/page/intro/11\n- 內政部消防署 消防防災館〈在室內時該怎麼避難呢?〉〈地震了！該怎麼辦？!〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=52&article_id=121 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=52&article_id=123",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "開車遇到地震怎麼辦",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 地震時在戶外或開車怎麼辦\n在戶外相對安全，不要衝回室內；用隨身的包包護住頭頸，等搖晃結束。離開建築物旁、樹下與高架橋下，注意上方可能掉落的招牌與磁磚，遠離施工中的建築與電線桿。在郊外要遠離崖邊、河邊與海邊。\n開車時不要緊急煞車：安全減速、打開警示燈，停到路邊空曠處（避開建築旁、樹下與高架橋下），確認震動停止後再繼續行駛。\n在火車或捷運上，抓住固定的把手或鋼條並放低重心；在車站候車時就地趴下、掩護、穩住，人多不便趴下時就蹲低並保護頭頸。\n\n資料來源：\n- 內政部消防署 消防防災館〈在戶外時，要注意什麼地方呢?〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=52&article_id=122\n- 中央氣象署地震測報中心〈地震防護〉 https://scweb.cwa.gov.tw/zh-tw/page/intro/11",
+      "sent": [
+        "earthquake-during-outdoor"
+      ],
+      "relevant": [
+        "earthquake-during-outdoor"
+      ],
+      "distances": [
+        [
+          "earthquake-during-outdoor",
+          0.22
+        ]
+      ],
+      "note": "開車",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 地震時在戶外或開車怎麼辦\n在戶外相對安全，不要衝回室內；用隨身的包包護住頭頸，等搖晃結束。離開建築物旁、樹下與高架橋下，注意上方可能掉落的招牌與磁磚，遠離施工中的建築與電線桿。在郊外要遠離崖邊、河邊與海邊。\n開車時不要緊急煞車：安全減速、打開警示燈，停到路邊空曠處（避開建築旁、樹下與高架橋下），確認震動停止後再繼續行駛。\n在火車或捷運上，抓住固定的把手或鋼條並放低重心；在車站候車時就地趴下、掩護、穩住，人多不便趴下時就蹲低並保護頭頸。\n\n資料來源：\n- 內政部消防署 消防防災館〈在戶外時，要注意什麼地方呢?〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=52&article_id=122\n- 中央氣象署地震測報中心〈地震防護〉 https://scweb.cwa.gov.tw/zh-tw/page/intro/11",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "地震前要先準備什麼",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 地震前可以先準備什麼\n準備急救箱與滅火器，讓家人知道放在哪裡、怎麼使用。\n了解瓦斯、自來水與電源總開關的位置與關法。\n把高處懸掛的物品綁牢，櫥櫃門閂鎖緊；重物不要放在高架上，笨重傢俱要固定。\n事先找好家中安全的避難位置。\n學校、辦公室與公共場所要定期演練，規劃緊急應變時每個人的任務。\n\n資料來源：\n- 中央氣象署地震測報中心〈地震防護〉 https://scweb.cwa.gov.tw/zh-tw/page/intro/11",
+      "sent": [
+        "earthquake-before"
+      ],
+      "relevant": [
+        "earthquake-before"
+      ],
+      "distances": [
+        [
+          "earthquake-before",
+          0.218
+        ]
+      ],
+      "note": "地震前",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 地震前可以先準備什麼\n準備急救箱與滅火器，讓家人知道放在哪裡、怎麼使用。\n了解瓦斯、自來水與電源總開關的位置與關法。\n把高處懸掛的物品綁牢，櫥櫃門閂鎖緊；重物不要放在高架上，笨重傢俱要固定。\n事先找好家中安全的避難位置。\n學校、辦公室與公共場所要定期演練，規劃緊急應變時每個人的任務。\n\n資料來源：\n- 中央氣象署地震測報中心〈地震防護〉 https://scweb.cwa.gov.tw/zh-tw/page/intro/11",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "地震過後要做什麼",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 地震過後要做什麼\n先確認自己與家人是否受傷，再關心鄰居是否需要協助。\n關閉瓦斯爐、暖爐，檢查瓦斯是否外洩；瓦斯有異狀時輕輕打開門窗、立刻離開並通報。\n可能停水前，先用水桶、水壺、鍋子儲水，浴缸的水可以拿來沖馬桶。\n從中央氣象署、全民防災 e 點通或消防署等官方管道取得災情資訊。報平安多用簡訊或通訊軟體，避免電話佔線。\n穿鞋子防止被碎玻璃割傷；離開受損建築時走樓梯；遠離海灘與港口，以防海嘯；注意餘震。\n\n資料來源：\n- 內政部消防署 消防防災館〈地震發生後該如何應變呢〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=53&article_id=134\n- 中央氣象署地震測報中心〈地震防護〉 https://scweb.cwa.gov.tw/zh-tw/page/intro/11",
+      "sent": [
+        "earthquake-after"
+      ],
+      "relevant": [
+        "earthquake-after"
+      ],
+      "distances": [
+        [
+          "earthquake-after",
+          0.26
+        ]
+      ],
+      "note": "地震後",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 地震過後要做什麼\n先確認自己與家人是否受傷，再關心鄰居是否需要協助。\n關閉瓦斯爐、暖爐，檢查瓦斯是否外洩；瓦斯有異狀時輕輕打開門窗、立刻離開並通報。\n可能停水前，先用水桶、水壺、鍋子儲水，浴缸的水可以拿來沖馬桶。\n從中央氣象署、全民防災 e 點通或消防署等官方管道取得災情資訊。報平安多用簡訊或通訊軟體，避免電話佔線。\n穿鞋子防止被碎玻璃割傷；離開受損建築時走樓梯；遠離海灘與港口，以防海嘯；注意餘震。\n\n資料來源：\n- 內政部消防署 消防防災館〈地震發生後該如何應變呢〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=53&article_id=134\n- 中央氣象署地震測報中心〈地震防護〉 https://scweb.cwa.gov.tw/zh-tw/page/intro/11",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "地震後房子有裂縫怎麼辦",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 地震後房子可能受損怎麼辦\n聽到房屋有怪聲或漏氣聲，或牆壁、天花板出現新裂縫、原有裂縫變大時，先關閉爐火與電源，帶著緊急避難包與必要物品，到和家人約定的集合地點，例如附近的公園、廣場、空地或避難收容處所。\n不確定瓦斯是否外洩時，不要開電器，也不要用打火機照明，改用手電筒或緊急照明燈。\n離開時一邊呼喊一邊協助家人，有餘力也幫助行動不便的鄰居。在高樓遇到火警警報時，走樓梯往下疏散到一樓，不要搭電梯。\n協助坐輪椅的人時，移動前先告知；下坡或下樓時把輪椅轉向、倒退慢慢移動；盡量不要抬輪椅，必要時三、四個人合作，也不要讓輔具跟本人分開。\n\n■ 地震過後要做什麼\n先確認自己與家人是否受傷，再關心鄰居是否需要協助。\n關閉瓦斯爐、暖爐，檢查瓦斯是否外洩；瓦斯有異狀時輕輕打開門窗、立刻離開並通報。\n可能停水前，先用水桶、水壺、鍋子儲水，浴缸的水可以拿來沖馬桶。\n從中央氣象署、全民防災 e 點通或消防署等官方管道取得災情資訊。報平安多用簡訊或通訊軟體，避免電話佔線。\n穿鞋子防止被碎玻璃割傷；離開受損建築時走樓梯；遠離海灘與港口，以防海嘯；注意餘震。\n\n資料來源：\n- 內政部消防署 消防防災館〈地震後處於室內（建物可能已經受損）〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=53&article_id=132\n- 內政部消防署 消防防災館〈地震發生後該如何應變呢〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=53&article_id=134\n- 中央氣象署地震測報中心〈地震防護〉 https://scweb.cwa.gov.tw/zh-tw/page/intro/11",
+      "sent": [
+        "earthquake-after-damaged",
+        "earthquake-after"
+      ],
+      "relevant": [
+        "earthquake-after-damaged"
+      ],
+      "distances": [
+        [
+          "earthquake-after-damaged",
+          0.301
+        ],
+        [
+          "earthquake-after",
+          0.349
+        ]
+      ],
+      "note": "房屋受損",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 0.5,
+      "reply": "■ 地震後房子可能受損怎麼辦\n聽到房屋有怪聲或漏氣聲，或牆壁、天花板出現新裂縫、原有裂縫變大時，先關閉爐火與電源，帶著緊急避難包與必要物品，到和家人約定的集合地點，例如附近的公園、廣場、空地或避難收容處所。\n不確定瓦斯是否外洩時，不要開電器，也不要用打火機照明，改用手電筒或緊急照明燈。\n離開時一邊呼喊一邊協助家人，有餘力也幫助行動不便的鄰居。在高樓遇到火警警報時，走樓梯往下疏散到一樓，不要搭電梯。\n協助坐輪椅的人時，移動前先告知；下坡或下樓時把輪椅轉向、倒退慢慢移動；盡量不要抬輪椅，必要時三、四個人合作，也不要讓輔具跟本人分開。\n\n■ 地震過後要做什麼\n先確認自己與家人是否受傷，再關心鄰居是否需要協助。\n關閉瓦斯爐、暖爐，檢查瓦斯是否外洩；瓦斯有異狀時輕輕打開門窗、立刻離開並通報。\n可能停水前，先用水桶、水壺、鍋子儲水，浴缸的水可以拿來沖馬桶。\n從中央氣象署、全民防災 e 點通或消防署等官方管道取得災情資訊。報平安多用簡訊或通訊軟體，避免電話佔線。\n穿鞋子防止被碎玻璃割傷；離開受損建築時走樓梯；遠離海灘與港口，以防海嘯；注意餘震。\n\n資料來源：\n- 內政部消防署 消防防災館〈地震後處於室內（建物可能已經受損）〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=53&article_id=132\n- 內政部消防署 消防防災館〈地震發生後該如何應變呢〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=53&article_id=134\n- 中央氣象署地震測報中心〈地震防護〉 https://scweb.cwa.gov.tw/zh-tw/page/intro/11",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "地震被困住出不去該怎麼做",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 地震後受困出不去怎麼辦\n保持冷靜，觀察周圍哪裡安全、哪裡危險，判斷自己的位置並等待救援。\n受傷就先止血；被尖銳物刺入時，沒有適當器材前不要自行拔出。\n用手摀住口鼻、放慢呼吸，減少吸入粉塵。\n手機在身邊就撥 119，或用簡訊、通訊軟體求救；停電無法充電時要節省電力，地震初期電話不容易打通。\n有哨子就吹哨，沒有就用硬物敲打堅固的牆壁或金屬，讓救難人員注意到；不要一直大喊，會消耗體力，聲音也容易被噪音蓋過。\n\n資料來源：\n- 內政部消防署 消防防災館〈地震後處於室內（已受困、無法離開）〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=53&article_id=131",
+      "sent": [
+        "earthquake-trapped"
+      ],
+      "relevant": [
+        "earthquake-trapped"
+      ],
+      "distances": [
+        [
+          "earthquake-trapped",
+          0.21
+        ]
+      ],
+      "note": "受困",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 地震後受困出不去怎麼辦\n保持冷靜，觀察周圍哪裡安全、哪裡危險，判斷自己的位置並等待救援。\n受傷就先止血；被尖銳物刺入時，沒有適當器材前不要自行拔出。\n用手摀住口鼻、放慢呼吸，減少吸入粉塵。\n手機在身邊就撥 119，或用簡訊、通訊軟體求救；停電無法充電時要節省電力，地震初期電話不容易打通。\n有哨子就吹哨，沒有就用硬物敲打堅固的牆壁或金屬，讓救難人員注意到；不要一直大喊，會消耗體力，聲音也容易被噪音蓋過。\n\n資料來源：\n- 內政部消防署 消防防災館〈地震後處於室內（已受困、無法離開）〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=53&article_id=131",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "震度5弱會怎樣",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 震度 4 級、5 弱、5 強是什麼情況\n4 級中震：相當程度的恐懼感，部分人會找地方躲避，睡眠中的人幾乎都會驚醒；房屋搖動甚烈，少數未固定物品可能掉落、少數傢俱移動，可能有輕微災害；少數建築物牆磚可能剝落，小範圍山區可能落石，極少數地區可能停電或停水。\n5 弱：大多數人驚嚇恐慌、難以走動；部分未固定物品掉落，少數傢俱可能移動或翻倒，少數門窗可能變形，部分牆壁產生裂痕；部分山區可能落石，少數地區水電、瓦斯或通訊可能中斷。\n5 強：幾乎所有人驚嚇恐慌、難以走動；大量未固定物品掉落，傢俱移動或翻倒，部分門窗變形，極少數耐震較差的房屋可能損壞或崩塌；部分山區落石，鬆軟土層可能噴沙噴泥，部分地區水電、瓦斯或通訊中斷。\n\n■ 震度 6 弱、6 強、7 級是什麼情況\n6 弱：搖晃劇烈以致站立困難；大量傢俱大幅移動或翻倒，門窗扭曲變形，部分耐震較差的房屋可能損壞或倒塌；部分地面出現裂痕，部分山區可能山崩，部分地區水電、瓦斯或通訊中斷。\n6 強：搖晃劇烈以致無法站穩；除耐震較差的房屋外，耐震能力較強的房屋也可能受損；山區可能山崩，可能大範圍地區水電、瓦斯或通訊中斷。\n7 級劇震：搖晃劇烈以致無法依意志行動；幾乎所有傢俱都大幅移動或翻倒，部分耐震較強的建築物可能損壞或倒塌；山崩地裂，地形可能改變，大範圍地區水電、瓦斯或通訊中斷，鐵軌彎曲。\n\n資料來源：\n- 中央氣象署《有感地震報告發布作業要點》附表「地震震度分級表」 https://data.gov.tw/dataset/174285",
+      "sent": [
+        "earthquake-intensity-mid",
+        "earthquake-intensity-high"
+      ],
+      "relevant": [
+        "earthquake-intensity-mid"
+      ],
+      "distances": [
+        [
+          "earthquake-intensity-mid",
+          0.278
+        ],
+        [
+          "earthquake-intensity-high",
+          0.326
+        ]
+      ],
+      "note": "單一震度",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 0.5,
+      "reply": "■ 震度 4 級、5 弱、5 強是什麼情況\n4 級中震：相當程度的恐懼感，部分人會找地方躲避，睡眠中的人幾乎都會驚醒；房屋搖動甚烈，少數未固定物品可能掉落、少數傢俱移動，可能有輕微災害；少數建築物牆磚可能剝落，小範圍山區可能落石，極少數地區可能停電或停水。\n5 弱：大多數人驚嚇恐慌、難以走動；部分未固定物品掉落，少數傢俱可能移動或翻倒，少數門窗可能變形，部分牆壁產生裂痕；部分山區可能落石，少數地區水電、瓦斯或通訊可能中斷。\n5 強：幾乎所有人驚嚇恐慌、難以走動；大量未固定物品掉落，傢俱移動或翻倒，部分門窗變形，極少數耐震較差的房屋可能損壞或崩塌；部分山區落石，鬆軟土層可能噴沙噴泥，部分地區水電、瓦斯或通訊中斷。\n\n■ 震度 6 弱、6 強、7 級是什麼情況\n6 弱：搖晃劇烈以致站立困難；大量傢俱大幅移動或翻倒，門窗扭曲變形，部分耐震較差的房屋可能損壞或倒塌；部分地面出現裂痕，部分山區可能山崩，部分地區水電、瓦斯或通訊中斷。\n6 強：搖晃劇烈以致無法站穩；除耐震較差的房屋外，耐震能力較強的房屋也可能受損；山區可能山崩，可能大範圍地區水電、瓦斯或通訊中斷。\n7 級劇震：搖晃劇烈以致無法依意志行動；幾乎所有傢俱都大幅移動或翻倒，部分耐震較強的建築物可能損壞或倒塌；山崩地裂，地形可能改變，大範圍地區水電、瓦斯或通訊中斷，鐵軌彎曲。\n\n資料來源：\n- 中央氣象署《有感地震報告發布作業要點》附表「地震震度分級表」 https://data.gov.tw/dataset/174285",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "震度4級是什麼感覺",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 震度 4 級、5 弱、5 強是什麼情況\n4 級中震：相當程度的恐懼感，部分人會找地方躲避，睡眠中的人幾乎都會驚醒；房屋搖動甚烈，少數未固定物品可能掉落、少數傢俱移動，可能有輕微災害；少數建築物牆磚可能剝落，小範圍山區可能落石，極少數地區可能停電或停水。\n5 弱：大多數人驚嚇恐慌、難以走動；部分未固定物品掉落，少數傢俱可能移動或翻倒，少數門窗可能變形，部分牆壁產生裂痕；部分山區可能落石，少數地區水電、瓦斯或通訊可能中斷。\n5 強：幾乎所有人驚嚇恐慌、難以走動；大量未固定物品掉落，傢俱移動或翻倒，部分門窗變形，極少數耐震較差的房屋可能損壞或崩塌；部分山區落石，鬆軟土層可能噴沙噴泥，部分地區水電、瓦斯或通訊中斷。\n\n■ 震度 0～3 級是什麼感覺\n0 級無感：人沒有感覺。\n1 級微震：人靜止或在高樓層時，可感覺微小搖晃。\n2 級輕震：大多數人感到搖晃，睡眠中的人有部分會醒來；電燈等懸掛物小幅搖晃；靜止的汽車輕輕搖晃，類似卡車經過但時間很短。\n3 級弱震：幾乎所有人都感覺搖晃，有的人會害怕；房屋震動，碗盤門窗發出聲音，懸掛物搖擺；靜止的汽車明顯搖動，電線略有搖晃。\n\n資料來源：\n- 中央氣象署《有感地震報告發布作業要點》附表「地震震度分級表」 https://data.gov.tw/dataset/174285",
+      "sent": [
+        "earthquake-intensity-mid",
+        "earthquake-intensity-low"
+      ],
+      "relevant": [
+        "earthquake-intensity-mid"
+      ],
+      "distances": [
+        [
+          "earthquake-intensity-mid",
+          0.31
+        ],
+        [
+          "earthquake-intensity-low",
+          0.36
+        ]
+      ],
+      "note": "4 級在中段那一段",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 0.5,
+      "reply": "■ 震度 4 級、5 弱、5 強是什麼情況\n4 級中震：相當程度的恐懼感，部分人會找地方躲避，睡眠中的人幾乎都會驚醒；房屋搖動甚烈，少數未固定物品可能掉落、少數傢俱移動，可能有輕微災害；少數建築物牆磚可能剝落，小範圍山區可能落石，極少數地區可能停電或停水。\n5 弱：大多數人驚嚇恐慌、難以走動；部分未固定物品掉落，少數傢俱可能移動或翻倒，少數門窗可能變形，部分牆壁產生裂痕；部分山區可能落石，少數地區水電、瓦斯或通訊可能中斷。\n5 強：幾乎所有人驚嚇恐慌、難以走動；大量未固定物品掉落，傢俱移動或翻倒，部分門窗變形，極少數耐震較差的房屋可能損壞或崩塌；部分山區落石，鬆軟土層可能噴沙噴泥，部分地區水電、瓦斯或通訊中斷。\n\n■ 震度 0～3 級是什麼感覺\n0 級無感：人沒有感覺。\n1 級微震：人靜止或在高樓層時，可感覺微小搖晃。\n2 級輕震：大多數人感到搖晃，睡眠中的人有部分會醒來；電燈等懸掛物小幅搖晃；靜止的汽車輕輕搖晃，類似卡車經過但時間很短。\n3 級弱震：幾乎所有人都感覺搖晃，有的人會害怕；房屋震動，碗盤門窗發出聲音，懸掛物搖擺；靜止的汽車明顯搖動，電線略有搖晃。\n\n資料來源：\n- 中央氣象署《有感地震報告發布作業要點》附表「地震震度分級表」 https://data.gov.tw/dataset/174285",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "震度7級代表什麼",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 震度 6 弱、6 強、7 級是什麼情況\n6 弱：搖晃劇烈以致站立困難；大量傢俱大幅移動或翻倒，門窗扭曲變形，部分耐震較差的房屋可能損壞或倒塌；部分地面出現裂痕，部分山區可能山崩，部分地區水電、瓦斯或通訊中斷。\n6 強：搖晃劇烈以致無法站穩；除耐震較差的房屋外，耐震能力較強的房屋也可能受損；山區可能山崩，可能大範圍地區水電、瓦斯或通訊中斷。\n7 級劇震：搖晃劇烈以致無法依意志行動；幾乎所有傢俱都大幅移動或翻倒，部分耐震較強的建築物可能損壞或倒塌；山崩地裂，地形可能改變，大範圍地區水電、瓦斯或通訊中斷，鐵軌彎曲。\n\n■ 地震震度分級：0 級到 7 級、5 弱 5 強\n震度是「某一個地方」地表搖晃的程度，跟地震規模不同：規模是地震釋放的能量，一次地震只有一個規模，但各地的震度不一樣。\n臺灣的震度分為 0 級到 7 級，其中 5 級與 6 級各再分成「弱」與「強」，共 10 個等級：0 級無感、1 級微震、2 級輕震、3 級弱震、4 級中震、5 弱與 5 強（強震）、6 弱與 6 強（烈震）、7 級劇震。這套分級自民國 109 年 1 月 1 日起施行。\n4 級以下依最大地動加速度（PGA）決定；計算結果達 5 級以上時，改依最大地動速度（PGV）決定。分級表裡的「屋內情形」以低樓層為例，高樓層搖晃會更明顯。\n\n資料來源：\n- 中央氣象署《有感地震報告發布作業要點》附表「地震震度分級表」 https://data.gov.tw/dataset/174285",
+      "sent": [
+        "earthquake-intensity-high",
+        "earthquake-intensity-scale"
+      ],
+      "relevant": [
+        "earthquake-intensity-high"
+      ],
+      "distances": [
+        [
+          "earthquake-intensity-high",
+          0.322
+        ],
+        [
+          "earthquake-intensity-scale",
+          0.341
+        ]
+      ],
+      "note": "最高級",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 0.5,
+      "reply": "■ 震度 6 弱、6 強、7 級是什麼情況\n6 弱：搖晃劇烈以致站立困難；大量傢俱大幅移動或翻倒，門窗扭曲變形，部分耐震較差的房屋可能損壞或倒塌；部分地面出現裂痕，部分山區可能山崩，部分地區水電、瓦斯或通訊中斷。\n6 強：搖晃劇烈以致無法站穩；除耐震較差的房屋外，耐震能力較強的房屋也可能受損；山區可能山崩，可能大範圍地區水電、瓦斯或通訊中斷。\n7 級劇震：搖晃劇烈以致無法依意志行動；幾乎所有傢俱都大幅移動或翻倒，部分耐震較強的建築物可能損壞或倒塌；山崩地裂，地形可能改變，大範圍地區水電、瓦斯或通訊中斷，鐵軌彎曲。\n\n■ 地震震度分級：0 級到 7 級、5 弱 5 強\n震度是「某一個地方」地表搖晃的程度，跟地震規模不同：規模是地震釋放的能量，一次地震只有一個規模，但各地的震度不一樣。\n臺灣的震度分為 0 級到 7 級，其中 5 級與 6 級各再分成「弱」與「強」，共 10 個等級：0 級無感、1 級微震、2 級輕震、3 級弱震、4 級中震、5 弱與 5 強（強震）、6 弱與 6 強（烈震）、7 級劇震。這套分級自民國 109 年 1 月 1 日起施行。\n4 級以下依最大地動加速度（PGA）決定；計算結果達 5 級以上時，改依最大地動速度（PGV）決定。分級表裡的「屋內情形」以低樓層為例，高樓層搖晃會更明顯。\n\n資料來源：\n- 中央氣象署《有感地震報告發布作業要點》附表「地震震度分級表」 https://data.gov.tw/dataset/174285",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "震度跟規模有什麼不同",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 地震震度分級：0 級到 7 級、5 弱 5 強\n震度是「某一個地方」地表搖晃的程度，跟地震規模不同：規模是地震釋放的能量，一次地震只有一個規模，但各地的震度不一樣。\n臺灣的震度分為 0 級到 7 級，其中 5 級與 6 級各再分成「弱」與「強」，共 10 個等級：0 級無感、1 級微震、2 級輕震、3 級弱震、4 級中震、5 弱與 5 強（強震）、6 弱與 6 強（烈震）、7 級劇震。這套分級自民國 109 年 1 月 1 日起施行。\n4 級以下依最大地動加速度（PGA）決定；計算結果達 5 級以上時，改依最大地動速度（PGV）決定。分級表裡的「屋內情形」以低樓層為例，高樓層搖晃會更明顯。\n\n資料來源：\n- 中央氣象署《有感地震報告發布作業要點》附表「地震震度分級表」 https://data.gov.tw/dataset/174285",
+      "sent": [
+        "earthquake-intensity-scale"
+      ],
+      "relevant": [
+        "earthquake-intensity-scale"
+      ],
+      "distances": [
+        [
+          "earthquake-intensity-scale",
+          0.34
+        ]
+      ],
+      "note": "概念題",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 地震震度分級：0 級到 7 級、5 弱 5 強\n震度是「某一個地方」地表搖晃的程度，跟地震規模不同：規模是地震釋放的能量，一次地震只有一個規模，但各地的震度不一樣。\n臺灣的震度分為 0 級到 7 級，其中 5 級與 6 級各再分成「弱」與「強」，共 10 個等級：0 級無感、1 級微震、2 級輕震、3 級弱震、4 級中震、5 弱與 5 強（強震）、6 弱與 6 強（烈震）、7 級劇震。這套分級自民國 109 年 1 月 1 日起施行。\n4 級以下依最大地動加速度（PGA）決定；計算結果達 5 級以上時，改依最大地動速度（PGV）決定。分級表裡的「屋內情形」以低樓層為例，高樓層搖晃會更明顯。\n\n資料來源：\n- 中央氣象署《有感地震報告發布作業要點》附表「地震震度分級表」 https://data.gov.tw/dataset/174285",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "土石流黃色警戒是什麼意思",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 土石流黃色警戒、紅色警戒是什麼意思\n土石流及大規模崩塌警戒由農村水保署依中央氣象署的雨量資料發布，分成兩級：\n黃色警戒：降雨已接近警戒值，而且依氣象署預測未來仍可能持續大雨。民眾應開始準備隨身物品、作好避難準備，觀察環境變化，留意最新消息，保持家中聯絡管道暢通；行動不便或需要定期就醫的人，建議預防性疏散。\n紅色警戒：雨勢明顯，而且已經達到警戒值。民眾應立即疏散避難，依鄉鎮市區公所與當地警消單位的安排，前往安全的避難處所。\n地方政府必要時會發布疏散避難警報，撤離危險區的居民。\n\n資料來源：\n- 農業部農村發展及水土保持署 土石流及大規模崩塌防災資訊網〈警戒發布及作為〉〈民眾防災指南〉 https://246.ardswc.gov.tw/DebrisFlow/AlertPublish https://246.ardswc.gov.tw/SelfPreparedness/Guide",
+      "sent": [
+        "debris-flow-alert"
+      ],
+      "relevant": [
+        "debris-flow-alert"
+      ],
+      "distances": [
+        [
+          "debris-flow-alert",
+          0.229
+        ]
+      ],
+      "note": "黃色警戒",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 土石流黃色警戒、紅色警戒是什麼意思\n土石流及大規模崩塌警戒由農村水保署依中央氣象署的雨量資料發布，分成兩級：\n黃色警戒：降雨已接近警戒值，而且依氣象署預測未來仍可能持續大雨。民眾應開始準備隨身物品、作好避難準備，觀察環境變化，留意最新消息，保持家中聯絡管道暢通；行動不便或需要定期就醫的人，建議預防性疏散。\n紅色警戒：雨勢明顯，而且已經達到警戒值。民眾應立即疏散避難，依鄉鎮市區公所與當地警消單位的安排，前往安全的避難處所。\n地方政府必要時會發布疏散避難警報，撤離危險區的居民。\n\n資料來源：\n- 農業部農村發展及水土保持署 土石流及大規模崩塌防災資訊網〈警戒發布及作為〉〈民眾防災指南〉 https://246.ardswc.gov.tw/DebrisFlow/AlertPublish https://246.ardswc.gov.tw/SelfPreparedness/Guide",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "土石流紅色警戒要撤離嗎",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 土石流黃色警戒、紅色警戒是什麼意思\n土石流及大規模崩塌警戒由農村水保署依中央氣象署的雨量資料發布，分成兩級：\n黃色警戒：降雨已接近警戒值，而且依氣象署預測未來仍可能持續大雨。民眾應開始準備隨身物品、作好避難準備，觀察環境變化，留意最新消息，保持家中聯絡管道暢通；行動不便或需要定期就醫的人，建議預防性疏散。\n紅色警戒：雨勢明顯，而且已經達到警戒值。民眾應立即疏散避難，依鄉鎮市區公所與當地警消單位的安排，前往安全的避難處所。\n地方政府必要時會發布疏散避難警報，撤離危險區的居民。\n\n資料來源：\n- 農業部農村發展及水土保持署 土石流及大規模崩塌防災資訊網〈警戒發布及作為〉〈民眾防災指南〉 https://246.ardswc.gov.tw/DebrisFlow/AlertPublish https://246.ardswc.gov.tw/SelfPreparedness/Guide",
+      "sent": [
+        "debris-flow-alert"
+      ],
+      "relevant": [
+        "debris-flow-alert"
+      ],
+      "distances": [
+        [
+          "debris-flow-alert",
+          0.262
+        ]
+      ],
+      "note": "紅色警戒",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 土石流黃色警戒、紅色警戒是什麼意思\n土石流及大規模崩塌警戒由農村水保署依中央氣象署的雨量資料發布，分成兩級：\n黃色警戒：降雨已接近警戒值，而且依氣象署預測未來仍可能持續大雨。民眾應開始準備隨身物品、作好避難準備，觀察環境變化，留意最新消息，保持家中聯絡管道暢通；行動不便或需要定期就醫的人，建議預防性疏散。\n紅色警戒：雨勢明顯，而且已經達到警戒值。民眾應立即疏散避難，依鄉鎮市區公所與當地警消單位的安排，前往安全的避難處所。\n地方政府必要時會發布疏散避難警報，撤離危險區的居民。\n\n資料來源：\n- 農業部農村發展及水土保持署 土石流及大規模崩塌防災資訊網〈警戒發布及作為〉〈民眾防災指南〉 https://246.ardswc.gov.tw/DebrisFlow/AlertPublish https://246.ardswc.gov.tw/SelfPreparedness/Guide",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "紅色警戒是什麼意思",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 土石流黃色警戒、紅色警戒是什麼意思\n土石流及大規模崩塌警戒由農村水保署依中央氣象署的雨量資料發布，分成兩級：\n黃色警戒：降雨已接近警戒值，而且依氣象署預測未來仍可能持續大雨。民眾應開始準備隨身物品、作好避難準備，觀察環境變化，留意最新消息，保持家中聯絡管道暢通；行動不便或需要定期就醫的人，建議預防性疏散。\n紅色警戒：雨勢明顯，而且已經達到警戒值。民眾應立即疏散避難，依鄉鎮市區公所與當地警消單位的安排，前往安全的避難處所。\n地方政府必要時會發布疏散避難警報，撤離危險區的居民。\n\n資料來源：\n- 農業部農村發展及水土保持署 土石流及大規模崩塌防災資訊網〈警戒發布及作為〉〈民眾防災指南〉 https://246.ardswc.gov.tw/DebrisFlow/AlertPublish https://246.ardswc.gov.tw/SelfPreparedness/Guide",
+      "sent": [
+        "debris-flow-alert"
+      ],
+      "relevant": [
+        "debris-flow-alert"
+      ],
+      "distances": [
+        [
+          "debris-flow-alert",
+          0.356
+        ]
+      ],
+      "note": "沒有災害名稱：只有土石流有紅色警戒",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 土石流黃色警戒、紅色警戒是什麼意思\n土石流及大規模崩塌警戒由農村水保署依中央氣象署的雨量資料發布，分成兩級：\n黃色警戒：降雨已接近警戒值，而且依氣象署預測未來仍可能持續大雨。民眾應開始準備隨身物品、作好避難準備，觀察環境變化，留意最新消息，保持家中聯絡管道暢通；行動不便或需要定期就醫的人，建議預防性疏散。\n紅色警戒：雨勢明顯，而且已經達到警戒值。民眾應立即疏散避難，依鄉鎮市區公所與當地警消單位的安排，前往安全的避難處所。\n地方政府必要時會發布疏散避難警報，撤離危險區的居民。\n\n資料來源：\n- 農業部農村發展及水土保持署 土石流及大規模崩塌防災資訊網〈警戒發布及作為〉〈民眾防災指南〉 https://246.ardswc.gov.tw/DebrisFlow/AlertPublish https://246.ardswc.gov.tw/SelfPreparedness/Guide",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "土石流發生前有什麼徵兆",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 土石流發生前有哪些前兆\n可以用五感觀察：\n聽：山中有異常的山鳴，溪流中有石頭摩擦聲，樹木裂開的聲音，上游傳來「Go」的聲音。\n看：溪水異常混濁、水位突然上升，或溪水急遽減少甚至突然斷流；溪水中帶有流木；附近有山崩或土石流；上游出現火光或像雷光的閃光。\n聞：有腐質土的臭味。\n摸：感覺地面震動。\n另外動物出現異常行為也是徵兆之一。\n\n資料來源：\n- 農業部農村發展及水土保持署 土石流及大規模崩塌防災資訊網〈土石流特性〉〈民眾防災指南〉 https://246.ardswc.gov.tw/DebrisFlow/Features https://246.ardswc.gov.tw/SelfPreparedness/Guide",
+      "sent": [
+        "debris-flow-signs"
+      ],
+      "relevant": [
+        "debris-flow-signs"
+      ],
+      "distances": [
+        [
+          "debris-flow-signs",
+          0.254
+        ]
+      ],
+      "note": "前兆",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 土石流發生前有哪些前兆\n可以用五感觀察：\n聽：山中有異常的山鳴，溪流中有石頭摩擦聲，樹木裂開的聲音，上游傳來「Go」的聲音。\n看：溪水異常混濁、水位突然上升，或溪水急遽減少甚至突然斷流；溪水中帶有流木；附近有山崩或土石流；上游出現火光或像雷光的閃光。\n聞：有腐質土的臭味。\n摸：感覺地面震動。\n另外動物出現異常行為也是徵兆之一。\n\n資料來源：\n- 農業部農村發展及水土保持署 土石流及大規模崩塌防災資訊網〈土石流特性〉〈民眾防災指南〉 https://246.ardswc.gov.tw/DebrisFlow/Features https://246.ardswc.gov.tw/SelfPreparedness/Guide",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "土石流警戒值怎麼訂的",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 土石流警戒值是怎麼訂的\n每條土石流潛勢溪流都有自己的警戒基準值，用的是累積雨量（毫米）。基準值用中央氣象署的雨量資料推算，從 200 毫米到 650 毫米，每 50 毫米一級，共 10 級。\n基準值原則上每年檢討一次。發生重大土砂災害，或地震讓山坡變得鬆動時會立即檢討：例如震度 5 強的地區可調降約 1～2 級，震度 6 弱以上可調降約 2～4 級，也就是大地震後比較少的雨量就會達到警戒。\n各溪流的基準值可在農村水保署「警戒值簡表」查詢。\n\n資料來源：\n- 農業部農村發展及水土保持署 土石流及大規模崩塌防災資訊網〈警戒基準值〉 https://246.ardswc.gov.tw/DebrisFlow/AlertSet",
+      "sent": [
+        "debris-flow-threshold"
+      ],
+      "relevant": [
+        "debris-flow-threshold"
+      ],
+      "distances": [
+        [
+          "debris-flow-threshold",
+          0.236
+        ]
+      ],
+      "note": "警戒基準值",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 土石流警戒值是怎麼訂的\n每條土石流潛勢溪流都有自己的警戒基準值，用的是累積雨量（毫米）。基準值用中央氣象署的雨量資料推算，從 200 毫米到 650 毫米，每 50 毫米一級，共 10 級。\n基準值原則上每年檢討一次。發生重大土砂災害，或地震讓山坡變得鬆動時會立即檢討：例如震度 5 強的地區可調降約 1～2 級，震度 6 弱以上可調降約 2～4 級，也就是大地震後比較少的雨量就會達到警戒。\n各溪流的基準值可在農村水保署「警戒值簡表」查詢。\n\n資料來源：\n- 農業部農村發展及水土保持署 土石流及大規模崩塌防災資訊網〈警戒基準值〉 https://246.ardswc.gov.tw/DebrisFlow/AlertSet",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "土石流要撤離的時候要往哪個方向",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 土石流疏散撤離時要怎麼做\n帶著緊急避難包、隨身衣物與重要證件疏散到緊急避難處所；如果災害可能擴大，再疏散到外地的收容所。\n遇到強降雨時，往溪流兩側的高地疏散，不要往下接近溪溝；不要穿越土石流潛勢溪流，也不要經過危險路段或陡坡。\n疏散後通知親友你在哪個避難處所，並在家中留言說明去向。\n\n資料來源：\n- 農業部農村發展及水土保持署 土石流及大規模崩塌防災資訊網〈民眾防災指南〉 https://246.ardswc.gov.tw/SelfPreparedness/Guide",
+      "sent": [
+        "debris-flow-evacuate"
+      ],
+      "relevant": [
+        "debris-flow-evacuate"
+      ],
+      "distances": [
+        [
+          "debris-flow-evacuate",
+          0.31
+        ]
+      ],
+      "note": "撤離方向",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 土石流疏散撤離時要怎麼做\n帶著緊急避難包、隨身衣物與重要證件疏散到緊急避難處所；如果災害可能擴大，再疏散到外地的收容所。\n遇到強降雨時，往溪流兩側的高地疏散，不要往下接近溪溝；不要穿越土石流潛勢溪流，也不要經過危險路段或陡坡。\n疏散後通知親友你在哪個避難處所，並在家中留言說明去向。\n\n資料來源：\n- 農業部農村發展及水土保持署 土石流及大規模崩塌防災資訊網〈民眾防災指南〉 https://246.ardswc.gov.tw/SelfPreparedness/Guide",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "什麼是土石流",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 土石流是什麼、為什麼危險\n土石流是泥、砂、礫石與巨石和水混在一起，受重力作用沿著坡面或溝渠從高處往低處流動的自然現象。在臺灣多發生在豪雨期間的山坡地或山谷，常與崩塌、地滑同時或稍後出現。雨量多、土石多、坡度陡三個條件成立時，就可能發生土石流。\n土石流流速快、衝擊力大：礫石型約每秒 3～10 公尺，泥流型約每秒 2～20 公尺。前端隆起、多為巨大石塊，後面跟著泥流。到了溪谷出口坡度變緩、變寬，流速降低，常在這裡堆積成扇狀，所以溪谷出口一帶是危險區。\n\n資料來源：\n- 農業部農村發展及水土保持署 土石流及大規模崩塌防災資訊網〈什麼是土石流〉〈土石流特性〉 https://246.ardswc.gov.tw/DebrisFlow/Definition https://246.ardswc.gov.tw/DebrisFlow/Features",
+      "sent": [
+        "debris-flow-about"
+      ],
+      "relevant": [
+        "debris-flow-about"
+      ],
+      "distances": [
+        [
+          "debris-flow-about",
+          0.296
+        ]
+      ],
+      "note": "定義",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 土石流是什麼、為什麼危險\n土石流是泥、砂、礫石與巨石和水混在一起，受重力作用沿著坡面或溝渠從高處往低處流動的自然現象。在臺灣多發生在豪雨期間的山坡地或山谷，常與崩塌、地滑同時或稍後出現。雨量多、土石多、坡度陡三個條件成立時，就可能發生土石流。\n土石流流速快、衝擊力大：礫石型約每秒 3～10 公尺，泥流型約每秒 2～20 公尺。前端隆起、多為巨大石塊，後面跟著泥流。到了溪谷出口坡度變緩、變寬，流速降低，常在這裡堆積成扇狀，所以溪谷出口一帶是危險區。\n\n資料來源：\n- 農業部農村發展及水土保持署 土石流及大規模崩塌防災資訊網〈什麼是土石流〉〈土石流特性〉 https://246.ardswc.gov.tw/DebrisFlow/Definition https://246.ardswc.gov.tw/DebrisFlow/Features",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "海嘯警報和海嘯警訊差在哪",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 海嘯警報、海嘯警訊、海嘯消息有什麼不同\n中央氣象署發布的海嘯資訊有四種：\n海嘯警報：臺灣近海發生規模 7.0 以上、震源深度淺於 35 公里的地震；或太平洋海嘯警報中心（PTWC）的報文經評估，臺灣沿海預估波高達 1 級以上，而且預估 3 小時內抵達。\n海嘯警訊：PTWC 報文經評估，臺灣沿海預估波高達 1 級以上，預估 3 到 6 小時內抵達。\n海嘯消息：未達上述標準，但海嘯事件可能引起民眾關切時發布。\n解除海嘯警報或警訊：PTWC 宣布海嘯威脅解除，或氣象署依觀測資料研判威脅解除時發布。\n另外，臺灣近海發生規模 6.0 以上、震源深度淺於 35 公里的地震時，地震報告會加註「沿岸地區應防海水位突變」；這是地震報告裡的提醒，不是海嘯警報，也不是海嘯警訊。\n\n資料來源：\n- 中央氣象署《海嘯資訊發布作業要點》（民國 114 年 2 月 1 日生效） https://data.gov.tw/dataset/174286\n- 中央氣象署地震測報中心〈海嘯資訊種類及預估波高分級表〉 https://scweb.cwa.gov.tw/zh-tw/guidance/protection/227",
+      "sent": [
+        "tsunami-info-types"
+      ],
+      "relevant": [
+        "tsunami-info-types"
+      ],
+      "distances": [
+        [
+          "tsunami-info-types",
+          0.25
+        ]
+      ],
+      "note": "三種海嘯資訊",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 海嘯警報、海嘯警訊、海嘯消息有什麼不同\n中央氣象署發布的海嘯資訊有四種：\n海嘯警報：臺灣近海發生規模 7.0 以上、震源深度淺於 35 公里的地震；或太平洋海嘯警報中心（PTWC）的報文經評估，臺灣沿海預估波高達 1 級以上，而且預估 3 小時內抵達。\n海嘯警訊：PTWC 報文經評估，臺灣沿海預估波高達 1 級以上，預估 3 到 6 小時內抵達。\n海嘯消息：未達上述標準，但海嘯事件可能引起民眾關切時發布。\n解除海嘯警報或警訊：PTWC 宣布海嘯威脅解除，或氣象署依觀測資料研判威脅解除時發布。\n另外，臺灣近海發生規模 6.0 以上、震源深度淺於 35 公里的地震時，地震報告會加註「沿岸地區應防海水位突變」；這是地震報告裡的提醒，不是海嘯警報，也不是海嘯警訊。\n\n資料來源：\n- 中央氣象署《海嘯資訊發布作業要點》（民國 114 年 2 月 1 日生效） https://data.gov.tw/dataset/174286\n- 中央氣象署地震測報中心〈海嘯資訊種類及預估波高分級表〉 https://scweb.cwa.gov.tw/zh-tw/guidance/protection/227",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "海嘯警報發布了要怎麼避難",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 海嘯警報發布時要怎麼避難\n發布海嘯警報時，聽從疏散人員的指示疏散；在危險海域附近的人要準備撤離。\n帶著水、食物等必需品往高處逃，最好是堅固建築物的高樓層或屋頂。時間允許的話，先打開所有門窗，減少海嘯對建築物的衝擊。\n短距離避難盡量不要開車，以免被海嘯捲入時無法脫困。\n來不及往高處移動時，找大樹、鋼筋等固定物緊緊抓牢；有救生衣就盡快穿上，抓住漂浮物或爬上大型漂浮物；已經在水中時，避開大型漂浮物的碰撞。\n\n資料來源：\n- 中央氣象署地震測報中心〈海嘯防護－海嘯來襲時的建議作為〉 https://scweb.cwa.gov.tw/zh-tw/guidance/protection/226",
+      "sent": [
+        "tsunami-response"
+      ],
+      "relevant": [
+        "tsunami-response"
+      ],
+      "distances": [
+        [
+          "tsunami-response",
+          0.156
+        ]
+      ],
+      "note": "應變",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 海嘯警報發布時要怎麼避難\n發布海嘯警報時，聽從疏散人員的指示疏散；在危險海域附近的人要準備撤離。\n帶著水、食物等必需品往高處逃，最好是堅固建築物的高樓層或屋頂。時間允許的話，先打開所有門窗，減少海嘯對建築物的衝擊。\n短距離避難盡量不要開車，以免被海嘯捲入時無法脫困。\n來不及往高處移動時，找大樹、鋼筋等固定物緊緊抓牢；有救生衣就盡快穿上，抓住漂浮物或爬上大型漂浮物；已經在水中時，避開大型漂浮物的碰撞。\n\n資料來源：\n- 中央氣象署地震測報中心〈海嘯防護－海嘯來襲時的建議作為〉 https://scweb.cwa.gov.tw/zh-tw/guidance/protection/226",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "海水突然退很多代表什麼",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 海嘯為什麼一靠岸就變得很危險\n海嘯最常見的成因是淺層的海底大地震讓海底地形變動，海水被抬升後向四周傳播；海底山崩、海底火山爆發也可能造成海嘯。\n在深海時海嘯時速約 700～800 公里，但波高只有數十公分到一、兩公尺，船隻不容易察覺。接近岸邊水深變淺後，速度變慢、波高增加為數倍，所以對沿岸破壞很大。水深 100 公尺時時速仍約 100 公里，水深 10 公尺時約 36 公里。\n\n■ 海嘯來之前有哪些徵兆\n海嘯通常伴隨大地震而來；在海邊感覺到大地震後，要立即注意政府有沒有發布海嘯警報。\n海水快速後退、露出海灘，或遠處海浪帶著白色浪花朝海岸過來，都是海嘯即將來襲的徵兆，看到時應立即往高處避難。\n\n資料來源：\n- 中央氣象署地震測報中心〈海嘯防護－海嘯是如何發生的〉 https://scweb.cwa.gov.tw/zh-tw/guidance/protection\n- 中央氣象署地震測報中心〈海嘯防護－海嘯來襲時的建議作為〉 https://scweb.cwa.gov.tw/zh-tw/guidance/protection/226",
+      "sent": [
+        "tsunami-about",
+        "tsunami-signs"
+      ],
+      "relevant": [
+        "tsunami-signs"
+      ],
+      "distances": [
+        [
+          "tsunami-about",
+          0.424
+        ],
+        [
+          "tsunami-signs",
+          0.447
+        ]
+      ],
+      "note": "前兆，問法跟文件不一樣",
+      "route_ok": true,
+      "hit": true,
+      "top1": false,
+      "precision": 0.5,
+      "reply": "■ 海嘯為什麼一靠岸就變得很危險\n海嘯最常見的成因是淺層的海底大地震讓海底地形變動，海水被抬升後向四周傳播；海底山崩、海底火山爆發也可能造成海嘯。\n在深海時海嘯時速約 700～800 公里，但波高只有數十公分到一、兩公尺，船隻不容易察覺。接近岸邊水深變淺後，速度變慢、波高增加為數倍，所以對沿岸破壞很大。水深 100 公尺時時速仍約 100 公里，水深 10 公尺時約 36 公里。\n\n■ 海嘯來之前有哪些徵兆\n海嘯通常伴隨大地震而來；在海邊感覺到大地震後，要立即注意政府有沒有發布海嘯警報。\n海水快速後退、露出海灘，或遠處海浪帶著白色浪花朝海岸過來，都是海嘯即將來襲的徵兆，看到時應立即往高處避難。\n\n資料來源：\n- 中央氣象署地震測報中心〈海嘯防護－海嘯是如何發生的〉 https://scweb.cwa.gov.tw/zh-tw/guidance/protection\n- 中央氣象署地震測報中心〈海嘯防護－海嘯來襲時的建議作為〉 https://scweb.cwa.gov.tw/zh-tw/guidance/protection/226",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "海嘯第一波過後可以回家嗎",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 第一波海嘯過後可以回去了嗎\n不可以。第一波海嘯過後可能還有第二波，不要馬上回家或到漁港等水邊。先待在安全的地方，等海嘯警報解除後再返家。\n回到災區或返家清理時要注意安全，建築物明顯毀損的話不要靠近。\n\n資料來源：\n- 中央氣象署地震測報中心〈海嘯防護－海嘯來襲時的建議作為〉 https://scweb.cwa.gov.tw/zh-tw/guidance/protection/226",
+      "sent": [
+        "tsunami-after"
+      ],
+      "relevant": [
+        "tsunami-after"
+      ],
+      "distances": [
+        [
+          "tsunami-after",
+          0.176
+        ]
+      ],
+      "note": "不能回去",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 第一波海嘯過後可以回去了嗎\n不可以。第一波海嘯過後可能還有第二波，不要馬上回家或到漁港等水邊。先待在安全的地方，等海嘯警報解除後再返家。\n回到災區或返家清理時要注意安全，建築物明顯毀損的話不要靠近。\n\n資料來源：\n- 中央氣象署地震測報中心〈海嘯防護－海嘯來襲時的建議作為〉 https://scweb.cwa.gov.tw/zh-tw/guidance/protection/226",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "海嘯波高分級是什麼",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 海嘯預估波高 0 到 3 級\n0 級：預估波高未達 0.3 公尺，人沒有明顯感覺，對建築與船隻沒有影響。\n1 級：0.3 公尺以上、未達 1 公尺。人會感到明顯推力、可能被沖走；低矮建築輕微浸水；港內船隻可能損壞；近岸地區會受侵襲。\n2 級：1 公尺以上、未達 3 公尺。人會被沖走；較低矮的建築被淹沒；中小型船隻可能翻覆。\n3 級：3 公尺以上。人會被沖走；建築物被淹沒，並可能被大型漂流物撞擊損壞；船隻可能翻覆。\n\n資料來源：\n- 中央氣象署地震測報中心〈海嘯資訊種類及預估波高分級表〉 https://scweb.cwa.gov.tw/zh-tw/guidance/protection/227\n- 中央氣象署《海嘯資訊發布作業要點》 https://data.gov.tw/dataset/174286",
+      "sent": [
+        "tsunami-wave-grades"
+      ],
+      "relevant": [
+        "tsunami-wave-grades"
+      ],
+      "distances": [
+        [
+          "tsunami-wave-grades",
+          0.358
+        ]
+      ],
+      "note": "分級表",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 海嘯預估波高 0 到 3 級\n0 級：預估波高未達 0.3 公尺，人沒有明顯感覺，對建築與船隻沒有影響。\n1 級：0.3 公尺以上、未達 1 公尺。人會感到明顯推力、可能被沖走；低矮建築輕微浸水；港內船隻可能損壞；近岸地區會受侵襲。\n2 級：1 公尺以上、未達 3 公尺。人會被沖走；較低矮的建築被淹沒；中小型船隻可能翻覆。\n3 級：3 公尺以上。人會被沖走；建築物被淹沒，並可能被大型漂流物撞擊損壞；船隻可能翻覆。\n\n資料來源：\n- 中央氣象署地震測報中心〈海嘯資訊種類及預估波高分級表〉 https://scweb.cwa.gov.tw/zh-tw/guidance/protection/227\n- 中央氣象署《海嘯資訊發布作業要點》 https://data.gov.tw/dataset/174286",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "豪雨的標準是多少",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 大雨、豪雨、大豪雨、超大豪雨的標準\n中央氣象署預期可能有大雨或豪雨時，會發布大雨或豪雨特報。分級標準：\n大雨：24 小時累積雨量 80 毫米以上，或時雨量 40 毫米以上。\n豪雨：24 小時累積雨量 200 毫米以上，或 3 小時累積雨量 100 毫米以上。\n大豪雨：24 小時累積雨量 350 毫米以上，或 3 小時累積雨量 200 毫米以上。\n超大豪雨：24 小時累積雨量 500 毫米以上。\n強降雨常造成山區坍方、落石與土石流，低窪地區要慎防積淹水，河川周邊要注意河水暴漲、山洪暴發。\n\n資料來源：\n- 中央氣象署〈大雨、豪雨特報〉 https://www.cwa.gov.tw/V8/C/P/Warning/W26.html",
+      "sent": [
+        "heavy-rain-levels"
+      ],
+      "relevant": [
+        "heavy-rain-levels"
+      ],
+      "distances": [
+        [
+          "heavy-rain-levels",
+          0.245
+        ]
+      ],
+      "note": "豪雨門檻",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 大雨、豪雨、大豪雨、超大豪雨的標準\n中央氣象署預期可能有大雨或豪雨時，會發布大雨或豪雨特報。分級標準：\n大雨：24 小時累積雨量 80 毫米以上，或時雨量 40 毫米以上。\n豪雨：24 小時累積雨量 200 毫米以上，或 3 小時累積雨量 100 毫米以上。\n大豪雨：24 小時累積雨量 350 毫米以上，或 3 小時累積雨量 200 毫米以上。\n超大豪雨：24 小時累積雨量 500 毫米以上。\n強降雨常造成山區坍方、落石與土石流，低窪地區要慎防積淹水，河川周邊要注意河水暴漲、山洪暴發。\n\n資料來源：\n- 中央氣象署〈大雨、豪雨特報〉 https://www.cwa.gov.tw/V8/C/P/Warning/W26.html",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "下雨多少算超大豪雨",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 大雨、豪雨、大豪雨、超大豪雨的標準\n中央氣象署預期可能有大雨或豪雨時，會發布大雨或豪雨特報。分級標準：\n大雨：24 小時累積雨量 80 毫米以上，或時雨量 40 毫米以上。\n豪雨：24 小時累積雨量 200 毫米以上，或 3 小時累積雨量 100 毫米以上。\n大豪雨：24 小時累積雨量 350 毫米以上，或 3 小時累積雨量 200 毫米以上。\n超大豪雨：24 小時累積雨量 500 毫米以上。\n強降雨常造成山區坍方、落石與土石流，低窪地區要慎防積淹水，河川周邊要注意河水暴漲、山洪暴發。\n\n資料來源：\n- 中央氣象署〈大雨、豪雨特報〉 https://www.cwa.gov.tw/V8/C/P/Warning/W26.html",
+      "sent": [
+        "heavy-rain-levels"
+      ],
+      "relevant": [
+        "heavy-rain-levels"
+      ],
+      "distances": [
+        [
+          "heavy-rain-levels",
+          0.245
+        ]
+      ],
+      "note": "有離題詞「下雨」",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 大雨、豪雨、大豪雨、超大豪雨的標準\n中央氣象署預期可能有大雨或豪雨時，會發布大雨或豪雨特報。分級標準：\n大雨：24 小時累積雨量 80 毫米以上，或時雨量 40 毫米以上。\n豪雨：24 小時累積雨量 200 毫米以上，或 3 小時累積雨量 100 毫米以上。\n大豪雨：24 小時累積雨量 350 毫米以上，或 3 小時累積雨量 200 毫米以上。\n超大豪雨：24 小時累積雨量 500 毫米以上。\n強降雨常造成山區坍方、落石與土石流，低窪地區要慎防積淹水，河川周邊要注意河水暴漲、山洪暴發。\n\n資料來源：\n- 中央氣象署〈大雨、豪雨特報〉 https://www.cwa.gov.tw/V8/C/P/Warning/W26.html",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "淹水警戒一級是什麼意思",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 淹水警戒一級、二級是什麼意思\n淹水警戒由經濟部水利署依各鄉鎮市區的即時雨量發布，分成兩級：\n二級警戒：雨量持續累積，如果雨勢不停，易淹水的村里與路段可能在未來 3 小時內開始積淹水。\n一級警戒：雨量已達警戒基準，易淹水的村里與路段可能已經開始積淹水，或在未來 1 小時內隨時可能淹水。\n\n資料來源：\n- 中央社報導引述經濟部水利署（新聞引述，待確認原文） https://www.cna.com.tw/news/afe/201710140044.aspx",
+      "sent": [
+        "flood-alert"
+      ],
+      "relevant": [
+        "flood-alert"
+      ],
+      "distances": [
+        [
+          "flood-alert",
+          0.274
+        ]
+      ],
+      "note": "待確認的那段",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 淹水警戒一級、二級是什麼意思\n淹水警戒由經濟部水利署依各鄉鎮市區的即時雨量發布，分成兩級：\n二級警戒：雨量持續累積，如果雨勢不停，易淹水的村里與路段可能在未來 3 小時內開始積淹水。\n一級警戒：雨量已達警戒基準，易淹水的村里與路段可能已經開始積淹水，或在未來 1 小時內隨時可能淹水。\n\n資料來源：\n- 中央社報導引述經濟部水利署（新聞引述，待確認原文） https://www.cna.com.tw/news/afe/201710140044.aspx",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "家裡快淹水了要準備什麼",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 住在低窪地區，淹水前要準備什麼\n把重要文件、電器產品、衣物移到二樓或高處，家中重要物品放到高處的架子上。\n盡早把汽機車移到安全的地方。\n檢查屋頂排水管與雨水溝是否阻塞，清理排水溝的落葉與垃圾；檢查屋頂與外牆有沒有龜裂。\n備妥沙包或安裝防水閘門。\n颱風或低氣壓接近時，海面比平常高，若又遇上滿潮，波浪可能湧上岸造成海水倒灌，沿海居民要特別警覺。\n\n資料來源：\n- 內政部消防署 消防防災館〈積淹水防範對策〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=57&article_id=174",
+      "sent": [
+        "flood-before"
+      ],
+      "relevant": [
+        "flood-before"
+      ],
+      "distances": [
+        [
+          "flood-before",
+          0.269
+        ]
+      ],
+      "note": "淹水前",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 住在低窪地區，淹水前要準備什麼\n把重要文件、電器產品、衣物移到二樓或高處，家中重要物品放到高處的架子上。\n盡早把汽機車移到安全的地方。\n檢查屋頂排水管與雨水溝是否阻塞，清理排水溝的落葉與垃圾；檢查屋頂與外牆有沒有龜裂。\n備妥沙包或安裝防水閘門。\n颱風或低氣壓接近時，海面比平常高，若又遇上滿潮，波浪可能湧上岸造成海水倒灌，沿海居民要特別警覺。\n\n資料來源：\n- 內政部消防署 消防防災館〈積淹水防範對策〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=57&article_id=174",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "淹水的時候要怎麼避難",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 淹水時要怎麼避難\n水災時原則上就地避難或垂直避難（往家中較高的樓層移動）；住在低窪地區的人，則要依指示前往避難收容處所。\n住在低窪易淹水地區，要隨時注意河川與排水狀況，一旦有災情，配合救災人員的指揮疏散。\n不要進入淹水的地下室，以免觸電或溺水；經過地下道時注意積水高度，不要強行通過。\n疏散時依政府指示的路線前進，不抄捷徑，不要涉險過河。\n\n資料來源：\n- 內政部消防署 消防防災館〈颱風發生時該如何疏散、避難〉〈颱風來時注意事項〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=58&article_id=187 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=58&article_id=189",
+      "sent": [
+        "flood-during"
+      ],
+      "relevant": [
+        "flood-during"
+      ],
+      "distances": [
+        [
+          "flood-during",
+          0.203
+        ]
+      ],
+      "note": "淹水時",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 淹水時要怎麼避難\n水災時原則上就地避難或垂直避難（往家中較高的樓層移動）；住在低窪地區的人，則要依指示前往避難收容處所。\n住在低窪易淹水地區，要隨時注意河川與排水狀況，一旦有災情，配合救災人員的指揮疏散。\n不要進入淹水的地下室，以免觸電或溺水；經過地下道時注意積水高度，不要強行通過。\n疏散時依政府指示的路線前進，不抄捷徑，不要涉險過河。\n\n資料來源：\n- 內政部消防署 消防防災館〈颱風發生時該如何疏散、避難〉〈颱風來時注意事項〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=58&article_id=187 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=58&article_id=189",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "台北地震的時候要怎麼辦",
+      "kind": "positive",
+      "route": "knowledge",
+      "early_reply": "■ 地震時在室內怎麼辦：趴下、掩護、穩住\n地震搖晃時最重要的是保護頭部與頸部，立刻做「趴下、掩護、穩住」，不要慌張衝到戶外。\n附近有桌子就躲到桌下並抓住桌腳，桌子移動時人跟著移動，桌子就是保護屏障；沒有桌子就移到牆角趴下護住頭頸。躲在牆角或柱子旁要留意周圍的傢俱、電器、燈具、書櫃或貨架，也要遠離窗戶，以防玻璃破碎。\n趴下後除非頭頂有東西可能掉落，否則不要再移動；不要抬頭往上看，以免被掉落的燈具或碎片砸傷。\n在學校要躲在桌下並背向窗戶，不要衝出教室或上下樓梯；在公共場所不要推擠，也不要搭電梯。\n\n■ 地震時在戶外或開車怎麼辦\n在戶外相對安全，不要衝回室內；用隨身的包包護住頭頸，等搖晃結束。離開建築物旁、樹下與高架橋下，注意上方可能掉落的招牌與磁磚，遠離施工中的建築與電線桿。在郊外要遠離崖邊、河邊與海邊。\n開車時不要緊急煞車：安全減速、打開警示燈，停到路邊空曠處（避開建築旁、樹下與高架橋下），確認震動停止後再繼續行駛。\n在火車或捷運上，抓住固定的把手或鋼條並放低重心；在車站候車時就地趴下、掩護、穩住，人多不便趴下時就蹲低並保護頭頸。\n\n資料來源：\n- 內政部消防署 消防防災館〈在室內時該怎麼避難呢?〉〈地震了！該怎麼辦？!〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=52&article_id=121 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=52&article_id=123\n- 中央氣象署地震測報中心〈地震防護〉 https://scweb.cwa.gov.tw/zh-tw/page/intro/11\n- 內政部消防署 消防防災館〈在戶外時，要注意什麼地方呢?〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=52&article_id=122",
+      "sent": [
+        "earthquake-during-indoor",
+        "earthquake-during-outdoor"
+      ],
+      "relevant": [
+        "earthquake-during-indoor",
+        "earthquake-during-outdoor"
+      ],
+      "distances": [
+        [
+          "earthquake-during-indoor",
+          0.295
+        ],
+        [
+          "earthquake-during-outdoor",
+          0.301
+        ],
+        [
+          "earthquake-after",
+          0.311
+        ],
+        [
+          "earthquake-trapped",
+          0.313
+        ],
+        [
+          "earthquake-after-damaged",
+          0.322
+        ]
+      ],
+      "note": "範圍外縣市：應變方式一樣要能答",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 地震時在室內怎麼辦：趴下、掩護、穩住\n地震搖晃時最重要的是保護頭部與頸部，立刻做「趴下、掩護、穩住」，不要慌張衝到戶外。\n附近有桌子就躲到桌下並抓住桌腳，桌子移動時人跟著移動，桌子就是保護屏障；沒有桌子就移到牆角趴下護住頭頸。躲在牆角或柱子旁要留意周圍的傢俱、電器、燈具、書櫃或貨架，也要遠離窗戶，以防玻璃破碎。\n趴下後除非頭頂有東西可能掉落，否則不要再移動；不要抬頭往上看，以免被掉落的燈具或碎片砸傷。\n在學校要躲在桌下並背向窗戶，不要衝出教室或上下樓梯；在公共場所不要推擠，也不要搭電梯。\n\n■ 地震時在戶外或開車怎麼辦\n在戶外相對安全，不要衝回室內；用隨身的包包護住頭頸，等搖晃結束。離開建築物旁、樹下與高架橋下，注意上方可能掉落的招牌與磁磚，遠離施工中的建築與電線桿。在郊外要遠離崖邊、河邊與海邊。\n開車時不要緊急煞車：安全減速、打開警示燈，停到路邊空曠處（避開建築旁、樹下與高架橋下），確認震動停止後再繼續行駛。\n在火車或捷運上，抓住固定的把手或鋼條並放低重心；在車站候車時就地趴下、掩護、穩住，人多不便趴下時就蹲低並保護頭頸。\n\n資料來源：\n- 內政部消防署 消防防災館〈在室內時該怎麼避難呢?〉〈地震了！該怎麼辦？!〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=52&article_id=121 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=52&article_id=123\n- 中央氣象署地震測報中心〈地震防護〉 https://scweb.cwa.gov.tw/zh-tw/page/intro/11\n- 內政部消防署 消防防災館〈在戶外時，要注意什麼地方呢?〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=52&article_id=122",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "火災要怎麼逃生",
+      "kind": "negative",
+      "route": "rag",
+      "early_reply": null,
+      "sent": [],
+      "relevant": [],
+      "distances": [
+        [
+          "tsunami-response",
+          0.341
+        ],
+        [
+          "typhoon-evacuation",
+          0.384
+        ],
+        [
+          "earthquake-after-damaged",
+          0.387
+        ]
+      ],
+      "note": "語料沒有火災；也沒有災害詞，不走知識路由",
+      "held": true
+    },
+    {
+      "query": "颱風天會停班停課嗎",
+      "kind": "negative",
+      "route": "off_topic",
+      "early_reply": "本系統只涵蓋宜蘭、花蓮、台東三縣的避難收容場所資訊，沒有停班的資料。可以問避難所的位置、容量、剩餘空位，或最近的避難所在哪裡。",
+      "sent": [],
+      "relevant": [],
+      "distances": [
+        [
+          "typhoon-during",
+          0.413
+        ],
+        [
+          "typhoon-warning",
+          0.429
+        ],
+        [
+          "typhoon-before-home",
+          0.451
+        ],
+        [
+          "typhoon-intensity",
+          0.453
+        ],
+        [
+          "typhoon-after",
+          0.456
+        ]
+      ],
+      "note": "停班停課不在語料",
+      "held": true
+    },
+    {
+      "query": "颱風要怎麼申請補助",
+      "kind": "negative",
+      "route": "off_topic",
+      "early_reply": "本系統只涵蓋宜蘭、花蓮、台東三縣的避難收容場所資訊，沒有補助的資料。可以問避難所的位置、容量、剩餘空位，或最近的避難所在哪裡。",
+      "sent": [],
+      "relevant": [],
+      "distances": [
+        [
+          "typhoon-before-home",
+          0.372
+        ],
+        [
+          "typhoon-after",
+          0.378
+        ],
+        [
+          "typhoon-evacuation",
+          0.392
+        ],
+        [
+          "typhoon-during",
+          0.398
+        ],
+        [
+          "typhoon-before-evacuate",
+          0.414
+        ]
+      ],
+      "note": "補助是離題詞",
+      "held": true
+    },
+    {
+      "query": "地震保險要怎麼買",
+      "kind": "negative",
+      "route": "off_topic",
+      "early_reply": "本系統只涵蓋宜蘭、花蓮、台東三縣的避難收容場所資訊，沒有保險的資料。可以問避難所的位置、容量、剩餘空位，或最近的避難所在哪裡。",
+      "sent": [],
+      "relevant": [],
+      "distances": [
+        [
+          "earthquake-during-indoor",
+          0.393
+        ],
+        [
+          "earthquake-before",
+          0.425
+        ],
+        [
+          "earthquake-during-outdoor",
+          0.431
+        ]
+      ],
+      "note": "保險是離題詞",
+      "held": true
+    },
+    {
+      "query": "颱風警報怎麼收到簡訊通知",
+      "kind": "negative",
+      "route": "knowledge",
+      "early_reply": "■ 颱風警報：海上警報與陸上警報\n颱風警報分成海上颱風警報與陸上颱風警報，都是在颱風的 7 級風暴風範圍「可能侵襲之前」預先發布，所以警報發布時當地不一定已經有風雨。\n海上颱風警報：預測 7 級風暴風範圍可能侵襲臺灣本島或澎湖、金門、馬祖 100 公里以內海域之前 24 小時發布。\n陸上颱風警報：預測 7 級風暴風範圍可能侵襲臺灣本島或澎湖、金門、馬祖陸上之前 18 小時發布。\n兩種警報發布後都是每 3 小時發布一次，必要時加發。發布海上警報時，若預測暴風範圍可能侵襲綠島、蘭嶼陸上，綠島、蘭嶼也會列入警戒區域。\n\n■ 颱風來之前：居家要準備什麼\n隨時透過電視、廣播、網路或 166、167 氣象錄音電話掌握颱風動向。\n關閉非必要的門窗，必要時加釘木板。清理水溝渠道，避免堵塞積水。\n把屋外、庭院的懸掛物（廣告招牌、陽台花盆）取下或固定，以免被風吹落傷人；庭園樹木加支架並修剪樹枝。\n怕淋濕的物品移到適當地方存放。\n多準備三、四天份的食物、飲水與乾糧；準備蠟燭、手電筒、電池與手機電池，以備停電。檢查電路、注意爐火，以防火災。\n\n資料來源：\n- 中央氣象署《颱風百問》第 88 題「臺灣地區颱風警報發布之標準為何？」 https://www.cwa.gov.tw/V8/C/K/Encyclopedia/typhoon/typhoon.pdf\n- 內政部消防署 消防防災館〈颱風前要準備什麼〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=57&article_id=165",
+      "sent": [
+        "typhoon-warning",
+        "typhoon-before-home"
+      ],
+      "relevant": [],
+      "distances": [
+        [
+          "typhoon-warning",
+          0.327
+        ],
+        [
+          "typhoon-before-home",
+          0.36
+        ]
+      ],
+      "note": "有警報詞但語料沒寫推播方式：只能靠距離門檻或模型自己說沒有",
+      "held": false,
+      "reply": "■ 颱風警報：海上警報與陸上警報\n颱風警報分成海上颱風警報與陸上颱風警報，都是在颱風的 7 級風暴風範圍「可能侵襲之前」預先發布，所以警報發布時當地不一定已經有風雨。\n海上颱風警報：預測 7 級風暴風範圍可能侵襲臺灣本島或澎湖、金門、馬祖 100 公里以內海域之前 24 小時發布。\n陸上颱風警報：預測 7 級風暴風範圍可能侵襲臺灣本島或澎湖、金門、馬祖陸上之前 18 小時發布。\n兩種警報發布後都是每 3 小時發布一次，必要時加發。發布海上警報時，若預測暴風範圍可能侵襲綠島、蘭嶼陸上，綠島、蘭嶼也會列入警戒區域。\n\n■ 颱風來之前：居家要準備什麼\n隨時透過電視、廣播、網路或 166、167 氣象錄音電話掌握颱風動向。\n關閉非必要的門窗，必要時加釘木板。清理水溝渠道，避免堵塞積水。\n把屋外、庭院的懸掛物（廣告招牌、陽台花盆）取下或固定，以免被風吹落傷人；庭園樹木加支架並修剪樹枝。\n怕淋濕的物品移到適當地方存放。\n多準備三、四天份的食物、飲水與乾糧；準備蠟燭、手電筒、電池與手機電池，以備停電。檢查電路、注意爐火，以防火災。\n\n資料來源：\n- 中央氣象署《颱風百問》第 88 題「臺灣地區颱風警報發布之標準為何？」 https://www.cwa.gov.tw/V8/C/K/Encyclopedia/typhoon/typhoon.pdf\n- 內政部消防署 消防防災館〈颱風前要準備什麼〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=57&article_id=165",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": null,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "地震可以預測嗎",
+      "kind": "negative",
+      "route": "knowledge",
+      "early_reply": "■ 地震前可以先準備什麼\n準備急救箱與滅火器，讓家人知道放在哪裡、怎麼使用。\n了解瓦斯、自來水與電源總開關的位置與關法。\n把高處懸掛的物品綁牢，櫥櫃門閂鎖緊；重物不要放在高架上，笨重傢俱要固定。\n事先找好家中安全的避難位置。\n學校、辦公室與公共場所要定期演練，規劃緊急應變時每個人的任務。\n\n■ 地震震度分級：0 級到 7 級、5 弱 5 強\n震度是「某一個地方」地表搖晃的程度，跟地震規模不同：規模是地震釋放的能量，一次地震只有一個規模，但各地的震度不一樣。\n臺灣的震度分為 0 級到 7 級，其中 5 級與 6 級各再分成「弱」與「強」，共 10 個等級：0 級無感、1 級微震、2 級輕震、3 級弱震、4 級中震、5 弱與 5 強（強震）、6 弱與 6 強（烈震）、7 級劇震。這套分級自民國 109 年 1 月 1 日起施行。\n4 級以下依最大地動加速度（PGA）決定；計算結果達 5 級以上時，改依最大地動速度（PGV）決定。分級表裡的「屋內情形」以低樓層為例，高樓層搖晃會更明顯。\n\n資料來源：\n- 中央氣象署地震測報中心〈地震防護〉 https://scweb.cwa.gov.tw/zh-tw/page/intro/11\n- 中央氣象署《有感地震報告發布作業要點》附表「地震震度分級表」 https://data.gov.tw/dataset/174285",
+      "sent": [
+        "earthquake-before",
+        "earthquake-intensity-scale"
+      ],
+      "relevant": [],
+      "distances": [
+        [
+          "earthquake-before",
+          0.429
+        ],
+        [
+          "earthquake-intensity-scale",
+          0.439
+        ],
+        [
+          "earthquake-intensity-mid",
+          0.443
+        ],
+        [
+          "earthquake-intensity-high",
+          0.447
+        ],
+        [
+          "earthquake-during-indoor",
+          0.449
+        ]
+      ],
+      "note": "語料沒有地震預測",
+      "held": false,
+      "reply": "■ 地震前可以先準備什麼\n準備急救箱與滅火器，讓家人知道放在哪裡、怎麼使用。\n了解瓦斯、自來水與電源總開關的位置與關法。\n把高處懸掛的物品綁牢，櫥櫃門閂鎖緊；重物不要放在高架上，笨重傢俱要固定。\n事先找好家中安全的避難位置。\n學校、辦公室與公共場所要定期演練，規劃緊急應變時每個人的任務。\n\n■ 地震震度分級：0 級到 7 級、5 弱 5 強\n震度是「某一個地方」地表搖晃的程度，跟地震規模不同：規模是地震釋放的能量，一次地震只有一個規模，但各地的震度不一樣。\n臺灣的震度分為 0 級到 7 級，其中 5 級與 6 級各再分成「弱」與「強」，共 10 個等級：0 級無感、1 級微震、2 級輕震、3 級弱震、4 級中震、5 弱與 5 強（強震）、6 弱與 6 強（烈震）、7 級劇震。這套分級自民國 109 年 1 月 1 日起施行。\n4 級以下依最大地動加速度（PGA）決定；計算結果達 5 級以上時，改依最大地動速度（PGV）決定。分級表裡的「屋內情形」以低樓層為例，高樓層搖晃會更明顯。\n\n資料來源：\n- 中央氣象署地震測報中心〈地震防護〉 https://scweb.cwa.gov.tw/zh-tw/page/intro/11\n- 中央氣象署《有感地震報告發布作業要點》附表「地震震度分級表」 https://data.gov.tw/dataset/174285",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": null,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "被土石流沖走的車子保險理賠怎麼辦",
+      "kind": "negative",
+      "route": "off_topic",
+      "early_reply": "本系統只涵蓋宜蘭、花蓮、台東三縣的避難收容場所資訊，沒有理賠的資料。可以問避難所的位置、容量、剩餘空位，或最近的避難所在哪裡。",
+      "sent": [],
+      "relevant": [],
+      "distances": [
+        [
+          "debris-flow-evacuate",
+          0.453
+        ],
+        [
+          "debris-flow-about",
+          0.473
+        ],
+        [
+          "debris-flow-alert",
+          0.482
+        ]
+      ],
+      "note": "理賠、保險",
+      "held": true
+    },
+    {
+      "query": "颱風名字是怎麼取的",
+      "kind": "negative",
+      "route": "rag",
+      "early_reply": null,
+      "sent": [],
+      "relevant": [],
+      "distances": [
+        [
+          "typhoon-warning",
+          0.461
+        ],
+        [
+          "typhoon-intensity",
+          0.473
+        ],
+        [
+          "typhoon-after",
+          0.496
+        ],
+        [
+          "typhoon-before-home",
+          0.505
+        ],
+        [
+          "typhoon-during",
+          0.508
+        ]
+      ],
+      "note": "颱風命名不在語料",
+      "held": true
+    },
+    {
+      "query": "颱風要準備什麼，花蓮市有哪些避難所",
+      "kind": "mixed",
+      "route": "knowledge_mixed",
+      "early_reply": null,
+      "sent": [
+        "typhoon-before-home"
+      ],
+      "relevant": [
+        "typhoon-before-home"
+      ],
+      "distances": [
+        [
+          "typhoon-before-home",
+          0.248
+        ]
+      ],
+      "note": "做法＋地區避難所",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 颱風來之前：居家要準備什麼\n隨時透過電視、廣播、網路或 166、167 氣象錄音電話掌握颱風動向。\n關閉非必要的門窗，必要時加釘木板。清理水溝渠道，避免堵塞積水。\n把屋外、庭院的懸掛物（廣告招牌、陽台花盆）取下或固定，以免被風吹落傷人；庭園樹木加支架並修剪樹枝。\n怕淋濕的物品移到適當地方存放。\n多準備三、四天份的食物、飲水與乾糧；準備蠟燭、手電筒、電池與手機電池，以備停電。檢查電路、注意爐火，以防火災。\n\n花蓮市有以下避難所：\n\n中原國小：花蓮市中原路531號，容量85人，剩餘空位85人。\n中正國小：花蓮市中正路210號，容量187人，剩餘空位187人。\n中正體育館：花蓮市公園路53號，容量593人，剩餘空位593人。\n中華國小：花蓮市國盛二街22號，容量189人，剩餘空位189人。\n主權社區活動中心：花蓮市中原路666號，容量72人，剩餘空位72人。\n主農社區活動中心：花蓮市中順街77號，容量50人，剩餘空位50人。\n南美崙營區：花蓮市新興路80號，容量300人，剩餘空位300人。\n國福社區活動中心：花蓮市沙基拉雅街111號，容量35人，剩餘空位35人。\n國立花蓮農業職業學校：花蓮市建國路161號，容量382人，剩餘空位382人。\n國風國中：花蓮市林政街7號，容量800人，剩餘空位800人。",
+      "dropped_lines": [],
+      "latency_s": 55.8,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.047619047619047616,
+        "novel_sentences": [
+          "花蓮市有以下避難所"
+        ],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "地震了在家要怎麼辦，附近收容所還有空位嗎",
+      "kind": "mixed",
+      "route": "knowledge_mixed",
+      "early_reply": "■ 地震時在室內怎麼辦：趴下、掩護、穩住\n地震搖晃時最重要的是保護頭部與頸部，立刻做「趴下、掩護、穩住」，不要慌張衝到戶外。\n附近有桌子就躲到桌下並抓住桌腳，桌子移動時人跟著移動，桌子就是保護屏障；沒有桌子就移到牆角趴下護住頭頸。躲在牆角或柱子旁要留意周圍的傢俱、電器、燈具、書櫃或貨架，也要遠離窗戶，以防玻璃破碎。\n趴下後除非頭頂有東西可能掉落，否則不要再移動；不要抬頭往上看，以免被掉落的燈具或碎片砸傷。\n在學校要躲在桌下並背向窗戶，不要衝出教室或上下樓梯；在公共場所不要推擠，也不要搭電梯。\n\n■ 地震過後要做什麼\n先確認自己與家人是否受傷，再關心鄰居是否需要協助。\n關閉瓦斯爐、暖爐，檢查瓦斯是否外洩；瓦斯有異狀時輕輕打開門窗、立刻離開並通報。\n可能停水前，先用水桶、水壺、鍋子儲水，浴缸的水可以拿來沖馬桶。\n從中央氣象署、全民防災 e 點通或消防署等官方管道取得災情資訊。報平安多用簡訊或通訊軟體，避免電話佔線。\n穿鞋子防止被碎玻璃割傷；離開受損建築時走樓梯；遠離海灘與港口，以防海嘯；注意餘震。\n\n請提供您的座標以便查詢最近的避難所。例如：緯度 23.99 經度 121.60\n\n資料來源：\n- 內政部消防署 消防防災館〈在室內時該怎麼避難呢?〉〈地震了！該怎麼辦？!〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=52&article_id=121 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=52&article_id=123\n- 中央氣象署地震測報中心〈地震防護〉 https://scweb.cwa.gov.tw/zh-tw/page/intro/11\n- 內政部消防署 消防防災館〈地震發生後該如何應變呢〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=53&article_id=134",
+      "sent": [
+        "earthquake-during-indoor",
+        "earthquake-after"
+      ],
+      "relevant": [
+        "earthquake-during-indoor"
+      ],
+      "distances": [
+        [
+          "earthquake-during-indoor",
+          0.234
+        ],
+        [
+          "earthquake-after",
+          0.249
+        ],
+        [
+          "earthquake-after-damaged",
+          0.27
+        ],
+        [
+          "earthquake-trapped",
+          0.283
+        ],
+        [
+          "earthquake-during-outdoor",
+          0.283
+        ]
+      ],
+      "note": "做法＋收容所空位",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 0.5,
+      "reply": "■ 地震時在室內怎麼辦：趴下、掩護、穩住\n地震搖晃時最重要的是保護頭部與頸部，立刻做「趴下、掩護、穩住」，不要慌張衝到戶外。\n附近有桌子就躲到桌下並抓住桌腳，桌子移動時人跟著移動，桌子就是保護屏障；沒有桌子就移到牆角趴下護住頭頸。躲在牆角或柱子旁要留意周圍的傢俱、電器、燈具、書櫃或貨架，也要遠離窗戶，以防玻璃破碎。\n趴下後除非頭頂有東西可能掉落，否則不要再移動；不要抬頭往上看，以免被掉落的燈具或碎片砸傷。\n在學校要躲在桌下並背向窗戶，不要衝出教室或上下樓梯；在公共場所不要推擠，也不要搭電梯。\n\n■ 地震過後要做什麼\n先確認自己與家人是否受傷，再關心鄰居是否需要協助。\n關閉瓦斯爐、暖爐，檢查瓦斯是否外洩；瓦斯有異狀時輕輕打開門窗、立刻離開並通報。\n可能停水前，先用水桶、水壺、鍋子儲水，浴缸的水可以拿來沖馬桶。\n從中央氣象署、全民防災 e 點通或消防署等官方管道取得災情資訊。報平安多用簡訊或通訊軟體，避免電話佔線。\n穿鞋子防止被碎玻璃割傷；離開受損建築時走樓梯；遠離海灘與港口，以防海嘯；注意餘震。\n\n請提供您的座標以便查詢最近的避難所。例如：緯度 23.99 經度 121.60\n\n資料來源：\n- 內政部消防署 消防防災館〈在室內時該怎麼避難呢?〉〈地震了！該怎麼辦？!〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=52&article_id=121 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=52&article_id=123\n- 中央氣象署地震測報中心〈地震防護〉 https://scweb.cwa.gov.tw/zh-tw/page/intro/11\n- 內政部消防署 消防防災館〈地震發生後該如何應變呢〉 https://www.tfdp.com.tw/cht/index.php?code=list&flag=detail&ids=53&article_id=134",
+      "dropped_lines": [],
+      "latency_s": 0.0,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "土石流紅色警戒是什麼意思，富里鄉有哪些避難所",
+      "kind": "mixed",
+      "route": "knowledge_mixed",
+      "early_reply": null,
+      "sent": [
+        "debris-flow-alert"
+      ],
+      "relevant": [
+        "debris-flow-alert"
+      ],
+      "distances": [
+        [
+          "debris-flow-alert",
+          0.259
+        ]
+      ],
+      "note": "警戒＋鄉鎮避難所",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 土石流黃色警戒、紅色警戒是什麼意思\n土石流及大規模崩塌警戒由農村水保署依中央氣象署的雨量資料發布，分成兩級：\n黃色警戒：降雨已接近警戒值，而且依氣象署預測未來仍可能持續大雨。民眾應開始準備隨身物品、作好避難準備，觀察環境變化，留意最新消息，保持家中聯絡管道暢通；行動不便或需要定期就醫的人，建議預防性疏散。\n紅色警戒：雨勢明顯，而且已經達到警戒值。民眾應立即疏散避難，依鄉鎮市區公所與當地警消單位的安排，前往安全的避難處所。\n地方政府必要時會發布疏散避難警報，撤離危險區的居民。\n\n富里鄉有以下避難所：\n\n吳江社區活動中心：花蓮縣富里鄉，容量 70 人，剩餘空位 70 人\n富里老人文康中心：花蓮縣富里鄉，容量 100 人，剩餘空位 100 人\n富里鄉公所2樓：花蓮縣富里鄉，容量 100 人，剩餘空位 100 人\n新興竹田聯合社區活動中心：花蓮縣富里鄉，容量 80 人，剩餘空位 80 人\n明里社區活動中心：花蓮縣富里鄉，容量 50 人，剩餘空位 50 人\n東里社區活動中心：花蓮縣富里鄉，容量 50 人，剩餘空位 50 人\n永豐社區活動中心：花蓮縣富里鄉，容量 50 人，剩餘空位 50 人\n玉寶宮：花蓮縣富里鄉，容量 20 人，剩餘空位 20 人\n石牌社區活動中心：花蓮縣富里鄉，容量 30 人，剩餘空位 30 人\n羅山縱管處：花蓮縣富里鄉，容量 50 人，剩餘空位 50 人",
+      "dropped_lines": [],
+      "latency_s": 40.6,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.10526315789473684,
+        "novel_sentences": [
+          "富里鄉有以下避難所",
+          "玉寶宮：花蓮縣富里鄉，容量 20 人，剩餘空位 20 人"
+        ],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "海嘯警報要怎麼避難，台東市的避難所有哪些",
+      "kind": "mixed",
+      "route": "knowledge_mixed",
+      "early_reply": null,
+      "sent": [
+        "tsunami-response"
+      ],
+      "relevant": [
+        "tsunami-response"
+      ],
+      "distances": [
+        [
+          "tsunami-response",
+          0.173
+        ]
+      ],
+      "note": "海嘯＋鄉鎮避難所",
+      "route_ok": true,
+      "hit": true,
+      "top1": true,
+      "precision": 1.0,
+      "reply": "■ 海嘯警報發布時要怎麼避難\n發布海嘯警報時，聽從疏散人員的指示疏散；在危險海域附近的人要準備撤離。\n帶著水、食物等必需品往高處逃，最好是堅固建築物的高樓層或屋頂。時間允許的話，先打開所有門窗，減少海嘯對建築物的衝擊。\n短距離避難盡量不要開車，以免被海嘯捲入時無法脫困。\n來不及往高處移動時，找大樹、鋼筋等固定物緊緊抓牢；有救生衣就盡快穿上，抓住漂浮物或爬上大型漂浮物；已經在水中時，避開大型漂浮物的碰撞。\n\n以下是台東市的避難所：\n\n中華社區活動中心：台東縣台東市，容量 34 人，剩餘空位 34 人\n卑南里民眾活動中心：台東縣台東市，容量 40 人，剩餘空位 40 人\n四維寶桑多功能活動中心：台東縣台東市，容量 17 人，剩餘空位 17 人\n富豐社區活動中心：台東縣台東市，容量 34 人，剩餘空位 34 人\n建業社區活動中心：台東縣台東市，容量 35 人，剩餘空位 35 人\n建農里民眾活動中心：台東縣台東市，容量 29 人，剩餘空位 29 人\n新園社區活動中心：台東縣台東市，容量 40 人，剩餘空位 40 人\n知本社區活動中心：台東縣台東市，容量 34 人，剩餘空位 34 人\n臺東市公所：台東縣台東市，容量 34 人，剩餘空位 34 人\n臺東市老人文康活動中心：台東縣台東市，容量 28 人，剩餘空位 28 人",
+      "dropped_lines": [],
+      "latency_s": 39.2,
+      "scores": {
+        "facts": 1.0,
+        "num_ok": true,
+        "unsupported_numbers": [],
+        "novel": 0.0,
+        "novel_sentences": [],
+        "latin_ok": true,
+        "latin": [],
+        "abstained": false
+      }
+    },
+    {
+      "query": "地震了要去哪裡",
+      "kind": "shelter",
+      "route": "rag",
+      "early_reply": null,
+      "sent": [],
+      "relevant": [],
+      "distances": [
+        [
+          "earthquake-during-indoor",
+          0.354
+        ],
+        [
+          "earthquake-after-damaged",
+          0.373
+        ],
+        [
+          "earthquake-after",
+          0.374
+        ],
+        [
+          "earthquake-during-outdoor",
+          0.378
+        ],
+        [
+          "earthquake-trapped",
+          0.387
+        ]
+      ],
+      "note": "要的是避難所：不能被拉去知識路由",
+      "route_ok": true
+    },
+    {
+      "query": "土石流要撤離到哪",
+      "kind": "shelter",
+      "route": "rag",
+      "early_reply": null,
+      "sent": [],
+      "relevant": [],
+      "distances": [
+        [
+          "debris-flow-evacuate",
+          0.325
+        ]
+      ],
+      "note": "同上",
+      "route_ok": true
+    },
+    {
+      "query": "颱風天哪裡可以躲",
+      "kind": "shelter",
+      "route": "rag",
+      "early_reply": null,
+      "sent": [],
+      "relevant": [],
+      "distances": [
+        [
+          "typhoon-evacuation",
+          0.348
+        ],
+        [
+          "typhoon-during",
+          0.351
+        ],
+        [
+          "typhoon-before-evacuate",
+          0.356
+        ],
+        [
+          "typhoon-before-home",
+          0.375
+        ]
+      ],
+      "note": "同上",
+      "route_ok": true
+    },
+    {
+      "query": "適用土石流的避難所有哪些",
+      "kind": "shelter",
+      "route": "rag",
+      "early_reply": null,
+      "sent": [],
+      "relevant": [],
+      "distances": [
+        [
+          "debris-flow-evacuate",
+          0.381
+        ]
+      ],
+      "note": "災害詞是篩選條件，不是知識題",
+      "route_ok": true
+    }
+  ]
+}
