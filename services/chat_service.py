@@ -30,18 +30,13 @@ SYSTEM_PROMPT = """你是台灣東部（宜蘭、花蓮、台東）災害避難�
 5. 回答要簡潔務實，重點放在避難所名稱、地點、容量與剩餘空位。
 6. 不要自我介紹、不要寒暄、不要反問，直接回答。"""
 
-# 防災知識題（應變方式、警戒等級）用的系統提示。避難所那份的規則是「只能根據【避難所資料】」，
-# 套在知識題上模型會回「目前沒有相關資料」
-KNOWLEDGE_SYSTEM_PROMPT = """你是台灣東部（宜蘭、花蓮、台東）災害避難所管理系統的防災助手。
-規則：
-1. 只能使用繁體中文，不可以出現任何英文單字、簡體中文或 emoji，也不要用符號裝飾。
-2. 只能根據【防災知識資料】與【避難所資料】回答，不可以推測，也不可以補充資料裡沒有的做法。雨量、風速、震度、時數、波高等數字要原樣引用。
-3. 每個數字只能用在資料裡它所屬的那一項，不可以自己比較或歸納出資料沒寫的差異。
-4. 資料是系統依照問題挑出來的官方防災須知，問題問到的部分直接用它回答；資料沒有提到的部分，說明資料裡沒有這部分的說明，不要自己補。
-5. 回答要簡潔，用條列寫出要做的事，最重要的行動放在最前面。
-6. 不要自我介紹、不要寒暄、不要反問，直接回答。不要寫出處或網址，系統會自動附上。"""
+# 防災知識題由程式直接回知識文件原文，不交給模型改寫。曾經讓 llama3.2:3b 依原文回答，
+# 知識評測（evals/run_knowledge_eval.py）46 題裡 20 題有找不到出處的句子，其中一題把
+# 「往溪流兩側的高地疏散」答成「往溪流的下游方向撤離」——方向相反，照做會出人命。
+# 系統提示已經寫明不可以補充、不可以推論，3B 模型照樣改寫；知識文件本來就是為回答寫的短段落，
+# 直接給原文既不會錯，也從十幾秒變成不到一秒
 
-# prompt 裡的知識資料區塊；每段以「■ 標題」開頭，回答後依標題找回出處
+# 混合題 context 裡的知識區塊；每段以「■ 標題」開頭，依標題找回段落與出處
 KNOWLEDGE_HEADER = "【防災知識資料】"
 SHELTER_HEADER = "【避難所資料】"
 KNOWLEDGE_MARK = "■ "
@@ -189,17 +184,25 @@ def unknown_shelter_reply(name: str, shelters: list[dict]) -> str:
     return "\n".join(lines)
 
 
+def knowledge_text(chunks: list[KnowledgeChunk]) -> str:
+    """給使用者看的知識段落：「■ 標題」加原文"""
+    return "\n\n".join(f"{KNOWLEDGE_MARK}{c.title}\n{c.text}" for c in chunks)
+
+
+def knowledge_answer(chunks: list[KnowledgeChunk]) -> str:
+    """純知識題的完整回答：原文加出處，不經過模型"""
+    return f"{knowledge_text(chunks)}\n\n{sources_text(chunks)}"
+
+
 def knowledge_context(hits: list[KnowledgeHit]) -> str:
-    blocks = [f"{KNOWLEDGE_MARK}{h.chunk.title}\n{h.chunk.text}" for h in hits]
-    return KNOWLEDGE_HEADER + "\n" + "\n\n".join(blocks)
+    return KNOWLEDGE_HEADER + "\n" + knowledge_text([h.chunk for h in hits])
 
 
-def knowledge_section(text: str) -> str:
-    """prompt 或 context 裡知識資料那一段（到下一個【…】為止）；沒有就回空字串"""
-    if KNOWLEDGE_HEADER not in text:
-        return ""
-    section = text.split(KNOWLEDGE_HEADER, 1)[1]
-    return section.split("【", 1)[0]
+def shelter_part(context: str) -> str:
+    """混合題 context 裡避難所那一段；不是混合題就原樣回傳"""
+    if KNOWLEDGE_HEADER not in context:
+        return context
+    return context.split(f"{SHELTER_HEADER}\n", 1)[1] if SHELTER_HEADER in context else ""
 
 
 def format_people(n) -> str:
@@ -518,7 +521,8 @@ class ChatService:
         6. 其餘 → 規則層篩選 + ChromaDB 語意檢索（容量排名也走這裡）
 
         在這些之前先看是不是防災知識題（「颱風前要準備什麼」「黃色警戒是什麼意思」）：
-        只問知識的直接查知識文件；同時要避難所的，兩邊都查、資料合在一起。
+        只問知識的直接回知識文件原文（early_reply，不打模型）；同時要避難所的，
+        context 前面放知識段落、後面放避難所資料，由 chat_stream 先送原文再讓模型列避難所。
         模擬相關的問題優先走模擬，「模擬中怎麼疏散」要的是這次的分配，不是一般須知
         """
         knowledge = query_rules.knowledge_request(user_message)
@@ -527,24 +531,29 @@ class ChatService:
 
         if not knowledge.mixed:
             metrics.route("knowledge")
-            hits = self._knowledge_hits(user_message, knowledge.hazards)
+            hits = self._knowledge_hits(knowledge.search_text, knowledge.hazards)
             if hits is None:
                 return None, KNOWLEDGE_UNAVAILABLE
             if not hits:
                 return None, NO_KNOWLEDGE_REPLY
-            return knowledge_context(hits), None
+            return None, knowledge_answer([h.chunk for h in hits])
 
-        hits = self._knowledge_hits(user_message, knowledge.hazards)
-        context, early_reply = self._shelter_context(user_message)
+        hits = self._knowledge_hits(knowledge.search_text, knowledge.hazards)
         if not hits:
             # 知識那邊沒東西就跟沒有這條路由一樣
-            return context, early_reply
+            return self._shelter_context(user_message)
+        # 避難所那一側只拿問避難所的那半句去查，行為才跟單獨問一樣：
+        # 「地震了在家要怎麼辦，附近收容所還有空位嗎」整句去查不會要座標，評測裡避難所資料是空的，
+        # 模型就編出「宜蘭縣宜蘭市中正路123號」整串假避難所
+        context, early_reply = self._shelter_context(query_rules.shelter_clauses(user_message))
         metrics.route("knowledge_mixed")
-        if context is None:
-            # 避難所那邊只是「沒有相關資料」時，知識照樣回答；範圍外、要座標這些固定回覆照舊
-            if early_reply == NO_RELEVANT_REPLY:
-                return knowledge_context(hits), None
-            return None, early_reply
+        chunks = [h.chunk for h in hits]
+        if context is None or not context.strip():
+            # 避難所那邊是固定回覆（要座標、範圍外、沒有相關資料）或資料是空的：不打模型，
+            # 知識原文照樣給，固定回覆接在後面（「沒有相關資料」那句只會讓人以為知識也沒有，不接）
+            note = early_reply if early_reply and early_reply != NO_RELEVANT_REPLY else ""
+            parts = [knowledge_text(chunks), note, sources_text(chunks)]
+            return None, "\n\n".join(part for part in parts if part)
         return f"{knowledge_context(hits)}\n\n{SHELTER_HEADER}\n{context}", None
 
     def _knowledge_hits(self, user_message: str, hazards: list[str]) -> list[KnowledgeHit] | None:
@@ -560,15 +569,12 @@ class ChatService:
         metrics.incr("knowledge.hit" if hits else "knowledge.no_match")
         return hits
 
-    def knowledge_chunks(self, context: str | None) -> list[KnowledgeChunk]:
-        """context 裡送給模型的知識段落（依「■ 標題」找回），用來附出處"""
-        if self.knowledge is None or not context:
+    def knowledge_chunks(self, text: str | None) -> list[KnowledgeChunk]:
+        """混合題 context 或純知識題回答裡的知識段落（依「■ 標題」找回）"""
+        if self.knowledge is None or not text:
             return []
         by_title = {c.title: c for c in self.knowledge.chunks.values()}
-        titles = [
-            line[len(KNOWLEDGE_MARK):] for line in knowledge_section(context).splitlines()
-            if line.startswith(KNOWLEDGE_MARK)
-        ]
+        titles = [line[len(KNOWLEDGE_MARK):] for line in text.splitlines() if line.startswith(KNOWLEDGE_MARK)]
         return [by_title[t] for t in titles if t in by_title]
 
     def _shelter_context(self, user_message: str):
@@ -683,10 +689,14 @@ class ChatService:
         模擬摘要只附在走模擬路線的問題上。一般檢索、最近避難所也附的話，小模型會把兩份資料混在一起：
         實測南山附近淹水模擬進行中問「我們一家五口可以去哪」，回答把模擬裡的南山國小
         配上檢索結果裡另一間學校的鄉鎮與容量。收容人數本來就已經回寫進資料庫與向量文件，
-        一般檢索看到的負載跟模擬一致，不需要再靠摘要補
+        一般檢索看到的負載跟模擬一致，不需要再靠摘要補。
+
+        混合題只把避難所那一段和問避難所的那半句交給模型：知識原文由程式另外送，
+        整句都給的話模型會順手回答「颱風要準備什麼」，又回到自己改寫的老問題
         """
-        if shelter_context.startswith(KNOWLEDGE_HEADER):
-            return self.build_knowledge_prompt(user_message, shelter_context)
+        if KNOWLEDGE_HEADER in shelter_context:
+            shelter_context = shelter_part(shelter_context)
+            user_message = query_rules.shelter_clauses(user_message)
         full_context = f"{SHELTER_HEADER}\n{shelter_context}"
         summary = self._simulation_summary() if with_simulation else ""
         if summary:
@@ -703,21 +713,6 @@ class ChatService:
 2. 列舉多間避難所時每間一行，格式「名稱：鄉鎮，容量 N 人，剩餘空位 M 人」，把資料裡符合的全部列完，不要省略。
 3. 資料裡的數字原樣引用，不要自行加總或改寫。
 4. 只能用繁體中文，不得出現英文。"""
-
-    @staticmethod
-    def build_knowledge_prompt(user_message: str, context: str) -> str:
-        rules = ["先回答問題本身：依【防災知識資料】條列要做的事，或說明警戒、分級的意義，數字原樣引用。"]
-        if SHELTER_HEADER in context:
-            rules.append("接著依【避難所資料】列出相關避難所，每間一行，格式「名稱：鄉鎮，容量 N 人，剩餘空位 M 人」。")
-        rules += ["只回答資料裡有的內容，不要寫出處或網址。", "只能用繁體中文，不得出現英文。"]
-        numbered = "\n".join(f"{i}. {rule}" for i, rule in enumerate(rules, 1))
-        return f"""{context}
-
-【使用者問題】
-{user_message}
-
-回答要求：
-{numbered}"""
 
     def chat_stream(self, user_message: str):
         """
@@ -747,9 +742,11 @@ class ChatService:
         metrics.incr("chat.answer.generated")
         if typo:
             yield {"type": "delta", "text": typo + "\n"}
-        prompt = self.build_prompt(user_message, shelter_context, with_simulation=metrics.last_route() == "simulation")
-        # 出處由程式附在最後：模型會把網址抄錯，系統提示也不准它寫英文
+        # 混合題：知識原文由程式先送出，模型只負責後面的避難所清單；出處附在最後
         cited = self.knowledge_chunks(shelter_context)
+        if cited:
+            yield {"type": "delta", "text": knowledge_text(cited) + "\n\n"}
+        prompt = self.build_prompt(user_message, shelter_context, with_simulation=metrics.last_route() == "simulation")
         reply_chars = 0
         guard = LineGuard(self.prompt_names(prompt))
         try:
@@ -795,13 +792,8 @@ class ChatService:
         self._log_summary("generated", "ok", len(shelter_context), reply_chars, started)
 
     def prompt_names(self, prompt: str) -> list[str]:
-        """
-        prompt 裡出現的避難所名稱（顯示名稱或別名）：回答只能講這些。
-        知識題另外把知識資料整段當成「有根據」：「依鄉鎮市區公所的安排」裡的「公所」是資料原文，不是編出來的避難所
-        """
-        names = supported_names(prompt, known_names_of(self._shelter_metadata() or []))
-        section = knowledge_section(prompt)
-        return names + [section] if section else names
+        """prompt 裡出現的避難所名稱（顯示名稱或別名）：回答只能講這些"""
+        return supported_names(prompt, known_names_of(self._shelter_metadata() or []))
 
     def guard_reply(self, reply: str, prompt: str) -> tuple[str, list[str]]:
         """非串流版的回答防護（評測用），跟 chat_stream 的 LineGuard 是同一套判斷"""
@@ -829,7 +821,7 @@ class ChatService:
         """生成請求的內容。串流與非串流共用同一份，評測量到的才跟線上同一個模型設定"""
         return {
             "model": config.OLLAMA_MODEL,
-            "system": KNOWLEDGE_SYSTEM_PROMPT if KNOWLEDGE_HEADER in prompt else SYSTEM_PROMPT,
+            "system": SYSTEM_PROMPT,
             "prompt": prompt,
             "stream": stream,
             "options": {
