@@ -9,6 +9,7 @@ import hashlib
 import logging
 import re
 import threading
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -39,6 +40,9 @@ MAX_CHUNKS = 2
 # 不需要再附一段颱風過後的清潔事項。原本 0.08，實測「地震的時候在家裡要怎麼辦」
 # 室內 0.213、戶外 0.261、房屋受損 0.263 三段全送，回答就混進了學校與公共場所的做法
 FOLLOWER_MARGIN = 0.05
+
+# 知識索引沒建好時，知識題觸發重試的最短間隔（Ollama 掛著的時候不要每題都去打一次 embedding）
+RETRY_SECONDS = 300
 
 metrics.register("knowledge.hit", "knowledge.no_match")
 
@@ -153,6 +157,8 @@ class KnowledgeStore:
         self.client = client
         self.directory = directory
         self._lock = threading.RLock()
+        self._retry_lock = threading.Lock()
+        self._last_attempt: float | None = None
         self.chunks: dict[str, KnowledgeChunk] = {}
         self.collection = None
 
@@ -168,6 +174,7 @@ class KnowledgeStore:
         讀文件、建索引。文件與 embedding 模型都沒變就沿用落地的 collection；
         指紋存在 collection 自己的 metadata 裡，不必另外寫檔
         """
+        self._last_attempt = time.monotonic()
         chunks = load_chunks(self.directory)
         fingerprint = self._fingerprint(chunks)
         with self._lock:
@@ -197,6 +204,31 @@ class KnowledgeStore:
 
     def ready(self) -> bool:
         return self.collection is not None and bool(self.chunks)
+
+    def ensure_ready(self) -> bool:
+        """
+        沒建好就重試，最多每 RETRY_SECONDS 一次。實測：服務重新載入時 Ollama 正忙著跑評測，
+        啟動時的 build() embedding 逾時，之後知識題就一直回「目前無法使用」，直到有人重啟服務。
+        失敗只記 log：呼叫端照樣回固定的「目前無法使用」
+        """
+        if self.ready():
+            return True
+        now = time.monotonic()
+        if self._last_attempt is not None and now - self._last_attempt < RETRY_SECONDS:
+            return False
+        with self._retry_lock:
+            if self.ready():
+                return True
+            self._last_attempt = now
+            try:
+                self.build()
+            except Exception:
+                logger.exception("KnowledgeStore: 重試建立知識索引失敗，%d 秒後再試", RETRY_SECONDS)
+        return self.ready()
+
+    def status(self) -> tuple[bool, str]:
+        """readiness 用：知識索引是否可用（不算必要條件，壞了只有知識題受影響）"""
+        return (True, f"{len(self.chunks)} passages") if self.ready() else (False, "not built")
 
     def search(self, query: str, hazards: list[str] | None = None, n: int = MAX_CHUNKS) -> list[KnowledgeHit]:
         """
