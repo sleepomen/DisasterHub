@@ -115,6 +115,8 @@ ROUTE_COUNTERS = (
 # 答案從哪裡來，以及生成的結局
 OUTCOME_COUNTERS = (
     "chat.answer.early_reply",
+    # early_reply 裡由程式排好的避難所清單／點名回答（不是拒答或固定句）
+    "chat.answer.direct",
     "chat.answer.generated",
     "chat.generation.ok",
     # 回答防護拿掉的行數（提到 prompt 以外的避難所）
@@ -558,7 +560,7 @@ class ChatService:
 
     def _knowledge_hits(self, user_message: str, hazards: list[str]) -> list[KnowledgeHit] | None:
         """距離門檻以內的知識段落；知識庫沒載入或查詢失敗回 None"""
-        if self.knowledge is None or not self.knowledge.ready():
+        if self.knowledge is None or not self.knowledge.ensure_ready():
             return None
         try:
             hits = self.knowledge.search(user_message, hazards=hazards)
@@ -637,13 +639,17 @@ class ChatService:
         # 要回跟生成失敗一樣的降級訊息，而不是讓 /api/chat 變成 500
         metrics.route("rag")
         try:
-            context = self.vector_store.search(user_message, plan=plan)
+            result = self.vector_store.search_result(user_message, plan=plan)
         except Exception:
             logger.exception("向量檢索失敗")
             return None, AI_UNAVAILABLE
-        if context in (NO_DATA, NO_MATCH):
+        if result.text in (NO_DATA, NO_MATCH):
             return None, NO_RELEVANT_REPLY
-        return context, None
+        # 清單、排名、概況、點名：程式已經排好答案，不交給模型重抄（見 services/direct_answer.py）
+        if result.direct:
+            metrics.incr("chat.answer.direct")
+            return None, result.direct
+        return result.text, None
 
     def _shelter_metadata(self) -> list[dict] | None:
         try:
