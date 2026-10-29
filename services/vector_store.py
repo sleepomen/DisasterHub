@@ -9,6 +9,7 @@ from pathlib import Path
 import chromadb
 
 import config
+from services.direct_answer import compose
 from services.embeddings import build_embedding_function
 from services.metrics import metrics
 from services.query_rules import MAX_FILTERED_RESULTS, MAX_RANKED_RESULTS, QueryPlan
@@ -49,6 +50,13 @@ class PlannedResult:
     named: bool = False
     # 符合的太多（超過 OVERVIEW_THRESHOLD）時改給概況：總數、容量合計、分布，hits 只留最相關的幾筆
     overview: dict | None = None
+
+
+@dataclass
+class SearchResult:
+    text: str
+    # 程式排好的回答（services/direct_answer.py）；None 代表要交給模型
+    direct: str | None = None
 
 
 # 消防署資料有 644 間，「宜蘭有哪些避難所」符合 249 筆。以前是送最相關的 30 筆全文，
@@ -515,16 +523,22 @@ class VectorStore:
         return None
 
     def search(self, query: str, n_results: int | None = None, plan: QueryPlan | None = None) -> str:
+        """給模型的資料文字（評測腳本與只要文字的呼叫端用）"""
+        return self.search_result(query, n_results, plan).text
+
+    def search_result(self, query: str, n_results: int | None = None, plan: QueryPlan | None = None) -> SearchResult:
         """
-        語意搜尋：找出與 query 最相關的避難所資料，回傳可直接塞進 prompt 的文字。
-        有規則層計畫時在前面加一行說明篩選條件與結果狀態。
+        語意搜尋：找出與 query 最相關的避難所資料。text 是可直接塞進 prompt 的文字，
+        有規則層計畫時在前面加一行說明篩選條件與結果狀態；direct 是程式排好的回答
+        （清單、排名、概況、點名、篩選落空），有值時聊天層直接回給使用者，不打模型
         """
         if self.count() == 0:
             metrics.incr("retrieval.no_data")
-            return NO_DATA
+            return SearchResult(NO_DATA)
 
         header = None
         unfiltered = True
+        result = None
         if plan is not None:
             result = self.plan_retrieve(query, plan, n_results)
             hits = result.hits
@@ -536,14 +550,16 @@ class VectorStore:
             metrics.incr("retrieval.unfiltered")
         if not hits:
             metrics.incr("retrieval.no_match")
-            return NO_MATCH
+            return SearchResult(NO_MATCH)
         # 純語意檢索永遠會回 top-k，「今天天氣如何」也會撈到十筆避難所；
         # 最接近的一筆都離得很遠時就當成沒有相關資料，模型才不會拿不相干的資料硬答。
         # 有 metadata 篩選的路徑不套用：篩選命中本身就是相關的證據
         if unfiltered and hits[0].distance > config.RAG_MAX_DISTANCE:
             metrics.incr("retrieval.no_match")
-            return NO_MATCH
+            return SearchResult(NO_MATCH)
 
         # 別名只是給 embedding 用的，餵給模型反而會被照抄成「宜蘭國小（宜蘭國民小學）」，所以從 prompt 文字裡拿掉
         body = "\n".join(f"- {ALIAS_PATTERN.sub('', h.document)}" for h in hits)
-        return f"{header}\n{body}" if header else body
+        text = f"{header}\n{body}" if header else body
+        direct = compose(plan, result) if result is not None and not unfiltered else None
+        return SearchResult(text, direct)
