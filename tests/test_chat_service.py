@@ -70,9 +70,19 @@ class BrokenRepo:
         raise RuntimeError("password=secret host=disaster_db")
 
 
+def text_only(vs):
+    """
+    假的向量庫：search_result() 轉給 search()，只回給模型的文字、沒有程式排好的回答，
+    原本針對 search 的設定與斷言都照樣成立（程式排好的回答另外在 test_direct_answer.py 測）
+    """
+    from services.vector_store import SearchResult
+    vs.search_result.side_effect = lambda *args, **kwargs: SearchResult(vs.search(*args, **kwargs))
+    return vs
+
+
 @pytest.fixture
 def svc():
-    vs = MagicMock()
+    vs = text_only(MagicMock())
     vs.search.return_value = "RAG 結果"
     return ChatService(vs, FakeRepo())
 

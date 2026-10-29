@@ -23,7 +23,7 @@ from services.knowledge import (
     parse_file,
     sources_text,
 )
-from tests.test_chat_service import FakeRepo, FakeStream, ndjson
+from tests.test_chat_service import FakeRepo, FakeStream, ndjson, text_only
 
 SAMPLE = """# 颱風
 
@@ -186,6 +186,9 @@ class FakeKnowledge:
     def ready(self):
         return self._ready
 
+    def ensure_ready(self):
+        return self._ready
+
     def search(self, query, hazards=None, n=3):
         self.searched.append((query, hazards))
         if self._error:
@@ -194,7 +197,7 @@ class FakeKnowledge:
 
 
 def make_service(knowledge):
-    vs = MagicMock()
+    vs = text_only(MagicMock())
     vs.search.return_value = "- 富里國小是花蓮地區的避難收容場所，容量 120 人。"
     vs.shelter_metadata.return_value = []
     return ChatService(vs, FakeRepo(), knowledge=knowledge)
@@ -325,3 +328,35 @@ def test_mixed_question_asking_for_nearby_shelters_gets_passage_and_coordinate_r
         text = svc.chat("土石流紅色警戒要準備什麼，附近收容所還有空位嗎")
     post.assert_not_called()
     assert text.index(CHUNK.text) < text.index("請提供您的座標") < text.index("資料來源：")
+
+
+class FlakyEmbedding(KeywordEmbedding):
+    """前幾次逾時（Ollama 正忙），之後恢復"""
+
+    def __init__(self, failures):
+        self.failures = failures
+        self.calls = 0
+
+    def __call__(self, input):
+        self.calls += 1
+        if self.calls <= self.failures:
+            raise TimeoutError("ollama busy")
+        return super().__call__(input)
+
+
+def test_failed_build_is_retried_but_not_on_every_question(tmp_path):
+    """實測：啟動時 embedding 逾時，之後知識題一直回「目前無法使用」，要重啟服務才會好"""
+    (tmp_path / "typhoon.md").write_text(SAMPLE, encoding="utf-8")
+    ef = FlakyEmbedding(failures=1)
+    s = KnowledgeStore(embedding_function=ef, client=chromadb.Client(), directory=tmp_path)
+    try:
+        with pytest.raises(TimeoutError):
+            s.build()
+        assert s.status() == (False, "not built")
+        # 剛失敗：間隔內不重試，不會每一題都去打 embedding
+        assert s.ensure_ready() is False and ef.calls == 1
+        with patch("services.knowledge.time.monotonic", return_value=10**9):
+            assert s.ensure_ready() is True
+        assert s.status() == (True, "2 passages")
+    finally:
+        s.client.delete_collection("knowledge")

@@ -21,6 +21,10 @@ class StubStore:
         from services.vector_store import NO_MATCH
         return NO_MATCH if self.refuse else "資料"
 
+    def search_result(self, query, n_results=None, plan=None):
+        from services.vector_store import SearchResult
+        return SearchResult(self.search(query, n_results, plan))
+
     def shelter_metadata(self):
         return [{"name": "[YILAN] 宜蘭國小"}, {"name": "[YILAN] 頭城國小"}]
 
