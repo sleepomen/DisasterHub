@@ -252,6 +252,7 @@ async def readiness_check(response: Response):
     db_ok, db_detail = await asyncio.to_thread(health.check_database, repo)
     index_ok, index_detail = await asyncio.to_thread(health.check_index, vector_store)
     ollama_ok, ollama_detail = await asyncio.to_thread(health.check_ollama)
+    knowledge_ok, knowledge_detail = knowledge_store.status()
 
     ready = db_ok and index_ok
     if not ready:
@@ -263,6 +264,8 @@ async def readiness_check(response: Response):
             "database": {"ok": db_ok, "required": True, "detail": db_detail},
             "vector_index": {"ok": index_ok, "required": True, "detail": index_detail},
             "ollama": {"ok": ollama_ok, "required": False, "detail": ollama_detail},
+            # 知識索引壞了只有知識題受影響（會回「目前無法使用」並自動重試），不擋整個服務
+            "knowledge_index": {"ok": knowledge_ok, "required": False, "detail": knowledge_detail},
         },
     }
 
