@@ -57,6 +57,10 @@ class SearchResult:
     text: str
     # 程式排好的回答（services/direct_answer.py）；None 代表要交給模型
     direct: str | None = None
+    direct_en: str | None = None
+
+    def answer(self, lang: str = "zh") -> str | None:
+        return self.direct_en if lang == "en" else self.direct
 
 
 # 消防署資料有 644 間，「宜蘭有哪些避難所」符合 249 筆。以前是送最相關的 30 筆全文，
@@ -561,5 +565,6 @@ class VectorStore:
         # 別名只是給 embedding 用的，餵給模型反而會被照抄成「宜蘭國小（宜蘭國民小學）」，所以從 prompt 文字裡拿掉
         body = "\n".join(f"- {ALIAS_PATTERN.sub('', h.document)}" for h in hits)
         text = f"{header}\n{body}" if header else body
-        direct = compose(plan, result) if result is not None and not unfiltered else None
-        return SearchResult(text, direct)
+        if result is None or unfiltered:
+            return SearchResult(text)
+        return SearchResult(text, compose(plan, result), compose(plan, result, "en"))

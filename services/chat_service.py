@@ -10,7 +10,9 @@ import requests
 import config
 from services import query_rules
 from services.answer_guard import LineGuard, filter_lines, supported_names
+from services.direct_answer import shelter_line
 from services.evacuation import HAZARD_LABELS, HAZARD_WARN_M, split_hazard_hits
+from services.i18n import HAZARD_EN
 from services.knowledge import KnowledgeChunk, KnowledgeHit, KnowledgeStore, sources_text
 from services.metrics import metrics
 from services.routing import nearest_by_road
@@ -29,6 +31,18 @@ SYSTEM_PROMPT = """你是台灣東部（宜蘭、花蓮、台東）災害避難�
 4. 只有在【避難所資料】明確寫著沒有資料，或問題與避難所完全無關（例如天氣、補助申請）時，才回答「目前沒有相關資料」。
 5. 回答要簡潔務實，重點放在避難所名稱、地點、容量與剩餘空位。
 6. 不要自我介紹、不要寒暄、不要反問，直接回答。"""
+
+# 英文模式還會打模型的路徑（座標、模擬、純語意題）。資料仍是中文：避難所名稱與地址照抄中文，
+# 不可以自己翻或轉拼音（資料沒有英文名稱，翻出來的名字在現場對不上招牌，回答防護也認不得）
+SYSTEM_PROMPT_EN = """You are the decision assistant of a disaster shelter management system for eastern Taiwan (Yilan, Hualien, Taitung).
+Rules:
+1. Answer in English. Shelter names and addresses in the data are in Chinese:
+   copy them exactly as written, never translate or romanize them.
+2. Use only the data in 【避難所資料】. Do not guess or invent. Copy names and numbers exactly and do not recalculate them.
+3. The shelter data has already been filtered for this question. If it lists shelters, answer with them; never say there is no data.
+4. Only when the data says there is no data, or the question has nothing to do with shelters, answer "No relevant information."
+5. Be brief and practical: shelter name, location, capacity and free spaces.
+6. No introductions, no small talk, no follow-up questions."""
 
 # 防災知識題由程式直接回知識文件原文，不交給模型改寫。曾經讓 llama3.2:3b 依原文回答，
 # 知識評測（evals/run_knowledge_eval.py）46 題裡 20 題有找不到出處的句子，其中一題把
@@ -94,6 +108,7 @@ NOT_SIMULATED_REPLY = (
 )
 NO_IMPACTED_REPLY = "目前模擬範圍內沒有受影響的避難所。可以擴大受災半徑重新模擬，或改問其他地區的避難所。"
 NO_NEARBY_REPLY = "附近沒有找到避難所資料。本系統只涵蓋宜蘭、花蓮、台東三縣，請確認座標是否落在這三個縣內。"
+NEEDS_COORDS_REPLY = "請提供您的座標以便查詢最近的避難所。例如：緯度 23.99 經度 121.60"
 
 # 問句被導到哪條路。線上分布跟評測題庫的分布不會一樣，而「使用者實際問什麼」
 # 只有這裡量得到：例如 needs_coords 偏高就表示很多人問「最近的避難所」卻沒有座標可用
@@ -140,6 +155,54 @@ AI_UNAVAILABLE = "AI 服務目前無法使用，請稍後再試。"
 STREAM_INTERRUPTED = "（回答中斷，請稍後再試。）"
 
 
+# 英文模式的固定回覆（services/i18n.py 的第一階段：回答用英文，問題仍以中文最準）。
+# 用中文句子當 key：build_context 內部一律產生中文固定句，回傳前才翻，
+# 「混合題遇到沒有相關資料」這類比對才不必分兩種語言寫
+EN_REPLIES = {
+    NO_KNOWLEDGE_REPLY: (
+        "No relevant information: the disaster-preparedness guidance does not cover this question. "
+        "It covers what to do in typhoons, earthquakes, debris flows, tsunamis, heavy rain and floods, and what the "
+        "alert levels mean. For actual alerts and evacuation orders, follow the Central Weather Administration, "
+        "the Agency of Rural Development and Soil and Water Conservation, and your local government."
+    ),
+    KNOWLEDGE_UNAVAILABLE: "The disaster-preparedness guidance is unavailable at the moment. Please try again later.",
+    NO_RELEVANT_REPLY: (
+        "No relevant information. This system only answers questions about shelters in Yilan, Hualien and Taitung; "
+        "please ask about a shelter's location, capacity or free spaces."
+    ),
+    NO_SIMULATION_REPLY: (
+        "No disaster simulation has been run yet, so there is no evacuation advice to give. Set the simulation centre, "
+        "disaster type and radius on the left and run the simulation; advice will be based on the affected shelters' "
+        "capacity and the population estimate."
+    ),
+    NOT_SIMULATED_REPLY: (
+        "No disaster simulation has been run yet, so there are no affected shelters to report. Set the simulation "
+        "centre, disaster type and radius on the left and run the simulation."
+    ),
+    NO_IMPACTED_REPLY: (
+        "No shelters are affected within the simulated area. Try a larger radius, or ask about shelters elsewhere."
+    ),
+    NO_NEARBY_REPLY: (
+        "No shelters were found nearby. This system only covers Yilan, Hualien and Taitung; please check that the "
+        "coordinates are inside these three counties."
+    ),
+    NEEDS_COORDS_REPLY: (
+        "Please give your coordinates to find the nearest shelter, for example: 緯度 23.99 經度 121.60 "
+        "(latitude 23.99, longitude 121.60)."
+    ),
+    GENERIC_ERROR: "Something went wrong while looking up shelter data. Please try again later.",
+    AI_UNAVAILABLE: "The AI service is unavailable at the moment. Please try again later.",
+    STREAM_INTERRUPTED: "(The answer was interrupted. Please try again later.)",
+}
+
+
+def tr(text: str | None, lang: str) -> str | None:
+    """固定回覆翻成英文；不是固定句（已經是該語言的動態回覆）就原樣回傳"""
+    if lang != "en" or text is None:
+        return text
+    return EN_REPLIES.get(text, text)
+
+
 class GenerationTimeout(RuntimeError):
     """整段生成超過 OLLAMA_TIMEOUT，串流已中止"""
 
@@ -157,12 +220,14 @@ def known_names_of(shelters: list[dict]) -> list[str]:
     return [n for m in shelters for n in (display_name(m["name"]), *aliases_of(m["name"]))]
 
 
-def typo_note(written: str, real: str) -> str:
+def typo_note(written: str, real: str, lang: str = "zh") -> str:
     # 不用「沒有」「查無」：ABSTAIN_MARKERS 認得那些詞，這裡是有答案的，不能被評測算成拒答
+    if lang == "en":
+        return f"(「{written}」 was not found; showing the closest name, 「{real}」.)"
     return f"（找不到「{written}」，以下是名稱最接近的「{real}」的資料）"
 
 
-def unknown_shelter_reply(name: str, shelters: list[dict]) -> str:
+def unknown_shelter_reply(name: str, shelters: list[dict], lang: str = "zh") -> str:
     """
     「查無」開頭：evals/gen_metrics.py 的 ABSTAIN_MARKERS 認得這個詞，生成與邊界題評測才會算成正確交代。
     推薦的是名稱開頭相同的避難所（頭城國中 → 頭城國小、新生高中 → 新生國中 / 新生國小），
@@ -173,6 +238,14 @@ def unknown_shelter_reply(name: str, shelters: list[dict]) -> str:
         (m for m in shelters if display_name(m["name"]).startswith(stem)),
         key=lambda m: -int(m.get("capacity") or 0),
     )[:MAX_UNKNOWN_SUGGESTIONS]
+    example = next((m["township"] for m in similar if m.get("township")), "頭城鎮")
+    if lang == "en":
+        lines = [f"There is no shelter called 「{name}」 in this system's list."]
+        if similar:
+            lines.append("Shelters with similar names:")
+            lines += [f"- {shelter_line(m, 'en')}" for m in similar]
+        lines.append(f"If you are looking for another place, ask about a township, for example 「{example}有哪些避難所」.")
+        return "\n".join(lines)
     lines = [f"查無「{name}」這個避難收容場所的資料，本系統的避難所名單裡沒有這一間。"]
     if similar:
         lines.append("名稱相近的避難所：")
@@ -181,19 +254,34 @@ def unknown_shelter_reply(name: str, shelters: list[dict]) -> str:
             lines.append(
                 f"- {display_name(m['name'])}：{place}，容量 {m.get('capacity')} 人，剩餘空位 {m.get('remaining')} 人"
             )
-    example = next((m["township"] for m in similar if m.get("township")), "頭城鎮")
     lines.append(f"如果要找的是其他地方，可以告訴我鄉鎮名稱，例如「{example}有哪些避難所」。")
     return "\n".join(lines)
 
 
-def knowledge_text(chunks: list[KnowledgeChunk]) -> str:
-    """給使用者看的知識段落：「■ 標題」加原文"""
-    return "\n\n".join(f"{KNOWLEDGE_MARK}{c.title}\n{c.text}" for c in chunks)
+# 英文翻譯還沒審過的段落：英文模式照樣給中文原文，前面加這句說明
+UNREVIEWED_NOTE = "The English version of this guidance has not been reviewed yet, so the official Chinese text is shown."
 
 
-def knowledge_answer(chunks: list[KnowledgeChunk]) -> str:
+def knowledge_text(chunks: list[KnowledgeChunk], lang: str = "zh") -> str:
+    """
+    給使用者看的知識段落：「■ 標題」加原文。英文模式只用審過的翻譯（chunk.en_reviewed），
+    沒審過的照樣給中文原文：翻錯的防災資訊比看不懂更危險
+    """
+    if lang != "en":
+        return "\n\n".join(f"{KNOWLEDGE_MARK}{c.title}\n{c.text}" for c in chunks)
+    blocks = [
+        f"{KNOWLEDGE_MARK}{c.title_en}\n{c.text_en}" if c.en_reviewed and c.text_en
+        else f"{KNOWLEDGE_MARK}{c.title}\n{c.text}"
+        for c in chunks
+    ]
+    if any(not (c.en_reviewed and c.text_en) for c in chunks):
+        blocks.insert(0, UNREVIEWED_NOTE)
+    return "\n\n".join(blocks)
+
+
+def knowledge_answer(chunks: list[KnowledgeChunk], lang: str = "zh") -> str:
     """純知識題的完整回答：原文加出處，不經過模型"""
-    return f"{knowledge_text(chunks)}\n\n{sources_text(chunks)}"
+    return f"{knowledge_text(chunks, lang)}\n\n{sources_text(chunks, lang)}"
 
 
 def knowledge_context(hits: list[KnowledgeHit]) -> str:
@@ -262,8 +350,41 @@ def near_hazard_note(info: dict, label: str) -> str:
     return f"距{label} {'、'.join(info['refs'])} 約 {info['distance_m']} 公尺"
 
 
-def hazard_lines(plan: dict) -> list[str]:
+HAZARD_LABELS_EN = {"debris_flow": "a debris-flow impact zone"}
+
+
+def hazard_lines_en(plan: dict) -> list[str]:
+    """hazard_lines 的英文版（模擬結束後由程式附在回答最後的那幾行）"""
+    plan = plan or {}
+    excluded = plan.get("excluded") or {}
+    near = plan.get("near_hazard") or {}
+    label = HAZARD_LABELS_EN.get(plan.get("hazard"), "a hazard zone")
+    lines = []
+    if excluded:
+        names = ", ".join(f"{display_name(name)} ({', '.join(refs)})" for name, refs in sorted(excluded.items()))
+        lines.append(f"These shelters are inside {label} and were not used as evacuation destinations: {names}.")
+    if near:
+        names = ", ".join(
+            f"{display_name(name)} ({', '.join(info['refs'])}, about {info['distance_m']} m away)"
+            for name, info in sorted(near.items())
+        )
+        lines.append(f"These shelters are near {label} and are still used; take care during heavy rain: {names}.")
+    undesignated_names = plan.get("undesignated") or []
+    if undesignated_names:
+        joined = ", ".join(display_name(n) for n in undesignated_names)
+        designation = HAZARD_EN.get(plan.get("designation"), plan.get("designation") or "")
+        count = len(undesignated_names)
+        lines.append(
+            f"{'This shelter is' if count == 1 else f'These {count} shelters are'} not designated for {designation} "
+            f"and {'was' if count == 1 else 'were'} not used as an evacuation destination: {joined}."
+        )
+    return lines
+
+
+def hazard_lines(plan: dict, lang: str = "zh") -> list[str]:
     """位在潛勢區域內而被排除的、以及靠近區域但照常分配的避難所"""
+    if lang == "en":
+        return hazard_lines_en(plan)
     plan = plan or {}
     excluded = plan.get("excluded") or {}
     near = plan.get("near_hazard") or {}
@@ -511,7 +632,15 @@ class ChatService:
             logger.exception("地理查詢失敗")
             return None, GENERIC_ERROR
 
-    def build_context(self, user_message: str):
+    def build_context(self, user_message: str, lang: str = "zh"):
+        """
+        回傳 (context, early_reply)。lang="en" 時 early_reply 是英文（固定句在這裡統一翻譯，
+        清單、知識原文、查無這些帶資料的回覆在產生時就用英文）；context 永遠是中文，那是給模型的資料
+        """
+        context, early_reply = self._build_context(user_message, lang)
+        return context, tr(early_reply, lang)
+
+    def _build_context(self, user_message: str, lang: str):
         """
         根據問題類型選擇對應查詢方式，回傳 (context, early_reply)。判斷順序：
         1. 範圍外縣市 → 直接拒答，不管有沒有模擬在跑
@@ -529,7 +658,7 @@ class ChatService:
         """
         knowledge = query_rules.knowledge_request(user_message)
         if knowledge is None or self._is_simulation_query(user_message):
-            return self._shelter_context(user_message)
+            return self._shelter_context(user_message, lang)
 
         if not knowledge.mixed:
             metrics.route("knowledge")
@@ -538,23 +667,23 @@ class ChatService:
                 return None, KNOWLEDGE_UNAVAILABLE
             if not hits:
                 return None, NO_KNOWLEDGE_REPLY
-            return None, knowledge_answer([h.chunk for h in hits])
+            return None, knowledge_answer([h.chunk for h in hits], lang)
 
         hits = self._knowledge_hits(knowledge.search_text, knowledge.hazards)
         if not hits:
             # 知識那邊沒東西就跟沒有這條路由一樣
-            return self._shelter_context(user_message)
+            return self._shelter_context(user_message, lang)
         # 避難所那一側只拿問避難所的那半句去查，行為才跟單獨問一樣：
         # 「地震了在家要怎麼辦，附近收容所還有空位嗎」整句去查不會要座標，評測裡避難所資料是空的，
         # 模型就編出「宜蘭縣宜蘭市中正路123號」整串假避難所
-        context, early_reply = self._shelter_context(query_rules.shelter_clauses(user_message))
+        context, early_reply = self._shelter_context(query_rules.shelter_clauses(user_message), lang)
         metrics.route("knowledge_mixed")
         chunks = [h.chunk for h in hits]
         if context is None or not context.strip():
             # 避難所那邊是固定回覆（要座標、範圍外、沒有相關資料）或資料是空的：不打模型，
             # 知識原文照樣給，固定回覆接在後面（「沒有相關資料」那句只會讓人以為知識也沒有，不接）
-            note = early_reply if early_reply and early_reply != NO_RELEVANT_REPLY else ""
-            parts = [knowledge_text(chunks), note, sources_text(chunks)]
+            note = tr(early_reply, lang) if early_reply and early_reply != NO_RELEVANT_REPLY else ""
+            parts = [knowledge_text(chunks, lang), note, sources_text(chunks, lang)]
             return None, "\n\n".join(part for part in parts if part)
         return f"{knowledge_context(hits)}\n\n{SHELTER_HEADER}\n{context}", None
 
@@ -579,19 +708,19 @@ class ChatService:
         titles = [line[len(KNOWLEDGE_MARK):] for line in text.splitlines() if line.startswith(KNOWLEDGE_MARK)]
         return [by_title[t] for t in titles if t in by_title]
 
-    def _shelter_context(self, user_message: str):
-        """避難所這一側的路由（build_context 的 1～6）"""
+    def _shelter_context(self, user_message: str, lang: str = "zh"):
+        """避難所這一側的路由（build_context 的 1～6）。固定句回中文，由 build_context 統一翻譯"""
         names = known_names_of(self._shelter_metadata() or [])
         plan = query_rules.analyze(user_message, known_names=names)
         if plan.out_of_scope:
             metrics.route("out_of_scope")
-            return None, query_rules.out_of_scope_reply(plan.out_of_scope)
+            return None, query_rules.out_of_scope_reply(plan.out_of_scope, lang)
 
         # 問的不是避難所（天氣、醫院、補助…）。不能只靠距離門檻：有範圍內地名的問句
         # 會產生 metadata 篩選，而門檻在那條路徑上依設計被跳過
         if plan.off_topic:
             metrics.route("off_topic")
-            return None, query_rules.off_topic_reply(plan.off_topic)
+            return None, query_rules.off_topic_reply(plan.off_topic, lang)
 
         # 錯一個字的避難所名稱（涙強國小）先改成真實名稱再檢索，才會走「點名」那條路、只送那一間；
         # 不改的話只剩「國小」篩選，模型要從一整串學校裡自己猜，實測會把容量答錯。
@@ -612,7 +741,7 @@ class ChatService:
                 return self._get_nearest_context(*coords)
             if not self._is_simulation_followup(user_message) and self._needs_coordinates(user_message):
                 metrics.route("needs_coords")
-                return None, "請提供您的座標以便查詢最近的避難所。例如：緯度 23.99 經度 121.60"
+                return None, NEEDS_COORDS_REPLY
 
         if self._is_simulation_followup(user_message):
             metrics.route("simulation")
@@ -624,7 +753,7 @@ class ChatService:
 
         # 點名了資料裡沒有的場所（頭城國中、花蓮縣立游泳池）：由程式直接回答沒有這間，不交給模型。
         # 實測 llama3.2:3b 會替它編出容量與地址，或拿名稱相近的那間來答，連明寫的提示標頭都不照做
-        unknown = self._unknown_shelter(user_message)
+        unknown = self._unknown_shelter(user_message, lang)
         if unknown is not None:
             metrics.route("unknown_name")
             return None, unknown
@@ -646,9 +775,10 @@ class ChatService:
         if result.text in (NO_DATA, NO_MATCH):
             return None, NO_RELEVANT_REPLY
         # 清單、排名、概況、點名：程式已經排好答案，不交給模型重抄（見 services/direct_answer.py）
-        if result.direct:
+        direct = result.answer(lang)
+        if direct:
             metrics.incr("chat.answer.direct")
-            return None, result.direct
+            return None, direct
         return result.text, None
 
     def _shelter_metadata(self) -> list[dict] | None:
@@ -659,7 +789,7 @@ class ChatService:
             logger.exception("讀取避難所名單失敗")
             return None
 
-    def correct_typo(self, user_message: str) -> tuple[str, str | None]:
+    def correct_typo(self, user_message: str, lang: str = "zh") -> tuple[str, str | None]:
         """
         問句點名的避難所錯一個字、而且只像某一間時，回傳 (改成真實名稱的問句, 給使用者看的說明)；
         沒有錯字回 (原問句, None)。說明由程式加在回覆開頭，不交給模型決定要不要提
@@ -673,14 +803,14 @@ class ChatService:
             return user_message, None
         written, form = found
         real = forms[form]
-        return user_message.replace(written, real), typo_note(written, real)
+        return user_message.replace(written, real), typo_note(written, real, lang)
 
     def _lacks_shelter_clue(self, user_message: str) -> bool:
         names = known_names_of(self._shelter_metadata() or [])
         # 名單是空的（索引還沒建好、讀不到）就不判斷，照原本的方式檢索
         return bool(names) and not query_rules.has_shelter_clue(user_message, names)
 
-    def _unknown_shelter(self, user_message: str) -> str | None:
+    def _unknown_shelter(self, user_message: str, lang: str = "zh") -> str | None:
         """問句點名的場所不在索引裡時回傳固定回覆；在的話（或判斷不了）回 None，照常檢索"""
         shelters = self._shelter_metadata()
         if shelters is None:
@@ -688,9 +818,9 @@ class ChatService:
         name = query_rules.unknown_shelter_name(user_message, known_names_of(shelters))
         if name is None:
             return None
-        return unknown_shelter_reply(name, shelters)
+        return unknown_shelter_reply(name, shelters, lang)
 
-    def build_prompt(self, user_message: str, shelter_context: str, with_simulation: bool = False) -> str:
+    def build_prompt(self, user_message: str, shelter_context: str, with_simulation: bool = False, lang: str = "zh") -> str:
         """
         模擬摘要只附在走模擬路線的問題上。一般檢索、最近避難所也附的話，小模型會把兩份資料混在一起：
         實測南山附近淹水模擬進行中問「我們一家五口可以去哪」，回答把模擬裡的南山國小
@@ -708,6 +838,19 @@ class ChatService:
         if summary:
             full_context += f"\n\n【目前災害模擬結果】\n{summary}"
 
+        if lang == "en":
+            return f"""{full_context}
+
+【使用者問題】
+{user_message}
+
+Instructions:
+1. Answer directly from the data above, starting with the shelter name exactly as written in Chinese.
+   For one shelter, give its address, capacity, current occupancy and free spaces.
+2. For several shelters, one per line: "Name: township, capacity N, M spaces left". List every matching shelter.
+3. Copy the numbers exactly; do not add them up or change them.
+4. Write the answer in English, but keep every shelter name and address in Chinese."""
+
         # 列舉題（一個縣 20 筆）要能在 num_predict 內列完，所以規定每間一行、只講關鍵欄位
         return f"""{full_context}
 
@@ -720,23 +863,23 @@ class ChatService:
 3. 資料裡的數字原樣引用，不要自行加總或改寫。
 4. 只能用繁體中文，不得出現英文。"""
 
-    def chat_stream(self, user_message: str):
+    def chat_stream(self, user_message: str, lang: str = "zh"):
         """
         串流回答：逐段 yield 事件 dict，type 有 delta（文字片段）與 error（固定錯誤句）。
         跟 chat() 一樣不對外拋例外，所有錯誤都轉成使用者看得懂的訊息，
-        呼叫端只負責把 text 接起來或往下送。
+        呼叫端只負責把 text 接起來或往下送。lang="en" 時回答用英文（問題仍是中文最準）
         """
         started = time.monotonic()
         # 錯字在這裡就改掉：prompt 裡的問題也要是真實名稱，模型才不會照抄錯字回答
-        user_message, typo = self.correct_typo(user_message)
+        user_message, typo = self.correct_typo(user_message, lang)
         try:
-            shelter_context, early_reply = self.build_context(user_message)
+            shelter_context, early_reply = self.build_context(user_message, lang)
         except Exception:
             # 任何查詢層的例外都不該變成 500；細節只進 log，不回給使用者
             metrics.route("context_error")
             logger.exception("建立查詢內容失敗")
             self._log_summary("early_reply", "context_error", 0, len(GENERIC_ERROR), started)
-            yield {"type": "error", "text": GENERIC_ERROR}
+            yield {"type": "error", "text": tr(GENERIC_ERROR, lang)}
             return
         if early_reply:
             # 檢索層就答得出來（範圍外、要座標、沒有相關資料），不必打 LLM，一次給完
@@ -751,12 +894,14 @@ class ChatService:
         # 混合題：知識原文由程式先送出，模型只負責後面的避難所清單；出處附在最後
         cited = self.knowledge_chunks(shelter_context)
         if cited:
-            yield {"type": "delta", "text": knowledge_text(cited) + "\n\n"}
-        prompt = self.build_prompt(user_message, shelter_context, with_simulation=metrics.last_route() == "simulation")
+            yield {"type": "delta", "text": knowledge_text(cited, lang) + "\n\n"}
+        prompt = self.build_prompt(
+            user_message, shelter_context, with_simulation=metrics.last_route() == "simulation", lang=lang,
+        )
         reply_chars = 0
         guard = LineGuard(self.prompt_names(prompt))
         try:
-            for chunk in self.generate_stream(prompt):
+            for chunk in self.generate_stream(prompt, lang):
                 reply_chars += len(chunk)
                 text = guard.feed(chunk)
                 if text:
@@ -777,23 +922,23 @@ class ChatService:
             metrics.incr("chat.generation." + outcome)
             logger.exception("Ollama 串流生成失敗")
             self._log_summary("generated", outcome, len(shelter_context), reply_chars, started)
-            yield {"type": "error", "text": STREAM_INTERRUPTED if reply_chars else AI_UNAVAILABLE}
+            yield {"type": "error", "text": tr(STREAM_INTERRUPTED if reply_chars else AI_UNAVAILABLE, lang)}
             return
         if not reply_chars:
             # 連線沒問題但模型一個字都沒給：不要讓前端收到空白泡泡
             metrics.incr("chat.generation.empty")
             logger.warning("Ollama 串流沒有產生任何文字")
             self._log_summary("generated", "empty", len(shelter_context), 0, started)
-            yield {"type": "error", "text": AI_UNAVAILABLE}
+            yield {"type": "error", "text": tr(AI_UNAVAILABLE, lang)}
             return
         # 被排除的避難所由程式補在最後，不交給模型：實測 3 次回答都照「名稱：容量、剩餘空位」的格式
         # 把澳花國小列成剩餘 150 人，附註整個被省略——看起來就像豪雨時可以去。靠近區域的警告同理
         if metrics.last_route() == "simulation":
-            notes = hazard_lines((self._snapshot() or {}).get("evacuation") or {})
+            notes = hazard_lines((self._snapshot() or {}).get("evacuation") or {}, lang)
             if notes:
                 yield {"type": "delta", "text": "\n\n" + "\n".join(notes)}
         if cited:
-            yield {"type": "delta", "text": "\n\n" + sources_text(cited)}
+            yield {"type": "delta", "text": "\n\n" + sources_text(cited, lang)}
         metrics.incr("chat.generation.ok")
         self._log_summary("generated", "ok", len(shelter_context), reply_chars, started)
 
@@ -819,15 +964,15 @@ class ChatService:
             metrics.last_route(), source, outcome, context_chars, reply_chars, round(elapsed_ms),
         )
 
-    def chat(self, user_message: str) -> str:
+    def chat(self, user_message: str, lang: str = "zh") -> str:
         """非串流版：把 chat_stream() 的片段接起來，給不吃 SSE 的呼叫端（腳本、測試）用"""
-        return "".join(event["text"] for event in self.chat_stream(user_message)).strip()
+        return "".join(event["text"] for event in self.chat_stream(user_message, lang)).strip()
 
-    def _payload(self, prompt: str, stream: bool) -> dict:
+    def _payload(self, prompt: str, stream: bool, lang: str = "zh") -> dict:
         """生成請求的內容。串流與非串流共用同一份，評測量到的才跟線上同一個模型設定"""
         return {
             "model": config.OLLAMA_MODEL,
-            "system": SYSTEM_PROMPT,
+            "system": SYSTEM_PROMPT_EN if lang == "en" else SYSTEM_PROMPT,
             "prompt": prompt,
             "stream": stream,
             "options": {
@@ -837,20 +982,20 @@ class ChatService:
             },
         }
 
-    def generate(self, prompt: str) -> dict:
+    def generate(self, prompt: str, lang: str = "zh") -> dict:
         """
         打 Ollama 生成，一次拿完整的 JSON（response、done_reason、eval_count …）。
         生成端評測要靠它拿 token 數與截斷原因；失敗直接拋例外由呼叫端處理。
         """
         response = requests.post(
             f"{config.OLLAMA_HOST}/api/generate",
-            json=self._payload(prompt, False),
+            json=self._payload(prompt, False, lang),
             timeout=config.OLLAMA_TIMEOUT,
         )
         response.raise_for_status()
         return response.json()
 
-    def generate_stream(self, prompt: str):
+    def generate_stream(self, prompt: str, lang: str = "zh"):
         """
         串流生成：逐段 yield 文字。Ollama 的 /api/generate 在 stream=True 下回 NDJSON，
         一行一個片段，最後一行帶 done。
@@ -862,7 +1007,7 @@ class ChatService:
         deadline = time.monotonic() + config.OLLAMA_TIMEOUT
         with requests.post(
             f"{config.OLLAMA_HOST}/api/generate",
-            json=self._payload(prompt, True),
+            json=self._payload(prompt, True, lang),
             timeout=config.OLLAMA_TIMEOUT,
             stream=True,
         ) as response:

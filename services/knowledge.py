@@ -57,6 +57,11 @@ class KnowledgeChunk:
     retrieved: str
     # [(來源名稱, 網址)]；一段可以有兩個來源
     sources: list[tuple[str, str]] = field(default_factory=list)
+    # 英文翻譯（data_reference/knowledge/en/）。en_reviewed 為 False 時英文模式仍給中文原文：
+    # 翻錯的防災資訊就是錯的防災資訊，跟模型改寫原文是同一種風險，要有人審過才上線
+    title_en: str = ""
+    text_en: str = ""
+    en_reviewed: bool = False
 
     @property
     def document(self) -> str:
@@ -120,6 +125,40 @@ def parse_file(text: str, filename: str = "") -> list[KnowledgeChunk]:
     return chunks
 
 
+def parse_translations(text: str, filename: str = "") -> dict[str, tuple[str, str, bool]]:
+    """
+    英文翻譯檔 → {id: (英文標題, 英文正文, 是否已審)}。格式跟中文檔一樣，
+    欄位只有 reviewed（yes / no）；出處沿用中文段落的，不重複寫
+    """
+    out = {}
+    current, title, reviewed, body = None, "", False, []
+
+    def close():
+        if current is None:
+            return
+        text_en = "\n".join(line for line in body if line.strip()).strip()
+        if not text_en:
+            raise KnowledgeFormatError(f"{filename} {current}：英文正文是空的")
+        out[current] = (title, text_en, reviewed)
+
+    for line in text.splitlines():
+        heading = _HEADING.match(line)
+        if heading:
+            close()
+            current, title, reviewed, body = heading["id"], heading["title"].strip(), False, []
+            continue
+        if current is None:
+            continue
+        meta = _FIELD.match(line)
+        if meta and not body:
+            if meta["key"] == "reviewed":
+                reviewed = meta["value"].strip().lower() == "yes"
+            continue
+        body.append(line)
+    close()
+    return out
+
+
 def load_chunks(directory: Path = KNOWLEDGE_DIR) -> list[KnowledgeChunk]:
     chunks = []
     for path in sorted(directory.glob("*.md")):
@@ -130,10 +169,17 @@ def load_chunks(directory: Path = KNOWLEDGE_DIR) -> list[KnowledgeChunk]:
     duplicated = {i for i in ids if ids.count(i) > 1}
     if duplicated:
         raise KnowledgeFormatError(f"段落 id 重複：{sorted(duplicated)}")
+    by_id = {c.id: c for c in chunks}
+    for path in sorted((directory / "en").glob("*.md")):
+        for cid, (title, text_en, reviewed) in parse_translations(path.read_text(encoding="utf-8"), path.name).items():
+            if cid not in by_id:
+                raise KnowledgeFormatError(f"en/{path.name}：中文文件裡沒有 {cid} 這一段")
+            chunk = by_id[cid]
+            chunk.title_en, chunk.text_en, chunk.en_reviewed = title, text_en, reviewed
     return chunks
 
 
-def sources_text(chunks: list[KnowledgeChunk]) -> str:
+def sources_text(chunks: list[KnowledgeChunk], lang: str = "zh") -> str:
     """
     回答最後附的出處：由程式產生，不交給模型（模型會把網址抄錯，系統提示也不准它寫英文）。
     同一個網址只列一次（《颱風百問》第 61 題、第 88 題是同一份 PDF），同一個來源的多個網址併成一行
@@ -146,7 +192,8 @@ def sources_text(chunks: list[KnowledgeChunk]) -> str:
                 continue
             seen_urls.add(url)
             by_name.setdefault(name, []).append(url)
-    return "資料來源：\n" + "\n".join(f"- {name} {' '.join(urls)}" for name, urls in by_name.items())
+    heading = "Sources (in Chinese):" if lang == "en" else "資料來源："
+    return heading + "\n" + "\n".join(f"- {name} {' '.join(urls)}" for name, urls in by_name.items())
 
 
 class KnowledgeStore:

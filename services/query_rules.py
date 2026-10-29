@@ -8,6 +8,7 @@
 import re
 from dataclasses import dataclass, field
 
+from services.i18n import FACILITY_EN, HAZARD_EN, SIZE_EN, place_en
 from services.shelter_profile import FACILITY_LABELS, HAZARD_KEYS, TOWNSHIPS
 
 # 系統涵蓋的三個縣，對應 metadata 的 region 欄位
@@ -209,7 +210,9 @@ class QueryPlan:
             clauses.append({"vulnerable_ok": True})
         return clauses[0] if len(clauses) == 1 else {"$and": clauses}
 
-    def describe(self) -> str:
+    def describe(self, lang: str = "zh") -> str:
+        if lang == "en":
+            return self._describe_en()
         parts = []
         if self.township:
             parts.append(self.township)
@@ -233,6 +236,31 @@ class QueryPlan:
             if self.vulnerable:
                 parts.append("適合避難弱者")
         return "、".join(parts)
+
+    def _describe_en(self) -> str:
+        parts = []
+        if self.township:
+            parts.append(place_en(self.township))
+        elif self.region:
+            parts.append(place_en(self.region))
+        if self.road:
+            parts.append(self.road)
+        if self.facilities:
+            parts.append(" / ".join(FACILITY_EN.get(f, f) for f in self.facilities))
+        if self.capacity_min is not None:
+            parts.append(f"capacity ≥ {self.capacity_min}")
+        if self.capacity_max is not None:
+            parts.append(f"capacity ≤ {self.capacity_max}")
+        elif self.size_class:
+            parts.append(SIZE_EN.get(self.size_class, self.size_class))
+        if parts:
+            if self.hazard:
+                parts.append(f"designated for {HAZARD_EN.get(self.hazard, self.hazard)}")
+            if self.indoor:
+                parts.append("indoor")
+            if self.vulnerable:
+                parts.append("suitable for vulnerable evacuees")
+        return ", ".join(parts)
 
 
 def _find_region(query: str) -> str | None:
@@ -365,17 +393,27 @@ def off_topic_word_is_a_name(query: str, word: str, known_names: list[str]) -> b
     return False
 
 
-def off_topic_reply(topic: str) -> str:
+def off_topic_reply(topic: str, lang: str = "zh") -> str:
     # 開頭刻意跟 out_of_scope_reply 用同一句「本系統只涵蓋」：
     # evals/gen_metrics.py 的 ABSTAIN_MARKERS 認的是這個字串，
     # 換掉的話生成評測的 abstain_correct 會無聲下降（tests 有釘住）
+    if lang == "en":
+        return (
+            f"This system only covers emergency shelters in Yilan, Hualien and Taitung, and has no information about 「{topic}」. "
+            "You can ask about a shelter's location, capacity or free spaces, or where the nearest shelter is."
+        )
     return (
         f"本系統只涵蓋宜蘭、花蓮、台東三縣的避難收容場所資訊，沒有{topic}的資料。"
         "可以問避難所的位置、容量、剩餘空位，或最近的避難所在哪裡。"
     )
 
 
-def out_of_scope_reply(place: str) -> str:
+def out_of_scope_reply(place: str, lang: str = "zh") -> str:
+    if lang == "en":
+        return (
+            f"This system only covers shelters in Yilan, Hualien and Taitung, so it has no shelter information for 「{place}」. "
+            "Please ask about shelters in eastern Taiwan, or contact the local government's emergency operations center."
+        )
     return (
         f"本系統只涵蓋宜蘭、花蓮、台東三縣的避難所資料，目前沒有{place}的避難所資訊。"
         "請改問東部地區的避難所，或洽當地政府的災害應變中心。"
