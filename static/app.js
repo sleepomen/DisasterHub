@@ -8,13 +8,17 @@
         document.getElementById(id).classList.toggle('open');
     }
 
-    function selectOption(e, key, value, label) {
+    // labelKey 是 i18n.js 的翻譯鍵；顯示欄也記住這個鍵，切換語言時才會跟著換
+    function selectOption(e, key, value, labelKey) {
         e.stopPropagation();
         state[key] = value;
-        document.getElementById(`${key}-display`).textContent = label;
+        const display = document.getElementById(`${key}-display`);
+        display.dataset.i18n = labelKey;
+        display.textContent = I18N.t(labelKey);
         const menu = document.getElementById(`${key}-dropdown`);
         menu.querySelectorAll('.dropdown-option').forEach(opt => {
-            const isSelected = opt.textContent.replace('✓','').trim() === label;
+            const label = opt.querySelector('[data-i18n]');
+            const isSelected = !!label && label.dataset.i18n === labelKey;
             opt.classList.toggle('selected', isSelected);
             let check = opt.querySelector('.checkmark');
             if (isSelected && !check) {
@@ -97,7 +101,7 @@
                 });
                 const data = await res.json().catch(() => ({}));
                 if (!res.ok) {
-                    const fallback = res.status === 429 ? '登入失敗次數過多，請稍後再試。' : '登入失敗。';
+                    const fallback = res.status === 429 ? I18N.t('login_failed_throttled') : I18N.t('login_failed');
                     showLogin(typeof data.detail === 'string' ? data.detail : fallback);
                     return;
                 }
@@ -105,10 +109,10 @@
                 renderAuth();
                 hideLogin();
                 document.getElementById('login-pass').value = '';
-                addChat(`已以 ${data.user} 登入，可執行模擬與回寫收容人數。`, 'ai');
+                addChat(I18N.t('logged_in', { user: data.user }), 'ai');
             } catch (err) {
                 console.error('登入失敗', err);
-                showLogin('連線失敗，請確認後端服務正常運行。');
+                showLogin(I18N.t('login_unreachable'));
             } finally {
                 if (btn) btn.disabled = false;
             }
@@ -119,7 +123,7 @@
     if (skipBtn) {
         skipBtn.addEventListener('click', () => {
             hideLogin();
-            addChat('目前為瀏覽模式：可查看地圖與問答，執行模擬前需要登入。', 'ai');
+            addChat(I18N.t('browse_mode'), 'ai');
         });
     }
     if (loginOpenBtn) loginOpenBtn.addEventListener('click', () => showLogin());
@@ -130,7 +134,7 @@
             try { await fetch('/api/logout', { method: 'POST' }); } catch (err) { console.error('登出失敗', err); }
             authState.user = null;
             renderAuth();
-            addChat('已登出，目前為瀏覽模式。', 'ai');
+            addChat(I18N.t('logged_out'), 'ai');
         });
     }
 
@@ -144,7 +148,7 @@
         if (res.status === 401) {
             authState.user = null;
             renderAuth();
-            showLogin('登入已過期或尚未登入，請重新登入。');
+            showLogin(I18N.t('session_expired'));
             throw new Error('AUTH_REQUIRED');
         }
         if (res.status === 503) throw new Error('AUTH_DISABLED');
@@ -154,8 +158,8 @@
 
     function describeAuthError(err) {
         if (!err) return null;
-        if (err.message === 'AUTH_REQUIRED') return '請先登入，才能執行模擬或回寫收容人數。';
-        if (err.message === 'AUTH_DISABLED') return '伺服器未設定管理者帳號，模擬與收容人數寫入功能已停用，請聯絡管理者。';
+        if (err.message === 'AUTH_REQUIRED') return I18N.t('auth_required');
+        if (err.message === 'AUTH_DISABLED') return I18N.t('auth_disabled');
         return null;
     }
 
@@ -182,11 +186,11 @@
                 style: { color: '#ff9f43', weight: 1, opacity: 0.7, fillColor: '#ff9f43', fillOpacity: 0.18 },
                 onEachFeature: (f, layer) => {
                     const p = f.properties || {};
-                    layer.bindPopup(
-                        `<div class="popup-name">土石流潛勢溪流 ${p.debris_no || ''}</div>`
-                        + `<div class="popup-row"><span>位置</span><span>${p.county || ''}${p.town || ''}${p.village || ''}</span></div>`
-                        + `<div class="popup-row"><span>風險等級</span><span>${p.risk || '-'}</span></div>`
-                        + `<div class="popup-row"><span>保全住戶</span><span>${p.households ?? '-'} 戶</span></div>`
+                    layer.bindPopup(() =>
+                        `<div class="popup-name">${I18N.t('debris_stream')} ${p.debris_no || ''}</div>`
+                        + `<div class="popup-row"><span>${I18N.t('popup_location')}</span><span>${p.county || ''}${p.town || ''}${p.village || ''}</span></div>`
+                        + `<div class="popup-row"><span>${I18N.t('popup_risk')}</span><span>${p.risk || '-'}</span></div>`
+                        + `<div class="popup-row"><span>${I18N.t('popup_households')}</span><span>${p.households ?? '-'} ${I18N.t('households_unit')}</span></div>`
                     );
                 },
             }).addTo(map);
@@ -282,8 +286,8 @@
         } catch (err) {
             // 後端或資料庫掛掉時不要只留一張空白地圖，要講清楚發生什麼事
             console.error('載入避難所資料失敗', err);
-            showLoadError('無法載入避難所資料，請確認後端服務與資料庫是否正常。');
-            addChat('無法載入避難所資料，地圖目前是空的。請確認後端與資料庫狀態後按「重新載入」。', 'ai');
+            showLoadError(I18N.t('load_error'));
+            addChat(I18N.t('load_error_chat'), 'ai');
             return;
         }
         clearLoadError();
@@ -327,27 +331,30 @@
         const name = `<div class="popup-name">${escapeHtml(d.name.replace(/\[.*?\]\s*/,''))}</div>`;
         // 消防署資料：沒填的欄位不顯示，不寫「否」
         const details = [];
-        if (d.hazards && d.hazards.length) details.push(['適用災害', d.hazards.join('、')]);
-        const place = [d.indoor ? '室內' : '', d.outdoor ? '室外' : ''].filter(Boolean).join('、');
-        if (place) details.push(['場地', place]);
-        if (d.vulnerable_ok === true) details.push(['避難弱者', '適合安置']);
-        if (d.phone) details.push(['電話', d.phone]);
-        if (d.address) details.push(['地址', d.address]);
+        const sep = I18N.lang === 'en' ? ', ' : '、';
+        if (d.hazards && d.hazards.length) {
+            details.push([I18N.t('popup_hazards'), d.hazards.map(h => I18N.t(`hazard_${h}`)).join(sep)]);
+        }
+        const place = [d.indoor ? I18N.t('venue_indoor') : '', d.outdoor ? I18N.t('venue_outdoor') : ''].filter(Boolean).join(sep);
+        if (place) details.push([I18N.t('popup_venue'), place]);
+        if (d.vulnerable_ok === true) details.push([I18N.t('popup_vulnerable'), I18N.t('vulnerable_ok')]);
+        if (d.phone) details.push([I18N.t('popup_phone'), d.phone]);
+        if (d.address) details.push([I18N.t('popup_address'), d.address]);
         const detailRows = details
             .map(([k, v]) => `<div class="popup-row"><span>${k}</span><span>${escapeHtml(v)}</span></div>`)
             .join('');
         if (!(d.z > 0)) {
-            return name + '<div class="popup-row"><span>總容量</span><span>未提供</span></div>' + detailRows;
+            return name + `<div class="popup-row"><span>${I18N.t('popup_capacity')}</span><span>${I18N.t('not_provided')}</span></div>` + detailRows;
         }
         const occ = shelterOccupancy[d.name] || 0;
         const remaining = Math.max(0, d.z - occ);
         const rate = Math.min(100, Math.round(occ / d.z * 100));
         const barColor = rate < 50 ? '#2ee6a8' : rate < 80 ? '#ff7a3d' : '#ff3d5c';
         return name + `
-            <div class="popup-row"><span>總容量</span><span>${d.z} 人</span></div>
-            <div class="popup-row"><span>目前入住</span><span>${occ} 人</span></div>
-            <div class="popup-row"><span>剩餘空間</span><span>${remaining} 人</span></div>
-            <div class="popup-row"><span>負載率</span><span style="color:${barColor};font-weight:600">${rate}%</span></div>
+            <div class="popup-row"><span>${I18N.t('popup_capacity')}</span><span>${d.z} ${I18N.t('people_unit')}</span></div>
+            <div class="popup-row"><span>${I18N.t('popup_current')}</span><span>${occ} ${I18N.t('people_unit')}</span></div>
+            <div class="popup-row"><span>${I18N.t('popup_remaining')}</span><span>${remaining} ${I18N.t('people_unit')}</span></div>
+            <div class="popup-row"><span>${I18N.t('popup_load')}</span><span style="color:${barColor};font-weight:600">${rate}%</span></div>
             <div class="popup-bar"><div class="popup-bar-fill" style="width:${rate}%;background:${barColor}"></div></div>
         ` + detailRows;
     }
@@ -436,9 +443,7 @@
             document.getElementById('sim-progress-wrap').classList.remove('visible');
             document.getElementById('btn-simulate').disabled = false;
             applyOccupancy(finalOccupancy);
-            addChat(unplaced > 0
-                ? '範圍內的避難所皆已滿載，無法再安置人群。'
-                : '此範圍內幾乎沒有可疏散的人口（多為海域或無人山區），未產生疏散人流。', 'ai');
+            addChat(unplaced > 0 ? I18N.t('all_full') : I18N.t('no_population'), 'ai');
             return;
         }
 
@@ -533,9 +538,9 @@
                 document.getElementById('btn-simulate').disabled = false;
                 applyOccupancy(finalOccupancy);
                 const count = Object.keys(plan.assigned || {}).length;
-                addChat(`疏散模擬完成！共 ${placed} 人依最近且有空位的原則移入 ${count} 間避難所`
-                    + (unplaced > 0 ? `，仍有 ${unplaced} 人無法安置` : '')
-                    + '。AI 助手已使用同一份分配結果回答。', 'ai');
+                addChat(I18N.t('sim_done', { placed, count })
+                    + (unplaced > 0 ? I18N.t('sim_unplaced', { unplaced }) : '')
+                    + I18N.t('sim_done_tail'), 'ai');
             }
         }
 
@@ -593,19 +598,22 @@
             const result = await postAuthed('/api/simulate_disaster', { lat, lon, radius, type });
 
             if (result.impacted_count === 0) {
-                addChat(`此範圍內沒有避難所，請擴大半徑或更換模擬中心。`, 'ai');
+                addChat(I18N.t('no_shelter_in_range'), 'ai');
                 return;
             }
 
-            const typeLabel = type === 'earthquake' ? '強震' : type === 'flood' ? '淹水' : '火災';
-            addChat(`模擬啟動：${typeLabel}，半徑 ${radius} km，${result.impacted_count} 個避難所受影響，開始疏散動畫…`, 'ai');
+            const typeLabel = I18N.t(`disaster_${type}`);
+            addChat(I18N.t('sim_start', { type: typeLabel, radius, count: result.impacted_count }), 'ai');
             const pop = result.population;
             if (pop) {
-                const fmt = n => n >= 10000 ? `約 ${(n / 10000).toFixed(1)} 萬人` : `約 ${n} 人`;
-                const gap = pop.shortfall > 0 ? `，收容缺口 ${fmt(pop.shortfall)}` : '，範圍內避難所足以安置';
+                // 中文用「萬」；英文直接寫完整數字（175,000）
+                const fmt = n => I18N.lang === 'en'
+                    ? I18N.t('people_approx', { n: Math.round(n).toLocaleString('en') })
+                    : n >= 10000 ? I18N.t('people_approx_wan', { n: (n / 10000).toFixed(1) }) : I18N.t('people_approx', { n });
+                const gap = pop.shortfall > 0 ? I18N.t('sim_gap', { gap: fmt(pop.shortfall) }) : I18N.t('sim_enough');
                 addChat(pop.fallback_estimate
-                    ? `範圍內無主要聚落，以面積保底估算需疏散 ${fmt(pop.estimated_evacuees)}${gap}。`
-                    : `範圍涵蓋人口 ${fmt(pop.covered_population)}，預估需疏散 ${fmt(pop.estimated_evacuees)}${gap}。`, 'ai');
+                    ? I18N.t('sim_fallback_pop', { evacuees: fmt(pop.estimated_evacuees), gap })
+                    : I18N.t('sim_pop', { covered: fmt(pop.covered_population), evacuees: fmt(pop.estimated_evacuees), gap }), 'ai');
             }
 
             // 顯示進度條，鎖定按鈕
@@ -618,7 +626,7 @@
 
         } catch (err) {
             console.error('模擬失敗', err);
-            addChat(describeAuthError(err) || `模擬失敗，請確認後端服務正常運行。`, 'ai');
+            addChat(describeAuthError(err) || I18N.t('sim_failed'), 'ai');
         }
     });
 
@@ -635,13 +643,13 @@
         try {
             const data = await postAuthed('/api/reset_simulation');
             applyOccupancy(data.occupancy);
-            addChat('已清除模擬圖層與疏散動畫，各避難所收容人數已還原。', 'ai');
+            addChat(I18N.t('reset_done'), 'ai');
         } catch (err) {
             // 後端沒回應時至少把畫面還原成上次載入的值
             console.error('重置模擬失敗', err);
             allShelterData.forEach(d => { shelterOccupancy[d.name] = d.ppl || 0; });
             markers.forEach(m => updateMarkerColor(m));
-            addChat(describeAuthError(err) || '已清除模擬圖層，但後端收容人數重置失敗，請稍後再試。', 'ai');
+            addChat(describeAuthError(err) || I18N.t('reset_partial'), 'ai');
         }
     });
 
@@ -706,18 +714,18 @@
         addChat(v, 'user');
         document.getElementById('user-input').value = '';
         const container = document.getElementById('chat-container');
-        const loadingEl = addChat('AI 思考中…', 'loading');
+        const loadingEl = addChat(I18N.t('thinking'), 'loading');
         let bubble = null;
         try {
             const res = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: v })
+                body: JSON.stringify({ message: v, lang: I18N.lang })
             });
             if (res.status === 429) {
                 // 後端的生成名額滿了（別人正在問），不是連線問題
                 const data = await res.json().catch(() => ({}));
-                addChat(typeof data.detail === 'string' ? data.detail : 'AI 助手正在回答其他問題，請稍後再試。', 'ai');
+                addChat(typeof data.detail === 'string' ? data.detail : I18N.t('busy'), 'ai');
                 return;
             }
             if (!res.ok || !res.body) throw new Error('HTTP ' + res.status);
@@ -731,16 +739,24 @@
                 bubble.textContent += event.text;
                 container.scrollTop = container.scrollHeight;
             }
-            if (!bubble) addChat('AI 沒有回應，請稍後再試', 'ai');
+            if (!bubble) addChat(I18N.t('no_answer'), 'ai');
         } catch {
             // 串流中途斷線：已經收到的文字留在畫面上，後面補一句說明
-            if (bubble) bubble.textContent += '（連線中斷）';
-            else addChat('連線失敗，請稍後再試', 'ai');
+            if (bubble) bubble.textContent += I18N.t('interrupted');
+            else addChat(I18N.t('connect_failed'), 'ai');
         } finally {
             loadingEl.remove();
             setChatBusy(false);
         }
     };
+
+    const langBtn = document.getElementById('btn-lang');
+    if (langBtn) {
+        langBtn.addEventListener('click', () => {
+            I18N.set(I18N.lang === 'en' ? 'zh' : 'en');
+            addChat(I18N.t('lang_switched'), 'ai');
+        });
+    }
 
     const retryBtn = document.getElementById('app-error-retry');
     if (retryBtn) {

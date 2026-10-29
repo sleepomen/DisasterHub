@@ -21,16 +21,17 @@
         <span class="brand-sub">East Taiwan Shelter Ops</span>
     </div>
     <div class="nav-stats">
-        <div class="stat-chip"><span class="live-dot"></span>即時監測中</div>
-        <div class="stat-chip">避難所 <b id="stat-shelters">–</b></div>
-        <div class="stat-chip">總容量 <b id="stat-capacity">–</b></div>
+        <div class="stat-chip"><span class="live-dot"></span><span data-i18n="live">即時監測中</span></div>
+        <div class="stat-chip"><span data-i18n="stat_shelters">避難所</span> <b id="stat-shelters">–</b></div>
+        <div class="stat-chip"><span data-i18n="stat_capacity">總容量</span> <b id="stat-capacity">–</b></div>
     </div>
     <div class="auth-area">
+        <button type="button" class="auth-btn" id="btn-lang" data-i18n="lang_toggle">EN</button>
         <div class="auth-chip" id="auth-chip" hidden>
             <span class="auth-user" id="auth-user"></span>
-            <button type="button" class="auth-btn" id="btn-logout">登出</button>
+            <button type="button" class="auth-btn" id="btn-logout" data-i18n="btn_logout">登出</button>
         </div>
-        <button type="button" class="auth-btn" id="btn-login-open" hidden>登入</button>
+        <button type="button" class="auth-btn" id="btn-login-open" data-i18n="btn_login" hidden>登入</button>
     </div>
 </nav>
 
@@ -42,58 +43,58 @@
         <div id="app-error" class="app-error" hidden>
             <span class="app-error-icon">!</span>
             <span id="app-error-text"></span>
-            <button type="button" id="app-error-retry">重新載入</button>
+            <button type="button" id="app-error-retry" data-i18n="btn_retry">重新載入</button>
         </div>
         <div class="legend">
-            <div class="legend-item"><div class="legend-dot" style="background:#2ee6a8"></div>花蓮 / 台東避難所</div>
-            <div class="legend-item"><div class="legend-dot" style="background:#4da6ff"></div>宜蘭避難所</div>
-            <div class="legend-item"><div class="legend-dot" style="background:#ff3d5c"></div>受災影響範圍</div>
-            <div class="legend-item"><div class="legend-dot" style="background:#ffe14d"></div>疏散中人群</div>
-            <div class="legend-item"><div class="legend-dot" style="background:#ff9f43"></div>土石流潛勢影響範圍</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#2ee6a8"></div><span data-i18n="legend_hualien_taitung">花蓮 / 台東避難所</span></div>
+            <div class="legend-item"><div class="legend-dot" style="background:#4da6ff"></div><span data-i18n="legend_yilan">宜蘭避難所</span></div>
+            <div class="legend-item"><div class="legend-dot" style="background:#ff3d5c"></div><span data-i18n="legend_impact">受災影響範圍</span></div>
+            <div class="legend-item"><div class="legend-dot" style="background:#ffe14d"></div><span data-i18n="legend_crowd">疏散中人群</span></div>
+            <div class="legend-item"><div class="legend-dot" style="background:#ff9f43"></div><span data-i18n="legend_debris">土石流潛勢影響範圍</span></div>
         </div>
     </div>
 
     <aside class="sidebar overlay-panel">
         <div class="panel-section">
-            <div class="section-header">觀測區域</div>
+            <div class="section-header" data-i18n="section_area">觀測區域</div>
             <div class="list-row" onclick="toggleDropdown(event,'city-dropdown')">
-                <span class="row-label">地區</span>
-                <span class="row-value" id="city-display">全東部區域</span>
+                <span class="row-label" data-i18n="label_area">地區</span>
+                <span class="row-value" id="city-display" data-i18n="city_all">全東部區域</span>
                 <span class="chevron">›</span>
                 <div class="dropdown-menu" id="city-dropdown">
-                    <div class="dropdown-option selected" onclick="selectOption(event,'city','all','全東部區域')">全東部區域<span class="checkmark">✓</span></div>
-                    <div class="dropdown-option" onclick="selectOption(event,'city','YILAN','宜蘭')">宜蘭</div>
-                    <div class="dropdown-option" onclick="selectOption(event,'city','HUALIEN','花蓮')">花蓮</div>
-                    <div class="dropdown-option" onclick="selectOption(event,'city','TAITUNG','台東')">台東</div>
+                    <div class="dropdown-option selected" onclick="selectOption(event,'city','all','city_all')"><span data-i18n="city_all">全東部區域</span><span class="checkmark">✓</span></div>
+                    <div class="dropdown-option" onclick="selectOption(event,'city','YILAN','city_yilan')"><span data-i18n="city_yilan">宜蘭</span></div>
+                    <div class="dropdown-option" onclick="selectOption(event,'city','HUALIEN','city_hualien')"><span data-i18n="city_hualien">花蓮</span></div>
+                    <div class="dropdown-option" onclick="selectOption(event,'city','TAITUNG','city_taitung')"><span data-i18n="city_taitung">台東</span></div>
                 </div>
             </div>
         </div>
 
         <div class="panel-section">
-            <div class="section-header">災害模擬</div>
+            <div class="section-header" data-i18n="section_sim">災害模擬</div>
             <div class="list-row" onclick="toggleDropdown(event,'loc-dropdown')">
-                <span class="row-label">模擬中心</span>
-                <span class="row-value" id="loc-display">花蓮市中心</span>
+                <span class="row-label" data-i18n="label_center">模擬中心</span>
+                <span class="row-value" id="loc-display" data-i18n="loc_hualien">花蓮市中心</span>
                 <span class="chevron">›</span>
                 <div class="dropdown-menu" id="loc-dropdown">
-                    <div class="dropdown-option selected" onclick="selectOption(event,'loc','121.60,23.98','花蓮市中心')">花蓮市中心<span class="checkmark">✓</span></div>
-                    <div class="dropdown-option" onclick="selectOption(event,'loc','121.75,24.75','宜蘭市中心')">宜蘭市中心</div>
-                    <div class="dropdown-option" onclick="selectOption(event,'loc','121.13,22.75','台東市中心')">台東市中心</div>
+                    <div class="dropdown-option selected" onclick="selectOption(event,'loc','121.60,23.98','loc_hualien')"><span data-i18n="loc_hualien">花蓮市中心</span><span class="checkmark">✓</span></div>
+                    <div class="dropdown-option" onclick="selectOption(event,'loc','121.75,24.75','loc_yilan')"><span data-i18n="loc_yilan">宜蘭市中心</span></div>
+                    <div class="dropdown-option" onclick="selectOption(event,'loc','121.13,22.75','loc_taitung')"><span data-i18n="loc_taitung">台東市中心</span></div>
                 </div>
             </div>
             <div class="list-row" onclick="toggleDropdown(event,'type-dropdown')">
-                <span class="row-label">災害類型</span>
-                <span class="row-value" id="type-display">強震模擬</span>
+                <span class="row-label" data-i18n="label_type">災害類型</span>
+                <span class="row-value" id="type-display" data-i18n="type_earthquake">強震模擬</span>
                 <span class="chevron">›</span>
                 <div class="dropdown-menu" id="type-dropdown">
-                    <div class="dropdown-option selected" onclick="selectOption(event,'type','earthquake','強震模擬')">強震模擬<span class="checkmark">✓</span></div>
-                    <div class="dropdown-option" onclick="selectOption(event,'type','flood','淹水模擬')">淹水模擬</div>
-                    <div class="dropdown-option" onclick="selectOption(event,'type','fire','火災模擬')">火災模擬</div>
+                    <div class="dropdown-option selected" onclick="selectOption(event,'type','earthquake','type_earthquake')"><span data-i18n="type_earthquake">強震模擬</span><span class="checkmark">✓</span></div>
+                    <div class="dropdown-option" onclick="selectOption(event,'type','flood','type_flood')"><span data-i18n="type_flood">淹水模擬</span></div>
+                    <div class="dropdown-option" onclick="selectOption(event,'type','fire','type_fire')"><span data-i18n="type_fire">火災模擬</span></div>
                 </div>
             </div>
             <div class="slider-row">
                 <div class="slider-header">
-                    <span class="slider-label">受災半徑</span>
+                    <span class="slider-label" data-i18n="label_radius">受災半徑</span>
                     <span class="slider-value" id="radius-val">10 km</span>
                 </div>
                 <input type="range" id="sim-radius" min="1" max="60" value="10">
@@ -103,7 +104,7 @@
         <!-- 模擬進度條 -->
         <div id="sim-progress-wrap">
             <div class="progress-label">
-                <span>人群疏散模擬中</span>
+                <span data-i18n="sim_progress">人群疏散模擬中</span>
                 <span id="progress-pct">0%</span>
             </div>
             <div id="sim-progress-bar-bg">
@@ -112,8 +113,8 @@
         </div>
 
         <div class="panel-actions">
-            <button class="btn-primary" id="btn-simulate">執行空間模擬</button>
-            <button class="btn-danger" id="btn-reset">清除所有圖層</button>
+            <button class="btn-primary" id="btn-simulate" data-i18n="btn_simulate">執行空間模擬</button>
+            <button class="btn-danger" id="btn-reset" data-i18n="btn_reset">清除所有圖層</button>
         </div>
     </aside>
 
@@ -123,15 +124,15 @@
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 3L13.9 8.6L19.5 9.2L15.4 13L16.6 18.5L12 15.6L7.4 18.5L8.6 13L4.5 9.2L10.1 8.6L12 3Z" stroke="#a5b4fc" stroke-width="1.6" stroke-linejoin="round"/></svg>
             </div>
             <div>
-                <div class="chat-title">AI 決策助手</div>
-                <div class="chat-subtitle">RAG · PostGIS 空間查詢 · 本地 LLM</div>
+                <div class="chat-title" data-i18n="chat_title">AI 決策助手</div>
+                <div class="chat-subtitle" data-i18n="chat_subtitle">RAG · PostGIS 空間查詢 · 本地 LLM</div>
             </div>
         </div>
         <div id="chat-container">
-            <div class="msg msg-ai">系統就緒。請設定模擬參數以分析潛在風險。</div>
+            <div class="msg msg-ai" data-i18n="chat_ready">系統就緒。請設定模擬參數以分析潛在風險。</div>
         </div>
         <div class="input-bar">
-            <input class="input-field" type="text" id="user-input" placeholder="詢問避難所資訊…" onkeydown="if(event.key==='Enter') sendChat(this.value)">
+            <input class="input-field" type="text" id="user-input" placeholder="詢問避難所資訊…" data-i18n-placeholder="chat_placeholder" onkeydown="if(event.key==='Enter') sendChat(this.value)">
             <button class="send-btn" onclick="sendChat(document.getElementById('user-input').value)">
                 <svg width="13" height="13" viewBox="0 0 12 12" fill="none"><path d="M6 1L11 6L6 11M1 6H11" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
@@ -142,16 +143,17 @@
 
 <div id="login-overlay" class="login-overlay" hidden>
     <form id="login-form" class="login-card">
-        <div class="login-title">登入 Disaster<b>_Hub</b></div>
-        <div class="login-sub">執行模擬與回寫收容人數需要管理者帳號。不登入仍可瀏覽地圖與使用問答。</div>
-        <input class="input-field" type="text" id="login-user" placeholder="帳號" autocomplete="username" required>
-        <input class="input-field" type="password" id="login-pass" placeholder="密碼" autocomplete="current-password" required>
+        <div class="login-title"><span data-i18n="login_title">登入</span> Disaster<b>_Hub</b></div>
+        <div class="login-sub" data-i18n="login_sub">執行模擬與回寫收容人數需要管理者帳號。不登入仍可瀏覽地圖與使用問答。</div>
+        <input class="input-field" type="text" id="login-user" placeholder="帳號" data-i18n-placeholder="login_user" autocomplete="username" required>
+        <input class="input-field" type="password" id="login-pass" placeholder="密碼" data-i18n-placeholder="login_pass" autocomplete="current-password" required>
         <div id="login-error" class="login-error" hidden></div>
-        <button class="btn-primary" type="submit" id="btn-login">登入</button>
-        <button class="btn-ghost" type="button" id="btn-login-skip">先瀏覽地圖</button>
+        <button class="btn-primary" type="submit" id="btn-login" data-i18n="btn_login">登入</button>
+        <button class="btn-ghost" type="button" id="btn-login-skip" data-i18n="login_skip">先瀏覽地圖</button>
     </form>
 </div>
 
+<script src="/static/i18n.js"></script>
 <script src="/static/app.js"></script>
 </body>
 </html>
