@@ -72,6 +72,7 @@ Only the last three paths (coordinates, simulation follow-ups, plain semantic qu
 - **Crowd evacuation animation** — The backend estimates the population inside the impact radius and the resulting evacuation demand from a township population model, then computes a deterministic, capacity-bounded evacuation plan (nearest first) and writes it to the database and the vector index straight away. The frontend only replays that plan as an animation, so the loads the AI assistant reports match the map as soon as the simulation returns.
 - **Debris-flow hazard zones** — 531 debris-flow impact zones in Yilan, Hualien and Taitung from the Ministry of Agriculture are imported into PostGIS and drawn on the map. Flood simulations keep evacuees out of shelters inside a zone, and nearest-shelter answers warn when a shelter lies inside one.
 - **AI decision assistant** — A rules layer plus RAG and a local LLM answer questions from real shelter data, covering semantic lookups, geographic distance queries, capacity rankings, and simulation-result queries. Region, township, facility and capacity conditions become metadata filters, and questions about counties outside the coverage area are declined outright.
+- **English mode** — A toggle switches the interface and the answers to English; shelter names stay in Chinese, and preparedness passages switch to English once their translation is reviewed.
 - **Disaster-preparedness knowledge** — "What should I prepare before a typhoon?" or "What does a yellow debris-flow alert mean?" is answered from 34 short passages rewritten from official Central Weather Administration, National Fire Agency and Agency of Rural Development and Soil and Water Conservation pages, with the sources appended to every answer.
 
 ---
@@ -210,6 +211,7 @@ DisasterHub/
 │   ├── answer_guard.py         # Drops reply lines naming a place that is not in the prompt's shelter data
 │   ├── knowledge.py            # Disaster-preparedness passages: parsing, index, retrieval, source lines
 │   ├── direct_answer.py        # Shelter lists, rankings, overviews and named shelters formatted by code (no LLM)
+│   ├── i18n.py                 # English mode: township / facility / hazard names, language codes
 │   ├── query_rules.py          # Query rules layer: region / township / facility / capacity → metadata filters, out-of-scope rejection
 │   ├── shelter_profile.py      # Name/address → township, facilities, aliases
 │   ├── embeddings.py           # Ollama / MiniLM embeddings
@@ -239,6 +241,7 @@ DisasterHub/
 ├── static/
 │   ├── index.html              # Page skeleton
 │   ├── style.css               # UI styles
+│   ├── i18n.js                 # Interface strings in Chinese and English, language toggle
 │   └── app.js                  # Map / simulation / chat logic
 │
 └── tests/
@@ -459,6 +462,16 @@ The shelters come from the National Fire Agency's open dataset 避難收容處�
   - When the place name is the name itself (成功國小體育館 → 國小體育館, 大同活動中心 → 活動中心), no alias is produced. Such generic aliases made the typo matcher see several candidates and correct none (「公證國小體育館」 stopped resolving).
 
 The retrieval eval set was regenerated for this data (207 questions; name questions are sampled so the set stays the size it had with 50 shelters, and the hand-labeled alias / semantic cases were rewritten against the new names). The boundary eval's named, misspelled and near-name questions were rewritten too, and each replacement was checked against the actual typo and unknown-name rules. For example, 礁溪國小 and 蘇澳國中 used to be nonexistent near-names but exist in the official data, so they became 礁溪高中 and 蘇澳高中.
+
+### English mode
+
+A language toggle in the top bar (EN / 中文, remembered in the browser) switches the interface and the answers to English. This is phase one: **answers** are in English, but **questions** still work best in Chinese, because the rules layer's keyword tables (regions, facilities, capacity conditions, how-to phrases) are Chinese.
+
+- **Shelter names and addresses stay in Chinese.** The official data has no English names; translating or romanizing them would not match the signs on site, and the answer guard would no longer recognise an invented name. Townships use the official English names of the township offices (`services/i18n.py`): 吉安鄉 → Ji'an Township.
+- **Code-formatted answers** (lists, rankings, overviews, named shelters, refusals) have English templates, so most English answers still take under a second.
+- **Disaster-preparedness passages** have English drafts in `data_reference/knowledge/en/`, each marked `reviewed: no`. Until a passage is reviewed, English mode shows the official Chinese text with a note that the translation is pending, because a mistranslated safety instruction is as dangerous as a model rewriting one. Flipping a passage to `reviewed: yes` puts its English version live after the next restart or `/api/sync`.
+- **The remaining LLM paths** (coordinates, simulation follow-ups, plain semantic questions) get an English system prompt that keeps names and addresses in Chinese.
+- **Not done yet (phase two):** English keyword tables so English questions get the same filters, recalibrated distance thresholds for cross-language retrieval, an answer guard for English-only invented names, and an English evaluation set.
 
 ### Direct answers
 
@@ -1222,6 +1235,7 @@ flowchart LR
 - **人群疏散動畫** — 後端以鄉鎮人口模型估算圈內人口與疏散需求，算出確定、不超過容量的疏散分配（近者優先），並立即寫入資料庫與向量索引；前端只負責把這份分配畫成動畫，模擬一回傳，AI 助手回答的負載就跟地圖一致
 - **土石流潛勢區域** — 匯入農業部宜花東 531 個土石流潛勢溪流影響範圍到 PostGIS 並顯示在地圖上；淹水模擬不把人送進範圍內的避難所，查最近避難所時若落在範圍內會加註警告
 - **AI 決策助手** — 整合規則層 + RAG + 本地 LLM，根據避難所真實資料回答問題，支援語意查詢、地理距離查詢、容量排序查詢、模擬結果查詢；地區 / 鄉鎮 / 設施 / 容量條件轉成 metadata 篩選，範圍外縣市直接拒答
+- **英文模式** — 一鍵把介面與回答切成英文；避難所名稱保留中文，防災知識段落的翻譯審過後才切成英文。
 - **防災知識** — 「颱風前要準備什麼」「土石流黃色警戒是什麼意思」這類問題，依中央氣象署、內政部消防署、農村水保署官方頁面改寫的 34 段知識文件回答，每個回答最後都附上出處
 
 ---
@@ -1360,6 +1374,7 @@ DisasterHub/
 │   ├── answer_guard.py         # 回覆中提到 prompt 資料裡沒有的場所，整行拿掉
 │   ├── knowledge.py            # 防災知識文件：解析、索引、檢索、出處
 │   ├── direct_answer.py        # 避難所清單、容量排名、概況、點名由程式排版（不經過 LLM）
+│   ├── i18n.py                 # 英文模式：鄉鎮、設施、災害的英文名稱與語言代碼
 │   ├── query_rules.py          # 查詢規則層：地區 / 鄉鎮 / 設施 / 容量 → metadata 篩選，範圍外拒答
 │   ├── shelter_profile.py      # 名稱/地址 → 鄉鎮、設施、別名
 │   ├── embeddings.py           # Ollama / MiniLM embedding
@@ -1389,6 +1404,7 @@ DisasterHub/
 ├── static/
 │   ├── index.html              # 頁面骨架
 │   ├── style.css               # 介面樣式
+│   ├── i18n.js                 # 介面的中英文字串與語言切換
 │   └── app.js                  # 地圖 / 模擬 / 聊天邏輯
 │
 └── tests/
@@ -1602,6 +1618,16 @@ curl -N -X POST http://localhost:8501/api/chat \
   - 地名本身就是名稱的一部分時（成功國小體育館 → 國小體育館、大同活動中心 → 活動中心）不產生別名。這種通用別名會讓錯字比對同時像好幾間，結果一間都改不了（「公證國小體育館」一度改不回來）。
 
 檢索評測集已針對新資料重新產生：207 題。名稱題改成抽樣，題庫維持原本 50 間時的規模；人工標註的別名與語意題也改用新名稱重寫。邊界評測裡的點名、錯字、近名題也改寫了，每一題都先用實際的錯字與查無規則驗證過。例如礁溪國小、蘇澳國中以前是「不存在的近名」，官方資料裡卻有，所以改成礁溪高中、蘇澳高中。
+
+### 英文模式
+
+上方導覽列的語言切換鈕（EN / 中文，瀏覽器會記住）把介面與回答切成英文。這是第一階段：**回答**用英文，但**問題**仍是中文最準，因為規則層的關鍵字表（地區、設施、容量條件、問做法的說法）都是中文。
+
+- **避難所名稱與地址保留中文**：官方資料沒有英文名稱，自己翻或轉拼音在現場對不上招牌，回答防護也認不出編造的名稱。鄉鎮用各鄉鎮市公所的官方英文名稱（`services/i18n.py`）：吉安鄉 → Ji'an Township。
+- **程式排版的回答**（清單、排名、概況、點名、拒答）都有英文模板，所以大部分英文回答一樣不到一秒。
+- **防災知識段落**的英文稿放在 `data_reference/knowledge/en/`，每段標 `reviewed: no`。審過之前，英文模式顯示中文原文加一句「英文版尚未審核」：翻錯的防災指示跟模型改寫原文一樣危險。把某段改成 `reviewed: yes`，下次重啟或 `/api/sync` 後英文版就會上線。
+- **還會打模型的路徑**（座標、模擬追問、純語意題）改用英文系統提示，名稱與地址照樣保留中文。
+- **還沒做（第二階段）**：英文關鍵字表（英文問題才有同樣的篩選）、跨語言檢索的距離門檻重新校準、能抓英文編造名稱的回答防護、英文評測題。
 
 ### 程式直接回答
 
