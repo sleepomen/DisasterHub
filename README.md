@@ -14,6 +14,54 @@
 
 Built in response to the 2025 barrier-lake disaster in Guangfu Township, Hualien, this simulation and decision system targets the three main pain points of existing shelter management: opaque information, no way to simulate, and slow decisions.
 
+<p align="center"><img src="docs/images/map.jpg" alt="Map of the 644 official shelters in Yilan, Hualien and Taitung" width="100%"></p>
+
+### At a glance
+
+- **Real data.** 644 shelters from the National Fire Agency's open dataset, 531 debris-flow zones, the OpenStreetMap road network of the three counties, and 34 disaster-preparedness passages rewritten from official Central Weather Administration, Fire Agency and Soil and Water Conservation pages.
+- **Answers in under a second, mostly without the LLM.** When the rules layer already knows which shelters or which passage answer a question, the reply is assembled by code. 201 of the 207 generation-eval questions never call the model. p50 latency is 0.2 s, and accuracy went up, because the model can no longer misquote a list it is copying.
+- **Refuses what it does not know.** Out-of-area counties, off-topic questions, shelters that do not exist and misspelled names are handled before the model sees anything. 53 of 53 boundary questions are answered or refused correctly.
+- **Evacuation by road, not straight line.** Simulations assign evacuees to the nearest shelters with free capacity along the road network (pgRouting), skipping shelters not designated for that disaster and, in floods, shelters inside a debris-flow zone.
+- **Measured, not claimed.** Separate evaluations for retrieval, generation, routing, boundaries, counterfactual faithfulness and knowledge answers, with bootstrap confidence intervals, plus 631 tests.
+
+| | |
+|---|---|
+| Shelters / debris-flow zones / road edges | 644 / 531 / 118,641 |
+| Answered by code, no LLM | 201 of 207 eval questions, p50 0.2 s |
+| Boundary and refusal questions | 53 / 53 |
+| Routing decisions | 56 / 56 |
+| Knowledge questions, right passage returned | 40 / 40 |
+
+<table>
+<tr>
+<td width="50%"><img src="docs/images/chat_list.jpg" alt="A filtered shelter list formatted by code"></td>
+<td width="50%"><img src="docs/images/chat_knowledge.jpg" alt="A debris-flow alert question answered with the official passage and its sources"></td>
+</tr>
+<tr>
+<td>「花蓮市的國小」: a filtered list built from the index metadata in 0.2 s, one shelter per line.</td>
+<td>「土石流黃色警戒是什麼意思」: the official passage verbatim, with its sources appended.</td>
+</tr>
+</table>
+
+### How a question is answered
+
+```mermaid
+flowchart LR
+    Q([Question]) --> R{Rules layer}
+    R -- "out of area · off-topic<br/>unknown shelter · no clue" --> F[Fixed reply]
+    R -- "how to · alert levels" --> K[Official passage<br/>+ sources]
+    R -- "region · township · facility<br/>capacity · named shelter" --> D[Metadata filter<br/>list formatted by code]
+    R -- "coordinates" --> N[PostGIS + pgRouting<br/>nearest by road]
+    R -- "simulation follow-up" --> S[Simulation snapshot]
+    R -- "anything else" --> V[Semantic retrieval]
+    N --> L[llama3.2:3b]
+    S --> L
+    V --> L
+    L --> G[Answer guard<br/>drops invented shelters]
+```
+
+Only the last three paths (coordinates, simulation follow-ups, plain semantic questions) still use the language model. Everything else is answered by code from the data, which is why most answers take well under a second and cannot invent a shelter or a number.
+
 ---
 
 ## Features
@@ -161,6 +209,7 @@ DisasterHub/
 │   ├── chat_service.py         # Intent detection + RAG + LLM
 │   ├── answer_guard.py         # Drops reply lines naming a place that is not in the prompt's shelter data
 │   ├── knowledge.py            # Disaster-preparedness passages: parsing, index, retrieval, source lines
+│   ├── direct_answer.py        # Shelter lists, rankings, overviews and named shelters formatted by code (no LLM)
 │   ├── query_rules.py          # Query rules layer: region / township / facility / capacity → metadata filters, out-of-scope rejection
 │   ├── shelter_profile.py      # Name/address → township, facilities, aliases
 │   ├── embeddings.py           # Ollama / MiniLM embeddings
@@ -411,6 +460,23 @@ The shelters come from the National Fire Agency's open dataset 避難收容處�
 
 The retrieval eval set was regenerated for this data (207 questions; name questions are sampled so the set stays the size it had with 50 shelters, and the hand-labeled alias / semantic cases were rewritten against the new names). The boundary eval's named, misspelled and near-name questions were rewritten too, and each replacement was checked against the actual typo and unknown-name rules. For example, 礁溪國小 and 蘇澳國中 used to be nonexistent near-names but exist in the official data, so they became 礁溪高中 and 蘇澳高中.
 
+### Direct answers
+
+Most shelter questions are answered by code, not by the LLM (`services/direct_answer.py`). Whenever the rules layer has already decided *which* shelters answer the question, the reply is formatted straight from the index metadata:
+
+- a filtered list (region, township, facility, capacity, hazard)
+- a capacity ranking
+- an overview of a wide match (total, capacity, distribution, the ten most relevant, how to narrow down)
+- a named shelter (address, capacity, occupancy, the disasters it is designated for)
+- a filter that matched nothing ("no shelter matches; the closest are…")
+
+Only plain semantic questions with no condition (「知本附近有避難所嗎」), simulation questions and nearest-shelter questions still go to the model.
+
+- **Why.** These answers are structured data that the model was copying line by line. Copying was slow (listing p50 about 40 s) and lossy: one evaluation reply labelled every Taitung City shelter as 宜蘭, and named questions used to continue with invented 「宜蘭社區活動中心 30 人」 lines. The knowledge route had just shown that returning the source verbatim removes both problems (see [Disaster-Preparedness Knowledge](#disaster-preparedness-knowledge)).
+- **Result.** On the 207-question generation set, 201 replies no longer call the model, p50 latency went from 19.7 s to 0.2 s, and answer recall and precision improved significantly (see [Generation Quality Evaluation](#generation-quality-evaluation)). Mixed knowledge questions now need no generation at all: the passage, the shelter list and the sources are all assembled by code.
+- **Interface.** `VectorStore.search_result()` returns both the prompt text and the formatted answer; `ChatService` returns the formatted answer as an early reply. `search()` still returns the prompt text for the evaluation scripts.
+- **Known weak spot.** The questions that remain with the model are the weakest. 「知本附近有避難所嗎」 retrieves shelters in Hualien's 吉安 instead of Taitung's 知本, because the place name only exists in the embedding, not in the rules.
+
 ### Disaster-Preparedness Knowledge
 
 The shelter index answers *where to go*. `data_reference/knowledge/` answers *what to do* and *what an alert means*: 34 passages across typhoon, earthquake, debris flow, tsunami and heavy rain / flooding, covering before / during / after and every alert level (typhoon warnings and intensity, seismic intensity 0–7, debris-flow yellow / red, tsunami information types and wave-height grades, heavy-rain levels, flood alerts).
@@ -623,6 +689,9 @@ DisasterHub/
 > |---|---|---|---|---|---|---|---|---|---|
 > | first run on the official data | 0.624 | 0.831 | 0.521 | 0.320 | 0.008 | 0.978 | 0.931 | 1.000 | 21.2 s |
 > | + metric fixes + answer guard | 0.621 | 0.830 | 0.512 | 0.000 | 0.008 | 0.997 | 0.996 | 1.000 | 19.7 s |
+> | **+ lists and named shelters formatted by code (2026-10-29)** | **0.684** | **0.857** | **0.594** | 0.000 | 0.000 | 1.000 | 1.000 | 1.000 | **0.2 s** |
+>
+> The last row is the [direct answers](#direct-answers) change: 201 of the 207 questions no longer call the model, p95 latency dropped from 61.5 s to 0.5 s, and a paired bootstrap against the previous run puts every gain outside zero (answer recall +0.050 [+0.021, +0.084], precision +0.028 [+0.005, +0.052], complete +0.076 [+0.035, +0.122], micro). `halluc` and `num_ok` are true by construction for answers written by code (they are scored against the answer's own source data), so the meaningful columns are `ansR` / `ansP` / `full`. What the gains measure is the model no longer dropping or misplacing shelters while copying them: named questions went from 0.954 to 1.000, facility lists from 0.412 to 0.535 complete. Listing recall stays low by design (the overview shows ten of a region's 200).
 >
 > - **Metric fixes.** `halluc` no longer flags a fragment of a real name (the facility-suffix rule cuts 礁溪鄉公所二樓 at 礁溪鄉公所), and `fmt_ok` no longer flags English letters that are part of a real name (F Hotel). Most of the first run's township `halluc` 0.516 and region 0.667 were these false positives.
 > - **Answer guard** (`services/answer_guard.py`). A reply line that names something place-like (ends in 國小, 活動中心, 公所…) that matches none of the shelters sent in the prompt is removed; streaming is buffered one line at a time, so a removed line never reaches the screen. If every line would be removed, the reply is kept as is. In this run it removed 69 lines from 22 of 207 replies. 46 of them were in 9 single-shelter questions, where the 3B model answered the one shelter and then kept going with invented entries such as 「宜蘭社區活動中心：容量 30 人」.
@@ -681,7 +750,7 @@ What remains on both models is dropped or mistyped names rather than invented fa
 
 ## Abstention and Boundary Questions
 
-> **On the official data (644 shelters, 2026-10-24):** 52 of 53 scored questions correct (0.981).
+> **On the official data (644 shelters, 2026-10-29):** 53 of 53 scored questions correct (1.000). On 2026-10-24 it was 52 of 53; the one miss was a named question where llama3.2:3b appended 「目前沒有相關資料」 after a correct answer, and named questions are now answered by code (see [Direct answers](#direct-answers)). The `llm` layer in this report now means "passed every refusal gate", whether the reply was then written by code or by the model.
 >
 > - All 34 should-refuse questions are stopped before the LLM: 2 by out-of-area rules, 13 by off-topic, 12 by nonexistent name, 7 by no-clue, 0 by the distance gate. All 12 nonexistent shelters are acknowledged, with none fabricated or substituted.
 > - 7 of 8 named and misspelled questions name the right shelter with the right numbers. The one miss is the known llama3.2:3b habit of appending 「目前沒有相關資料」 after a correct answer (「公證國小體育館在哪」).
@@ -1095,6 +1164,54 @@ What should I prepare for a typhoon, and which shelters are in Hualien City?
 
 以 2025 年花蓮光復鄉堰塞湖災害為出發點，針對現有避難所管理系統資訊不透明、無法模擬、決策緩慢三大痛點所開發的災害模擬決策系統。
 
+<p align="center"><img src="docs/images/map.jpg" alt="宜蘭、花蓮、台東 644 間官方避難所地圖" width="100%"></p>
+
+### 重點一覽
+
+- **真實資料**：消防署開放資料的 644 間避難所、531 個土石流潛勢區域、三縣的 OpenStreetMap 路網，以及依中央氣象署、消防署、農村水保署官方頁面改寫的 34 段防災知識。
+- **不到一秒回答，大部分不經過 LLM**：只要規則層已經知道答案是哪些避難所或哪一段知識，回覆就由程式組出來。生成評測 207 題裡有 201 題完全不打模型，p50 延遲 0.2 秒；正確率也跟著提升，因為模型沒機會在重抄清單時抄錯。
+- **不知道的就不答**：範圍外縣市、離題問題、不存在的避難所、錯字名稱，都在模型看到之前處理掉。邊界題 53 題全部正確回答或拒答。
+- **依道路距離疏散，不是直線**：模擬時沿路網（pgRouting）把疏散人口分配到最近、還有空位的避難所，並排除不適用該災害的避難所；淹水模擬另外排除位在土石流潛勢區內的。
+- **用數字說話**：檢索、生成、路由、邊界題、反事實忠實度、防災知識各有獨立評測，附 bootstrap 信賴區間，另有 631 個測試。
+
+| | |
+|---|---|
+| 避難所 / 土石流潛勢區 / 路網路段 | 644 / 531 / 118,641 |
+| 由程式回答、不經 LLM | 評測 207 題中 201 題，p50 0.2 秒 |
+| 邊界與拒答題 | 53 / 53 |
+| 路由判斷 | 56 / 56 |
+| 防災知識題回到正確段落 | 40 / 40 |
+
+<table>
+<tr>
+<td width="50%"><img src="docs/images/chat_list.jpg" alt="程式排版的避難所清單"></td>
+<td width="50%"><img src="docs/images/chat_knowledge.jpg" alt="以官方原文與出處回答土石流警戒"></td>
+</tr>
+<tr>
+<td>「花蓮市的國小」：依索引 metadata 直接排出的清單，0.2 秒，一間一行。</td>
+<td>「土石流黃色警戒是什麼意思」：直接回官方原文，最後附上出處。</td>
+</tr>
+</table>
+
+### 一個問題怎麼被回答
+
+```mermaid
+flowchart LR
+    Q([問題]) --> R{規則層}
+    R -- "範圍外・離題<br/>不存在的避難所・無線索" --> F[固定回覆]
+    R -- "怎麼做・警戒等級" --> K[官方原文<br/>＋出處]
+    R -- "地區・鄉鎮・設施<br/>容量・點名" --> D[metadata 篩選<br/>程式排版清單]
+    R -- "座標" --> N[PostGIS + pgRouting<br/>道路距離最近]
+    R -- "模擬追問" --> S[模擬快照]
+    R -- "其他" --> V[語意檢索]
+    N --> L[llama3.2:3b]
+    S --> L
+    V --> L
+    L --> G[回答防護<br/>拿掉編造的避難所]
+```
+
+只有最後三條路（座標、模擬追問、純語意題）還會用到語言模型，其餘都由程式依資料直接回答。所以大部分回答遠低於一秒，也不可能編出不存在的避難所或數字。
+
 ---
 
 ## 功能特色
@@ -1242,6 +1359,7 @@ DisasterHub/
 │   ├── chat_service.py         # 意圖判斷 + RAG + LLM
 │   ├── answer_guard.py         # 回覆中提到 prompt 資料裡沒有的場所，整行拿掉
 │   ├── knowledge.py            # 防災知識文件：解析、索引、檢索、出處
+│   ├── direct_answer.py        # 避難所清單、容量排名、概況、點名由程式排版（不經過 LLM）
 │   ├── query_rules.py          # 查詢規則層：地區 / 鄉鎮 / 設施 / 容量 → metadata 篩選，範圍外拒答
 │   ├── shelter_profile.py      # 名稱/地址 → 鄉鎮、設施、別名
 │   ├── embeddings.py           # Ollama / MiniLM embedding
@@ -1485,6 +1603,23 @@ curl -N -X POST http://localhost:8501/api/chat \
 
 檢索評測集已針對新資料重新產生：207 題。名稱題改成抽樣，題庫維持原本 50 間時的規模；人工標註的別名與語意題也改用新名稱重寫。邊界評測裡的點名、錯字、近名題也改寫了，每一題都先用實際的錯字與查無規則驗證過。例如礁溪國小、蘇澳國中以前是「不存在的近名」，官方資料裡卻有，所以改成礁溪高中、蘇澳高中。
 
+### 程式直接回答
+
+大部分避難所問題由程式回答，不經過 LLM（`services/direct_answer.py`）。只要規則層已經決定好「答案是哪些避難所」，回覆就直接從索引 metadata 排出來：
+
+- 有篩選條件的清單（地區、鄉鎮、設施、容量、災害）
+- 容量排名
+- 範圍太大時的概況（總數、容量、分布、最相關的 10 筆、怎麼縮小範圍）
+- 點名某一間（地址、容量、收容人數、適用災害）
+- 篩選落空（「沒有符合的避難所，最接近的是…」）
+
+只有沒有任何條件的純語意題（「知本附近有避難所嗎」）、模擬題、最近避難所題仍交給模型。
+
+- **原因**：這些回答本來就是結構化資料，以前是交給模型逐行重抄。重抄又慢（清單題 p50 約 40 秒）又會抄錯：評測裡有一題把台東市每一間避難所都標成「宜蘭」，點名題也常在答完後自己往下湊出「宜蘭社區活動中心 30 人」。防災知識路由剛證明，直接給原文就能同時解決這兩個問題（見[防災知識文件](#防災知識文件)）。
+- **結果**：207 題生成評測裡有 201 題不再打模型，p50 延遲從 19.7 秒降到 0.2 秒，回答召回率與精確率都顯著提升（見[生成品質評測](#生成品質評測)）。知識加避難所的混合題現在完全不需要生成：知識原文、避難所清單、出處都由程式組合。
+- **介面**：`VectorStore.search_result()` 同時回傳給模型的資料與排好的回答；`ChatService` 把排好的回答當成 early reply 直接回給使用者。`search()` 仍回傳給模型的資料文字，給評測腳本使用。
+- **已知弱點**：還留給模型的那幾類題目反而是最弱的。「知本附近有避難所嗎」撈到的是花蓮吉安的避難所，而不是台東知本的，因為這個地名只存在於 embedding 裡，規則層不認得。
+
 ### 防災知識文件
 
 避難所索引回答「去哪裡」；`data_reference/knowledge/` 回答「該怎麼做」與「警戒是什麼意思」。共 34 段，涵蓋颱風、地震、土石流、海嘯、豪雨與淹水的災前、災時、災後，以及每一種警戒分級：颱風警報與強度、地震震度 0～7 級、土石流黃色／紅色警戒、海嘯資訊種類與波高分級、大雨豪雨分級、淹水警戒。
@@ -1692,6 +1827,9 @@ DisasterHub/
 > |---|---|---|---|---|---|---|---|---|---|
 > | 換成官方資料後第一次 | 0.624 | 0.831 | 0.521 | 0.320 | 0.008 | 0.978 | 0.931 | 1.000 | 21.2 秒 |
 > | + 指標修正 + 回答防護 | 0.621 | 0.830 | 0.512 | 0.000 | 0.008 | 0.997 | 0.996 | 1.000 | 19.7 秒 |
+> | **+ 清單與點名由程式排版（2026-10-29）** | **0.684** | **0.857** | **0.594** | 0.000 | 0.000 | 1.000 | 1.000 | 1.000 | **0.2 秒** |
+>
+> 最後一列是[程式直接回答](#程式直接回答)的改動：207 題裡有 201 題不再打模型，p95 延遲從 61.5 秒降到 0.5 秒。跟上一版做配對 bootstrap，每一項改善的區間都不含 0（回答召回 +0.050 [+0.021, +0.084]、精確 +0.028 [+0.005, +0.052]、完整 +0.076 [+0.035, +0.122]，micro）。程式寫的回答是拿它自己的來源資料比對，`halluc` 與 `num_ok` 依構造成立，有意義的是 `ansR`／`ansP`／`full`。這些改善量到的是「模型不再在重抄時漏掉或寫錯避難所」：點名題從 0.954 變成 1.000，設施清單的完整率從 0.412 變成 0.535。清單題召回低仍是設計上的取捨（概況只列地區 200 間裡的 10 間）。
 >
 > - **指標修正**：`halluc` 不再把真實名稱的前段當成編造（設施字尾規則會把「礁溪鄉公所二樓」切在「礁溪鄉公所」）；`fmt_ok` 不再把真實名稱裡的英文字母（F Hotel）當成格式錯誤。第一次跑出來的鄉鎮題 `halluc` 0.516、地區題 0.667，大部分是這兩種誤判。
 > - **回答防護**（`services/answer_guard.py`）：回覆裡某一行出現看起來像場所的名稱（國小、活動中心、公所…結尾），卻對不上 prompt 裡送出的任何一間，就整行拿掉；串流時一次緩衝一行，被拿掉的那行不會出現在畫面上。如果每一行都會被拿掉，就原樣保留。這次在 207 題中的 22 題拿掉 69 行，其中 46 行在 9 道點名題：3B 模型答完那一間，又自己往下湊出「宜蘭社區活動中心：容量 30 人」這種不存在的避難所。
@@ -1750,7 +1888,7 @@ baseline 那一列的 `capacity_stated` 不能跟下面兩列比：這個欄位�
 
 ## 拒答與邊界題
 
-> **官方資料（644 間，2026-10-24）上的結果**：計分 53 題，答對 52 題（0.981）。
+> **官方資料（644 間，2026-10-29）上的結果**：計分 53 題，全部答對（1.000）。2026-10-24 時是 52 題，唯一錯的那一題是點名題：llama3.2:3b 在正確答案後面多接了「目前沒有相關資料」。點名題現在由程式回答（見[程式直接回答](#程式直接回答)）。報告裡的 `llm` 那一層現在代表「通過了所有拒答關卡」，之後的回答可能由程式寫，也可能由模型寫。
 >
 > - 該拒答的 34 題全部在進到模型之前擋下：範圍外規則 2、離題 13、不存在場所 12、無線索 7、距離門檻 0。12 間不存在的場所全部交代查無，沒有編造，也沒有拿別間代替。
 > - 點名與錯字題 8 題中 7 題答對那一間而且數字正確。唯一錯的是 llama3.2:3b 已知的毛病：在正確答案後面多接一句「目前沒有相關資料」（「公證國小體育館在哪」）。
