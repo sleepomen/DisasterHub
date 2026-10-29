@@ -9,6 +9,7 @@ import threading
 import uuid
 from contextlib import asynccontextmanager, suppress
 from pathlib import Path
+from typing import Literal
 
 import uvicorn
 from fastapi import FastAPI, Header, HTTPException, Request, Response
@@ -88,6 +89,7 @@ login_throttle = auth.LoginThrottle()
 # 不排隊、不佔執行緒，地圖與 readiness 才不會跟著 Ollama 一起卡住
 chat_slots = threading.BoundedSemaphore(config.CHAT_MAX_CONCURRENT)
 AI_BUSY = "AI 助手正在回答其他問題，請稍後再試。"
+AI_BUSY_EN = "The AI assistant is answering other questions. Please try again shortly."
 # 單一來源的用量上限。/api/chat 不需要登入（災時任何人都要問得到），
 # 但也因此沒有任何東西擋住有人拿它當免費 LLM 用，所以按來源限流
 chat_limiter = RateLimiter(config.CHAT_RATE_LIMIT, config.CHAT_RATE_WINDOW)
@@ -287,6 +289,8 @@ class SimulateRequest(BaseModel):
 
 class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=500, description="使用者問題")
+    # 回答語言。英文模式第一階段只翻回答：問題仍以中文最準（services/i18n.py）
+    lang: Literal["zh", "en"] = "zh"
 
 class OccupancyItem(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)
@@ -568,20 +572,23 @@ async def chat(request: ChatRequest, http_request: Request):
         metrics.incr("chat.rejected.rate_limit")
         raise HTTPException(
             status_code=429,
-            detail=f"提問太頻繁，請 {wait} 秒後再試。",
+            detail=(
+                f"Too many questions. Please try again in {wait} seconds." if request.lang == "en"
+                else f"提問太頻繁，請 {wait} 秒後再試。"
+            ),
             headers={"Retry-After": str(wait)},
         )
     # 名額要在開始串流前就拿到，拿不到才有機會回 429；
     # 串流一開始送出，狀態碼就定了，之後的錯誤只能以 error 事件表達
     if not chat_slots.acquire(blocking=False):
         metrics.incr("chat.rejected.busy")
-        raise HTTPException(status_code=429, detail=AI_BUSY)
+        raise HTTPException(status_code=429, detail=AI_BUSY_EN if request.lang == "en" else AI_BUSY)
 
     def stream():
         # 同步產生器由 Starlette 丟到執行緒池逐段取，阻塞的 requests 呼叫不會卡住事件迴圈。
         # 名額撐到整段結束（含使用者中途關掉頁面）才還，否則併發上限等於沒設
         try:
-            for event in chat_service.chat_stream(request.message):
+            for event in chat_service.chat_stream(request.message, request.lang):
                 yield sse_event(event)
             yield sse_event({"type": "done"})
         finally:
