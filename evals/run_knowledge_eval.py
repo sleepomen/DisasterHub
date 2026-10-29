@@ -155,15 +155,29 @@ class ShelterTextStore:
     def shelter_metadata(self):
         return self.metadata
 
-    def search(self, query, n_results=None, plan=None):
-        picked = [
-            doc for doc, meta in zip(self.documents, self.metadata, strict=True)
+    def _pick(self, plan):
+        return [
+            (doc, meta) for doc, meta in zip(self.documents, self.metadata, strict=True)
             # 沒有地點條件時回前幾間，對應正式服務的語意檢索 top-k
             if plan is None or not (plan.township or plan.region)
             or (plan.township and meta["township"] == plan.township)
             or (not plan.township and plan.region and meta["region"] == plan.region)
         ]
-        return "\n".join(f"- {doc}" for doc in picked[:self.LIMIT])
+
+    def search(self, query, n_results=None, plan=None):
+        return self.search_result(query, n_results, plan).text
+
+    def search_result(self, query, n_results=None, plan=None):
+        """有地點條件時跟正式服務一樣由程式排好清單（services/direct_answer.py），沒有的話交給模型"""
+        from services.direct_answer import compose
+        from services.vector_store import Hit, PlannedResult, SearchResult
+        picked = self._pick(plan)
+        shown = picked[:self.LIMIT]
+        text = "\n".join(f"- {doc}" for doc, _ in shown)
+        if plan is None or not (plan.township or plan.region):
+            return SearchResult(text)
+        hits = [Hit(name=meta["name"], document=doc, distance=0.0, metadata=meta) for doc, meta in shown]
+        return SearchResult(text, compose(plan, PlannedResult(hits, total=len(picked), filtered=True)))
 
 
 def _generate_with_retry(svc, prompt: str, attempts: int = 2) -> dict | None:

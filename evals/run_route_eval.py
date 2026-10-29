@@ -43,6 +43,10 @@ class StubVectorStore:
     def search(self, query, n_results=None, plan=None):
         return "（路由評測的替身，不是真的檢索結果）"
 
+    def search_result(self, query, n_results=None, plan=None):
+        from services.vector_store import SearchResult
+        return SearchResult(self.search(query, n_results, plan))
+
     def shelter_metadata(self):
         # 「點名的場所存不存在」要對真實名單判斷，否則每個名稱都會被當成不存在；
         # 只讀 data_for_refuge/ 的 JSON，不需要 ChromaDB
@@ -61,6 +65,9 @@ class StubKnowledge:
         self.chunks = {c.id: c for c in load_chunks()}
 
     def ready(self):
+        return True
+
+    def ensure_ready(self):
         return True
 
     def search(self, query, hazards=None, n=3):

@@ -89,7 +89,10 @@ def run(cases, store, shelters, progress_handle=None, done=None):
         context, early = svc.build_context(c["query"])
         meta = {}
         if early:
-            reply, generated, context = early, False, ""
+            # 不打模型的回答（拒答、查無、程式排好的清單與點名）。比對資料就是回答本身：
+            # 清單是從檢索結果的 metadata 排出來的，給空字串的話每個數字都會被算成編造。
+            # 所以這類回答的 num_ok／halluc 依構造成立，要看的是 ansR／ansP（列到的是不是對的那些）
+            reply, generated, context = early, False, early
         else:
             prompt = svc.build_prompt(c["query"], context)
             raw = svc.generate(prompt)
