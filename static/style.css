@@ -512,6 +512,8 @@
             word-break: break-word;
         }
         .msg-ai {
+            /* 回答用 textContent 寫入，換行要靠這行才看得到：清單一間一行、知識原文分段、出處另起一段 */
+            white-space: pre-line;
             background: rgba(16, 20, 31, 0.6);
             border: 1px solid var(--hairline);
             border-left: 2px solid var(--accent);
