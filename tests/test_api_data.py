@@ -383,7 +383,7 @@ def sse_frames(res):
     return [json.loads(line[len("data:"):]) for line in res.text.splitlines() if line.startswith("data:")]
 
 
-def fake_chat_stream(_message):
+def fake_chat_stream(_message, _lang="zh"):
     yield {"type": "delta", "text": "甲避難所"}
     yield {"type": "delta", "text": "：剩餘 90 人"}
 
