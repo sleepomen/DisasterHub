@@ -429,8 +429,84 @@
         return { lat, lon };
     }
 
+    // Google encoded polyline（precision 5）→ [{lat, lon}]；後端 pgRouting 算出的路線用這個格式傳
+    function decodePolyline(str) {
+        const points = [];
+        let index = 0, lat = 0, lon = 0;
+        while (index < str.length) {
+            for (const axis of [0, 1]) {
+                let result = 0, shift = 0, b;
+                do {
+                    b = str.charCodeAt(index++) - 63;
+                    result |= (b & 0x1f) << shift;
+                    shift += 5;
+                } while (b >= 0x20);
+                const delta = (result & 1) ? ~(result >> 1) : (result >> 1);
+                if (axis === 0) lat += delta; else lon += delta;
+            }
+            points.push({ lat: lat / 1e5, lon: lon / 1e5 });
+        }
+        return points;
+    }
+
+    // 一條折線與每個頂點的累積距離（公里），人群點依移動比例沿線內插
+    function measuredRoute(points) {
+        const cum = [0];
+        for (let i = 1; i < points.length; i++) {
+            cum.push(cum[i - 1] + distKm(points[i - 1].lat, points[i - 1].lon, points[i].lat, points[i].lon));
+        }
+        return { points, cum, km: cum[cum.length - 1] };
+    }
+
+    function pointAlong(route, s) {
+        const { points, cum } = route;
+        if (s <= 0) return points[0];
+        let lo = 0, hi = cum.length - 1;
+        if (s >= cum[hi]) return points[hi];
+        while (hi - lo > 1) {
+            const mid = (lo + hi) >> 1;
+            if (cum[mid] <= s) lo = mid; else hi = mid;
+        }
+        const span = cum[hi] - cum[lo];
+        const k = span > 0 ? (s - cum[lo]) / span : 0;
+        return {
+            lat: points[lo].lat + (points[hi].lat - points[lo].lat) * k,
+            lon: points[lo].lon + (points[hi].lon - points[lo].lon) * k,
+        };
+    }
+
+    // 疏散路線圖層：每一筆分配一條線，線寬依人數。算不到道路路線的畫虛線直線，跟真的路線區分開
+    let routeLayer = null;
+
+    function clearRoutes() {
+        if (routeLayer) { map.removeLayer(routeLayer); routeLayer = null; }
+    }
+
+    function flowRoute(f) {
+        const from = { lat: f.from_lat, lon: f.from_lon };
+        const to = { lat: f.to_lat, lon: f.to_lon };
+        // 路線只有路上那段，頭尾補上鄉鎮重心走到路上、離開道路走到避難所的兩小段
+        return measuredRoute(f.path ? [from, ...decodePolyline(f.path), to] : [from, to]);
+    }
+
+    function drawRoutes(flows, routes) {
+        clearRoutes();
+        routeLayer = L.layerGroup().addTo(map);
+        flows.forEach((f, i) => {
+            const vars = { from: f.from, to: f.to.replace(/\[.*?\]\s*/, ''), people: f.people, km: f.road_km };
+            L.polyline(routes[i].points.map(p => [p.lat, p.lon]), {
+                color: '#ffe14d',
+                weight: Math.min(7, 1.5 + Math.sqrt(f.people) / 12),
+                opacity: f.path ? 0.55 : 0.35,
+                dashArray: f.path ? null : '4, 6',
+            }).bindTooltip(I18N.t(f.path ? 'route_tip' : 'route_tip_straight', vars), { sticky: true })
+              .addTo(routeLayer);
+        });
+    }
+
     // 誰去哪一間、各多少人由後端決定（/api/simulate_disaster 的 evacuation），並已寫入資料庫。
-    // 這裡只把每一筆分配拆成人群點畫出來；亂數只用在起點的散布位置，不影響任何數字
+    // 這裡只把每一筆分配拆成人群點畫出來；亂數只用在起點的散布位置，不影響任何數字。
+    // 有道路路線的沿路移動，沒有的走直線
     function startCrowdAnimation(plan, finalOccupancy, disasterLat, dotColor) {
         if (animationId) cancelAnimationFrame(animationId);
         particles = [];
@@ -449,23 +525,26 @@
 
         const lonScale = 111 * Math.cos(disasterLat * Math.PI / 180);
         const totalDots = Math.min(300, Math.max(8, Math.round(placed / PEOPLE_PER_DOT)));
+        const routes = flows.map(flowRoute);
+        drawRoutes(flows, routes);
 
-        flows.forEach(f => {
+        flows.forEach((f, fi) => {
             // 每筆分配至少一個點；人數平均拆到各點，加總恰好等於分配人數
             const dots = Math.max(1, Math.round(f.people / placed * totalDots));
             const base = Math.floor(f.people / dots);
             const extra = f.people % dots;
+            const route = routes[fi];
             for (let i = 0; i < dots; i++) {
+                // 散開的起點先走到這條路線的開頭，再沿路線前進
                 const spawn = spawnNear(f.from_lat, f.from_lon, lonScale);
+                const lead = distKm(spawn.lat, spawn.lon, route.points[0].lat, route.points[0].lon);
                 particles.push({
-                    startLat: spawn.lat, startLon: spawn.lon,
-                    targetLat: f.to_lat,
-                    targetLon: f.to_lon,
+                    spawn, route, lead,
                     targetName: f.to,
                     people: base + (i < extra ? 1 : 0),
                     startTime: null,
                     delay: Math.random() * 8000,
-                    duration: 6000 + distKm(spawn.lat, spawn.lon, f.to_lat, f.to_lon) * 400 + Math.random() * 3000,
+                    duration: 6000 + (lead + route.km) * 400 + Math.random() * 3000,
                     done: false,
                     arrived: false,
                 });
@@ -491,9 +570,16 @@
                 // easeInOut
                 const ease = t < 0.5 ? 2 * t * t : -1 + (4 - 2*t) * t;
 
-                const lat = p.startLat + (p.targetLat - p.startLat) * ease;
-                const lon = p.startLon + (p.targetLon - p.startLon) * ease;
-                const pos = latLonToCanvas(lat, lon);
+                const s = (p.lead + p.route.km) * ease;
+                let at;
+                if (s < p.lead) {
+                    const k = s / p.lead;
+                    const head = p.route.points[0];
+                    at = { lat: p.spawn.lat + (head.lat - p.spawn.lat) * k, lon: p.spawn.lon + (head.lon - p.spawn.lon) * k };
+                } else {
+                    at = pointAlong(p.route, s - p.lead);
+                }
+                const pos = latLonToCanvas(at.lat, at.lon);
 
                 if (t >= 1) {
                     if (!p.arrived) {
@@ -577,6 +663,7 @@
         const dotColor = '#ffe14d';
 
         if (disasterCircle) map.removeLayer(disasterCircle);
+        clearRoutes();
         disasterCircle = L.circle([lat, lon], {
             radius: radius * 1000,
             color,
@@ -633,6 +720,7 @@
     // 清除
     document.getElementById('btn-reset').addEventListener('click', async () => {
         if (disasterCircle) { map.removeLayer(disasterCircle); disasterCircle = null; }
+        clearRoutes();
         if (animationId) { cancelAnimationFrame(animationId); animationId = null; }
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         particles = [];
