@@ -115,6 +115,8 @@ ORIGIN_SNAP_M = 5000
 # 路徑可能繞出起訖點的外接框（沿海岸繞過山）。框往外擴大這麼多度，再至少擴大框本身的一半
 ROUTE_MARGIN_DEG = 0.05
 FRACTION_EPS = 1e-6
+# 路線幾何回傳前的簡化容許誤差（度，約 10 公尺）：地圖上看不出差別，疏散模擬一次幾十條路線的資料量少很多
+PATH_SIMPLIFY_DEG = 0.0001
 
 SELECT_COLUMNS = (
     "name, capacity, current_ppl, ST_Y(geom::geometry), ST_X(geom::geometry), COALESCE(address, ''), "
@@ -479,39 +481,14 @@ class ShelterRepository:
         吸附不到道路（終點離路超過 snap_m、起點超過 origin_snap_m，沒給就跟 snap_m 一樣）
         或路網不連通的組合不會出現在結果裡，由呼叫端退回直線距離
         """
-        origin_snap_m = snap_m if origin_snap_m is None else origin_snap_m
-        points = list(origins) + list(targets)
         if not origins or not targets:
             return {}
         try:
             with self._cursor() as cursor:
-                cursor.execute(self.SNAP_SQL, (
-                    list(range(len(points))), [lon for _, lon in points], [lat for lat, _ in points],
-                ))
-                # 吸附點常常剛好落在路段端點（fraction 0 或 1），pgRouting 3.4 的 withPoints 遇到這種點
-                # 會整組回傳空結果（實測花蓮火車站一筆都算不出來）。往內夾一點點，誤差不到一公釐
-                snaps = {
-                    idx: (edge_id, min(max(float(fraction), FRACTION_EPS), 1 - FRACTION_EPS), float(offset))
-                    for idx, edge_id, fraction, offset in cursor.fetchall()
-                    if offset <= (origin_snap_m if idx < len(origins) else snap_m)
-                }
-                starts = [i for i in range(len(origins)) if i in snaps]
-                ends = [len(origins) + j for j in range(len(targets)) if len(origins) + j in snaps]
+                snaps, starts, ends = self._snap(cursor, origins, targets, snap_m, origin_snap_m)
                 if not starts or not ends:
                     return {}
-
-                lats = [points[i][0] for i in starts + ends]
-                lons = [points[i][1] for i in starts + ends]
-                pad_lat = ROUTE_MARGIN_DEG + (max(lats) - min(lats)) / 2
-                pad_lon = ROUTE_MARGIN_DEG + (max(lons) - min(lons)) / 2
-                # pgRouting 收的是 SQL 字串；放進去的只有這裡算出來的數字，不是使用者的文字
-                edges_sql = (
-                    "SELECT id, source, target, cost, reverse_cost FROM roads "
-                    f"WHERE geom && ST_MakeEnvelope({min(lons) - pad_lon}, {min(lats) - pad_lat}, "
-                    f"{max(lons) + pad_lon}, {max(lats) + pad_lat}, 4326)"
-                )
-                values = ", ".join(f"({i + 1}, {snaps[i][0]}, {snaps[i][1]})" for i in starts + ends)
-                points_sql = f"SELECT pid, edge_id, fraction FROM (VALUES {values}) AS p(pid, edge_id, fraction)"
+                edges_sql, points_sql = self._routing_sql(list(origins) + list(targets), snaps, starts + ends)
                 cursor.execute(
                     """
                     SELECT start_pid, end_pid, agg_cost
@@ -533,3 +510,97 @@ class ShelterRepository:
                 if cost is not None:
                     result[(i, k - len(origins))] = cost + snaps[i][2] + snaps[k][2]
         return result
+
+    def road_paths(
+        self, origins: list[tuple[float, float]], targets: list[tuple[float, float]], pairs: list[tuple[int, int]],
+        snap_m: float = ROAD_SNAP_M, origin_snap_m: float | None = None,
+    ) -> dict[tuple[int, int], str]:
+        """
+        指定的 (起點序號, 終點序號) 組合沿路網的實際路線，回傳 encoded polyline（precision 5，lat/lon）。
+        路線只有路上的那一段，從起點吸附點到終點吸附點；走到路上、離開道路的那兩小段由畫圖的一方補直線。
+        吸附與子圖範圍跟 road_distances 一樣，畫出來的路線就是距離算的那一條
+        """
+        if not pairs:
+            return {}
+        try:
+            with self._cursor() as cursor:
+                snaps, starts, ends = self._snap(cursor, origins, targets, snap_m, origin_snap_m)
+                n = len(origins)
+                wanted = [(i, n + j) for i, j in pairs if i in starts and n + j in ends]
+                if not wanted:
+                    return {}
+                used = sorted({p for pair in wanted for p in pair})
+                edges_sql, points_sql = self._routing_sql(list(origins) + list(targets), snaps, used)
+                values = ", ".join(f"({-(i + 1)}, {-(k + 1)})" for i, k in wanted)
+                combinations_sql = f"SELECT * FROM (VALUES {values}) AS c(source, target)"
+                cursor.execute(self.PATH_SQL, (
+                    [i + 1 for i in used], [snaps[i][1] for i in used],
+                    edges_sql, points_sql, combinations_sql, PATH_SIMPLIFY_DEG,
+                ))
+                return {(abs(s) - 1, abs(e) - 1 - n): polyline for s, e, polyline in cursor.fetchall()}
+        except Exception as e:
+            raise RuntimeError(f"road_paths 失敗：{e}") from e
+
+    # 把 pgr_withPoints 走過的邊接成一條線。吸附點在路徑上是負的節點編號，所在的那條邊只走一部分：
+    # 每一步依「從哪個節點、到哪個節點」換算成邊上的位置（端點 0 或 1、吸附點用它的 fraction），
+    # 用 ST_LineSubstring 切出那一段；逆著邊的方向走就反轉，整條線才是從起點連到終點
+    PATH_SQL = """
+        WITH pts AS (
+            SELECT * FROM unnest(%s::bigint[], %s::float8[]) AS p(pid, fraction)
+        ), path AS (
+            SELECT start_pid, end_pid, path_seq, node, edge,
+                   LEAD(node) OVER (PARTITION BY start_pid, end_pid ORDER BY path_seq) AS next_node
+            FROM pgr_withPoints(%s, %s, %s, directed := false)
+        ), seg AS (
+            SELECT path.start_pid, path.end_pid, path.path_seq, r.geom,
+                   CASE WHEN path.node < 0 THEN (SELECT fraction FROM pts WHERE pid = -path.node)
+                        WHEN path.node = r.source THEN 0 ELSE 1 END AS f0,
+                   CASE WHEN path.next_node < 0 THEN (SELECT fraction FROM pts WHERE pid = -path.next_node)
+                        WHEN path.next_node = r.source THEN 0 ELSE 1 END AS f1
+            FROM path JOIN roads r ON r.id = path.edge
+        )
+        SELECT start_pid, end_pid, ST_AsEncodedPolyline(ST_Simplify(ST_MakeLine(
+            CASE WHEN f0 < f1 THEN ST_LineSubstring(geom, f0, f1) ELSE ST_Reverse(ST_LineSubstring(geom, f1, f0)) END
+            ORDER BY path_seq
+        ), %s), 5)
+        FROM seg WHERE f0 <> f1
+        GROUP BY start_pid, end_pid
+    """
+
+    def _snap(self, cursor, origins, targets, snap_m: float, origin_snap_m: float | None):
+        """
+        每個點吸附到最近的道路。回傳 snaps {點序號: (邊, fraction, 離路公尺)}、吸附得到的起點與終點序號。
+        終點的序號接在起點後面（len(origins) + j）
+        """
+        origin_snap_m = snap_m if origin_snap_m is None else origin_snap_m
+        points = list(origins) + list(targets)
+        cursor.execute(self.SNAP_SQL, (
+            list(range(len(points))), [lon for _, lon in points], [lat for lat, _ in points],
+        ))
+        # 吸附點常常剛好落在路段端點（fraction 0 或 1），pgRouting 3.4 的 withPoints 遇到這種點
+        # 會整組回傳空結果（實測花蓮火車站一筆都算不出來）。往內夾一點點，誤差不到一公釐
+        snaps = {
+            idx: (edge_id, min(max(float(fraction), FRACTION_EPS), 1 - FRACTION_EPS), float(offset))
+            for idx, edge_id, fraction, offset in cursor.fetchall()
+            if offset <= (origin_snap_m if idx < len(origins) else snap_m)
+        }
+        starts = [i for i in range(len(origins)) if i in snaps]
+        ends = [len(origins) + j for j in range(len(targets)) if len(origins) + j in snaps]
+        return snaps, starts, ends
+
+    @staticmethod
+    def _routing_sql(points: list[tuple[float, float]], snaps: dict, used: list[int]) -> tuple[str, str]:
+        """pgRouting 的邊表與吸附點 SQL；邊只取這些點外接框（往外擴）內的，不必每次搜整個東部"""
+        lats = [points[i][0] for i in used]
+        lons = [points[i][1] for i in used]
+        pad_lat = ROUTE_MARGIN_DEG + (max(lats) - min(lats)) / 2
+        pad_lon = ROUTE_MARGIN_DEG + (max(lons) - min(lons)) / 2
+        # pgRouting 收的是 SQL 字串；放進去的只有這裡算出來的數字，不是使用者的文字
+        edges_sql = (
+            "SELECT id, source, target, cost, reverse_cost FROM roads "
+            f"WHERE geom && ST_MakeEnvelope({min(lons) - pad_lon}, {min(lats) - pad_lat}, "
+            f"{max(lons) + pad_lon}, {max(lats) + pad_lat}, 4326)"
+        )
+        values = ", ".join(f"({i + 1}, {snaps[i][0]}, {snaps[i][1]})" for i in used)
+        points_sql = f"SELECT pid, edge_id, fraction FROM (VALUES {values}) AS p(pid, edge_id, fraction)"
+        return edges_sql, points_sql
