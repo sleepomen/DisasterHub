@@ -36,7 +36,7 @@ from services.map_service import MapService
 from services.metrics import metrics
 from services.population_service import PopulationModel
 from services.rate_limit import RateLimiter
-from services.routing import evacuation_road_distances, nearest_by_road
+from services.routing import attach_evacuation_paths, evacuation_road_distances, nearest_by_road
 from services.sync_service import HAZARD_FILES, DataSyncService
 from services.vector_store import VectorStore
 
@@ -473,6 +473,8 @@ async def simulate(request: SimulateRequest, http_request: Request, x_api_key: s
     origins = origins_from(population, request.lat, request.lon)
     road_m = await asyncio.to_thread(evacuation_road_distances, repo, origins, destinations)
     plan = plan_evacuation(origins, destinations, road_m)
+    # 路線只用來畫圖，分配已經決定好了；查不到就畫直線，不影響數字
+    await asyncio.to_thread(attach_evacuation_paths, repo, origins, destinations, plan["flows"])
     plan["excluded"] = excluded
     plan["near_hazard"] = near
     plan["hazard"] = hazard if excluded or near else None
