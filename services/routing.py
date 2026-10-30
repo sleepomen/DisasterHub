@@ -19,7 +19,7 @@ CANDIDATES = 10
 
 metrics.register(
     "routing.road", "routing.fallback", "routing.failed",
-    "routing.evacuation_road", "routing.evacuation_fallback", "routing.evacuation_failed",
+    "routing.evacuation_road", "routing.evacuation_fallback", "routing.evacuation_failed", "routing.path_failed",
 )
 
 
@@ -62,3 +62,25 @@ def evacuation_road_distances(repo, origins: list, shelters: list) -> dict[tuple
         return {}
     metrics.incr("routing.evacuation_road" if meters else "routing.evacuation_fallback")
     return meters
+
+
+def attach_evacuation_paths(repo, origins: list, shelters: list, flows: list[dict]) -> None:
+    """
+    每一筆有道路距離的分配附上實際路線 flow["path"]（encoded polyline），前端沿著路畫人群移動。
+    只算真的有人走的組合，不是全部鄉鎮 × 避難所。沒有道路距離或查詢失敗的是 None，前端畫直線
+    """
+    origin_idx = {o.name: i for i, o in enumerate(origins)}
+    shelter_idx = {s.name: j for j, s in enumerate(shelters)}
+    pairs = sorted({(origin_idx[f["from"]], shelter_idx[f["to"]]) for f in flows if f["road_km"] is not None})
+    paths = {}
+    if pairs:
+        try:
+            paths = repo.road_paths(
+                [(o.lat, o.lon) for o in origins], [(s.lat, s.lon) for s in shelters], pairs,
+                origin_snap_m=ORIGIN_SNAP_M,
+            )
+        except Exception:
+            metrics.incr("routing.path_failed")
+            logger.exception("疏散路線查詢失敗，改畫直線")
+    for f in flows:
+        f["path"] = paths.get((origin_idx[f["from"]], shelter_idx[f["to"]]))
