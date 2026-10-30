@@ -5,10 +5,12 @@ import sys
 from contextlib import contextmanager
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from models.shelter import NearbyShelter, Shelter
 from repositories.shelter_repository import FRACTION_EPS, ShelterRepository
 from services.evacuation import Origin
-from services.routing import evacuation_road_distances, nearest_by_road
+from services.routing import attach_evacuation_paths, evacuation_road_distances, nearest_by_road
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools"))
@@ -138,6 +140,65 @@ def test_same_snap_point_is_zero_road_distance():
         assert ShelterRepository().road_distances([(24.0, 121.0)], [(24.0, 121.0)]) == {(0, 0): 7.0}
 
 
+def test_road_paths_route_only_the_requested_pairs():
+    """只算有人走的組合；吸附不到道路的終點直接略過，不送進 pgRouting"""
+    cursor, fake_cursor = fake_repo_cursor([
+        # 起點 0、1；終點 2、3（序號接在起點後面），終點 3 離路 1500 公尺
+        [(0, 10, 0.5, 20.0), (1, 11, 0.0, 30.0), (2, 12, 0.25, 5.0), (3, 13, 0.5, 1500.0)],
+        [(-1, -3, "abc"), (-2, -3, "def")],
+    ])
+    with patch.object(ShelterRepository, "_cursor", fake_cursor):
+        result = ShelterRepository().road_paths(
+            [(24.0, 121.0), (24.1, 121.1)], [(24.01, 121.0), (24.5, 121.5)], [(0, 0), (1, 0), (0, 1)],
+        )
+    assert result == {(0, 0): "abc", (1, 0): "def"}
+    pids, fractions, _, points_sql, combinations_sql, _ = cursor.execute.call_args.args[1]
+    assert pids == [1, 2, 3] and fractions == [0.5, FRACTION_EPS, 0.25]
+    assert "(-1, -3), (-2, -3)" in combinations_sql and "-4" not in combinations_sql
+    assert "13" not in points_sql
+
+
+def test_road_paths_skip_the_database_without_pairs():
+    with patch.object(ShelterRepository, "_cursor", side_effect=AssertionError("不該查詢")):
+        assert ShelterRepository().road_paths([(24.0, 121.0)], [(24.01, 121.0)], []) == {}
+
+
+@pytest.fixture
+def real_repo(monkeypatch):
+    """連真的資料庫；結束時關掉這裡建立的連線池，其他測試看到的全域連線池仍是空的"""
+    from repositories import shelter_repository
+
+    monkeypatch.setattr(shelter_repository, "_pool", None)
+    yield ShelterRepository()
+    if shelter_repository._pool is not None:
+        shelter_repository._pool.closeall()
+
+
+def test_road_path_sql_follows_the_route_on_the_real_network(real_repo):
+    """真的資料庫：路線從起點連到終點，長度加上走到路上的兩小段跟道路距離只差簡化誤差"""
+    repo = real_repo
+    try:
+        with repo._cursor() as cursor:
+            cursor.execute("SELECT count(*) FROM roads")
+            if cursor.fetchone()[0] == 0:
+                pytest.skip("路網還沒匯入")
+    except Exception:
+        pytest.skip("沒有資料庫")
+    origins, targets = [(23.9930, 121.6015)], [(23.98, 121.55)]
+    meters = repo.road_distances(origins, targets)[(0, 0)]
+    polyline = repo.road_paths(origins, targets, [(0, 0)])[(0, 0)]
+    with repo._cursor() as cursor:
+        cursor.execute(
+            "SELECT ST_Length(g::geography), ST_Distance(ST_StartPoint(g)::geography, ST_SetSRID(ST_Point(%s, %s), 4326)::geography),"
+            " ST_Distance(ST_EndPoint(g)::geography, ST_SetSRID(ST_Point(%s, %s), 4326)::geography)"
+            " FROM ST_LineFromEncodedPolyline(%s, 5) AS g",
+            (origins[0][1], origins[0][0], targets[0][1], targets[0][0], polyline),
+        )
+        length, head_gap, tail_gap = cursor.fetchone()
+    assert head_gap < 1000 and tail_gap < 1000
+    assert abs(length + head_gap + tail_gap - meters) / meters < 0.02
+
+
 def test_unchanged_network_is_not_reimported():
     cursor = MagicMock()
     cursor.fetchone.return_value = ("abc",)
@@ -194,3 +255,26 @@ def test_evacuation_distances_failure_returns_empty():
     repo = MagicMock()
     repo.road_distances.side_effect = RuntimeError("no pgrouting")
     assert evacuation_road_distances(repo, [Origin("甲", 24.0, 121.6, 1)], [Shelter("乙", 1, 24.1, 121.6)]) == {}
+
+
+def test_evacuation_paths_only_for_flows_with_road_distance():
+    repo = MagicMock()
+    repo.road_paths.return_value = {(0, 1): "abc"}
+    origins = [Origin("玉里鎮", 23.33, 121.31, 100)]
+    shelters = [Shelter("甲", 300, 23.34, 121.31), Shelter("乙", 300, 23.35, 121.32)]
+    flows = [
+        {"from": "玉里鎮", "to": "乙", "road_km": 2.1},
+        {"from": "玉里鎮", "to": "甲", "road_km": None},
+    ]
+    attach_evacuation_paths(repo, origins, shelters, flows)
+    assert [f["path"] for f in flows] == ["abc", None]
+    assert repo.road_paths.call_args.args[2] == [(0, 1)]
+    assert repo.road_paths.call_args.kwargs["origin_snap_m"] == 5000
+
+
+def test_evacuation_path_failure_draws_straight_lines():
+    repo = MagicMock()
+    repo.road_paths.side_effect = RuntimeError("no pgrouting")
+    flows = [{"from": "甲", "to": "乙", "road_km": 1.0}]
+    attach_evacuation_paths(repo, [Origin("甲", 24.0, 121.6, 1)], [Shelter("乙", 1, 24.1, 121.6)], flows)
+    assert flows[0]["path"] is None

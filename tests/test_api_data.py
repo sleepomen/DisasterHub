@@ -41,6 +41,7 @@ def client():
     with patch("repositories.shelter_repository.ShelterRepository.get_all_shelters", return_value=FAKE_SHELTERS), \
          patch("repositories.shelter_repository.ShelterRepository.get_shelters_in_radius", return_value=[]), \
          patch("repositories.shelter_repository.ShelterRepository.road_distances", return_value={}), \
+         patch("repositories.shelter_repository.ShelterRepository.road_paths", return_value={}), \
          patch("repositories.shelter_repository.ShelterRepository.shelter_hazard_distances", return_value={}), \
          patch("repositories.shelter_repository.ShelterRepository.ensure_schema"), \
          patch("repositories.shelter_repository.ShelterRepository.set_occupancy", return_value=0), \
@@ -659,9 +660,11 @@ def test_simulate_assigns_by_road_distance(client):
         Shelter(name="[HUALIEN] 丙", capacity=50000, lat=24.00, lon=121.60, current_people=0),
     ]
     roads = {(i, 0): 30000.0 for i in range(40)} | {(i, 1): 3000.0 for i in range(40)}
+    paths = {(i, 1): f"route{i}" for i in range(40)}
     with (
         patch("repositories.shelter_repository.ShelterRepository.get_shelters_in_radius", return_value=impacted),
         patch("repositories.shelter_repository.ShelterRepository.road_distances", return_value=roads),
+        patch("repositories.shelter_repository.ShelterRepository.road_paths", return_value=paths),
     ):
         res = client.post("/api/simulate_disaster", headers=WRITE_HEADERS,
                           json={"lat": 23.977, "lon": 121.601, "radius": 10, "type": "earthquake"})
@@ -669,6 +672,8 @@ def test_simulate_assigns_by_road_distance(client):
     assert plan["distance_basis"] == "road"
     assert list(plan["assigned"]) == ["[HUALIEN] 丙"]
     assert all(f["road_km"] == 3.0 for f in plan["flows"])
+    # 每一筆分配都附上它那條道路路線，前端沿著畫
+    assert all(f["path"].startswith("route") for f in plan["flows"])
 
 
 def test_simulate_drops_the_snapshot_when_the_write_fails(client):
