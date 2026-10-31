@@ -47,10 +47,10 @@ def client():
          patch("repositories.shelter_repository.ShelterRepository.shelter_hazard_distances", return_value={}), \
          patch("repositories.shelter_repository.ShelterRepository.ensure_schema"), \
          patch("repositories.shelter_repository.ShelterRepository.set_occupancy", return_value=0), \
-         patch("services.vector_store.VectorStore.upsert_shelters", return_value=0), \
-         patch("services.vector_store.build_embedding_function", return_value=FakeEmbedding()), \
-         patch("services.vector_store.VectorStore.build_index"), \
-         patch("services.sync_service.DataSyncService.sync"), \
+         patch("services.retrieval.vector_store.VectorStore.upsert_shelters", return_value=0), \
+         patch("services.retrieval.vector_store.build_embedding_function", return_value=FakeEmbedding()), \
+         patch("services.retrieval.vector_store.VectorStore.build_index"), \
+         patch("services.ingest.sync.DataSyncService.sync"), \
          patch("config.WRITE_API_KEY", WRITE_KEY), \
          patch("config.ADMIN_USERNAME", ADMIN["username"]), \
          patch("config.ADMIN_PASSWORD", ADMIN["password"]):
@@ -127,9 +127,9 @@ def test_login_sets_cookie_and_unlocks_write_endpoints(client):
     me = client.get("/api/me").json()
     assert me["authenticated"] is True and me["user"] == "ops"
 
-    with patch("services.sync_service.DataSyncService.baseline_occupancy", return_value={}), \
+    with patch("services.ingest.sync.DataSyncService.baseline_occupancy", return_value={}), \
          patch("repositories.shelter_repository.ShelterRepository.set_occupancy", return_value=0), \
-         patch("services.vector_store.VectorStore.upsert_shelters", return_value=0):
+         patch("services.retrieval.vector_store.VectorStore.upsert_shelters", return_value=0):
         assert client.post("/api/reset_simulation").status_code == 200
 
 
@@ -259,7 +259,7 @@ def test_health_is_liveness_only(client):
 
 def test_ready_fails_when_database_down(client):
     with patch("repositories.shelter_repository.ShelterRepository.ping", side_effect=RuntimeError("boom")), \
-         patch("services.health.check_ollama", return_value=(True, "ok")):
+         patch("services.web.health.check_ollama", return_value=(True, "ok")):
         res = client.get("/health/ready")
     assert res.status_code == 503
     body = res.json()
@@ -269,8 +269,8 @@ def test_ready_fails_when_database_down(client):
 
 def test_ready_fails_when_index_empty(client):
     with patch("repositories.shelter_repository.ShelterRepository.ping"), \
-         patch("services.vector_store.VectorStore.count", return_value=0), \
-         patch("services.health.check_ollama", return_value=(True, "ok")):
+         patch("services.retrieval.vector_store.VectorStore.count", return_value=0), \
+         patch("services.web.health.check_ollama", return_value=(True, "ok")):
         res = client.get("/health/ready")
     assert res.status_code == 503
     assert res.json()["checks"]["vector_index"]["ok"] is False
@@ -278,8 +278,8 @@ def test_ready_fails_when_index_empty(client):
 
 def test_ready_ignores_ollama_being_down(client):
     with patch("repositories.shelter_repository.ShelterRepository.ping"), \
-         patch("services.vector_store.VectorStore.count", return_value=2), \
-         patch("services.health.check_ollama", return_value=(False, "unreachable (ConnectionError)")):
+         patch("services.retrieval.vector_store.VectorStore.count", return_value=2), \
+         patch("services.web.health.check_ollama", return_value=(False, "unreachable (ConnectionError)")):
         res = client.get("/health/ready")
     assert res.status_code == 200
     body = res.json()
@@ -306,7 +306,7 @@ def test_occupancy_writes_back_and_reindexes_changed_only(client):
         patch(
             "repositories.shelter_repository.ShelterRepository.set_occupancy", return_value=1
         ) as set_occ,
-        patch("services.vector_store.VectorStore.upsert_shelters", return_value=1) as upsert,
+        patch("services.retrieval.vector_store.VectorStore.upsert_shelters", return_value=1) as upsert,
     ):
         res = client.post("/api/occupancy", headers=WRITE_HEADERS,
                           json={"occupancy": [{"name": "[HUALIEN] 甲", "current_ppl": 90}]})
@@ -330,11 +330,11 @@ def test_occupancy_reports_database_failure(client):
 def test_reset_restores_baseline_occupancy(client):
     baseline = {"[HUALIEN] 甲": 0, "[YILAN] 乙": 0}
     with (
-        patch("services.sync_service.DataSyncService.baseline_occupancy", return_value=baseline),
+        patch("services.ingest.sync.DataSyncService.baseline_occupancy", return_value=baseline),
         patch(
             "repositories.shelter_repository.ShelterRepository.set_occupancy", return_value=2
         ) as set_occ,
-        patch("services.vector_store.VectorStore.upsert_shelters", return_value=0),
+        patch("services.retrieval.vector_store.VectorStore.upsert_shelters", return_value=0),
     ):
         res = client.post("/api/reset_simulation", headers=WRITE_HEADERS)
     assert res.status_code == 200
@@ -347,7 +347,7 @@ def test_reset_keeps_simulation_snapshot_when_database_fails(client):
     # 先寫資料庫、成功才清快照；資料庫失敗時聊天不能說「尚未模擬」而地圖與資料庫卻仍是滿載
     import app as app_module
     app_module.chat_service.set_simulation({"type": "flood", "radius_km": 5, "impacted_count": 0, "impacted_shelters": []})
-    with patch("services.sync_service.DataSyncService.baseline_occupancy", return_value={"[HUALIEN] 甲": 0}), \
+    with patch("services.ingest.sync.DataSyncService.baseline_occupancy", return_value={"[HUALIEN] 甲": 0}), \
          patch("repositories.shelter_repository.ShelterRepository.set_occupancy", side_effect=RuntimeError("db down")):
         res = client.post("/api/reset_simulation", headers=WRITE_HEADERS)
     assert res.status_code == 500

@@ -68,7 +68,7 @@ def test_run_appends_each_answer_and_resumes_where_it_stopped(tmp_path):
     path = str(tmp_path / "r.json.progress.jsonl")
     FakeChatService.generated = []
 
-    with patch("services.chat_service.ChatService", FakeChatService):
+    with patch("services.chat.service.ChatService", FakeChatService):
         # 第一次：只跑第一題就當作被中止
         with open(path, "w", encoding="utf-8") as f:
             _append_line(f, {"signature": SIGNATURE})
@@ -93,7 +93,7 @@ def test_run_appends_each_answer_and_resumes_where_it_stopped(tmp_path):
 def test_progress_lines_are_valid_json_rows(tmp_path):
     path = str(tmp_path / "r.json.progress.jsonl")
     FakeChatService.generated = []
-    with patch("services.chat_service.ChatService", FakeChatService):
+    with patch("services.chat.service.ChatService", FakeChatService):
         with open(path, "w", encoding="utf-8") as f:
             _append_line(f, {"signature": SIGNATURE})
             run(CASES, store=None, shelters=SHELTERS, progress_handle=f)

@@ -4,7 +4,7 @@ from unittest.mock import patch
 import pytest
 
 from models.shelter import Shelter
-from services.vector_store import Hit, VectorStore
+from services.retrieval.vector_store import Hit, VectorStore
 
 KEYWORDS = ["宜蘭", "花蓮", "台東", "國小", "國中", "體育館", "圖書館", "公所"]
 
@@ -212,7 +212,7 @@ def test_upsert_keeps_fingerprint_in_sync(tmp_path):
 
 
 # ── metadata 篩選（B5）──────────────────────────────────────
-from services.query_rules import analyze  # noqa: E402
+from services.chat.query_rules import analyze  # noqa: E402
 
 
 def test_count_where(store):
@@ -392,13 +392,13 @@ def test_metadata_has_road_without_section(store):
 
 
 def test_road_filter_returns_every_shelter_on_that_road(store):
-    from services.query_rules import analyze
+    from services.chat.query_rules import analyze
     result = store.plan_retrieve("崇聖街", analyze("崇聖街"))
     assert result.filtered and [h.name for h in result.hits] == ["[YILAN] 宜蘭國小"]
 
 
 def test_named_query_keeps_only_the_named_shelter(store):
-    from services.query_rules import analyze
+    from services.chat.query_rules import analyze
     # 直接點名時只留那一筆，小模型才不會把 top-k 全部列出來
     result = store.plan_retrieve("中正國小還有空位嗎", analyze("中正國小還有空位嗎"))
     assert result.named
@@ -409,8 +409,8 @@ def test_named_query_keeps_only_the_named_shelter(store):
 
 
 def test_far_semantic_hits_are_treated_as_no_match(store):
-    from services.query_rules import analyze
-    from services.vector_store import NO_MATCH
+    from services.chat.query_rules import analyze
+    from services.retrieval.vector_store import NO_MATCH
     # 沒有任何關鍵字的問題：最接近的文件也離很遠，純語意路徑要回沒有資料
     assert store.search("今天天氣如何", plan=analyze("今天天氣如何")) == NO_MATCH
     # 有 metadata 篩選命中的路徑不套門檻
@@ -478,21 +478,21 @@ def test_plan_retrieve_reports_total_even_when_truncated(store):
     plan = analyze("宜蘭的避難所")
     result = store.plan_retrieve("宜蘭的避難所", plan)
     assert (len(result.hits), result.total) == (2, 2)
-    with patch("services.vector_store.MAX_FILTERED_RESULTS", 1):
+    with patch("services.retrieval.vector_store.MAX_FILTERED_RESULTS", 1):
         result = store.plan_retrieve("宜蘭的避難所", plan)
     assert (len(result.hits), result.total) == (1, 2)
 
 
 def test_header_reports_total_not_just_what_fits(store):
     # 送進 prompt 的筆數被上限截掉時，標頭說「共 1 筆」等於叫模型回答錯的總數
-    with patch("services.vector_store.MAX_FILTERED_RESULTS", 1):
+    with patch("services.retrieval.vector_store.MAX_FILTERED_RESULTS", 1):
         text = store.search("宜蘭的避難所", plan=analyze("宜蘭的避難所"))
     assert text.startswith("符合「宜蘭地區」的避難所共 2 筆，以下列出最相關的 1 筆：")
     assert text.count("\n") == 1
 
 
 def test_ranked_header_reports_total_not_just_what_fits(store):
-    with patch("services.vector_store.MAX_RANKED_RESULTS", 1):
+    with patch("services.retrieval.vector_store.MAX_RANKED_RESULTS", 1):
         text = store.search("宜蘭最大的避難所", plan=analyze("宜蘭最大的避難所"))
     assert text.startswith("符合「宜蘭地區」的避難所共 2 筆，以下是依容量由大到小排序的前 1 筆：")
     assert "羅東鎮立體育館" in text
@@ -541,7 +541,7 @@ def test_slow_embedding_does_not_block_readiness_count(store):
 
 
 def retrieval_counters():
-    from services.metrics import metrics
+    from services.web.metrics import metrics
     return metrics.snapshot()["counters"]
 
 
@@ -553,7 +553,7 @@ def retrieval_counters():
 ])
 def test_retrieval_shape_is_counted(store, query, expected):
     # fell_back 的線上比例就是「規則層抽錯條件」的直接指標，離線評測量不到真實問句
-    from services.metrics import metrics
+    from services.web.metrics import metrics
     metrics.reset()
     with patch("config.RAG_MAX_DISTANCE", 2.0):  # 關鍵字 embedding 距離很粗，門檻另外測
         store.search(query, plan=analyze(query))
@@ -561,20 +561,20 @@ def test_retrieval_shape_is_counted(store, query, expected):
 
 
 def test_distance_gate_and_truncation_are_counted(store):
-    from services.metrics import metrics
+    from services.web.metrics import metrics
     metrics.reset()
     with patch("config.RAG_MAX_DISTANCE", -1.0):  # 讓任何距離都超標
         assert "找不到" in store.search("避難所有提供飲水嗎", plan=analyze("避難所有提供飲水嗎"))
     assert retrieval_counters()["retrieval.no_match"] == 1
 
     metrics.reset()
-    with patch("services.vector_store.MAX_FILTERED_RESULTS", 1):
+    with patch("services.retrieval.vector_store.MAX_FILTERED_RESULTS", 1):
         store.search("宜蘭的避難所", plan=analyze("宜蘭的避難所"))
     assert retrieval_counters()["retrieval.truncated"] == 1
 
 
 def test_empty_index_is_counted_as_no_data():
-    from services.metrics import metrics
+    from services.web.metrics import metrics
     metrics.reset()
     s = VectorStore(embedding_function=KeywordEmbedding(), collection_name="test_vs_metrics_empty")
     assert "沒有避難所資料" in s.search("宜蘭")
@@ -605,8 +605,8 @@ def test_wide_filters_get_an_overview_instead_of_thirty_documents():
     消防署資料「宜蘭有哪些避難所」符合 249 筆：送 30 筆全文的話一間一行就超過 num_predict，
     模型列到一半被截斷。超過門檻改給總數、容量合計、各鄉鎮分布，再列最相關的幾筆
     """
-    from services.query_rules import analyze
-    from services.vector_store import OVERVIEW_LIST, OVERVIEW_THRESHOLD
+    from services.chat.query_rules import analyze
+    from services.retrieval.vector_store import OVERVIEW_LIST, OVERVIEW_THRESHOLD
 
     towns = ["宜蘭市", "羅東鎮", "蘇澳鎮"]
     many = [
@@ -632,7 +632,7 @@ def test_wide_filters_get_an_overview_instead_of_thirty_documents():
 
 def test_full_shelter_name_in_the_question_is_fetched_directly(store):
     """長名稱 bge-m3 實測排不進前 10（內城國民中小學化育分校）：問句有完整名稱就直接拿，不靠向量排名"""
-    from services.query_rules import analyze
+    from services.chat.query_rules import analyze
     result = store.plan_retrieve("羅東鎮立體育館還有空位嗎", analyze("羅東鎮立體育館還有空位嗎"))
     assert result.named and [h.name for h in result.hits] == ["[YILAN] 羅東鎮立體育館"]
     assert store.exact_named("宜蘭有哪些避難所") == []

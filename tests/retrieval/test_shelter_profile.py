@@ -1,6 +1,6 @@
 import pytest
 
-from services.shelter_profile import (
+from services.retrieval.shelter_profile import (
     aliases_of,
     county_of,
     details_text,
@@ -88,7 +88,7 @@ def test_aliases_strip_owner_and_place():
     ("", ""),
 ])
 def test_road_of_drops_section(address, road):
-    from services.shelter_profile import road_of
+    from services.retrieval.shelter_profile import road_of
     assert road_of(address) == road
 
 
@@ -140,7 +140,7 @@ def test_profile_bundle():
 
 def test_facility_labels_come_from_the_rules_table():
     # 標籤詞彙是推導出來的，不是手寫的第三份清單——否則又多一個要人工同步的地方
-    from services.shelter_profile import FACILITY_LABELS, FACILITY_RULES
+    from services.retrieval.shelter_profile import FACILITY_LABELS, FACILITY_RULES
     assert FACILITY_LABELS == {label for _, label in FACILITY_RULES} | {"其他"}
     assert facility_of("[YILAN] 不認識的設施") == "其他"
 
@@ -151,8 +151,8 @@ def test_query_side_labels_all_exist_on_the_index_side():
     但標籤詞彙必須一致：查詢端用了索引端沒有的標籤，ChromaDB 的 where 會永遠篩不到，
     然後安靜地退回一般檢索，看起來像檢索品質差而不是設定錯誤。
     """
-    from services.query_rules import FACILITY_KEYWORDS
-    from services.shelter_profile import FACILITY_LABELS
+    from services.chat.query_rules import FACILITY_KEYWORDS
+    from services.retrieval.shelter_profile import FACILITY_LABELS
     used = {label for _, labels in FACILITY_KEYWORDS for label in labels}
     assert used <= FACILITY_LABELS, used - FACILITY_LABELS
 

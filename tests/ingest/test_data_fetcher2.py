@@ -1,4 +1,4 @@
-from services.data_fetcher import DataFetcher
+from services.ingest.fetcher import DataFetcher
 
 
 def test_fetcher_load_data():
@@ -88,7 +88,7 @@ def test_fetcher_skips_rows_without_name_or_coords(tmp_path, caplog):
 def test_fetcher_raises_when_every_file_is_broken(tmp_path):
     import pytest
 
-    from services.data_fetcher import ShelterDataError
+    from services.ingest.fetcher import ShelterDataError
     (tmp_path / "a_shelter.json").write_text("{not json", encoding="utf-8")
     (tmp_path / "b_shelter.json").write_text('{"name": "not a list"}', encoding="utf-8")
     fetcher = DataFetcher()

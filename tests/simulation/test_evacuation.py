@@ -1,5 +1,5 @@
 from models.shelter import Shelter
-from services.evacuation import (
+from services.simulation.evacuation import (
     DETOUR_FACTOR,
     FALLBACK_ORIGIN,
     Origin,

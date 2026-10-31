@@ -3,22 +3,24 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from services import query_rules
-from services.chat_service import (
-    NO_RELEVANT_REPLY,
-    SYSTEM_PROMPT_EN,
+from services.chat import llm_client, query_rules
+from services.chat.direct_answer import compose, shelter_detail, shelter_line
+from services.chat.llm_client import SYSTEM_PROMPT_EN
+from services.chat.replies import NO_RELEVANT_REPLY, tr
+from services.chat.service import ChatService
+from services.chat.shelter_names import unknown_shelter_reply
+from services.retrieval.knowledge import (
     UNREVIEWED_NOTE,
-    ChatService,
-    hazard_lines,
+    KnowledgeChunk,
+    KnowledgeFormatError,
     knowledge_answer,
-    tr,
-    unknown_shelter_reply,
+    load_chunks,
+    parse_translations,
 )
-from services.direct_answer import compose, shelter_detail, shelter_line
-from services.i18n import TOWNSHIP_EN, place_en
-from services.knowledge import KnowledgeChunk, KnowledgeFormatError, load_chunks, parse_translations
-from services.shelter_profile import TOWNSHIPS
-from services.vector_store import Hit, PlannedResult, SearchResult
+from services.retrieval.shelter_profile import TOWNSHIPS
+from services.retrieval.vector_store import Hit, PlannedResult, SearchResult
+from services.simulation.text import hazard_lines
+from services.web.i18n import TOWNSHIP_EN, place_en
 
 
 def meta(name, township="花蓮市", capacity=100, remaining=80, **extra):
@@ -148,8 +150,8 @@ def test_model_paths_use_the_english_prompt():
     svc = ChatService(MagicMock(), None)
     prompt = svc.build_prompt("知本附近有避難所嗎", "- 知本國小", lang="en")
     assert "Write the answer in English, but keep every shelter name and address in Chinese." in prompt
-    assert svc._payload(prompt, False, "en")["system"] == SYSTEM_PROMPT_EN
-    assert svc._payload(prompt, False)["system"] != SYSTEM_PROMPT_EN
+    assert llm_client.payload(prompt, False, "en")["system"] == SYSTEM_PROMPT_EN
+    assert llm_client.payload(prompt, False)["system"] != SYSTEM_PROMPT_EN
 
 
 def test_simulation_notes_in_english():

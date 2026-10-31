@@ -1,6 +1,6 @@
 import pytest
 
-from services.query_rules import analyze, known_townships, out_of_scope_reply
+from services.chat.query_rules import analyze, known_townships, out_of_scope_reply
 
 
 def test_known_townships_cover_all_three_counties():
@@ -14,8 +14,8 @@ def test_known_townships_cover_all_three_counties():
 
 
 def test_every_township_in_the_shelter_data_is_known():
-    from services.data_fetcher import DataFetcher
-    from services.shelter_profile import normalize_place
+    from services.ingest.fetcher import DataFetcher
+    from services.retrieval.shelter_profile import normalize_place
     towns = known_townships()
     assert {normalize_place(s.township) for s in DataFetcher().get_shelters()} <= set(towns)
 
@@ -187,17 +187,17 @@ def test_road_filter_composes_with_township():
 
 def test_off_topic_reply_is_detected_as_an_abstention():
     """
-    兩個固定拒答句都必須被 evals/gen_metrics.py 的 ABSTAIN_MARKERS 認出來，
+    兩個固定拒答句都必須被 evals/lib/gen_metrics.py 的 ABSTAIN_MARKERS 認出來，
     否則生成評測的 abstain_correct 會無聲下降——拒答做對了，分數卻掉。
     """
-    from evals.gen_metrics import is_abstention
-    from services.query_rules import off_topic_reply, out_of_scope_reply
+    from evals.lib.gen_metrics import is_abstention
+    from services.chat.query_rules import off_topic_reply, out_of_scope_reply
     assert is_abstention(out_of_scope_reply("高雄"))
     assert is_abstention(off_topic_reply("天氣"))
 
 
 def test_off_topic_needs_the_whole_sentence():
-    from services.query_rules import analyze
+    from services.chat.query_rules import analyze
     # 黑名單命中但整句問的是避難所 → 不算離題
     assert analyze("下雨天要去哪個避難所").off_topic is None
     assert analyze("淹水時收容所在哪").off_topic is None
@@ -224,7 +224,7 @@ KNOWN = [
     ("花蓮縣立游泳池還有空位嗎", "花蓮縣立游泳池"),  # 資料裡根本沒有這類場所
 ])
 def test_unknown_shelter_name_is_detected(query, name):
-    from services.query_rules import unknown_shelter_name
+    from services.chat.query_rules import unknown_shelter_name
     assert unknown_shelter_name(query, KNOWN) == name
 
 
@@ -242,13 +242,13 @@ def test_unknown_shelter_name_is_detected(query, name):
     "最大的體育館",
 ])
 def test_known_typo_abbreviation_and_category_questions_are_not_flagged(query):
-    from services.query_rules import unknown_shelter_name
+    from services.chat.query_rules import unknown_shelter_name
     assert unknown_shelter_name(query, KNOWN) is None
 
 
 def test_unknown_shelter_check_is_off_without_a_name_list():
     # 索引還沒建好時名單是空的；這時不能把每個名稱都說成不存在
-    from services.query_rules import unknown_shelter_name
+    from services.chat.query_rules import unknown_shelter_name
     assert unknown_shelter_name("頭城國中在哪裡", []) is None
 
 
@@ -257,13 +257,13 @@ def test_no_positive_retrieval_question_is_flagged_as_unknown():
     import json
     import pathlib
 
-    from services.chat_service import known_names_of
-    from services.data_fetcher import DataFetcher
-    from services.query_rules import unknown_shelter_name
-    from services.vector_store import VectorStore
+    from services.chat.query_rules import unknown_shelter_name
+    from services.chat.shelter_names import known_names_of
+    from services.ingest.fetcher import DataFetcher
+    from services.retrieval.vector_store import VectorStore
 
     names = known_names_of([VectorStore.build_metadata(s) for s in DataFetcher().get_shelters()])
-    path = pathlib.Path(__file__).resolve().parent.parent / "evals" / "rag_eval.jsonl"
+    path = pathlib.Path(__file__).resolve().parents[2] / "evals" / "datasets" / "rag_eval.jsonl"
     cases = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
     flagged = [c["query"] for c in cases if c["relevant"] and unknown_shelter_name(c["query"], names)]
     assert flagged == []
@@ -274,7 +274,7 @@ def test_no_positive_retrieval_question_is_flagged_as_unknown():
     ("中政國小", ("中政國小", "中正國小")),
 ])
 def test_one_character_typo_maps_to_the_only_close_shelter(query, expected):
-    from services.query_rules import typo_correction, unknown_shelter_name
+    from services.chat.query_rules import typo_correction, unknown_shelter_name
     assert typo_correction(query, KNOWN) == expected
     assert unknown_shelter_name(query, KNOWN) is None
 
@@ -287,7 +287,7 @@ def test_one_character_typo_maps_to_the_only_close_shelter(query, expected):
     "頭城國小在哪裡",    # 名稱正確，沒什麼好改
 ])
 def test_typo_correction_leaves_ambiguous_and_other_places_alone(query):
-    from services.query_rules import typo_correction
+    from services.chat.query_rules import typo_correction
     names = KNOWN + ["台東體育館"]
     assert typo_correction(query, names) is None
 
@@ -297,20 +297,20 @@ def test_typo_correction_leaves_ambiguous_and_other_places_alone(query):
     ("花蓮縣立體育官", ("花蓮縣立體育官", "花蓮縣立體育館")),
 ])
 def test_last_character_typo_maps_to_the_shelter(query, expected):
-    from services.query_rules import typo_correction
+    from services.chat.query_rules import typo_correction
     names = KNOWN + ["花蓮縣立體育館", "花蓮體育館"]
     assert typo_correction(query, names) == expected
 
 
 def test_full_name_and_alias_hitting_together_count_as_one_shelter():
-    from services.query_rules import typo_correction
+    from services.chat.query_rules import typo_correction
     names = ["花蓮市中正體育館", "中正體育館"]
     assert typo_correction("花蓮市中正體育管", names) == ("花蓮市中正體育管", "花蓮市中正體育館")
 
 
 def test_only_the_last_character_may_differ():
     # 「宜蘭的小」跟「宜蘭國小」也只差一個字，但那是倒數第二個字：這是「宜蘭的小型避難所」，不是錯字
-    from services.query_rules import typo_correction
+    from services.chat.query_rules import typo_correction
     assert typo_correction("宜蘭的小型避難所，容量300人以下", KNOWN) is None
 
 
@@ -319,13 +319,13 @@ def test_no_retrieval_question_is_rewritten_as_a_typo():
     import json
     import pathlib
 
-    from services.chat_service import known_names_of
-    from services.data_fetcher import DataFetcher
-    from services.query_rules import typo_correction
-    from services.vector_store import VectorStore
+    from services.chat.query_rules import typo_correction
+    from services.chat.shelter_names import known_names_of
+    from services.ingest.fetcher import DataFetcher
+    from services.retrieval.vector_store import VectorStore
 
     names = known_names_of([VectorStore.build_metadata(s) for s in DataFetcher().get_shelters()])
-    path = pathlib.Path(__file__).resolve().parent.parent / "evals" / "rag_eval.jsonl"
+    path = pathlib.Path(__file__).resolve().parents[2] / "evals" / "datasets" / "rag_eval.jsonl"
     cases = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
     rewritten = [c["query"] for c in cases if typo_correction(c["query"], names)]
     assert rewritten == []
@@ -337,7 +337,7 @@ def test_no_retrieval_question_is_rewritten_as_a_typo():
     "知本附近", "女子中學",  # 跟避難所名稱共用兩個字
 ])
 def test_questions_with_any_shelter_clue_pass(query):
-    from services.query_rules import has_shelter_clue
+    from services.chat.query_rules import has_shelter_clue
     assert has_shelter_clue(query, ["知本國小", "台東女子高級中學"])
 
 
@@ -346,7 +346,7 @@ def test_questions_with_any_shelter_clue_pass(query):
     "有沒有人可以幫我顧小孩",  # 「人」不算線索
 ])
 def test_questions_without_any_shelter_clue_are_caught(query):
-    from services.query_rules import has_shelter_clue
+    from services.chat.query_rules import has_shelter_clue
     assert not has_shelter_clue(query, ["知本國小", "台東女子高級中學"])
 
 
@@ -355,13 +355,13 @@ def test_no_positive_retrieval_question_lacks_a_clue_on_the_unfiltered_path():
     import json
     import pathlib
 
-    from services.chat_service import known_names_of
-    from services.data_fetcher import DataFetcher
-    from services.query_rules import has_shelter_clue
-    from services.vector_store import VectorStore
+    from services.chat.query_rules import has_shelter_clue
+    from services.chat.shelter_names import known_names_of
+    from services.ingest.fetcher import DataFetcher
+    from services.retrieval.vector_store import VectorStore
 
     names = known_names_of([VectorStore.build_metadata(s) for s in DataFetcher().get_shelters()])
-    path = pathlib.Path(__file__).resolve().parent.parent / "evals" / "rag_eval.jsonl"
+    path = pathlib.Path(__file__).resolve().parents[2] / "evals" / "datasets" / "rag_eval.jsonl"
     cases = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
     blocked = []
     for c in cases:
@@ -396,7 +396,7 @@ def test_vulnerable_condition(query, vulnerable):
 
 
 def test_off_topic_word_inside_a_shelter_name_is_not_off_topic():
-    from services.query_rules import off_topic_word_is_a_name
+    from services.chat.query_rules import off_topic_word_is_a_name
     names = ["國軍805醫院", "元新溫泉飯店", "花蓮市公所"]
     assert analyze("805醫院在哪").off_topic == "醫院"
     assert off_topic_word_is_a_name("805醫院在哪", "醫院", names)

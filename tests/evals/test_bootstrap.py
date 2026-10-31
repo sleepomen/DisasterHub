@@ -2,8 +2,8 @@ import json
 
 import pytest
 
-from evals.compare_runs import compare, load_rows
-from evals.metrics import bootstrap_ci, paired_bootstrap_ci, stratified_bootstrap_ci
+from evals.lib.compare_runs import compare, load_rows
+from evals.lib.metrics import bootstrap_ci, paired_bootstrap_ci, stratified_bootstrap_ci
 
 
 def test_ci_is_reproducible_for_a_fixed_seed():

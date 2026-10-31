@@ -1,6 +1,6 @@
 import threading
 
-from services.metrics import Metrics, _percentile
+from services.web.metrics import Metrics, _percentile
 
 
 def test_counters_start_at_zero_only_when_registered():

@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
-from services import auth
-from services.auth import LoginThrottle, SessionManager
+from services.web import auth
+from services.web.auth import LoginThrottle, SessionManager
 
 
 def test_session_roundtrip():

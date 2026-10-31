@@ -4,10 +4,10 @@ import pathlib
 import pytest
 
 from evals.run_route_eval import load_cases, summarize
-from services.chat_service import ROUTE_COUNTERS
-from services.metrics import ROUTE_PREFIX
+from services.chat.intent import ROUTE_COUNTERS
+from services.web.metrics import ROUTE_PREFIX
 
-CASES_PATH = pathlib.Path(__file__).resolve().parent.parent / "evals" / "route_eval.jsonl"
+CASES_PATH = pathlib.Path(__file__).resolve().parents[2] / "evals" / "datasets" / "route_eval.jsonl"
 
 # 程式真的會記錄的路由名稱。context_error 是例外路徑而不是路由決策，評測集不涵蓋
 KNOWN_ROUTES = {name[len(ROUTE_PREFIX):] for name in ROUTE_COUNTERS} - {"context_error"}
@@ -74,7 +74,7 @@ def test_summarize_counts_and_builds_a_confusion_matrix():
 
 
 def test_results_file_is_valid_json_if_present():
-    out = CASES_PATH.parent / "results" / "route_eval.json"
+    out = CASES_PATH.parent.parent / "results" / "route_eval.json"
     if not out.is_file():
         pytest.skip("還沒跑過路由評測")
     data = json.loads(out.read_text(encoding="utf-8"))

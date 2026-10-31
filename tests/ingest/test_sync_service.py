@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 from models.shelter import Shelter
-from services.sync_service import DataSyncService
+from services.ingest.sync import DataSyncService
 
 FAKE = [
     Shelter(name="[HUALIEN] 甲", capacity=100, lat=23.9, lon=121.6),
@@ -11,8 +11,8 @@ FAKE = [
 
 def _service_with(fetched, failed_files=(), skipped=0):
     with (
-        patch("services.sync_service.ShelterRepository") as repo_cls,
-        patch("services.sync_service.DataFetcher") as fetcher_cls,
+        patch("services.ingest.sync.ShelterRepository") as repo_cls,
+        patch("services.ingest.sync.DataFetcher") as fetcher_cls,
     ):
         fetcher = fetcher_cls.return_value
         fetcher.get_shelters.return_value = fetched
@@ -135,7 +135,7 @@ def test_sync_refuses_to_prune_after_a_partial_write():
 
 
 def test_prune_count_is_recorded():
-    from services.metrics import metrics
+    from services.web.metrics import metrics
     metrics.reset()
     service, repo = _service_with(FAKE)
     repo.upsert_shelters.return_value = len(FAKE)

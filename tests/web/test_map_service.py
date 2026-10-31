@@ -1,7 +1,7 @@
 import unittest
 
 from models.shelter import NearbyShelter, Shelter
-from services.map_service import MapService
+from services.web.map_service import MapService
 
 
 class TestMapService(unittest.TestCase):

@@ -5,14 +5,11 @@ import pytest
 
 from models.shelter import NearbyShelter, Shelter
 from repositories.shelter_repository import RoadPath
-from services.chat_service import (
-    AI_UNAVAILABLE,
-    GENERIC_ERROR,
-    STREAM_INTERRUPTED,
-    ChatService,
-    GenerationTimeout,
-    display_name,
-)
+from services.chat import intent, llm_client
+from services.chat.llm_client import GenerationTimeout
+from services.chat.replies import AI_UNAVAILABLE, GENERIC_ERROR, STREAM_INTERRUPTED
+from services.chat.service import ChatService
+from services.chat.shelter_names import display_name
 
 
 class FakeStream:
@@ -76,7 +73,7 @@ def text_only(vs):
     假的向量庫：search_result() 轉給 search()，只回給模型的文字、沒有程式排好的回答，
     原本針對 search 的設定與斷言都照樣成立（程式排好的回答另外在 test_direct_answer.py 測）
     """
-    from services.vector_store import SearchResult
+    from services.retrieval.vector_store import SearchResult
     vs.search_result.side_effect = lambda *args, **kwargs: SearchResult(vs.search(*args, **kwargs))
     return vs
 
@@ -91,7 +88,7 @@ def svc():
 def route(svc, msg):
     if svc._is_simulation_query(msg):
         return "simulation"
-    if svc._is_geo_query(msg):
+    if intent.is_geo_query(msg):
         return "geo"
     return "rag"
 
@@ -119,7 +116,7 @@ def test_intent_routing(svc, msg, expected):
     ("緯度 40.5 經度 121.6", None),
 ])
 def test_extract_coords(svc, msg, expected):
-    assert svc._extract_coords(msg) == expected
+    assert intent.extract_coords(msg) == expected
 
 
 def test_display_name_strips_region_tag():
@@ -150,7 +147,7 @@ def test_geo_query_without_any_place_still_asks_for_coords(svc, msg):
 
 
 def test_prompt_tells_model_data_is_prefiltered(svc):
-    from services.chat_service import SYSTEM_PROMPT
+    from services.chat.llm_client import SYSTEM_PROMPT
     assert "不可以說沒有資料" in SYSTEM_PROMPT
     prompt = svc.build_prompt("宜蘭有哪些避難所", "資料")
     assert "每間一行" in prompt
@@ -220,7 +217,7 @@ def test_only_simulation_route_gets_the_simulation_summary_in_the_prompt(svc):
 
     svc.vector_store.search.return_value = "- 二城國小是宜蘭地區的避難收容場所"
     with (
-        patch("services.chat_service.requests.post", side_effect=fake_post),
+        patch("services.chat.llm_client.requests.post", side_effect=fake_post),
         patch.object(svc, "_lacks_shelter_clue", return_value=False),
         patch.object(svc, "_unknown_shelter", return_value=None),
     ):
@@ -236,7 +233,7 @@ def test_errors_do_not_leak_details():
 
 
 def test_chat_stream_yields_ollama_chunks(svc):
-    with patch("services.chat_service.requests.post", return_value=FakeStream(ndjson("建議前往", "乙避難所"))) as post:
+    with patch("services.chat.llm_client.requests.post", return_value=FakeStream(ndjson("建議前往", "乙避難所"))) as post:
         events = list(svc.chat_stream("避難所有提供飲水嗎"))
     # 回答防護逐行判斷：同一行的片段累積到換行（或結束）才一起送出
     assert events == [{"type": "delta", "text": "建議前往乙避難所"}]
@@ -252,18 +249,18 @@ def test_chat_stream_yields_ollama_chunks(svc):
 
 
 def test_chat_joins_stream_for_non_streaming_callers(svc):
-    with patch("services.chat_service.requests.post", return_value=FakeStream(ndjson(" 建議前往", "乙 "))):
+    with patch("services.chat.llm_client.requests.post", return_value=FakeStream(ndjson(" 建議前往", "乙 "))):
         assert svc.chat("避難所有提供飲水嗎") == "建議前往乙"
 
 
 def test_stream_and_non_stream_send_the_same_options(svc):
     # 評測走 generate()、線上走 generate_stream()，模型設定一旦漂掉評測數字就不代表線上
-    stream_payload = svc._payload("p", True)
-    assert svc._payload("p", False) == {**stream_payload, "stream": False}
+    stream_payload = llm_client.payload("p", True)
+    assert llm_client.payload("p", False) == {**stream_payload, "stream": False}
 
 
 def test_early_reply_does_not_call_ollama(svc):
-    with patch("services.chat_service.requests.post") as post:
+    with patch("services.chat.llm_client.requests.post") as post:
         events = list(svc.chat_stream("高雄有哪些避難所"))
     assert post.call_count == 0
     assert len(events) == 1
@@ -271,17 +268,17 @@ def test_early_reply_does_not_call_ollama(svc):
 
 
 def test_chat_handles_ollama_failure(svc):
-    with patch("services.chat_service.requests.post", side_effect=ConnectionError("down")):
+    with patch("services.chat.llm_client.requests.post", side_effect=ConnectionError("down")):
         events = list(svc.chat_stream("避難所有提供飲水嗎"))
     assert events == [{"type": "error", "text": AI_UNAVAILABLE}]
-    with patch("services.chat_service.requests.post", side_effect=ConnectionError("down")):
+    with patch("services.chat.llm_client.requests.post", side_effect=ConnectionError("down")):
         assert svc.chat("避難所有提供飲水嗎") == AI_UNAVAILABLE
 
 
 def test_stream_broken_midway_keeps_text_and_adds_notice(svc):
     # 已經吐出去的字收不回來，所以保留並在後面補一句，而不是整段換成錯誤訊息
     stream = FakeStream(ndjson("甲避難所：剩餘 90 人", done=False), error=ConnectionError("斷線"))
-    with patch("services.chat_service.requests.post", return_value=stream):
+    with patch("services.chat.llm_client.requests.post", return_value=stream):
         events = list(svc.chat_stream("避難所有提供飲水嗎"))
     assert events[0] == {"type": "delta", "text": "甲避難所：剩餘 90 人"}
     assert events[-1] == {"type": "error", "text": STREAM_INTERRUPTED}
@@ -293,14 +290,14 @@ def test_stream_skips_unparsable_lines_and_surfaces_ollama_error(svc):
         json.dumps({"response": "甲", "done": False}),
         json.dumps({"error": "model not found"}),
     ])
-    with patch("services.chat_service.requests.post", return_value=stream):
+    with patch("services.chat.llm_client.requests.post", return_value=stream):
         events = list(svc.chat_stream("避難所有提供飲水嗎"))
     assert events[0] == {"type": "delta", "text": "甲"}
     assert events[-1] == {"type": "error", "text": STREAM_INTERRUPTED}
 
 
 def test_stream_without_any_text_reports_unavailable(svc):
-    with patch("services.chat_service.requests.post", return_value=FakeStream(ndjson())):
+    with patch("services.chat.llm_client.requests.post", return_value=FakeStream(ndjson())):
         assert list(svc.chat_stream("避難所有提供飲水嗎")) == [{"type": "error", "text": AI_UNAVAILABLE}]
 
 
@@ -308,7 +305,7 @@ def test_stream_stops_at_deadline(svc):
     # done 永遠不來時整段時間要被 OLLAMA_TIMEOUT 擋住，生成名額才不會被永久佔住
     endless = [json.dumps({"response": "字", "done": False}) for _ in range(5)]
     stream = FakeStream(endless)
-    with patch("config.OLLAMA_TIMEOUT", 0),          patch("services.chat_service.requests.post", return_value=stream):
+    with patch("config.OLLAMA_TIMEOUT", 0),          patch("services.chat.llm_client.requests.post", return_value=stream):
         with pytest.raises(GenerationTimeout):
             list(svc.generate_stream("prompt"))
         events = list(svc.chat_stream("避難所有提供飲水嗎"))
@@ -370,7 +367,7 @@ def test_refresh_occupancy_recomputes_population_totals(svc):
 
 
 def test_format_people_uses_wan_for_large_numbers():
-    from services.chat_service import format_people
+    from services.simulation.text import format_people
     assert format_people(175000) == "約 17.5 萬人"
     assert format_people(2100) == "約 2100 人"
     assert format_people(None) == "不明"
@@ -398,7 +395,7 @@ def test_simulation_summary_and_context_include_population(svc):
 
 
 def test_population_lines_when_fallback_and_no_shortfall():
-    from services.chat_service import population_lines
+    from services.simulation.text import population_lines
     lines = population_lines({"fallback_estimate": True, "estimated_evacuees": 157, "evacuation_ratio": 0.05,
                               "total_remaining": 900, "placeable": 157, "shortfall": 0, "townships": []})
     text = "\n".join(lines)
@@ -413,7 +410,7 @@ def test_population_lines_when_fallback_and_no_shortfall():
 def test_chat_returns_unavailable_when_vector_search_fails(svc):
     # embedding 要打 Ollama，Ollama 掛掉時要回降級訊息，不能把例外丟到 /api/chat 變 500
     svc.vector_store.search.side_effect = ConnectionError("embed down")
-    with patch("services.chat_service.requests.post") as post:
+    with patch("services.chat.llm_client.requests.post") as post:
         assert svc.chat("避難所有提供飲水嗎") == AI_UNAVAILABLE
     post.assert_not_called()
 
@@ -497,7 +494,7 @@ def test_snapshot_is_a_copy_so_readers_cannot_mutate_state(svc):
 
 
 def test_evacuation_advice_without_simulation_asks_to_run_one(svc):
-    from services.chat_service import NO_SIMULATION_REPLY
+    from services.chat.replies import NO_SIMULATION_REPLY
     context, early = svc.build_context("請給我疏散建議")
     assert context is None
     assert early == NO_SIMULATION_REPLY
@@ -505,11 +502,11 @@ def test_evacuation_advice_without_simulation_asks_to_run_one(svc):
 
 
 def test_no_match_from_retrieval_becomes_fixed_reply_without_llm(svc):
-    from services.chat_service import NO_RELEVANT_REPLY
-    from services.vector_store import NO_DATA, NO_MATCH
+    from services.chat.replies import NO_RELEVANT_REPLY
+    from services.retrieval.vector_store import NO_DATA, NO_MATCH
     for sentinel in (NO_MATCH, NO_DATA):
         svc.vector_store.search.return_value = sentinel
-        with patch("services.chat_service.requests.post") as post:
+        with patch("services.chat.llm_client.requests.post") as post:
             # 探針不能再用「今天天氣如何」：它現在被更前面的離題判定攔走，
             # 到不了距離門檻這條路徑（見 test_off_topic_questions_are_declined_before_retrieval）
             assert svc.chat("避難所有提供飲水嗎") == NO_RELEVANT_REPLY
@@ -522,7 +519,7 @@ def test_no_match_from_retrieval_becomes_fixed_reply_without_llm(svc):
     ("模擬結果如何", "尚未執行"),
 ])
 def test_simulation_query_without_simulation_never_calls_ollama(svc, msg, expected):
-    with patch("services.chat_service.requests.post") as post:
+    with patch("services.chat.llm_client.requests.post") as post:
         events = list(svc.chat_stream(msg))
     assert post.call_count == 0
     assert len(events) == 1 and expected in events[0]["text"]
@@ -531,7 +528,7 @@ def test_simulation_query_without_simulation_never_calls_ollama(svc, msg, expect
 def test_nearest_query_failure_is_not_fed_to_the_model():
     # 以前查詢失敗的訊息會被當成【避難所資料】送進 prompt，模型只能對著一句錯誤訊息作文
     svc = ChatService(MagicMock(), BrokenRepo())
-    with patch("services.chat_service.requests.post") as post:
+    with patch("services.chat.llm_client.requests.post") as post:
         events = list(svc.chat_stream("離我最近的避難所 緯度 23.99 經度 121.60"))
     assert post.call_count == 0
     # 走的是檢索層的 early reply，所以型態是 delta；重點是它沒有進 prompt、也沒打 LLM
@@ -577,19 +574,19 @@ def test_nearest_query_with_no_results_replies_directly():
             return []
 
     svc = ChatService(MagicMock(), EmptyRepo())
-    with patch("services.chat_service.requests.post") as post:
+    with patch("services.chat.llm_client.requests.post") as post:
         events = list(svc.chat_stream("離我最近的避難所 緯度 23.99 經度 121.60"))
     assert post.call_count == 0
     assert len(events) == 1 and "附近沒有找到" in events[0]["text"]
 
 
 def counters():
-    from services.metrics import metrics
+    from services.web.metrics import metrics
     return metrics.snapshot()["counters"]
 
 
 def reset_metrics():
-    from services.metrics import metrics
+    from services.web.metrics import metrics
     metrics.reset()
     return metrics
 
@@ -612,14 +609,14 @@ def test_every_route_is_counted(svc, msg, route):
 
 def test_early_reply_and_generated_counted_separately(svc):
     reset_metrics()
-    with patch("services.chat_service.requests.post") as post:
+    with patch("services.chat.llm_client.requests.post") as post:
         list(svc.chat_stream("高雄有哪些避難所"))
     assert post.call_count == 0
     c = counters()
     assert (c["chat.answer.early_reply"], c["chat.answer.generated"]) == (1, 0)
 
     reset_metrics()
-    with patch("services.chat_service.requests.post", return_value=FakeStream(ndjson("甲"))):
+    with patch("services.chat.llm_client.requests.post", return_value=FakeStream(ndjson("甲"))):
         list(svc.chat_stream("宜蘭有哪些避難所"))
     c = counters()
     assert (c["chat.answer.early_reply"], c["chat.answer.generated"]) == (0, 1)
@@ -634,7 +631,7 @@ def test_early_reply_and_generated_counted_separately(svc):
 def test_generation_failure_modes_counted_separately(svc, stream, outcome):
     # 吐了一半才斷、一個字都沒吐、連線正常但模型沒給字，處理方式不同，不能混成一個數字
     reset_metrics()
-    with patch("services.chat_service.requests.post", return_value=stream()):
+    with patch("services.chat.llm_client.requests.post", return_value=stream()):
         list(svc.chat_stream("宜蘭有哪些避難所"))
     assert counters()[f"chat.generation.{outcome}"] == 1
 
@@ -642,8 +639,8 @@ def test_generation_failure_modes_counted_separately(svc, stream, outcome):
 def test_each_answer_logs_one_parsable_summary(svc, caplog):
     import logging
     reset_metrics()
-    with caplog.at_level(logging.INFO, logger="services.chat_service"):
-        with patch("services.chat_service.requests.post", return_value=FakeStream(ndjson("甲避難所"))):
+    with caplog.at_level(logging.INFO, logger="services.chat.service"):
+        with patch("services.chat.llm_client.requests.post", return_value=FakeStream(ndjson("甲避難所"))):
             list(svc.chat_stream("宜蘭有哪些避難所"))
     line = next(r.getMessage() for r in caplog.records if r.getMessage().startswith("chat "))
     for field in ("route=rag", "source=generated", "outcome=ok", "reply_chars=4"):
@@ -654,14 +651,14 @@ def test_each_answer_logs_one_parsable_summary(svc, caplog):
 def test_failed_generations_are_sampled_too(svc):
     # 只取樣成功的請求會把 p95 偷偷修掉
     m = reset_metrics()
-    with patch("services.chat_service.requests.post", side_effect=ConnectionError("down")):
+    with patch("services.chat.llm_client.requests.post", side_effect=ConnectionError("down")):
         list(svc.chat_stream("宜蘭有哪些避難所"))
     assert m.snapshot()["latency_ms"]["chat.generated"]["count"] == 1
 
 
 def test_display_name_is_the_same_function_as_the_index_side():
     # 以前 REGION_TAG_PATTERN 在 chat_service 與 shelter_profile 各定義一次，寫法還不一樣
-    from services.shelter_profile import strip_region_tag
+    from services.retrieval.shelter_profile import strip_region_tag
     assert display_name is strip_region_tag
 
 
@@ -699,7 +696,7 @@ def test_off_topic_questions_are_declined_before_retrieval(svc, msg, topic):
     依設計被跳過，所以「宜蘭的超商在哪」原本會拿到 20 筆避難所——邊界題評測實測
     LLM 這條最後防線只攔住 13 題裡的 4 題，問超商真的會得到避難所清單。
     """
-    with patch("services.chat_service.requests.post") as post:
+    with patch("services.chat.llm_client.requests.post") as post:
         context, early = svc.build_context(msg)
     assert context is None
     assert topic in early
@@ -732,10 +729,10 @@ def test_nonexistent_shelter_gets_a_fixed_reply_without_llm(svc):
     llama3.2:3b 實測會替不存在的「頭城國中」編出容量與地址（其實是頭城國小的資料），
     連「請先告知使用者沒有完全符合條件」的標頭都不照做，所以這裡不能進生成
     """
-    from evals.gen_metrics import is_abstention
+    from evals.lib.gen_metrics import is_abstention
 
     svc.vector_store.shelter_metadata.return_value = SHELTER_META
-    with patch("services.chat_service.requests.post") as post:
+    with patch("services.chat.llm_client.requests.post") as post:
         context, early = svc.build_context("頭城國中在哪裡")
     assert context is None
     assert early.startswith("查無「頭城國中」")
@@ -788,10 +785,10 @@ def test_typo_is_corrected_before_retrieval(svc):
 
 
 def test_typo_note_comes_first_and_prompt_uses_the_real_name(svc):
-    from evals.gen_metrics import is_abstention
+    from evals.lib.gen_metrics import is_abstention
 
     svc.vector_store.shelter_metadata.return_value = TYPO_META
-    with patch("services.chat_service.requests.post", return_value=FakeStream(ndjson("濤強國小：容量 300 人"))) as post:
+    with patch("services.chat.llm_client.requests.post", return_value=FakeStream(ndjson("濤強國小：容量 300 人"))) as post:
         reply = svc.chat("涙強國小還有空位嗎")
     assert reply.startswith("（找不到「涙強國小」，以下是名稱最接近的「濤強國小」的資料）\n")
     assert reply.endswith("濤強國小：容量 300 人")
@@ -803,10 +800,10 @@ def test_typo_note_comes_first_and_prompt_uses_the_real_name(svc):
 
 def test_question_without_any_shelter_clue_gets_the_fixed_reply(svc):
     """借錢、洗衣服這類問題：離題黑名單攔不到、距離在門檻內，交給模型會列出一串避難所"""
-    from services.chat_service import NO_RELEVANT_REPLY
+    from services.chat.replies import NO_RELEVANT_REPLY
 
     svc.vector_store.shelter_metadata.return_value = SHELTER_META
-    with patch("services.chat_service.requests.post") as post:
+    with patch("services.chat.llm_client.requests.post") as post:
         context, early = svc.build_context("有沒有可以借錢的地方")
     assert (context, early) == (None, NO_RELEVANT_REPLY)
     post.assert_not_called()
@@ -910,7 +907,7 @@ def test_near_hazard_shelters_are_warned_but_still_destinations(svc):
     assert "未列為疏散目的地" not in context
 
     # 警告也由程式補在回答最後
-    with patch("services.chat_service.requests.post", return_value=FakeStream(ndjson("南山國小分配 120 人"))):
+    with patch("services.chat.llm_client.requests.post", return_value=FakeStream(ndjson("南山國小分配 120 人"))):
         reply = svc.chat("這次模擬每間避難所分配了多少人？")
     assert reply.endswith("豪雨期間請留意：南山國小（距土石流潛勢溪流影響範圍 宜縣DF079 約 121 公尺）。")
 
@@ -923,12 +920,12 @@ def test_excluded_shelters_are_appended_by_code_on_simulation_answers(svc):
         "evacuation": {"assigned": {}, "placed": 0, "unplaced": 0,
                        "excluded": {"[YILAN] 澳花國小": ["宜縣DF139"]}, "hazard": "debris_flow"},
     })
-    with patch("services.chat_service.requests.post", return_value=FakeStream(ndjson("澳花國小：剩餘空間 150 人"))):
+    with patch("services.chat.llm_client.requests.post", return_value=FakeStream(ndjson("澳花國小：剩餘空間 150 人"))):
         reply = svc.chat("這次模擬有沒有避難所被排除？")
     assert reply.endswith("本次未列為疏散目的地：澳花國小（宜縣DF139）。")
 
     # 一般檢索的回答不附加
-    with patch("services.chat_service.requests.post", return_value=FakeStream(ndjson("中正國小"))):
+    with patch("services.chat.llm_client.requests.post", return_value=FakeStream(ndjson("中正國小"))):
         assert svc.chat("避難所有提供飲水嗎") == "中正國小"
 
 
@@ -961,13 +958,13 @@ def test_stream_drops_lines_naming_shelters_outside_the_context(svc):
     svc.vector_store.shelter_metadata.return_value = [{"name": "[HUALIEN] 新城社區活動中心"}]
     svc.vector_store.search.return_value = "- 新城社區活動中心是花蓮地區的避難收容場所，容量 23 人。"
     reply = ndjson("新城社區活動中心：容量 23 人。\n", "花蓮社區活動中心：容量 50 人。\n", "宜蘭社區活動中心", "：容量 30 人。")
-    with patch("services.chat_service.requests.post", return_value=FakeStream(reply)):
+    with patch("services.chat.llm_client.requests.post", return_value=FakeStream(reply)):
         text = svc.chat("新城社區活動中心")
     assert text == "新城社區活動中心：容量 23 人。"
 
 
 def test_filter_lines_keeps_prefixes_of_real_names_and_never_returns_empty():
-    from services.answer_guard import filter_lines
+    from services.chat.answer_guard import filter_lines
     names = ["礁溪鄉公所二樓", "和平社區活動中心"]
     kept, dropped = filter_lines("1. 礁溪鄉公所：容量 38 人\n2. 和平社區活動中心：40 人\n3. 宜蘭社區活動中心：30 人", names)
     assert dropped == ["3. 宜蘭社區活動中心：30 人"] and "礁溪鄉公所" in kept
@@ -977,7 +974,7 @@ def test_filter_lines_keeps_prefixes_of_real_names_and_never_returns_empty():
 
 def test_guard_ignores_road_names_and_tai_variants():
     """生成評測實測的誤擋：地址裡的「女中路」被當成場所名稱、「台東大學」對不上「國立臺東大學」"""
-    from services.answer_guard import filter_lines
+    from services.chat.answer_guard import filter_lines
     names = ["三聖宮", "國立臺東大學"]
     text = "三聖宮：宜蘭市女中路一段148號，容量85人。\n台東大學：卑南鄉，容量 50 人。\n宜蘭社區活動中心：30 人"
     kept, dropped = filter_lines(text, names)

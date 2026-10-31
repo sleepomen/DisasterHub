@@ -9,10 +9,10 @@ import pytest
 
 from models.shelter import NearbyShelter, Shelter
 from repositories.shelter_repository import FRACTION_EPS, RoadPath, ShelterRepository
-from services.evacuation import Origin
-from services.routing import attach_evacuation_paths, evacuation_road_distances, nearest_by_road
+from services.geo.routing import attach_evacuation_paths, evacuation_road_distances, nearest_by_road
+from services.simulation.evacuation import Origin
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
+ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
 
 from build_road_network import (  # noqa: E402
@@ -208,7 +208,7 @@ def test_unchanged_network_is_not_reimported():
 
 
 def test_road_sync_failure_never_breaks_shelter_sync():
-    from services.sync_service import DataSyncService
+    from services.ingest.sync import DataSyncService
 
     svc = DataSyncService.__new__(DataSyncService)
     svc.repository = MagicMock()

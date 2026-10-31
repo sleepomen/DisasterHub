@@ -1,4 +1,4 @@
-from evals.faithfulness import (
+from evals.lib.faithfulness import (
     drop_target,
     integers_in,
     pick_counterfactual,
@@ -7,9 +7,9 @@ from evals.faithfulness import (
     swap_number,
     target_line_index,
 )
-from evals.gen_metrics import build_catalog
+from evals.lib.gen_metrics import build_catalog
 from models.shelter import Shelter
-from services.vector_store import ALIAS_PATTERN, Hit, VectorStore
+from services.retrieval.vector_store import ALIAS_PATTERN, Hit, VectorStore
 
 SHELTERS = [
     Shelter("[YILAN] 宜蘭國小", 500, 24.7, 121.7, 0, "宜蘭縣宜蘭市崇聖街2號"),

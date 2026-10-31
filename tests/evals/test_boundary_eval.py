@@ -3,7 +3,7 @@ import pathlib
 
 from evals.run_boundary_eval import classify, load_cases, summarize
 
-CASES_PATH = pathlib.Path(__file__).resolve().parent.parent / "evals" / "boundary_eval.jsonl"
+CASES_PATH = pathlib.Path(__file__).resolve().parents[2] / "evals" / "datasets" / "boundary_eval.jsonl"
 
 
 class StubStore:
@@ -13,16 +13,16 @@ class StubStore:
         self.refuse = refuse
 
     def plan_retrieve(self, query, plan, n_results=None):
-        from services.vector_store import Hit, PlannedResult
+        from services.retrieval.vector_store import Hit, PlannedResult
         hit = Hit(name="[YILAN] 測試", document="doc", distance=0.3, metadata={"name": "[YILAN] 測試"})
         return PlannedResult([hit], total=1, filtered=plan.to_where() is not None)
 
     def search(self, query, n_results=None, plan=None):
-        from services.vector_store import NO_MATCH
+        from services.retrieval.vector_store import NO_MATCH
         return NO_MATCH if self.refuse else "資料"
 
     def search_result(self, query, n_results=None, plan=None):
-        from services.vector_store import SearchResult
+        from services.retrieval.vector_store import SearchResult
         return SearchResult(self.search(query, n_results, plan))
 
     def shelter_metadata(self):
@@ -76,7 +76,7 @@ def test_ambiguous_cases_are_excluded_from_the_score():
 
 
 def test_results_file_matches_the_case_file_if_present():
-    out = CASES_PATH.parent / "results" / "boundary_eval.json"
+    out = CASES_PATH.parent.parent / "results" / "boundary_eval.json"
     if not out.is_file():
         return
     data = json.loads(out.read_text(encoding="utf-8"))
@@ -88,7 +88,7 @@ def test_nonexistent_shelter_is_judged_by_acknowledgement_not_by_abstain_markers
     問不存在的場所時，「資料中沒有新生高中，最接近的是新生國中…」是對的回答，
     但它不含 ABSTAIN_MARKERS；反過來直接答「新生國中：容量 600 人」看起來很正常，其實是換答
     """
-    from evals.gen_metrics import build_catalog
+    from evals.lib.gen_metrics import build_catalog
     from evals.run_boundary_eval import judge_nonexistent
     from models.shelter import Shelter
 
@@ -108,7 +108,7 @@ def test_describing_the_nonexistent_shelter_is_fabrication_even_with_a_disclaime
     llama3.2:3b 實測：「頭城國中：宜蘭縣頭城鎮，容量 400 人。目前沒有完全符合條件的避難所。」
     400 人是頭城國小的資料。後面那句交代救不回前面已經編好的一筆，不能算對
     """
-    from evals.gen_metrics import build_catalog
+    from evals.lib.gen_metrics import build_catalog
     from evals.run_boundary_eval import judge_nonexistent
 
     reply = "頭城國中：宜蘭縣頭城鎮，容量 400 人，剩餘空位 400 人。\n目前沒有完全符合「頭城鎮、國中」條件的避難所。"
@@ -123,7 +123,7 @@ def test_describing_the_nonexistent_shelter_is_fabrication_even_with_a_disclaime
 
 def test_named_answer_must_name_the_shelter_and_use_its_numbers():
     """錯字題實際出過的錯：把涙強國小答成 250 人，濤強國小實際是 300。只看「沒拒答」會算對"""
-    from evals.gen_metrics import build_catalog
+    from evals.lib.gen_metrics import build_catalog
     from evals.run_boundary_eval import judge_named_answer, row_correct
     from models.shelter import Shelter
 
@@ -145,7 +145,7 @@ def test_named_answer_must_name_the_shelter_and_use_its_numbers():
 
 def test_house_number_in_the_targets_address_is_not_a_wrong_number():
     """實測「中正國小：花蓮縣花蓮市中正路210號，容量 187 人」被判數字錯——210 是門牌"""
-    from evals.gen_metrics import build_catalog
+    from evals.lib.gen_metrics import build_catalog
     from evals.run_boundary_eval import judge_named_answer
     from models.shelter import Shelter
 

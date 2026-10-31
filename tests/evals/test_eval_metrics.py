@@ -1,4 +1,4 @@
-from evals.metrics import (
+from evals.lib.metrics import (
     aggregate,
     hit_at_k,
     percentile,

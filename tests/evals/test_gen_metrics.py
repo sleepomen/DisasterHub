@@ -1,4 +1,4 @@
-from evals.gen_metrics import (
+from evals.lib.gen_metrics import (
     build_catalog,
     format_issues,
     integers_in,
@@ -109,7 +109,7 @@ def test_score_negative_case():
 
 
 def test_echoed_query_words_and_numbers_are_not_penalised():
-    from evals.gen_metrics import asks_capacity
+    from evals.lib.gen_metrics import asks_capacity
     # 「縣立體育館」是使用者自己問的，回覆複述它不算編造；問題裡的 500 也不算未支持的數字
     reply = "縣立體育館的資訊如下：台東縣立體育館容量 2000 人。超過 500 人的只有這一間。"
     s = score_reply(reply, ["[TAITUNG] 台東縣立體育館"], "- 台東縣立體育館容量 2000 人", CATALOG,
@@ -138,7 +138,7 @@ def test_truncation_is_recorded():
 
 def test_prefix_of_a_real_official_name_is_not_invented():
     """「礁溪鄉公所二樓」被字尾規則切成「礁溪鄉公所」：真實名稱的前段不算編造"""
-    from evals.gen_metrics import build_catalog, suspected_invented_names
+    from evals.lib.gen_metrics import build_catalog, suspected_invented_names
     from models.shelter import Shelter
     catalog = build_catalog([Shelter("[YILAN] 礁溪鄉公所二樓", 38, 24.8, 121.77)])
     assert suspected_invented_names("礁溪鄉公所二樓：容量 38 人", catalog) == []
@@ -146,7 +146,7 @@ def test_prefix_of_a_real_official_name_is_not_invented():
 
 
 def test_official_name_with_latin_letters_is_not_a_format_issue():
-    from evals.gen_metrics import build_catalog, format_issues
+    from evals.lib.gen_metrics import build_catalog, format_issues
     from models.shelter import Shelter
     catalog = build_catalog([Shelter("[TAITUNG] F Hotel", 30, 22.75, 121.15)])
     assert format_issues("F Hotel：卑南鄉，容量 30 人", catalog) == []

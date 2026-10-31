@@ -1,4 +1,4 @@
-from services.rate_limit import RateLimiter
+from services.web.rate_limit import RateLimiter
 
 
 def test_allows_up_to_the_limit_then_blocks():

@@ -3,7 +3,7 @@ import pathlib
 import sys
 from unittest.mock import MagicMock
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
+ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
 
 from build_hazard_zones import signed_area, to_multipolygon, twd97_to_wgs84  # noqa: E402
@@ -42,7 +42,7 @@ def test_bundled_geojson_covers_the_three_east_counties():
 
 
 def test_hazard_sync_failure_never_breaks_shelter_sync():
-    from services.sync_service import DataSyncService
+    from services.ingest.sync import DataSyncService
 
     svc = DataSyncService.__new__(DataSyncService)
     svc.repository = MagicMock()

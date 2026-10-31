@@ -1,10 +1,10 @@
 """程式直接排好的避難所回答：清單、排名、概況、點名、篩選落空"""
 from unittest.mock import MagicMock, patch
 
-from services import query_rules
-from services.chat_service import ChatService
-from services.direct_answer import compose, shelter_detail, shelter_line
-from services.vector_store import Hit, PlannedResult, SearchResult
+from services.chat import query_rules
+from services.chat.direct_answer import compose, shelter_detail, shelter_line
+from services.chat.service import ChatService
+from services.retrieval.vector_store import Hit, PlannedResult, SearchResult
 
 
 def meta(name, township="花蓮市", capacity=100, remaining=80, **extra):
@@ -97,7 +97,7 @@ def test_chat_returns_the_direct_answer_without_calling_the_model():
     vs.search_result.return_value = SearchResult("給模型的資料", direct)
     vs.shelter_metadata.return_value = []
     svc = ChatService(vs, None)
-    with patch("services.chat_service.requests.post") as post:
+    with patch("services.chat.llm_client.requests.post") as post:
         text = svc.chat("花蓮市有哪些避難所")
     post.assert_not_called()
     assert text.endswith("中華國小：花蓮市，容量 100 人，剩餘空位 80 人")
@@ -105,13 +105,13 @@ def test_chat_returns_the_direct_answer_without_calling_the_model():
 
 def test_mixed_question_shelter_half_is_direct_too():
     """知識原文＋程式排好的避難所清單＋出處：整題都不打模型"""
-    from tests.test_knowledge import CHUNK, FakeKnowledge
+    from tests.retrieval.test_knowledge import CHUNK, FakeKnowledge
     vs = MagicMock()
     direct = "符合「富里鄉」的避難所共 1 筆：\n- 富里國小：富里鄉，容量 120 人，剩餘空位 120 人"
     vs.search_result.return_value = SearchResult("資料", direct)
     vs.shelter_metadata.return_value = []
     svc = ChatService(vs, None, knowledge=FakeKnowledge())
-    with patch("services.chat_service.requests.post") as post:
+    with patch("services.chat.llm_client.requests.post") as post:
         text = svc.chat("土石流紅色警戒要準備什麼，富里鄉有哪些避難所")
     post.assert_not_called()
     assert text.index(CHUNK.text) < text.index("富里國小：富里鄉") < text.index("資料來源：")

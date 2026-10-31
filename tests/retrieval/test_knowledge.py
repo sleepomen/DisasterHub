@@ -4,17 +4,13 @@ from unittest.mock import MagicMock, patch
 import chromadb
 import pytest
 
-from services import query_rules
-from services.chat_service import (
-    KNOWLEDGE_HEADER,
-    KNOWLEDGE_UNAVAILABLE,
-    NO_KNOWLEDGE_REPLY,
-    NO_RELEVANT_REPLY,
-    SHELTER_HEADER,
-    ChatService,
-)
-from services.knowledge import (
+from services.chat import query_rules
+from services.chat.replies import KNOWLEDGE_UNAVAILABLE, NO_KNOWLEDGE_REPLY, NO_RELEVANT_REPLY
+from services.chat.service import ChatService
+from services.retrieval.knowledge import (
     HAZARDS,
+    KNOWLEDGE_HEADER,
+    SHELTER_HEADER,
     KnowledgeChunk,
     KnowledgeFormatError,
     KnowledgeHit,
@@ -23,7 +19,7 @@ from services.knowledge import (
     parse_file,
     sources_text,
 )
-from tests.test_chat_service import FakeRepo, FakeStream, ndjson, text_only
+from tests.chat.test_chat_service import FakeRepo, FakeStream, ndjson, text_only
 
 SAMPLE = """# 颱風
 
@@ -219,7 +215,7 @@ def test_knowledge_question_is_answered_with_the_passage_itself():
 
 def test_knowledge_answer_never_calls_the_model():
     svc = make_service(FakeKnowledge())
-    with patch("services.chat_service.requests.post") as post:
+    with patch("services.chat.llm_client.requests.post") as post:
         text = svc.chat("土石流紅色警戒是什麼意思")
     post.assert_not_called()
     assert text.startswith("■ 土石流黃色警戒") and "https://246.ardswc.gov.tw" in text
@@ -265,7 +261,7 @@ def test_mixed_prompt_gives_the_model_only_the_shelter_half():
 def test_mixed_stream_sends_passage_then_shelters_then_sources():
     svc = make_service(FakeKnowledge())
     reply = ndjson("富里國小：富里鄉，容量 120 人。\n")
-    with patch("services.chat_service.requests.post", return_value=FakeStream(reply)):
+    with patch("services.chat.llm_client.requests.post", return_value=FakeStream(reply)):
         text = svc.chat("土石流紅色警戒要準備什麼，富里鄉有哪些避難所")
     passage = text.index(CHUNK.text)
     shelters = text.index("富里國小：富里鄉")
@@ -291,7 +287,7 @@ def test_fixed_replies_have_no_sources():
 
 
 def test_no_knowledge_reply_counts_as_an_abstention():
-    from evals.gen_metrics import is_abstention
+    from evals.lib.gen_metrics import is_abstention
     assert is_abstention(NO_KNOWLEDGE_REPLY)
     assert NO_RELEVANT_REPLY != NO_KNOWLEDGE_REPLY
 
@@ -324,7 +320,7 @@ def test_mixed_question_searches_knowledge_with_the_how_to_clause_only():
 def test_mixed_question_asking_for_nearby_shelters_gets_passage_and_coordinate_request():
     """避難所那半句單獨看就是「附近收容所還有空位嗎」：要座標，不能交給模型憑空列避難所"""
     svc = make_service(FakeKnowledge())
-    with patch("services.chat_service.requests.post") as post:
+    with patch("services.chat.llm_client.requests.post") as post:
         text = svc.chat("土石流紅色警戒要準備什麼，附近收容所還有空位嗎")
     post.assert_not_called()
     assert text.index(CHUNK.text) < text.index("請提供您的座標") < text.index("資料來源：")
@@ -355,7 +351,7 @@ def test_failed_build_is_retried_but_not_on_every_question(tmp_path):
         assert s.status() == (False, "not built")
         # 剛失敗：間隔內不重試，不會每一題都去打 embedding
         assert s.ensure_ready() is False and ef.calls == 1
-        with patch("services.knowledge.time.monotonic", return_value=10**9):
+        with patch("services.retrieval.knowledge.time.monotonic", return_value=10**9):
             assert s.ensure_ready() is True
         assert s.status() == (True, "2 passages")
     finally:

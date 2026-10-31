@@ -5,10 +5,10 @@ import pytest
 
 from models.shelter import Shelter
 from repositories.shelter_repository import CAUTION_FACTOR, ShelterRepository
-from services.chat_service import route_lines
-from services.evacuation import Origin, plan_evacuation
-from services.hazard_alerts import AlertFormatError, parse_debris_alerts, refresh_alerts
-from tests.test_routing import fake_repo_cursor
+from services.geo.hazard_alerts import AlertFormatError, parse_debris_alerts, refresh_alerts
+from services.simulation.evacuation import Origin, plan_evacuation
+from services.simulation.text import route_lines
+from tests.geo.test_routing import fake_repo_cursor
 
 # 來源沒有警戒時回傳的佔位資料（2026-10-30 實際抓到的內容）
 NO_ALERT = [{
@@ -50,7 +50,7 @@ def test_unexpected_payload_is_an_error_not_an_empty_list(payload):
 def test_refresh_replaces_all_alerts_of_the_source():
     repo = MagicMock()
     repo.replace_alerts.return_value = 1
-    with patch("services.hazard_alerts.fetch_debris_alerts", return_value=[{"ref_no": "宜縣DF115", "level": "red"}]):
+    with patch("services.geo.hazard_alerts.fetch_debris_alerts", return_value=[{"ref_no": "宜縣DF115", "level": "red"}]):
         assert refresh_alerts(repo) == 1
     source, hazard_type, alerts, ttl = repo.replace_alerts.call_args.args
     assert hazard_type == "debris_flow" and alerts[0]["ref_no"] == "宜縣DF115" and ttl > 0
@@ -58,7 +58,7 @@ def test_refresh_replaces_all_alerts_of_the_source():
 
 def test_failed_fetch_keeps_the_previous_alerts():
     repo = MagicMock()
-    with patch("services.hazard_alerts.fetch_debris_alerts", side_effect=OSError("timeout")):
+    with patch("services.geo.hazard_alerts.fetch_debris_alerts", side_effect=OSError("timeout")):
         with pytest.raises(OSError):
             refresh_alerts(repo)
     repo.replace_alerts.assert_not_called()
