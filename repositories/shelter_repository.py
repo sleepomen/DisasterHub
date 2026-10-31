@@ -10,6 +10,7 @@ from psycopg2.pool import PoolError, ThreadedConnectionPool
 
 import config
 from models.shelter import NearbyShelter, Shelter
+from models.travel import DEFAULT_DRIVE_KMH, DRIVE_KMH, TRAVEL_MODES, WALK_MPS
 
 MAX_RETRIES = 3
 RETRY_DELAY = 2  # 秒
@@ -174,10 +175,18 @@ CAUTION_FACTOR = 5.0
 
 
 class RoadPath(NamedTuple):
-    """一條實際路線：距離（公尺）、其中仍經過災害範圍的長度、路上那段的 encoded polyline"""
+    """
+    一條實際路線：距離（公尺）、其中仍經過災害範圍的長度、路上那段的 encoded polyline、
+    開車沿這條路要幾秒（走到路上、離開道路的兩小段用步行速度）。步行時間就是 meters / WALK_MPS
+    """
     meters: float
     hazard_m: float
     polyline: str
+    drive_s: float = 0.0
+
+    @property
+    def walk_s(self) -> float:
+        return self.meters / WALK_MPS
 
 SELECT_COLUMNS = (
     "name, capacity, current_ppl, ST_Y(geom::geometry), ST_X(geom::geometry), COALESCE(address, ''), "
@@ -612,12 +621,14 @@ class ShelterRepository:
     def road_distances(
         self, origins: list[tuple[float, float]], targets: list[tuple[float, float]],
         snap_m: float = ROAD_SNAP_M, origin_snap_m: float | None = None, hazard: str | None = None,
+        mode: str = "walk",
     ) -> dict[tuple[int, int], float | None]:
         """
-        起點 × 終點的路線成本（公尺），key 是 (起點序號, 終點序號)，座標是 (lat, lon)。
-        成本＝起點走到最近道路＋沿路網的最短路徑＋終點離開道路的那一段。路上那段每條邊依災害範圍加權
-        （見 _weights_sql）：沒有警戒、也沒指定 hazard 時，成本就是道路距離。
-        排序用這個成本；加權之後它不再是公尺數，實際走多遠由 road_paths 算。
+        起點 × 終點的路線成本（秒），key 是 (起點序號, 終點序號)，座標是 (lat, lon)。
+        成本＝起點走到最近道路＋沿路網的最短路徑＋終點離開道路的那一段，依 mode 換算成時間
+        （步行或開車，見 models/travel.py；頭尾兩小段一律步行）。路上那段每條邊再依災害範圍加權
+        （見 _weights_sql）：沒有警戒、也沒指定 hazard 時，成本就是實際的通行時間。
+        排序用這個成本；實際距離與時間由 road_paths 算。
 
         值是 None 代表到不了：兩端都吸附到道路，整個路網卻找不到不經過封閉道路的路徑。
         吸附不到道路（終點離路超過 snap_m、起點超過 origin_snap_m，沒給就跟 snap_m 一樣）的組合
@@ -631,7 +642,7 @@ class ShelterRepository:
                 snaps, starts, ends = self._snap(cursor, origins, targets, snap_m, origin_snap_m)
                 if not starts or not ends:
                     return {}
-                routed = self._route_costs(cursor, points, snaps, starts, ends, hazard, bounded=True)
+                routed = self._route_costs(cursor, points, snaps, starts, ends, hazard, mode, bounded=True)
                 missing = [
                     (i, k) for i in starts for k in ends
                     if (i, k) not in routed and snaps[i][:2] != snaps[k][:2]
@@ -640,7 +651,9 @@ class ShelterRepository:
                     # 繞開封閉道路的路線可能走出起訖點周圍的子圖：只對算不出來的組合，用整個路網再算一次
                     retry_starts = sorted({i for i, _ in missing})
                     retry_ends = sorted({k for _, k in missing})
-                    routed |= self._route_costs(cursor, points, snaps, retry_starts, retry_ends, hazard, bounded=False)
+                    routed |= self._route_costs(
+                        cursor, points, snaps, retry_starts, retry_ends, hazard, mode, bounded=False,
+                    )
         except Exception as e:
             raise RuntimeError(f"road_distances 失敗：{e}") from e
 
@@ -651,18 +664,22 @@ class ShelterRepository:
                 # 起訖吸附到同一個位置時 pgRouting 不回傳這一組，路上距離就是 0
                 if cost is None and snaps[i][:2] == snaps[k][:2]:
                     cost = 0.0
-                result[(i, k - len(origins))] = None if cost is None else cost + snaps[i][2] + snaps[k][2]
+                off_road = (snaps[i][2] + snaps[k][2]) / WALK_MPS
+                result[(i, k - len(origins))] = None if cost is None else cost + off_road
         return result
 
     def road_paths(
         self, origins: list[tuple[float, float]], targets: list[tuple[float, float]], pairs: list[tuple[int, int]],
         snap_m: float = ROAD_SNAP_M, origin_snap_m: float | None = None, hazard: str | None = None,
+        mode: str = "walk",
     ) -> dict[tuple[int, int], RoadPath]:
         """
         指定的 (起點序號, 終點序號) 組合沿路網的實際路線。回傳 RoadPath：
           meters    實際距離（公尺），含走到路上、離開道路的兩小段，沒有加權
           hazard_m  路上那段裡仍經過災害範圍（潛勢範圍或警戒範圍）的長度
           polyline  路上那段的 encoded polyline（precision 5，lat/lon），頭尾兩小段由畫圖的一方補直線
+          drive_s   開車沿這條路的秒數（頭尾兩小段步行）
+        路線依 mode 選：步行選最短的，開車選最快的
         吸附、子圖範圍、加權都跟 road_distances 一樣，畫出來的就是排序用的那一條。到不了的組合不在結果裡
         """
         if not pairs:
@@ -675,19 +692,20 @@ class ShelterRepository:
                 wanted = [(i, n + j) for i, j in pairs if i in starts and n + j in ends]
                 if not wanted:
                     return {}
-                found = self._route_paths(cursor, points, snaps, wanted, hazard, bounded=True)
+                found = self._route_paths(cursor, points, snaps, wanted, hazard, mode, bounded=True)
                 missing = [pair for pair in wanted if pair not in found]
                 if missing:
-                    found |= self._route_paths(cursor, points, snaps, missing, hazard, bounded=False)
+                    found |= self._route_paths(cursor, points, snaps, missing, hazard, mode, bounded=False)
         except Exception as e:
             raise RuntimeError(f"road_paths 失敗：{e}") from e
-        return {
-            (i, k - n): RoadPath(meters + snaps[i][2] + snaps[k][2], hazard_m, polyline)
-            for (i, k), (meters, hazard_m, polyline) in found.items()
-        }
+        result = {}
+        for (i, k), (meters, hazard_m, polyline, drive_s) in found.items():
+            off_road = snaps[i][2] + snaps[k][2]
+            result[(i, k - n)] = RoadPath(meters + off_road, hazard_m, polyline, drive_s + off_road / WALK_MPS)
+        return result
 
-    def _route_costs(self, cursor, points, snaps, starts, ends, hazard, bounded: bool) -> dict:
-        edges_sql, points_sql = self._routing_sql(points, snaps, starts + ends, starts, hazard, bounded)
+    def _route_costs(self, cursor, points, snaps, starts, ends, hazard, mode, bounded: bool) -> dict:
+        edges_sql, points_sql = self._routing_sql(points, snaps, starts + ends, starts, hazard, mode, bounded)
         cursor.execute(
             """
             SELECT start_pid, end_pid, agg_cost
@@ -697,25 +715,26 @@ class ShelterRepository:
         )
         return {(abs(s) - 1, abs(e) - 1): float(cost) for s, e, cost in cursor.fetchall()}
 
-    def _route_paths(self, cursor, points, snaps, wanted, hazard, bounded: bool) -> dict:
+    def _route_paths(self, cursor, points, snaps, wanted, hazard, mode, bounded: bool) -> dict:
         used = sorted({p for pair in wanted for p in pair})
         starts = sorted({i for i, _ in wanted})
-        edges_sql, points_sql = self._routing_sql(points, snaps, used, starts, hazard, bounded)
+        edges_sql, points_sql = self._routing_sql(points, snaps, used, starts, hazard, mode, bounded)
         values = ", ".join(f"({-(i + 1)}, {-(k + 1)})" for i, k in wanted)
         combinations_sql = f"SELECT * FROM (VALUES {values}) AS c(source, target)"
-        cursor.execute(self.PATH_SQL.format(weights=self._weights_sql(hazard)), (
+        cursor.execute(self.PATH_SQL.format(weights=self._weights_sql(hazard), drive_mps=self._drive_mps_sql()), (
             [i + 1 for i in used], [snaps[i][1] for i in used],
             edges_sql, points_sql, combinations_sql, PATH_SIMPLIFY_DEG,
         ))
         return {
-            (abs(s) - 1, abs(e) - 1): (float(meters), float(hazard_m), polyline)
-            for s, e, meters, hazard_m, polyline in cursor.fetchall()
+            (abs(s) - 1, abs(e) - 1): (float(meters), float(hazard_m), polyline, float(drive_s))
+            for s, e, meters, hazard_m, polyline, drive_s in cursor.fetchall()
         }
 
     # 把 pgr_withPoints 走過的邊接成一條線。吸附點在路徑上是負的節點編號，所在的那條邊只走一部分：
     # 每一步依「從哪個節點、到哪個節點」換算成邊上的位置（端點 0 或 1、吸附點用它的 fraction），
     # 用 ST_LineSubstring 切出那一段；逆著邊的方向走就反轉，整條線才是從起點連到終點。
-    # 實際距離用 roads.cost（原始長度）乘上走過的比例；受限的邊再乘上落在範圍內的比例，加總成 hazard_m
+    # 實際距離用 roads.cost（原始長度）乘上走過的比例；受限的邊再乘上落在範圍內的比例，加總成 hazard_m；
+    # 開車秒數依道路等級的速度另外加總（步行秒數就是距離除以步行速度，不必在 SQL 算）
     PATH_SQL = """
         WITH pts AS (
             SELECT * FROM unnest(%s::bigint[], %s::float8[]) AS p(pid, fraction)
@@ -725,6 +744,7 @@ class ShelterRepository:
             FROM pgr_withPoints(%s, %s, %s, directed := false)
         ), w AS ({weights}), seg AS (
             SELECT path.start_pid, path.end_pid, path.path_seq, r.geom, r.cost AS length,
+                   {drive_mps} AS drive_mps,
                    COALESCE(w.ratio, 0) AS hazard_ratio,
                    CASE WHEN path.node < 0 THEN (SELECT fraction FROM pts WHERE pid = -path.node)
                         WHEN path.node = r.source THEN 0 ELSE 1 END AS f0,
@@ -741,7 +761,8 @@ class ShelterRepository:
                    CASE WHEN f0 < f1 THEN ST_LineSubstring(geom, f0, f1)
                         ELSE ST_Reverse(ST_LineSubstring(geom, f1, f0)) END
                    ORDER BY path_seq
-               ), %s), 5)
+               ), %s), 5),
+               SUM(length * abs(f1 - f0) / drive_mps)
         FROM seg WHERE f0 <> f1
         GROUP BY start_pid, end_pid
     """
@@ -794,17 +815,27 @@ class ShelterRepository:
             f"max(inside_ratio) AS ratio FROM ({union}) x GROUP BY edge_id"
         )
 
+    @staticmethod
+    def _drive_mps_sql() -> str:
+        """這條邊開車的速度（公尺／秒），依 OSM 道路等級"""
+        cases = " ".join(f"WHEN '{highway}' THEN {kmh}" for highway, kmh in DRIVE_KMH.items())
+        return f"(CASE r.highway {cases} ELSE {DEFAULT_DRIVE_KMH} END / 3.6)"
+
     @classmethod
     def _routing_sql(
         cls, points: list[tuple[float, float]], snaps: dict, used: list[int], starts: list[int],
-        hazard: str | None, bounded: bool = True,
+        hazard: str | None, mode: str = "walk", bounded: bool = True,
     ) -> tuple[str, str]:
         """
-        pgRouting 的邊表與吸附點 SQL。bounded 時邊只取這些點外接框（往外擴）內的，不必每次搜整個東部。
+        pgRouting 的邊表與吸附點 SQL。成本是秒：長度除以這種交通方式在這條路上的速度，再依災害範圍加權。
+        bounded 時邊只取這些點外接框（往外擴）內的，不必每次搜整個東部。
         封閉的邊成本給 -1，pgRouting 會當成這條邊不存在。起點所在的那條邊例外：
         人就在警戒範圍裡，正是要往外撤的人，不能因為腳下的路封了就困在原地
         """
         # pgRouting 收的是 SQL 字串；放進去的只有這裡算出來的數字與固定的設定，不是使用者的文字
+        if mode not in TRAVEL_MODES:
+            raise ValueError(f"不支援的交通方式：{mode!r}")
+        speed = str(WALK_MPS) if mode == "walk" else cls._drive_mps_sql()
         open_edges = ", ".join(str(snaps[i][0]) for i in starts) or "0"
         where = ""
         if bounded:
@@ -819,8 +850,8 @@ class ShelterRepository:
         closed = f"w.closed AND r.id NOT IN ({open_edges})"
         edges_sql = (
             "SELECT r.id, r.source, r.target, "
-            f"CASE WHEN {closed} THEN -1 ELSE r.cost * COALESCE(w.factor, 1) END AS cost, "
-            f"CASE WHEN {closed} THEN -1 ELSE r.reverse_cost * COALESCE(w.factor, 1) END AS reverse_cost "
+            f"CASE WHEN {closed} THEN -1 ELSE r.cost / {speed} * COALESCE(w.factor, 1) END AS cost, "
+            f"CASE WHEN {closed} THEN -1 ELSE r.reverse_cost / {speed} * COALESCE(w.factor, 1) END AS reverse_cost "
             f"FROM roads r LEFT JOIN ({cls._weights_sql(hazard)}) w ON w.edge_id = r.id {where}"
         )
         values = ", ".join(f"({i + 1}, {snaps[i][0]}, {snaps[i][1]})" for i in used)
