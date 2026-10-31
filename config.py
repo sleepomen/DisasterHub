@@ -95,6 +95,16 @@ SESSION_SECRET = os.environ.get("SESSION_SECRET", "").strip()
 SESSION_HOURS = _env_float("SESSION_HOURS", 12)
 WRITE_API_KEY = os.environ.get("WRITE_API_KEY", "")
 
+# 即時土石流警戒（農村水保署開放資料），路線用它封閉或繞開警戒範圍內的道路。
+# ALERT_POLL_SECONDS=0 停用（測試與離線環境）；抓取失敗時沿用上一次的警戒，ALERT_TTL_MINUTES 後失效
+DEBRIS_ALERT_URL = os.environ.get(
+    "DEBRIS_ALERT_URL",
+    "https://data.moa.gov.tw/Service/OpenData/TransService.aspx?UnitId=ofvJwoWC5wum&IsTransData=1",
+).strip()
+ALERT_POLL_SECONDS = _env_int("ALERT_POLL_SECONDS", 600)
+ALERT_TTL_MINUTES = _env_int("ALERT_TTL_MINUTES", 180)
+ALERT_FETCH_TIMEOUT = _env_int("ALERT_FETCH_TIMEOUT", 15)
+
 # ChromaDB 落地路徑；留空代表用記憶體索引（測試與本機直跑的預設）
 CHROMA_PATH = os.environ.get("CHROMA_PATH", "").strip()
 
@@ -132,6 +142,10 @@ def _bounds_errors() -> list[str]:
         ("OLLAMA_NUM_CTX", OLLAMA_NUM_CTX, OLLAMA_NUM_CTX >= 1024, "至少要 1024，否則系統提示加資料就放不下"),
         ("OLLAMA_NUM_PREDICT", OLLAMA_NUM_PREDICT, OLLAMA_NUM_PREDICT >= 1, "至少要 1"),
         ("OLLAMA_TEMPERATURE", OLLAMA_TEMPERATURE, 0 <= OLLAMA_TEMPERATURE <= 2, "必須介於 0 到 2"),
+        ("ALERT_POLL_SECONDS", ALERT_POLL_SECONDS, ALERT_POLL_SECONDS == 0 or ALERT_POLL_SECONDS >= 60,
+         "0 代表停用，否則至少 60 秒（來源每幾分鐘才更新一次）"),
+        ("ALERT_TTL_MINUTES", ALERT_TTL_MINUTES, ALERT_TTL_MINUTES >= 1, "至少要 1 分鐘"),
+        ("ALERT_FETCH_TIMEOUT", ALERT_FETCH_TIMEOUT, ALERT_FETCH_TIMEOUT >= 1, "至少要 1 秒"),
     ]
     return [f"{key}={value!r} {reason}" for key, value, ok, reason in checks if not ok]
 
