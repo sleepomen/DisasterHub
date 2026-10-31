@@ -49,3 +49,6 @@ class NearbyShelter:
     unreachable: bool = False
     # 路線仍經過災害警戒範圍的長度（公尺）；找不到更安全的路時才會大於 0
     hazard_m: int = 0
+    # 沿這條路線步行與開車的分鐘數（models/travel.py 的速度假設）
+    walk_min: int | None = None
+    drive_min: int | None = None
