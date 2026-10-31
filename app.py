@@ -20,9 +20,13 @@ from starlette.datastructures import MutableHeaders
 
 import config
 from repositories.shelter_repository import ShelterRepository
-from services import auth, health
-from services.chat_service import ChatService
-from services.evacuation import (
+from services.chat.service import ChatService
+from services.geo.hazard_alerts import poll_alerts
+from services.geo.routing import attach_evacuation_paths, evacuation_road_distances, nearest_by_road
+from services.ingest.sync import HAZARD_FILES, DataSyncService
+from services.retrieval.knowledge import KnowledgeStore
+from services.retrieval.vector_store import VectorStore
+from services.simulation.evacuation import (
     DESIGNATED_HAZARD,
     EXCLUDED_HAZARDS,
     HAZARD_WARN_M,
@@ -31,15 +35,11 @@ from services.evacuation import (
     split_hazard_hits,
     undesignated,
 )
-from services.hazard_alerts import poll_alerts
-from services.knowledge import KnowledgeStore
-from services.map_service import MapService
-from services.metrics import metrics
-from services.population_service import PopulationModel
-from services.rate_limit import RateLimiter
-from services.routing import attach_evacuation_paths, evacuation_road_distances, nearest_by_road
-from services.sync_service import HAZARD_FILES, DataSyncService
-from services.vector_store import VectorStore
+from services.simulation.population import PopulationModel
+from services.web import auth, health
+from services.web.map_service import MapService
+from services.web.metrics import metrics
+from services.web.rate_limit import RateLimiter
 
 # 每一行 log 都帶 request id：一個請求在 docker logs 裡的幾行才能串起來，
 # 使用者回報「剛才那題壞了」時也能直接用回應標頭上的 id 去撈
@@ -295,7 +295,7 @@ class SimulateRequest(BaseModel):
 
 class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=500, description="使用者問題")
-    # 回答語言。英文模式第一階段只翻回答：問題仍以中文最準（services/i18n.py）
+    # 回答語言。英文模式第一階段只翻回答：問題仍以中文最準（services/web/i18n.py）
     lang: Literal["zh", "en"] = "zh"
 
 class OccupancyItem(BaseModel):
