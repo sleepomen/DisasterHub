@@ -549,6 +549,7 @@ def test_nearest_context_ranks_by_road_distance_and_shows_both(svc):
     ]
     # 澳花國小直線比較近，但要繞山；第三間吸附不到道路，只有直線距離
     svc.repo.road_distances.return_value = {(0, 0): 25600.0, (0, 1): 15550.0}
+    svc.repo.road_paths.return_value = {}
     context, early = svc._get_nearest_context(24.40, 121.75)
     lines = context.splitlines()
     assert "依道路距離由近到遠排序" in lines[1]

@@ -66,7 +66,8 @@ class TestMapService(unittest.TestCase):
         row = MapService().to_nearest([nearby])[0]
         self.assertEqual(
             set(row),
-            {"name", "capacity", "current_ppl", "remaining", "lat", "lon", "address", "distance_km", "road_distance_km"},
+            {"name", "capacity", "current_ppl", "remaining", "lat", "lon", "address", "distance_km", "road_distance_km",
+             "unreachable", "hazard_m"},
         )
         self.assertEqual(row["distance_km"], 1.23)
         # 路網算不出來時是 None，不是 0：0 會被當成「就在旁邊」

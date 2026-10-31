@@ -5,6 +5,7 @@ from unittest.mock import patch
 import pytest
 
 from models.shelter import Shelter
+from repositories.shelter_repository import RoadPath
 
 FAKE_SHELTERS = [
     Shelter(name="[HUALIEN] 甲", capacity=100, lat=23.9, lon=121.6, current_people=10),
@@ -42,6 +43,7 @@ def client():
          patch("repositories.shelter_repository.ShelterRepository.get_shelters_in_radius", return_value=[]), \
          patch("repositories.shelter_repository.ShelterRepository.road_distances", return_value={}), \
          patch("repositories.shelter_repository.ShelterRepository.road_paths", return_value={}), \
+         patch("repositories.shelter_repository.ShelterRepository.active_alerts", return_value=[]), \
          patch("repositories.shelter_repository.ShelterRepository.shelter_hazard_distances", return_value={}), \
          patch("repositories.shelter_repository.ShelterRepository.ensure_schema"), \
          patch("repositories.shelter_repository.ShelterRepository.set_occupancy", return_value=0), \
@@ -608,7 +610,7 @@ def test_nearest_shelter_response_shape(client):
     assert body["count"] == 1
     row = body["shelters"][0]
     assert set(row) == {"name", "capacity", "current_ppl", "remaining", "lat", "lon", "address",
-                        "distance_km", "road_distance_km"}
+                        "distance_km", "road_distance_km", "unreachable", "hazard_m"}
     assert (row["distance_km"], row["road_distance_km"], row["remaining"]) == (2.5, 3.14, 280)
 
 
@@ -660,7 +662,7 @@ def test_simulate_assigns_by_road_distance(client):
         Shelter(name="[HUALIEN] 丙", capacity=50000, lat=24.00, lon=121.60, current_people=0),
     ]
     roads = {(i, 0): 30000.0 for i in range(40)} | {(i, 1): 3000.0 for i in range(40)}
-    paths = {(i, 1): f"route{i}" for i in range(40)}
+    paths = {(i, 1): RoadPath(3000.0, 0.0, f"route{i}") for i in range(40)}
     with (
         patch("repositories.shelter_repository.ShelterRepository.get_shelters_in_radius", return_value=impacted),
         patch("repositories.shelter_repository.ShelterRepository.road_distances", return_value=roads),
