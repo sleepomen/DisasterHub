@@ -282,6 +282,8 @@ class SimulateRequest(BaseModel):
     lon: float = Field(..., ge=-180, le=180, description="經度")
     radius: float = Field(..., gt=0, le=100, description="半徑（公里），最大100km")
     type: str = Field(default="earthquake")
+    # 疏散的「近」用哪一種交通方式的時間算：步行（等於道路距離最短）或開車（依道路等級的速度）
+    mode: Literal["walk", "drive"] = "walk"
 
     @field_validator("type")
     @classmethod
@@ -309,6 +311,7 @@ class NearestRequest(BaseModel):
     lat: float = Field(..., ge=-90, le=90, description="緯度")
     lon: float = Field(..., ge=-180, le=180, description="經度")
     limit: int = Field(default=5, ge=1, le=20, description="回傳筆數")
+    mode: Literal["walk", "drive"] = "walk"
 
 
 class LoginRequest(BaseModel):
@@ -476,10 +479,10 @@ async def simulate(request: SimulateRequest, http_request: Request, x_api_key: s
     # 近者優先的「近」是道路距離；路網查不到時退回直線距離
     # 路線繞開警戒範圍（紅色封閉、黃色繞行），淹水模擬另外繞開土石流潛勢範圍
     origins = origins_from(population, request.lat, request.lon)
-    road_m = await asyncio.to_thread(evacuation_road_distances, repo, origins, destinations, hazard)
-    plan = plan_evacuation(origins, destinations, road_m)
+    road_m = await asyncio.to_thread(evacuation_road_distances, repo, origins, destinations, hazard, request.mode)
+    plan = plan_evacuation(origins, destinations, road_m, request.mode)
     # 實際路線用來畫圖、回報實際距離；分配已經決定好了，查不到就畫直線，不影響人數
-    await asyncio.to_thread(attach_evacuation_paths, repo, origins, destinations, plan["flows"], hazard)
+    await asyncio.to_thread(attach_evacuation_paths, repo, origins, destinations, plan["flows"], hazard, request.mode)
     plan["route_hazard"] = hazard
     plan["alerts"] = await asyncio.to_thread(alert_summary)
     plan["excluded"] = excluded
@@ -589,7 +592,7 @@ async def reset_simulation(http_request: Request, x_api_key: str = Header(defaul
 # 解決 RAG 語意搜尋無法處理「最近/附近」等地理問題
 @app.post("/api/nearest_shelter")
 async def nearest_shelter(request: NearestRequest):
-    results = await asyncio.to_thread(nearest_by_road, repo, request.lat, request.lon, request.limit)
+    results = await asyncio.to_thread(nearest_by_road, repo, request.lat, request.lon, request.limit, request.mode)
     return {
         "status": "success",
         "count": len(results),
