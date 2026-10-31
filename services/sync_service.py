@@ -12,7 +12,9 @@ logger = logging.getLogger(__name__)
 
 # 清理步驟的結果：刪了幾筆，以及因為來源不完整而「不敢刪」了幾次。
 # 後者連續出現代表來源資料壞掉而沒人發現
-metrics.register("sync.pruned", "sync.prune_skipped", "sync.hazard_failed", "sync.roads_failed")
+metrics.register(
+    "sync.pruned", "sync.prune_skipped", "sync.hazard_failed", "sync.roads_failed", "sync.road_hazards_failed",
+)
 
 # 災害潛勢區域：hazard_type → data_reference/ 裡的 GeoJSON（由 tools/build_hazard_zones.py 產生）
 HAZARD_FILES = {
@@ -66,6 +68,7 @@ class DataSyncService:
         pruned = self._prune_removed(shelters, success_count)
         self.sync_hazard_zones()
         self.sync_road_network()
+        self.sync_road_hazards()
         logger.info(
             "同步完成：%d / %d 筆（來源略過 %d 筆，清掉已移除 %d 筆）",
             success_count, len(shelters), self.fetcher.skipped, pruned,
@@ -136,4 +139,18 @@ class DataSyncService:
         if written is not None:
             logger.info("路網匯入：%d 條邊", written)
         return written
+
+    def sync_road_hazards(self) -> int | None:
+        """
+        重算道路邊與潛勢範圍的對應（路線繞開災害範圍、警戒封路都靠它）。
+        失敗只記錄：路線退回不避開任何範圍，跟加上這個功能之前一樣
+        """
+        try:
+            count = self.repository.rebuild_road_hazards()
+        except Exception:
+            metrics.incr("sync.road_hazards_failed")
+            logger.exception("重算道路與潛勢範圍的對應失敗，路線不會避開災害範圍")
+            return None
+        logger.info("道路與潛勢範圍對應：%d 筆", count)
+        return count
 

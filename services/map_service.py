@@ -44,8 +44,14 @@ class MapService:
         return [self._shelter_dict(s) for s in shelters]
 
     def to_nearest(self, nearby) -> list[dict]:
-        """/api/nearest_shelter：在避難所欄位之外附上這次查詢算出的距離（直線，以及算得出來時的道路距離）"""
+        """
+        /api/nearest_shelter：在避難所欄位之外附上這次查詢算出的距離（直線，以及算得出來時的道路距離）。
+        unreachable：路線被警戒封閉的道路擋住；hazard_m：路線仍經過警戒範圍的長度
+        """
         return [
-            {**self._shelter_dict(n.shelter), "distance_km": n.distance_km, "road_distance_km": n.road_km}
+            {
+                **self._shelter_dict(n.shelter), "distance_km": n.distance_km, "road_distance_km": n.road_km,
+                "unreachable": n.unreachable, "hazard_m": n.hazard_m,
+            }
             for n in nearby
         ]

@@ -12,7 +12,7 @@ from services import query_rules
 from services.answer_guard import LineGuard, filter_lines, supported_names
 from services.direct_answer import shelter_line
 from services.evacuation import HAZARD_LABELS, HAZARD_WARN_M, split_hazard_hits
-from services.i18n import HAZARD_EN
+from services.i18n import HAZARD_EN, place_en
 from services.knowledge import KnowledgeChunk, KnowledgeHit, KnowledgeStore, sources_text
 from services.metrics import metrics
 from services.routing import nearest_by_road
@@ -378,7 +378,7 @@ def hazard_lines_en(plan: dict) -> list[str]:
             f"{'This shelter is' if count == 1 else f'These {count} shelters are'} not designated for {designation} "
             f"and {'was' if count == 1 else 'were'} not used as an evacuation destination: {joined}."
         )
-    return lines
+    return lines + route_lines(plan, "en")
 
 
 def hazard_lines(plan: dict, lang: str = "zh") -> list[str]:
@@ -399,6 +399,52 @@ def hazard_lines(plan: dict, lang: str = "zh") -> list[str]:
         )
         lines.append(f"以下避難所靠近{label}，仍列為疏散目的地，豪雨期間請留意：{names}。")
     lines += undesignated_lines(plan)
+    lines += route_lines(plan)
+    return lines
+
+
+def route_lines(plan: dict, lang: str = "zh") -> list[str]:
+    """路線繞開了什麼、還有哪些路線不得不經過災害範圍、哪些地區沒有安全道路可走"""
+    plan = plan or {}
+    en = lang == "en"
+    lines = []
+    alerts = plan.get("alerts") or []
+    reds = sum(1 for a in alerts if a.get("level") == "red")
+    yellows = len(alerts) - reds
+    if alerts:
+        lines.append(
+            f"Debris-flow alerts in effect: {reds} red (roads inside are closed) and {yellows} yellow "
+            "(roads inside are avoided where possible); evacuation routes account for them." if en
+            else f"目前有 {reds} 條潛勢溪流發布土石流紅色警戒（範圍內道路封閉）、"
+            f"{yellows} 條黃色警戒（範圍內道路盡量繞行），疏散路線已納入。"
+        )
+    hazard = plan.get("route_hazard")
+    if hazard or alerts:
+        through = [f for f in plan.get("flows") or [] if f.get("hazard_m")]
+        if hazard:
+            label = (HAZARD_LABELS_EN if en else HAZARD_LABELS).get(hazard, hazard)
+            lines.append(f"Evacuation routes avoid {label} where possible." if en else f"疏散路線已盡量繞開{label}。")
+        if through:
+            km = round(sum(f["hazard_m"] for f in through) / 1000, 2)
+            lines.append(
+                f"{len(through)} route(s) still pass through a hazard zone for {km} km in total, "
+                "because there is no safer road." if en
+                else f"其中 {len(through)} 條路線沒有更安全的道路，仍有部分路段經過災害範圍（合計 {km} 公里）。"
+            )
+    unreachable = plan.get("unreachable") or []
+    if unreachable:
+        names = ", ".join(display_name(n) for n in unreachable) if en else "、".join(display_name(n) for n in unreachable)
+        lines.append(
+            f"No safe road leads to these shelters, so they were not used as evacuation destinations: {names}." if en
+            else f"以下避難所的聯外道路被封閉，沒有安全路線可到，本次未列為疏散目的地：{names}。"
+        )
+    cut_off = plan.get("cut_off") or []
+    if cut_off:
+        names = ", ".join(place_en(n) for n in cut_off) if en else "、".join(cut_off)
+        lines.append(
+            f"No safe road leads from these areas to any shelter, so their evacuees are counted as unplaced: {names}." if en
+            else f"以下地區沒有安全道路可到任何避難所，人數計入無法安置：{names}。"
+        )
     return lines
 
 
@@ -619,8 +665,12 @@ class ChatService:
                     warning = f"（注意：{near_hazard_note(near[s.name], label)}，豪雨期間請留意）"
                 else:
                     warning = ""
-                if n.road_km is not None:
+                if n.unreachable:
+                    distance = f"直線距離 {n.distance_km} 公里，但目前沒有安全道路可到（土石流紅色警戒範圍內的道路封閉）"
+                elif n.road_km is not None:
                     distance = f"道路距離 {n.road_km} 公里（直線 {n.distance_km} 公里）"
+                    if n.hazard_m:
+                        distance += f"，路線有 {n.hazard_m} 公尺經過土石流警戒範圍，沒有更安全的路"
                 else:
                     distance = f"直線距離 {n.distance_km} 公里"
                 lines.append(

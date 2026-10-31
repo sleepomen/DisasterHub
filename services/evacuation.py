@@ -99,21 +99,32 @@ def split_hazard_hits(hits: dict[str, list[tuple[str, float]]]) -> tuple[dict[st
     return inside, near
 
 
-def plan_evacuation(origins: list[Origin], shelters: list, road_m: dict[tuple[int, int], float] | None = None) -> dict:
+def plan_evacuation(
+    origins: list[Origin], shelters: list, road_m: dict[tuple[int, int], float | None] | None = None,
+) -> dict:
     """
     shelters 是 Shelter 物件（要有 name / lat / lon / remaining）。
-    road_m 是 {(起點序號, 避難所序號): 道路距離公尺}，沒有的配對用直線 × DETOUR_FACTOR。回傳：
-      flows     每一筆「從哪個鄉鎮、到哪間避難所、多少人、直線距離、道路距離」，依距離由近到遠
+    road_m 是 {(起點序號, 避難所序號): 路線成本公尺}（沒有警戒、不繞潛勢範圍時就是道路距離），
+    沒有的配對用直線 × DETOUR_FACTOR；值是 None 代表沒有安全路線可到，這一組不分配。回傳：
+      flows     每一筆「從哪個鄉鎮、到哪間避難所、多少人、直線距離、道路距離」，依路線成本由低到高。
+                road_km 先放路線成本，routing.attach_evacuation_paths 再換成實際路線的公里數
       assigned  每間避難所分到的人數
       placed / unplaced  安置與安置不下的人數（總和等於需疏散人數）
+      cut_off   哪些鄉鎮到任何一間避難所都沒有安全路線（人全部算在 unplaced 裡）
+      unreachable  哪些避難所從任何一個鄉鎮都沒有安全路線可到（例如紅色警戒封了唯一的聯外道路）
       distance_basis  分配用的距離："road"（全部是道路距離）、"mixed"、"straight"
     """
     road_m = road_m or {}
     need = {o.name: o.people for o in origins}
     room = {s.name: max(0, int(s.remaining)) for s in shelters}
     pairs = []
+    cut_off = []
     for i, o in enumerate(origins):
+        if shelters and o.people > 0 and all((i, j) in road_m and road_m[(i, j)] is None for j in range(len(shelters))):
+            cut_off.append(o.name)
         for j, s in enumerate(shelters):
+            if (i, j) in road_m and road_m[(i, j)] is None:
+                continue
             straight = round(distance_km(o.lat, o.lon, s.lat, s.lon), 2)
             road = round(road_m[(i, j)] / 1000, 2) if (i, j) in road_m else None
             cost = road if road is not None else round(straight * DETOUR_FACTOR, 2)
@@ -146,5 +157,10 @@ def plan_evacuation(origins: list[Origin], shelters: list, road_m: dict[tuple[in
         "assigned": assigned,
         "placed": placed,
         "unplaced": sum(o.people for o in origins) - placed,
+        "cut_off": cut_off,
+        "unreachable": [
+            s.name for j, s in enumerate(shelters)
+            if origins and all((i, j) in road_m and road_m[(i, j)] is None for i in range(len(origins)))
+        ],
         "distance_basis": "road" if all(routed) else "mixed" if any(routed) else "straight",
     }
