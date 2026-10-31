@@ -4,15 +4,15 @@
 這些題目的答案本來就是結構化資料（名稱、鄉鎮、容量、剩餘空位），以前也是把同樣的資料交給
 llama3.2:3b 逐字重抄一遍：清單題 p50 約 40 秒，而且會抄錯——生成評測裡台東市的避難所被標成「宜蘭」，
 點名題答完那一間又自己往下湊出不存在的「宜蘭社區活動中心 30 人」。
-防災知識題改成直接給原文之後從 11 秒變成不到 1 秒、編造歸零（見 services/knowledge.py），這裡是同一個做法。
+防災知識題改成直接給原文之後從 11 秒變成不到 1 秒、編造歸零（見 services/retrieval/knowledge.py），這裡是同一個做法。
 
 只處理規則層已經決定好「要哪些避難所」的情況；沒有任何條件的純語意題（「知本附近」）
 top-k 裡混著不相干的，仍交給模型挑。
 
 英文模式（lang="en"）：避難所名稱與地址保留中文（資料沒有英文，現場招牌也是中文），其餘用英文
 """
-from services.i18n import FACILITY_EN, HAZARD_EN, place_en, shelters_en
-from services.shelter_profile import HAZARD_KEYS, strip_region_tag
+from services.retrieval.shelter_profile import HAZARD_KEYS, strip_region_tag
+from services.web.i18n import FACILITY_EN, HAZARD_EN, place_en, shelters_en
 
 
 def _capacity_text(meta: dict, lang: str) -> str:

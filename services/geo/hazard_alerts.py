@@ -16,7 +16,7 @@ import logging
 import requests
 
 import config
-from services.metrics import metrics
+from services.web.metrics import metrics
 
 logger = logging.getLogger(__name__)
 

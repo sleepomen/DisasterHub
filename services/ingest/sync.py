@@ -5,8 +5,8 @@ import logging
 from pathlib import Path
 
 from repositories.shelter_repository import ShelterRepository
-from services.data_fetcher import DataFetcher
-from services.metrics import metrics
+from services.ingest.fetcher import DataFetcher
+from services.web.metrics import metrics
 
 logger = logging.getLogger(__name__)
 
@@ -18,10 +18,10 @@ metrics.register(
 
 # 災害潛勢區域：hazard_type → data_reference/ 裡的 GeoJSON（由 tools/build_hazard_zones.py 產生）
 HAZARD_FILES = {
-    "debris_flow": Path(__file__).resolve().parent.parent / "data_reference" / "debris_flow_east.geojson",
+    "debris_flow": Path(__file__).resolve().parents[2] / "data_reference" / "debris_flow_east.geojson",
 }
 # 宜花東路網（由 tools/build_road_network.py 從 OpenStreetMap 產生）
-ROAD_NETWORK_FILE = Path(__file__).resolve().parent.parent / "data_reference" / "east_roads.json.gz"
+ROAD_NETWORK_FILE = Path(__file__).resolve().parents[2] / "data_reference" / "east_roads.json.gz"
 
 class DataSyncService:
     #初始化fetcher/repository

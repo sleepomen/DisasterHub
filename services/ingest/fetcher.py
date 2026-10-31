@@ -65,7 +65,7 @@ class DataFetcher:
     def __init__(self):
         #指向data_for_refuge資料夾
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        self.folder_path = os.path.normpath(os.path.join(current_dir, "..", "data_for_refuge"))
+        self.folder_path = os.path.normpath(os.path.join(current_dir, "..", "..", "data_for_refuge"))
         self.skipped = 0
         # 整個檔案讀不起來的清單。這跟 skipped（單筆壞掉）要分開記：
         # 一個檔案就是一個縣，少一個檔案代表那一縣在這次同步裡「看起來不存在」，

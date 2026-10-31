@@ -20,7 +20,7 @@ import logging
 
 from models.travel import DEFAULT_MODE, minutes
 from repositories.shelter_repository import ORIGIN_SNAP_M
-from services.metrics import metrics
+from services.web.metrics import metrics
 
 logger = logging.getLogger(__name__)
 

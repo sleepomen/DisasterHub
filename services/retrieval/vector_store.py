@@ -9,11 +9,11 @@ from pathlib import Path
 import chromadb
 
 import config
-from services.direct_answer import compose
-from services.embeddings import build_embedding_function
-from services.metrics import metrics
-from services.query_rules import MAX_FILTERED_RESULTS, MAX_RANKED_RESULTS, QueryPlan
-from services.shelter_profile import HAZARD_KEYS, details_text, profile, strip_region_tag
+from services.chat.direct_answer import compose
+from services.chat.query_rules import MAX_FILTERED_RESULTS, MAX_RANKED_RESULTS, QueryPlan
+from services.retrieval.embeddings import build_embedding_function
+from services.retrieval.shelter_profile import HAZARD_KEYS, details_text, profile, strip_region_tag
+from services.web.metrics import metrics
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +55,7 @@ class PlannedResult:
 @dataclass
 class SearchResult:
     text: str
-    # 程式排好的回答（services/direct_answer.py）；None 代表要交給模型
+    # 程式排好的回答（services/chat/direct_answer.py）；None 代表要交給模型
     direct: str | None = None
     direct_en: str | None = None
 

@@ -6,7 +6,7 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-DATA_FILE = Path(__file__).resolve().parent.parent / "data_reference" / "east_taiwan_population.json"
+DATA_FILE = Path(__file__).resolve().parents[2] / "data_reference" / "east_taiwan_population.json"
 
 # 各災害類型的疏散比例（受影響人口中需要進避難所的比例），與前端動畫共用同一組數字
 EVAC_RATIO = {"earthquake": 0.12, "flood": 0.22, "fire": 0.05}

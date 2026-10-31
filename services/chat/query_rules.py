@@ -8,8 +8,8 @@
 import re
 from dataclasses import dataclass, field
 
-from services.i18n import FACILITY_EN, HAZARD_EN, SIZE_EN, place_en
-from services.shelter_profile import FACILITY_LABELS, HAZARD_KEYS, TOWNSHIPS
+from services.retrieval.shelter_profile import FACILITY_LABELS, HAZARD_KEYS, TOWNSHIPS
+from services.web.i18n import FACILITY_EN, HAZARD_EN, SIZE_EN, place_en
 
 # 系統涵蓋的三個縣，對應 metadata 的 region 欄位
 REGION_ALIASES = {
@@ -395,7 +395,7 @@ def off_topic_word_is_a_name(query: str, word: str, known_names: list[str]) -> b
 
 def off_topic_reply(topic: str, lang: str = "zh") -> str:
     # 開頭刻意跟 out_of_scope_reply 用同一句「本系統只涵蓋」：
-    # evals/gen_metrics.py 的 ABSTAIN_MARKERS 認的是這個字串，
+    # evals/lib/gen_metrics.py 的 ABSTAIN_MARKERS 認的是這個字串，
     # 換掉的話生成評測的 abstain_correct 會無聲下降（tests 有釘住）
     if lang == "en":
         return (

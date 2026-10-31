@@ -16,12 +16,12 @@ from pathlib import Path
 import chromadb
 
 import config
-from services.embeddings import build_embedding_function
-from services.metrics import metrics
+from services.retrieval.embeddings import build_embedding_function
+from services.web.metrics import metrics
 
 logger = logging.getLogger(__name__)
 
-KNOWLEDGE_DIR = Path(__file__).resolve().parent.parent / "data_reference" / "knowledge"
+KNOWLEDGE_DIR = Path(__file__).resolve().parents[2] / "data_reference" / "knowledge"
 COLLECTION_NAME = "knowledge"
 
 HAZARDS = ("typhoon", "earthquake", "debris_flow", "tsunami", "flood")
@@ -301,3 +301,51 @@ class KnowledgeStore:
             return []
         best = hits[0].distance
         return [h for h in hits if h.distance - best <= FOLLOWER_MARGIN]
+
+
+# 防災知識題由程式直接回知識文件原文，不交給模型改寫。曾經讓 llama3.2:3b 依原文回答，
+# 知識評測（evals/run_knowledge_eval.py）46 題裡 20 題有找不到出處的句子，其中一題把
+# 「往溪流兩側的高地疏散」答成「往溪流的下游方向撤離」——方向相反，照做會出人命。
+# 系統提示已經寫明不可以補充、不可以推論，3B 模型照樣改寫；知識文件本來就是為回答寫的短段落，
+# 直接給原文既不會錯，也從十幾秒變成不到一秒
+
+# 混合題 context 裡的知識區塊；每段以「■ 標題」開頭，依標題找回段落與出處
+KNOWLEDGE_HEADER = "【防災知識資料】"
+SHELTER_HEADER = "【避難所資料】"
+KNOWLEDGE_MARK = "■ "
+
+# 英文翻譯還沒審過的段落：英文模式照樣給中文原文，前面加這句說明
+UNREVIEWED_NOTE = "The English version of this guidance has not been reviewed yet, so the official Chinese text is shown."
+
+
+def knowledge_text(chunks: list[KnowledgeChunk], lang: str = "zh") -> str:
+    """
+    給使用者看的知識段落：「■ 標題」加原文。英文模式只用審過的翻譯（chunk.en_reviewed），
+    沒審過的照樣給中文原文：翻錯的防災資訊比看不懂更危險
+    """
+    if lang != "en":
+        return "\n\n".join(f"{KNOWLEDGE_MARK}{c.title}\n{c.text}" for c in chunks)
+    blocks = [
+        f"{KNOWLEDGE_MARK}{c.title_en}\n{c.text_en}" if c.en_reviewed and c.text_en
+        else f"{KNOWLEDGE_MARK}{c.title}\n{c.text}"
+        for c in chunks
+    ]
+    if any(not (c.en_reviewed and c.text_en) for c in chunks):
+        blocks.insert(0, UNREVIEWED_NOTE)
+    return "\n\n".join(blocks)
+
+
+def knowledge_answer(chunks: list[KnowledgeChunk], lang: str = "zh") -> str:
+    """純知識題的完整回答：原文加出處，不經過模型"""
+    return f"{knowledge_text(chunks, lang)}\n\n{sources_text(chunks, lang)}"
+
+
+def knowledge_context(hits: list[KnowledgeHit]) -> str:
+    return KNOWLEDGE_HEADER + "\n" + knowledge_text([h.chunk for h in hits])
+
+
+def shelter_part(context: str) -> str:
+    """混合題 context 裡避難所那一段；不是混合題就原樣回傳"""
+    if KNOWLEDGE_HEADER not in context:
+        return context
+    return context.split(f"{SHELTER_HEADER}\n", 1)[1] if SHELTER_HEADER in context else ""

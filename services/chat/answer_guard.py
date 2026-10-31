@@ -7,12 +7,12 @@
 模型很容易照著模板生。prompt 已經寫了「問某一間時只回答那一間」，3B 模型照樣不聽，
 所以改成由程式在輸出端擋：一行裡有看起來像場所名稱、卻對不上資料裡任何一間的片段，整行拿掉。
 
-注意：生成評測的幻覺偵測（evals/gen_metrics.py）跟這裡做的是類似的判斷。
+注意：生成評測的幻覺偵測（evals/lib/gen_metrics.py）跟這裡做的是類似的判斷。
 評測量到的幻覺下降有一部分是「同一類規則擋掉了同一類規則會抓的東西」，不能全部算成模型變好
 """
 import re
 
-from services.shelter_profile import normalize_place
+from services.retrieval.shelter_profile import normalize_place
 
 # 場所名稱的字尾。比 shelter_profile 的設施分類寬：這裡要抓的是「看起來像一個地方」，
 # 包含資料裡沒有的類型（模型編出來的不一定是現有類型）

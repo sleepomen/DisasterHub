@@ -15,7 +15,7 @@
 from dataclasses import dataclass
 
 from models.travel import DEFAULT_MODE, fallback_seconds
-from services.population_service import distance_km
+from services.simulation.population import distance_km
 
 # 哪些災害類型要避開哪一類潛勢區域。豪雨同時是淹水與土石流的觸發條件：淹水模擬時，
 # 位在土石流潛勢溪流影響範圍內的避難所（實測：澳花國小就在高風險範圍「宜縣DF139」內）
