@@ -202,24 +202,37 @@ DisasterHub/
 │   └── shelter_repository.py   # PostGIS queries (pooling, batch upsert, schema migration)
 │
 ├── services/
-│   ├── data_fetcher.py         # Reads the JSON data
-│   ├── map_service.py          # Domain objects → API JSON (the only place dicts are built)
-│   ├── metrics.py              # In-memory counters + latency samples (/api/stats)
-│   ├── rate_limit.py           # Per-source sliding-window request limit (chat)
-│   ├── sync_service.py         # Data synchronization
-│   ├── chat_service.py         # Intent detection + RAG + LLM
-│   ├── answer_guard.py         # Drops reply lines naming a place that is not in the prompt's shelter data
-│   ├── knowledge.py            # Disaster-preparedness passages: parsing, index, retrieval, source lines
-│   ├── direct_answer.py        # Shelter lists, rankings, overviews and named shelters formatted by code (no LLM)
-│   ├── i18n.py                 # English mode: township / facility / hazard names, language codes
-│   ├── query_rules.py          # Query rules layer: region / township / facility / capacity → metadata filters, out-of-scope rejection
-│   ├── shelter_profile.py      # Name/address → township, facilities, aliases
-│   ├── embeddings.py           # Ollama / MiniLM embeddings
-│   ├── health.py               # Readiness dependency checks
-│   ├── population_service.py   # Coastline + township population model, evacuee estimation
-│   ├── evacuation.py           # Evacuation plan: townships → shelters, nearest first, capacity-bounded
-│   ├── routing.py              # Road distances for nearest shelters and evacuation, straight-line fallback
-│   └── vector_store.py         # ChromaDB vector index (supports partial updates)
+│   ├── chat/                   # Question answering
+│   │   ├── service.py          # Chat flow: picks the route, builds the context, streams the reply, guards it
+│   │   ├── intent.py           # Which route a question takes (nearest / simulation / follow-up), coordinate parsing
+│   │   ├── replies.py          # Fixed replies and their English versions
+│   │   ├── llm_client.py       # Ollama generation: system prompts, request, streaming with a deadline
+│   │   ├── query_rules.py      # Query rules layer: region / township / facility / capacity → metadata filters, out-of-scope rejection
+│   │   ├── direct_answer.py    # Shelter lists, rankings, overviews and named shelters formatted by code (no LLM)
+│   │   ├── answer_guard.py     # Drops reply lines naming a place that is not in the prompt's shelter data
+│   │   └── shelter_names.py    # Display names, aliases, typo notes, "no such shelter" replies
+│   ├── retrieval/              # Retrieval
+│   │   ├── vector_store.py     # ChromaDB vector index (supports partial updates)
+│   │   ├── embeddings.py       # Ollama / MiniLM embeddings
+│   │   ├── knowledge.py        # Disaster-preparedness passages: parsing, index, retrieval, answer text, source lines
+│   │   └── shelter_profile.py  # Name/address → township, facilities, aliases
+│   ├── simulation/             # Disaster simulation
+│   │   ├── evacuation.py       # Evacuation plan: townships → shelters, nearest first, capacity-bounded
+│   │   ├── population.py       # Coastline + township population model, evacuee estimation
+│   │   └── text.py             # Simulation results as text: population, allocation, hazard and route notes
+│   ├── geo/                    # Road network and alerts
+│   │   ├── routing.py          # Road distances for nearest shelters and evacuation, straight-line fallback
+│   │   └── hazard_alerts.py    # Live debris-flow alerts (SWCB open data), polled in the background
+│   ├── ingest/                 # Data import
+│   │   ├── fetcher.py          # Reads the JSON data
+│   │   └── sync.py             # Data synchronization
+│   └── web/                    # API plumbing
+│       ├── auth.py             # Login: session cookie and access to write endpoints
+│       ├── rate_limit.py       # Per-source sliding-window request limit (chat)
+│       ├── health.py           # Readiness dependency checks
+│       ├── map_service.py      # Domain objects → API JSON (the only place dicts are built)
+│       ├── metrics.py          # In-memory counters + latency samples (/api/stats)
+│       └── i18n.py             # English mode: township / facility / hazard names, language codes
 │
 ├── data_for_refuge/
 │   ├── hualien_shelter.json    # Hualien (197 entries, National Fire Agency)
@@ -245,28 +258,44 @@ DisasterHub/
 │   └── app.js                  # Map / simulation / chat logic
 │
 └── tests/
-    ├── test_shelter_model.py
-    ├── test_map_service.py
-    ├── test_metrics.py
-    ├── test_rate_limit.py
-    ├── test_bootstrap.py
-    ├── test_boundary_eval.py
-    ├── test_route_eval.py
-    ├── test_data_fetcher2.py
-    ├── test_shelter_profile.py
-    ├── test_shelter_repository.py
-    ├── test_population_service.py
-    ├── test_evacuation.py
-    ├── test_hazard_zones.py
-    ├── test_routing.py
-    ├── test_query_rules.py
-    ├── test_vector_store.py
-    ├── test_chat_service.py
-    ├── test_eval_metrics.py
-    ├── test_gen_metrics.py
-    ├── test_sync_service.py
-    ├── test_config.py
-    └── test_api_data.py
+    ├── conftest.py             # Shared fixtures (real-database repository)
+    ├── chat/
+    │   ├── test_chat_service.py
+    │   ├── test_query_rules.py
+    │   ├── test_direct_answer.py
+    │   └── test_i18n.py
+    ├── retrieval/
+    │   ├── test_vector_store.py
+    │   ├── test_knowledge.py
+    │   └── test_shelter_profile.py
+    ├── simulation/
+    │   ├── test_evacuation.py
+    │   └── test_population_service.py
+    ├── geo/
+    │   ├── test_routing.py
+    │   ├── test_hazard_alerts.py
+    │   └── test_hazard_zones.py
+    ├── ingest/
+    │   ├── test_sync_service.py
+    │   ├── test_data_fetcher2.py
+    │   ├── test_shelter_repository.py
+    │   └── test_shelter_model.py
+    ├── web/
+    │   ├── test_api_data.py
+    │   ├── test_auth.py
+    │   ├── test_rate_limit.py
+    │   ├── test_metrics.py
+    │   ├── test_map_service.py
+    │   └── test_config.py
+    └── evals/
+        ├── test_route_eval.py
+        ├── test_boundary_eval.py
+        ├── test_knowledge_eval.py
+        ├── test_gen_metrics.py
+        ├── test_gen_eval_progress.py
+        ├── test_faithfulness.py
+        ├── test_eval_metrics.py
+        └── test_bootstrap.py
 ```
 
 ---
@@ -332,7 +361,7 @@ Behind a reverse proxy, response buffering has to be off or the stream is pointl
 
 That rename, and the key sets for `/api/shelters`, `/api/simulate_disaster` and `/api/nearest_shelter`,
 are an external contract: the frontend's evacuation animation reads `remaining` / `lat` / `lon`, and the
-occupancy write-back reads `name`. `tests/test_map_service.py` pins the exact key sets so a field rename
+occupancy write-back reads `name`. `tests/web/test_map_service.py` pins the exact key sets so a field rename
 cannot break the map silently.
 
 ### Online Counters and Logs
@@ -368,7 +397,7 @@ The ones worth watching:
 
 - **`retrieval.fell_back` over `chat.route.rag`** — how often the rules layer extracted a condition that
   nothing in the index matched, so the model was handed "the closest other data" instead. A rising ratio
-  means the keyword tables in `services/query_rules.py` are mis-reading real questions.
+  means the keyword tables in `services/chat/query_rules.py` are mis-reading real questions.
 - **`retrieval.no_match`** — how often the distance gate refused to answer. `RAG_MAX_DISTANCE` was tuned
   on the eval set; this is the only signal for whether it is also right for real questions.
 - **`retrieval.truncated`** — results that hit `MAX_FILTERED_RESULTS`, so the prompt saw fewer shelters
@@ -386,7 +415,7 @@ Every response carries an `X-Request-ID`, every log line is prefixed with it, an
 `key=value` summary line — so a user reporting "the answer I just got was wrong" gives you the id to grep:
 
 ```
-2026-10-05 08:59:12 INFO services.chat_service [e943c1f1]: chat route=rag source=generated outcome=ok context_chars=138 reply_chars=34 ms=12164
+2026-10-05 08:59:12 INFO services.chat.service [e943c1f1]: chat route=rag source=generated outcome=ok context_chars=138 reply_chars=34 ms=12164
 ```
 
 An incoming `X-Request-ID` is only honoured when `TRUST_PROXY_HEADERS=true`, and only if it matches
@@ -403,7 +432,7 @@ into it.
 
 ### Evacuation Assignment
 
-The evacuation plan is computed on the backend (`services/evacuation.py`). It used to be done in the browser: crowd points were scattered at random and each one picked a shelter, so the same parameters gave a different allocation every run, and the figures the AI quoted only matched the map after the animation finished and the write-back succeeded.
+The evacuation plan is computed on the backend (`services/simulation/evacuation.py`). It used to be done in the browser: crowd points were scattered at random and each one picked a shelter, so the same parameters gave a different allocation every run, and the figures the AI quoted only matched the map after the animation finished and the write-back succeeded.
 
 1. **Origins.** The evacuation demand is split across the affected townships in proportion to their population inside the radius, using the largest-remainder method so the parts add up exactly to the reported total. When the radius contains no township centroid (open sea, uninhabited mountains), a single origin is placed at the disaster center.
 2. **Assignment.** Every (township, shelter) pair is sorted by road distance, nearest first, and each township's remaining people fill each shelter's remaining room in that order. Capacity is never exceeded, ties are broken by name so the result is reproducible, and the rule is easy to explain to an operator. Road distances for all pairs come from one many-to-many pgRouting query (all 29 townships × 644 shelters takes 0.54 s). Township centroids are only representative points, so origins may snap to a road within 5 km instead of 1 km; all 29 are currently within 734 m (新城鄉), so this is only a margin. A pair without a road distance is costed as straight-line × 1.16, the measured median road/straight ratio (4,287 centroid–shelter pairs within 30 km: median 1.163, p10 1.07, p90 1.55); comparing a raw straight-line distance against road distances would always favour the unrouted pair. If routing fails entirely, the whole plan falls back to straight-line distance.
@@ -467,7 +496,7 @@ The retrieval eval set was regenerated for this data (207 questions; name questi
 
 A language toggle in the top bar (EN / 中文, remembered in the browser) switches the interface and the answers to English. This is phase one: **answers** are in English, but **questions** still work best in Chinese, because the rules layer's keyword tables (regions, facilities, capacity conditions, how-to phrases) are Chinese.
 
-- **Shelter names and addresses stay in Chinese.** The official data has no English names; translating or romanizing them would not match the signs on site, and the answer guard would no longer recognise an invented name. Townships use the official English names of the township offices (`services/i18n.py`): 吉安鄉 → Ji'an Township.
+- **Shelter names and addresses stay in Chinese.** The official data has no English names; translating or romanizing them would not match the signs on site, and the answer guard would no longer recognise an invented name. Townships use the official English names of the township offices (`services/web/i18n.py`): 吉安鄉 → Ji'an Township.
 - **Code-formatted answers** (lists, rankings, overviews, named shelters, refusals) have English templates, so most English answers still take under a second.
 - **Disaster-preparedness passages** have English drafts in `data_reference/knowledge/en/`, each marked `reviewed: no`. Until a passage is reviewed, English mode shows the official Chinese text with a note that the translation is pending, because a mistranslated safety instruction is as dangerous as a model rewriting one. Flipping a passage to `reviewed: yes` puts its English version live after the next restart or `/api/sync`.
 - **The remaining LLM paths** (coordinates, simulation follow-ups, plain semantic questions) get an English system prompt that keeps names and addresses in Chinese.
@@ -475,7 +504,7 @@ A language toggle in the top bar (EN / 中文, remembered in the browser) switch
 
 ### Direct answers
 
-Most shelter questions are answered by code, not by the LLM (`services/direct_answer.py`). Whenever the rules layer has already decided *which* shelters answer the question, the reply is formatted straight from the index metadata:
+Most shelter questions are answered by code, not by the LLM (`services/chat/direct_answer.py`). Whenever the rules layer has already decided *which* shelters answer the question, the reply is formatted straight from the index metadata:
 
 - a filtered list (region, township, facility, capacity, hazard)
 - a capacity ranking
@@ -603,12 +632,12 @@ negatives 10/10 rejected by the rules layer
 
 The tables below are the history on the previous 50-shelter data, where a county had at most 20 shelters and every listing fit in the prompt.
 
-The evaluation set `evals/rag_eval.jsonl` (130 questions across 9 categories) is generated from `data_for_refuge/` by `evals/build_eval_set.py`. Ground truth for the structured categories (name, region, township, facilities, capacity) is derived programmatically; alias, semantic and negative cases are labeled by hand.
+The evaluation set `evals/datasets/rag_eval.jsonl` (130 questions across 9 categories) is generated from `data_for_refuge/` by `evals/lib/build_eval_set.py`. Ground truth for the structured categories (name, region, township, facilities, capacity) is derived programmatically; alias, semantic and negative cases are labeled by hand.
 
-**Limitation worth stating in any write-up:** the township and facility ground truth (32 of the 130 questions) is computed by the same `township_of()` and `facility_of()` functions in `services/shelter_profile.py` that write the index metadata, so for those two categories the evaluation partly tests the retriever against itself, and part of the gain from "enriched documents" is circular. The alias, semantic and negative categories are hand-labeled and not affected. A held-out set written by someone who has not seen the data format is the only real fix.
+**Limitation worth stating in any write-up:** the township and facility ground truth (32 of the 130 questions) is computed by the same `township_of()` and `facility_of()` functions in `services/retrieval/shelter_profile.py` that write the index metadata, so for those two categories the evaluation partly tests the retriever against itself, and part of the gain from "enriched documents" is circular. The alias, semantic and negative categories are hand-labeled and not affected. A held-out set written by someone who has not seen the data format is the only real fix.
 
 ```bash
-docker exec -it disaster_app python evals/build_eval_set.py
+docker exec -it disaster_app python evals/lib/build_eval_set.py
 docker exec -it disaster_app python evals/run_rag_eval.py --embedder minilm --label baseline
 docker exec -it disaster_app python evals/run_rag_eval.py --embedder ollama:bge-m3 --label bge-m3
 ```
@@ -669,26 +698,28 @@ docker exec -it disaster_app python evals/run_rag_eval.py --embedder ollama:bge-
 docker exec -it disaster_app python evals/run_rag_eval.py --embedder ollama:bge-m3 --label bge-m3 --no-rules
 ```
 
-"Enriched documents" means the township, facility types, capacity tier and aliases that `services/shelter_profile.py` derives from the name and address, written into both the vector document and its metadata. The "rules layer" is `services/query_rules.py`: before vector retrieval it extracts the region (Yilan / Hualien / Taitung), township (29 of them, taken from the population model, including suffix-less forms such as 礁溪), facility type (school / elementary school / gymnasium / township office…) and capacity conditions (over a thousand, more than 500, 300 or fewer, small…), turns them into a ChromaDB `where` filter and returns every matching document; "largest / most" questions are re-ordered by capacity; an empty filtered result falls back to plain semantic retrieval. A question that names a county outside the coverage area (Taipei, Kaohsiung…) with no eastern place name in it is declined by the rules layer and never reaches the vector index.
+"Enriched documents" means the township, facility types, capacity tier and aliases that `services/retrieval/shelter_profile.py` derives from the name and address, written into both the vector document and its metadata. The "rules layer" is `services/chat/query_rules.py`: before vector retrieval it extracts the region (Yilan / Hualien / Taitung), township (29 of them, taken from the population model, including suffix-less forms such as 礁溪), facility type (school / elementary school / gymnasium / township office…) and capacity conditions (over a thousand, more than 500, 300 or fewer, small…), turns them into a ChromaDB `where` filter and returns every matching document; "largest / most" questions are re-ordered by capacity; an empty filtered result falls back to plain semantic retrieval. A question that names a county outside the coverage area (Taipei, Kaohsiung…) with no eastern place name in it is declined by the rules layer and never reaches the vector index.
 
 ```
 DisasterHub/
 ├── evals/
-│   ├── build_eval_set.py       # Generates the evaluation set
-│   ├── rag_eval.jsonl          # The evaluation set
 │   ├── run_rag_eval.py         # Runs the retrieval evaluation
-│   ├── metrics.py              # Recall / Precision / MRR / R-Precision / ceilings / bootstrap CIs
-│   ├── compare_runs.py         # Paired bootstrap on the difference between two runs
-│   ├── boundary_eval.jsonl     # Boundary / abstention set (43 questions, five defences)
-│   ├── run_boundary_eval.py    # Reports which layer refused, --generate hits the real LLM
-│   ├── faithfulness.py         # Counterfactual context perturbations and their scoring
-│   ├── run_faithfulness_eval.py # Does the model follow a changed / incomplete context?
-│   ├── route_eval.jsonl        # Routing test set (56 questions, all ten routes)
 │   ├── run_route_eval.py       # Runs the routing evaluation (no services needed)
-│   ├── knowledge_eval.jsonl    # Knowledge questions (positive / not covered / mixed / shelter look-alikes)
+│   ├── run_boundary_eval.py    # Reports which layer refused, --generate hits the real LLM
 │   ├── run_knowledge_eval.py   # Knowledge routing, retrieval and, with --generate, answer faithfulness
 │   ├── run_gen_eval.py         # Runs the generation evaluation (real ChatService + Ollama)
-│   ├── gen_metrics.py          # Answer recall / hallucination / number faithfulness / format rules
+│   ├── run_faithfulness_eval.py # Does the model follow a changed / incomplete context?
+│   ├── datasets/               # Question sets
+│   │   ├── rag_eval.jsonl      # The evaluation set
+│   │   ├── route_eval.jsonl    # Routing test set (56 questions, all ten routes)
+│   │   ├── boundary_eval.jsonl # Boundary / abstention set (43 questions, five defences)
+│   │   └── knowledge_eval.jsonl # Knowledge questions (positive / not covered / mixed / shelter look-alikes)
+│   ├── lib/                    # Scoring, statistics and tools shared by the runners
+│   │   ├── metrics.py          # Recall / Precision / MRR / R-Precision / ceilings / bootstrap CIs
+│   │   ├── gen_metrics.py      # Answer recall / hallucination / number faithfulness / format rules
+│   │   ├── faithfulness.py     # Counterfactual context perturbations and their scoring
+│   │   ├── build_eval_set.py   # Generates the evaluation set
+│   │   └── compare_runs.py     # Paired bootstrap on the difference between two runs
 │   └── results/                # Output of each run
 ```
 
@@ -707,13 +738,13 @@ DisasterHub/
 > The last row is the [direct answers](#direct-answers) change: 201 of the 207 questions no longer call the model, p95 latency dropped from 61.5 s to 0.5 s, and a paired bootstrap against the previous run puts every gain outside zero (answer recall +0.050 [+0.021, +0.084], precision +0.028 [+0.005, +0.052], complete +0.076 [+0.035, +0.122], micro). `halluc` and `num_ok` are true by construction for answers written by code (they are scored against the answer's own source data), so the meaningful columns are `ansR` / `ansP` / `full`. What the gains measure is the model no longer dropping or misplacing shelters while copying them: named questions went from 0.954 to 1.000, facility lists from 0.412 to 0.535 complete. Listing recall stays low by design (the overview shows ten of a region's 200).
 >
 > - **Metric fixes.** `halluc` no longer flags a fragment of a real name (the facility-suffix rule cuts 礁溪鄉公所二樓 at 礁溪鄉公所), and `fmt_ok` no longer flags English letters that are part of a real name (F Hotel). Most of the first run's township `halluc` 0.516 and region 0.667 were these false positives.
-> - **Answer guard** (`services/answer_guard.py`). A reply line that names something place-like (ends in 國小, 活動中心, 公所…) that matches none of the shelters sent in the prompt is removed; streaming is buffered one line at a time, so a removed line never reaches the screen. If every line would be removed, the reply is kept as is. In this run it removed 69 lines from 22 of 207 replies. 46 of them were in 9 single-shelter questions, where the 3B model answered the one shelter and then kept going with invented entries such as 「宜蘭社區活動中心：容量 30 人」.
+> - **Answer guard** (`services/chat/answer_guard.py`). A reply line that names something place-like (ends in 國小, 活動中心, 公所…) that matches none of the shelters sent in the prompt is removed; streaming is buffered one line at a time, so a removed line never reaches the screen. If every line would be removed, the reply is kept as is. In this run it removed 69 lines from 22 of 207 replies. 46 of them were in 9 single-shelter questions, where the 3B model answered the one shelter and then kept going with invented entries such as 「宜蘭社區活動中心：容量 30 人」.
 > - **`halluc` 0.000 is not independent evidence.** The guard and the hallucination metric use similar rules, so a large part of the drop is one rule removing what the other rule would have flagged. What it does show is that no remaining line contains an unsupported place-like name; an invented name without a facility suffix passes both.
 > - Reviewing the 69 removed lines found 3 wrong removals, fixed after the run and not reflected in the numbers above: the road name 女中路 in an address was read as a school (三聖宮's line), and 台東大學 did not match 國立臺東大學 (臺 / 台). Two near-correct names are still removed: 八桑安社區活動中心 (the data has 八桑安社區社活動中心) and 鳳禮活動中心 (the data has 鳳禮,鳳智里活動中心).
 > - Recall did not change (0.624 → 0.621, 95% CI [0.565, 0.679]). Low recall on listing questions is by design: a wide question gets totals plus the ten most relevant shelters instead of all of them (region `ansR` 0.047, see [On the official data](#on-the-official-data-644-shelters-207-questions)).
 > - The tables below were measured on the previous 50-shelter data.
 
-Retrieval recall only says whether the right documents reached the model. `evals/run_gen_eval.py` measures what the model finally says: every question goes through the real `ChatService` path (rules layer, retrieval, prompt, Ollama) and the reply is scored by the rules in `evals/gen_metrics.py`. No LLM judge is involved, so the numbers are reproducible and do not depend on a second model.
+Retrieval recall only says whether the right documents reached the model. `evals/run_gen_eval.py` measures what the model finally says: every question goes through the real `ChatService` path (rules layer, retrieval, prompt, Ollama) and the reply is scored by the rules in `evals/lib/gen_metrics.py`. No LLM judge is involved, so the numbers are reproducible and do not depend on a second model.
 
 ```bash
 docker exec -it disaster_app python evals/run_gen_eval.py --embedder ollama:bge-m3 --model llama3.2:3b --label gen_llama3.2-3b
@@ -721,7 +752,7 @@ docker exec -it disaster_app python evals/run_gen_eval.py --embedder ollama:bge-
 docker exec -it disaster_app python evals/run_gen_eval.py --limit 10 --category region   # quick spot check
 ```
 
-The same 130-question set is used. `evals/build_eval_set.py` attaches an `expect` block to every positive case with the capacity of each relevant shelter and, for "largest / most" questions, the shelter that must come first.
+The same 130-question set is used. `evals/lib/build_eval_set.py` attaches an `expect` block to every positive case with the capacity of each relevant shelter and, for "largest / most" questions, the shelter that must come first.
 
 | Metric | Meaning |
 |---|---|
@@ -775,7 +806,7 @@ ten negatives were eight out-of-area county names — caught by the rules layer 
 name at all. So the entire empirical basis for `RAG_MAX_DISTANCE = 0.56` was **two questions**, and the
 most likely real-world irrelevant question (one that mentions a local place) was not represented.
 
-`evals/boundary_eval.jsonl` (43 questions) probes exactly those gaps, and `run_boundary_eval.py` reports
+`evals/datasets/boundary_eval.jsonl` (43 questions) probes exactly those gaps, and `run_boundary_eval.py` reports
 **which of the five defences decided**, with `--generate` running the real LLM for whatever reaches it:
 
 ```bash
@@ -988,12 +1019,12 @@ average.
 So R@3 carries roughly ±0.05 of noise on this set: a 0.03 improvement in R@3 is not a result.
 
 **To compare two runs, do not check whether their intervals overlap** — overlapping intervals do not
-mean there is no difference. `evals/compare_runs.py` pairs the two runs question by question and puts the
+mean there is no difference. `evals/lib/compare_runs.py` pairs the two runs question by question and puts the
 interval on the *difference*, which also cancels the variance that comes from some questions simply being
 harder than others:
 
 ```bash
-docker exec -it disaster_app python evals/compare_runs.py   evals/results/gen_qwen2.5-7b.json evals/results/gen_llama3.2-3b.json
+docker exec -it disaster_app python evals/lib/compare_runs.py   evals/results/gen_qwen2.5-7b.json evals/results/gen_llama3.2-3b.json
 ```
 
 | | A = qwen2.5:7b | B = llama3.2:3b | A − B | 95% CI of A − B | |
@@ -1029,7 +1060,7 @@ evaluation measured that decision — and of the 130 questions in `rag_eval.json
 geographic keyword and none contain a simulation keyword, so **four of the six routes had no test
 coverage at all**, including both of the non-RAG paths that make the routing "hybrid".
 
-`evals/route_eval.jsonl` is a separate 42-question set labelled with the route each question *should*
+`evals/datasets/route_eval.jsonl` is a separate 42-question set labelled with the route each question *should*
 take, including the state-dependent case ("請給我疏散建議" must go to `no_simulation_advice` with no
 simulation and to `simulation` while one is running). Two routes were added later: `off_topic` and
 `unknown_name` (see [Nonexistent shelters](#nonexistent-shelters)), and with the disaster-preparedness passages `knowledge` and `knowledge_mixed` (10 more questions, 56 in total; the runner stubs the knowledge store as well, returning the first passage of the hazard so a mixed question has knowledge hits). The runner stubs the vector store and
@@ -1073,7 +1104,7 @@ written by someone who has not seen the code.
 
 ## Knowledge Evaluation
 
-`evals/knowledge_eval.jsonl` (56 questions) checks the knowledge route end to end:
+`evals/datasets/knowledge_eval.jsonl` (56 questions) checks the knowledge route end to end:
 
 - **40 positive questions.** Each lists the passage that should be returned and the key facts the answer must contain (「18 小時」, 「趴下、掩護、穩住」, 「往兩側」).
 - **8 questions the passages do not cover**: fire escape, school closures, subsidies, insurance, SMS alerts, earthquake prediction.
@@ -1365,24 +1396,37 @@ DisasterHub/
 │   └── shelter_repository.py   # PostGIS 查詢（連線池、批次 upsert、schema migration）
 │
 ├── services/
-│   ├── data_fetcher.py         # 讀取 JSON 資料
-│   ├── map_service.py          # 領域物件 → API JSON（dict 只在這一層產生）
-│   ├── metrics.py              # 記憶體計數器與延遲取樣（/api/stats）
-│   ├── rate_limit.py           # 按來源的滑動視窗用量上限（聊天）
-│   ├── sync_service.py         # 資料同步
-│   ├── chat_service.py         # 意圖判斷 + RAG + LLM
-│   ├── answer_guard.py         # 回覆中提到 prompt 資料裡沒有的場所，整行拿掉
-│   ├── knowledge.py            # 防災知識文件：解析、索引、檢索、出處
-│   ├── direct_answer.py        # 避難所清單、容量排名、概況、點名由程式排版（不經過 LLM）
-│   ├── i18n.py                 # 英文模式：鄉鎮、設施、災害的英文名稱與語言代碼
-│   ├── query_rules.py          # 查詢規則層：地區 / 鄉鎮 / 設施 / 容量 → metadata 篩選，範圍外拒答
-│   ├── shelter_profile.py      # 名稱/地址 → 鄉鎮、設施、別名
-│   ├── embeddings.py           # Ollama / MiniLM embedding
-│   ├── health.py               # readiness 依賴檢查
-│   ├── population_service.py   # 海岸線 + 鄉鎮人口模型，疏散人數估算
-│   ├── evacuation.py           # 疏散分配：鄉鎮 → 避難所，近者優先、不超過容量
-│   ├── routing.py              # 最近避難所與疏散分配的道路距離，算不出來退回直線距離
-│   └── vector_store.py         # ChromaDB 向量索引（支援局部更新）
+│   ├── chat/                   # 問答流程
+│   │   ├── service.py          # 聊天流程：選路由、組資料、串流回答、回答防護
+│   │   ├── intent.py           # 問句走哪條路（最近、模擬、追問）、抓座標
+│   │   ├── replies.py          # 固定回覆與英文翻譯
+│   │   ├── llm_client.py       # 呼叫 Ollama：系統提示、請求內容、有時限的串流生成
+│   │   ├── query_rules.py      # 查詢規則層：地區 / 鄉鎮 / 設施 / 容量 → metadata 篩選，範圍外拒答
+│   │   ├── direct_answer.py    # 避難所清單、容量排名、概況、點名由程式排版（不經過 LLM）
+│   │   ├── answer_guard.py     # 回覆中提到 prompt 資料裡沒有的場所，整行拿掉
+│   │   └── shelter_names.py    # 顯示名稱、別名、錯字說明、查無此間的回覆
+│   ├── retrieval/              # 檢索
+│   │   ├── vector_store.py     # ChromaDB 向量索引（支援局部更新）
+│   │   ├── embeddings.py       # Ollama / MiniLM embedding
+│   │   ├── knowledge.py        # 防災知識文件：解析、索引、檢索、回答組字、出處
+│   │   └── shelter_profile.py  # 名稱/地址 → 鄉鎮、設施、別名
+│   ├── simulation/             # 災害模擬
+│   │   ├── evacuation.py       # 疏散分配：鄉鎮 → 避難所，近者優先、不超過容量
+│   │   ├── population.py       # 海岸線 + 鄉鎮人口模型，疏散人數估算
+│   │   └── text.py             # 模擬結果寫成文字：人口、分配、潛勢範圍與路線說明
+│   ├── geo/                    # 路網與警戒
+│   │   ├── routing.py          # 最近避難所與疏散分配的道路距離，算不出來退回直線距離
+│   │   └── hazard_alerts.py    # 即時土石流警戒（農村水保署開放資料），背景定期抓取
+│   ├── ingest/                 # 資料匯入
+│   │   ├── fetcher.py          # 讀取 JSON 資料
+│   │   └── sync.py             # 資料同步
+│   └── web/                    # API 周邊
+│       ├── auth.py             # 登入：session cookie 與寫入端點的權限
+│       ├── rate_limit.py       # 按來源的滑動視窗用量上限（聊天）
+│       ├── health.py           # readiness 依賴檢查
+│       ├── map_service.py      # 領域物件 → API JSON（dict 只在這一層產生）
+│       ├── metrics.py          # 記憶體計數器與延遲取樣（/api/stats）
+│       └── i18n.py             # 英文模式：鄉鎮、設施、災害的英文名稱與語言代碼
 │
 ├── data_for_refuge/
 │   ├── hualien_shelter.json    # 花蓮（197 筆，消防署）
@@ -1408,28 +1452,44 @@ DisasterHub/
 │   └── app.js                  # 地圖 / 模擬 / 聊天邏輯
 │
 └── tests/
-    ├── test_shelter_model.py
-    ├── test_map_service.py
-    ├── test_metrics.py
-    ├── test_rate_limit.py
-    ├── test_bootstrap.py
-    ├── test_boundary_eval.py
-    ├── test_route_eval.py
-    ├── test_data_fetcher2.py
-    ├── test_shelter_profile.py
-    ├── test_shelter_repository.py
-    ├── test_population_service.py
-    ├── test_evacuation.py
-    ├── test_hazard_zones.py
-    ├── test_routing.py
-    ├── test_query_rules.py
-    ├── test_vector_store.py
-    ├── test_chat_service.py
-    ├── test_eval_metrics.py
-    ├── test_gen_metrics.py
-    ├── test_sync_service.py
-    ├── test_config.py
-    └── test_api_data.py
+    ├── conftest.py             # 共用 fixture（連真實資料庫的 repository）
+    ├── chat/
+    │   ├── test_chat_service.py
+    │   ├── test_query_rules.py
+    │   ├── test_direct_answer.py
+    │   └── test_i18n.py
+    ├── retrieval/
+    │   ├── test_vector_store.py
+    │   ├── test_knowledge.py
+    │   └── test_shelter_profile.py
+    ├── simulation/
+    │   ├── test_evacuation.py
+    │   └── test_population_service.py
+    ├── geo/
+    │   ├── test_routing.py
+    │   ├── test_hazard_alerts.py
+    │   └── test_hazard_zones.py
+    ├── ingest/
+    │   ├── test_sync_service.py
+    │   ├── test_data_fetcher2.py
+    │   ├── test_shelter_repository.py
+    │   └── test_shelter_model.py
+    ├── web/
+    │   ├── test_api_data.py
+    │   ├── test_auth.py
+    │   ├── test_rate_limit.py
+    │   ├── test_metrics.py
+    │   ├── test_map_service.py
+    │   └── test_config.py
+    └── evals/
+        ├── test_route_eval.py
+        ├── test_boundary_eval.py
+        ├── test_knowledge_eval.py
+        ├── test_gen_metrics.py
+        ├── test_gen_eval_progress.py
+        ├── test_faithfulness.py
+        ├── test_eval_metrics.py
+        └── test_bootstrap.py
 ```
 
 ---
@@ -1494,7 +1554,7 @@ curl -N -X POST http://localhost:8501/api/chat \
 
 這個改名，以及 `/api/shelters`、`/api/simulate_disaster`、`/api/nearest_shelter` 的欄位組合，
 都是對外契約：前端的疏散動畫讀 `remaining` / `lat` / `lon`，收容人數回寫讀 `name`。
-`tests/test_map_service.py` 把欄位組合釘死，欄位改名就不會讓地圖安靜地壞掉。
+`tests/web/test_map_service.py` 把欄位組合釘死，欄位改名就不會讓地圖安靜地壞掉。
 
 ### 線上計數器與日誌
 
@@ -1526,7 +1586,7 @@ curl -N -X POST http://localhost:8501/api/chat \
 長得一樣，而這些數字的意義本來就在比例。值得盯的幾個：
 
 - **`retrieval.fell_back` 除以 `chat.route.rag`** — 規則層抽出的條件在索引裡沒有東西符合、
-  只好把「最接近的其他資料」送給模型的比例。這個比例上升代表 `services/query_rules.py`
+  只好把「最接近的其他資料」送給模型的比例。這個比例上升代表 `services/chat/query_rules.py`
   的關鍵字表讀錯了真實問句。
 - **`retrieval.no_match`** — 距離門檻拒答的次數。`RAG_MAX_DISTANCE` 是在評測集上調出來的，
   這是唯一能判斷它對真實問句是否同樣適用的訊號。
@@ -1543,7 +1603,7 @@ curl -N -X POST http://localhost:8501/api/chat \
 使用者回報「我剛才拿到的答案是錯的」時，直接拿那個 id 去 grep：
 
 ```
-2026-10-05 08:59:12 INFO services.chat_service [e943c1f1]: chat route=rag source=generated outcome=ok context_chars=138 reply_chars=34 ms=12164
+2026-10-05 08:59:12 INFO services.chat.service [e943c1f1]: chat route=rag source=generated outcome=ok context_chars=138 reply_chars=34 ms=12164
 ```
 
 只有 `TRUST_PROXY_HEADERS=true` 時才會沿用上游帶進來的 `X-Request-ID`，而且必須符合
@@ -1559,7 +1619,7 @@ curl -N -X POST http://localhost:8501/api/chat \
 
 ### 疏散分配
 
-疏散分配在後端計算（`services/evacuation.py`）。以前是在瀏覽器裡做：人群起點用亂數撒，每個點各自挑避難所，所以同一組參數每次分配都不同；AI 引用的數字也要等動畫跑完、回寫成功之後才跟地圖對得上。
+疏散分配在後端計算（`services/simulation/evacuation.py`）。以前是在瀏覽器裡做：人群起點用亂數撒，每個點各自挑避難所，所以同一組參數每次分配都不同；AI 引用的數字也要等動畫跑完、回寫成功之後才跟地圖對得上。
 
 1. **起點**：需疏散人數依各受影響鄉鎮在圈內的人口比例分攤，用最大餘數法，各鄉鎮加總恰好等於回報的總數。範圍內沒有任何鄉鎮人口重心時（海域、無人山區），起點就放在災害中心。
 2. **分配**：把所有（鄉鎮, 避難所）配對依道路距離由近到遠排序，依序把鄉鎮剩下的人放進避難所剩下的空位。容量一定守得住；距離相同時依名稱排序，結果可以重現；規則也容易跟操作員解釋。所有配對的道路距離用一次 pgRouting 多對多查詢算完（全部 29 個鄉鎮 × 644 間避難所 0.54 秒）。鄉鎮人口重心只是代表點，所以起點可以吸附到 5 公里內的道路，而不是 1 公里；目前 29 個重心離路最遠的是新城鄉 734 公尺，這個寬限只是保險。個別算不出道路距離的配對用「直線 × 1.16」估算，1.16 是實測的道路／直線比值中位數（30 公里內的鄉鎮重心－避難所配對共 4,287 組：中位數 1.163、p10 1.07、p90 1.55）；直接拿直線距離跟道路距離比，算不出來的配對一定會被排到前面。整個路網查詢失敗時，整份分配退回直線距離。
@@ -1623,7 +1683,7 @@ curl -N -X POST http://localhost:8501/api/chat \
 
 上方導覽列的語言切換鈕（EN / 中文，瀏覽器會記住）把介面與回答切成英文。這是第一階段：**回答**用英文，但**問題**仍是中文最準，因為規則層的關鍵字表（地區、設施、容量條件、問做法的說法）都是中文。
 
-- **避難所名稱與地址保留中文**：官方資料沒有英文名稱，自己翻或轉拼音在現場對不上招牌，回答防護也認不出編造的名稱。鄉鎮用各鄉鎮市公所的官方英文名稱（`services/i18n.py`）：吉安鄉 → Ji'an Township。
+- **避難所名稱與地址保留中文**：官方資料沒有英文名稱，自己翻或轉拼音在現場對不上招牌，回答防護也認不出編造的名稱。鄉鎮用各鄉鎮市公所的官方英文名稱（`services/web/i18n.py`）：吉安鄉 → Ji'an Township。
 - **程式排版的回答**（清單、排名、概況、點名、拒答）都有英文模板，所以大部分英文回答一樣不到一秒。
 - **防災知識段落**的英文稿放在 `data_reference/knowledge/en/`，每段標 `reviewed: no`。審過之前，英文模式顯示中文原文加一句「英文版尚未審核」：翻錯的防災指示跟模型改寫原文一樣危險。把某段改成 `reviewed: yes`，下次重啟或 `/api/sync` 後英文版就會上線。
 - **還會打模型的路徑**（座標、模擬追問、純語意題）改用英文系統提示，名稱與地址照樣保留中文。
@@ -1631,7 +1691,7 @@ curl -N -X POST http://localhost:8501/api/chat \
 
 ### 程式直接回答
 
-大部分避難所問題由程式回答，不經過 LLM（`services/direct_answer.py`）。只要規則層已經決定好「答案是哪些避難所」，回覆就直接從索引 metadata 排出來：
+大部分避難所問題由程式回答，不經過 LLM（`services/chat/direct_answer.py`）。只要規則層已經決定好「答案是哪些避難所」，回覆就直接從索引 metadata 排出來：
 
 - 有篩選條件的清單（地區、鄉鎮、設施、容量、災害）
 - 容量排名
@@ -1758,15 +1818,15 @@ negatives 10/10 被規則層擋下
 
 下面幾張表是舊的 50 間資料上的歷史結果；當時一個縣最多 20 間，每次列舉都放得進 prompt。
 
-評測集 `evals/rag_eval.jsonl`（130 題，9 個類別）由 `evals/build_eval_set.py` 從 `data_for_refuge/` 產生，結構化類別（名稱、地區、鄉鎮、設施、容量）的正解由程式推導，別名／語意／負例為人工標註。
+評測集 `evals/datasets/rag_eval.jsonl`（130 題，9 個類別）由 `evals/lib/build_eval_set.py` 從 `data_for_refuge/` 產生，結構化類別（名稱、地區、鄉鎮、設施、容量）的正解由程式推導，別名／語意／負例為人工標註。
 
-**寫論文時應該明說的限制**：鄉鎮與設施兩類的正解（130 題裡的 32 題）是由 `services/shelter_profile.py` 裡
+**寫論文時應該明說的限制**：鄉鎮與設施兩類的正解（130 題裡的 32 題）是由 `services/retrieval/shelter_profile.py` 裡
 `township_of()`、`facility_of()` 這兩個函式算出來的，而寫進索引 metadata 的也是同一組函式——所以這兩類
 等於讓檢索器考自己，「擴充文件」帶來的進步有一部分是循環的。別名、語意、負例三類是人工標註，不受影響。
 唯一的真正解法是請沒看過資料格式的人另外出一份 held-out 題庫。
 
 ```bash
-docker exec -it disaster_app python evals/build_eval_set.py
+docker exec -it disaster_app python evals/lib/build_eval_set.py
 docker exec -it disaster_app python evals/run_rag_eval.py --embedder minilm --label baseline
 docker exec -it disaster_app python evals/run_rag_eval.py --embedder ollama:bge-m3 --label bge-m3
 ```
@@ -1820,26 +1880,28 @@ docker exec -it disaster_app python evals/run_rag_eval.py --embedder ollama:bge-
 docker exec -it disaster_app python evals/run_rag_eval.py --embedder ollama:bge-m3 --label bge-m3 --no-rules
 ```
 
-擴充文件指 `services/shelter_profile.py` 從名稱與地址推導出的鄉鎮、設施類型、容量分級、別名，寫進向量文件與 metadata。規則層指 `services/query_rules.py`：在向量檢索前抽出地區（宜蘭 / 花蓮 / 台東）、鄉鎮（29 個，來自人口模型，支援「礁溪」這種省略字尾的寫法）、設施類型（學校 / 國小 / 體育館 / 公所…）與容量條件（上千人、超過 500 人、300 人以下、小型…），轉成 ChromaDB `where` 篩選並回傳全部符合的文件；「最大 / 最多」再依容量重排；篩選結果為空時退回一般語意檢索。提到台北、高雄等範圍外縣市、且整句沒有東部地名時，在規則層直接拒答，不進向量檢索。
+擴充文件指 `services/retrieval/shelter_profile.py` 從名稱與地址推導出的鄉鎮、設施類型、容量分級、別名，寫進向量文件與 metadata。規則層指 `services/chat/query_rules.py`：在向量檢索前抽出地區（宜蘭 / 花蓮 / 台東）、鄉鎮（29 個，來自人口模型，支援「礁溪」這種省略字尾的寫法）、設施類型（學校 / 國小 / 體育館 / 公所…）與容量條件（上千人、超過 500 人、300 人以下、小型…），轉成 ChromaDB `where` 篩選並回傳全部符合的文件；「最大 / 最多」再依容量重排；篩選結果為空時退回一般語意檢索。提到台北、高雄等範圍外縣市、且整句沒有東部地名時，在規則層直接拒答，不進向量檢索。
 
 ```
 DisasterHub/
 ├── evals/
-│   ├── build_eval_set.py       # 產生評測集
-│   ├── rag_eval.jsonl          # 評測集
 │   ├── run_rag_eval.py         # 執行檢索評測
-│   ├── metrics.py              # Recall / Precision / MRR / R-Precision / 天花板 / bootstrap 區間
-│   ├── compare_runs.py         # 兩次結果的配對 bootstrap 差值比較
-│   ├── boundary_eval.jsonl     # 邊界題／拒答題庫（43 題，涵蓋五層防線）
-│   ├── run_boundary_eval.py    # 報出是哪一層拒答，--generate 會真的打 LLM
-│   ├── faithfulness.py         # 反事實上下文的改動方式與評分
-│   ├── run_faithfulness_eval.py # 資料被改動或不完整時，模型是否照資料回答
-│   ├── route_eval.jsonl        # 路由測試集（56 題，涵蓋全部十條路由）
 │   ├── run_route_eval.py       # 執行路由評測（不需要任何服務）
-│   ├── knowledge_eval.jsonl    # 知識題（正例 / 語料沒有 / 混合 / 其實在問避難所）
+│   ├── run_boundary_eval.py    # 報出是哪一層拒答，--generate 會真的打 LLM
 │   ├── run_knowledge_eval.py   # 知識路由與檢索；--generate 量回答是否忠於原文
 │   ├── run_gen_eval.py         # 執行生成評測（真實 ChatService + Ollama）
-│   ├── gen_metrics.py          # 回答召回 / 幻覺 / 數字忠實 / 格式規則
+│   ├── run_faithfulness_eval.py # 資料被改動或不完整時，模型是否照資料回答
+│   ├── datasets/               # 題庫
+│   │   ├── rag_eval.jsonl      # 評測集
+│   │   ├── route_eval.jsonl    # 路由測試集（56 題，涵蓋全部十條路由）
+│   │   ├── boundary_eval.jsonl # 邊界題／拒答題庫（43 題，涵蓋五層防線）
+│   │   └── knowledge_eval.jsonl # 知識題（正例 / 語料沒有 / 混合 / 其實在問避難所）
+│   ├── lib/                    # 評分、統計與共用工具
+│   │   ├── metrics.py          # Recall / Precision / MRR / R-Precision / 天花板 / bootstrap 區間
+│   │   ├── gen_metrics.py      # 回答召回 / 幻覺 / 數字忠實 / 格式規則
+│   │   ├── faithfulness.py     # 反事實上下文的改動方式與評分
+│   │   ├── build_eval_set.py   # 產生評測集
+│   │   └── compare_runs.py     # 兩次結果的配對 bootstrap 差值比較
 │   └── results/                # 各次評測輸出
 ```
 
@@ -1858,13 +1920,13 @@ DisasterHub/
 > 最後一列是[程式直接回答](#程式直接回答)的改動：207 題裡有 201 題不再打模型，p95 延遲從 61.5 秒降到 0.5 秒。跟上一版做配對 bootstrap，每一項改善的區間都不含 0（回答召回 +0.050 [+0.021, +0.084]、精確 +0.028 [+0.005, +0.052]、完整 +0.076 [+0.035, +0.122]，micro）。程式寫的回答是拿它自己的來源資料比對，`halluc` 與 `num_ok` 依構造成立，有意義的是 `ansR`／`ansP`／`full`。這些改善量到的是「模型不再在重抄時漏掉或寫錯避難所」：點名題從 0.954 變成 1.000，設施清單的完整率從 0.412 變成 0.535。清單題召回低仍是設計上的取捨（概況只列地區 200 間裡的 10 間）。
 >
 > - **指標修正**：`halluc` 不再把真實名稱的前段當成編造（設施字尾規則會把「礁溪鄉公所二樓」切在「礁溪鄉公所」）；`fmt_ok` 不再把真實名稱裡的英文字母（F Hotel）當成格式錯誤。第一次跑出來的鄉鎮題 `halluc` 0.516、地區題 0.667，大部分是這兩種誤判。
-> - **回答防護**（`services/answer_guard.py`）：回覆裡某一行出現看起來像場所的名稱（國小、活動中心、公所…結尾），卻對不上 prompt 裡送出的任何一間，就整行拿掉；串流時一次緩衝一行，被拿掉的那行不會出現在畫面上。如果每一行都會被拿掉，就原樣保留。這次在 207 題中的 22 題拿掉 69 行，其中 46 行在 9 道點名題：3B 模型答完那一間，又自己往下湊出「宜蘭社區活動中心：容量 30 人」這種不存在的避難所。
+> - **回答防護**（`services/chat/answer_guard.py`）：回覆裡某一行出現看起來像場所的名稱（國小、活動中心、公所…結尾），卻對不上 prompt 裡送出的任何一間，就整行拿掉；串流時一次緩衝一行，被拿掉的那行不會出現在畫面上。如果每一行都會被拿掉，就原樣保留。這次在 207 題中的 22 題拿掉 69 行，其中 46 行在 9 道點名題：3B 模型答完那一間，又自己往下湊出「宜蘭社區活動中心：容量 30 人」這種不存在的避難所。
 > - **`halluc` 0.000 不是獨立證據**：防護跟幻覺指標用的是類似的規則，下降的很大一部分是「一條規則把另一條規則會抓的東西先擋掉」。它能說明的是：留下來的回覆裡沒有對不上資料的場所名稱；沒有設施字尾的編造名稱兩邊都抓不到。
 > - 逐行檢查被拿掉的 69 行，有 3 行是誤擋，已在跑完後修正，但上表數字還沒反映：地址裡的路名「女中路」被當成學校（三聖宮那一行），以及「台東大學」對不上「國立臺東大學」（臺／台）。還有兩個接近正確的名稱仍會被拿掉：「八桑安社區活動中心」（資料寫「八桑安社區社活動中心」）、「鳳禮活動中心」（資料寫「鳳禮,鳳智里活動中心」）。
 > - 召回率沒有變（0.624 → 0.621，95% 信賴區間 [0.565, 0.679]）。清單題召回低是設計上的取捨：範圍大的問題只給總數加最相關的 10 間，不全部列出（地區題 `ansR` 0.047，見「官方資料上的結果（644 間、207 題）」一節）。
 > - 以下各表是在舊的 50 間資料上量的。
 
-檢索召回率只能說明「對的資料有沒有送到模型面前」。`evals/run_gen_eval.py` 量的是模型最後講出來的話：每一題都走真實的 `ChatService` 路徑（規則層、檢索、組 prompt、Ollama 生成），再用 `evals/gen_metrics.py` 的規則對回覆評分。不用另一個 LLM 當裁判，數字可以重現，也不受第二個模型影響。
+檢索召回率只能說明「對的資料有沒有送到模型面前」。`evals/run_gen_eval.py` 量的是模型最後講出來的話：每一題都走真實的 `ChatService` 路徑（規則層、檢索、組 prompt、Ollama 生成），再用 `evals/lib/gen_metrics.py` 的規則對回覆評分。不用另一個 LLM 當裁判，數字可以重現，也不受第二個模型影響。
 
 ```bash
 docker exec -it disaster_app python evals/run_gen_eval.py --embedder ollama:bge-m3 --model llama3.2:3b --label gen_llama3.2-3b
@@ -1872,7 +1934,7 @@ docker exec -it disaster_app python evals/run_gen_eval.py --embedder ollama:bge-
 docker exec -it disaster_app python evals/run_gen_eval.py --limit 10 --category region   # 快速抽查
 ```
 
-題庫沿用同一份 130 題。`evals/build_eval_set.py` 會替每個正例附上 `expect`：各相關避難所的容量，以及「最大 / 最多」排名題應該排第一的那間。
+題庫沿用同一份 130 題。`evals/lib/build_eval_set.py` 會替每個正例附上 `expect`：各相關避難所的容量，以及「最大 / 最多」排名題應該排第一的那間。
 
 | 指標 | 意義 |
 |---|---|
@@ -1925,7 +1987,7 @@ baseline 那一列的 `capacity_stated` 不能跟下面兩列比：這個欄位�
 8 道範圍外縣市名（規則層擋下）加 2 道完全沒有地名的問題。也就是說 `RAG_MAX_DISTANCE = 0.56`
 的全部經驗基礎是**兩題**，而現實中最可能出現的無關問題——帶著本地地名的那種——一題都沒有。
 
-`evals/boundary_eval.jsonl`（43 題）就是針對這些缺口，`run_boundary_eval.py` 會報出
+`evals/datasets/boundary_eval.jsonl`（43 題）就是針對這些缺口，`run_boundary_eval.py` 會報出
 **是五層防線裡的哪一層決定的**，`--generate` 會對落到模型的題目真的跑一次生成：
 
 ```bash
@@ -2114,11 +2176,11 @@ README 原本宣稱的縫隙（無答案 ≥ 0.588、有答案 ≤ 0.483）是�
 也就是說 R@3 在這份題庫上帶著大約 ±0.05 的雜訊：R@3 進步 0.03 不構成一個結果。
 
 **比較兩個設定時不要看「兩個區間有沒有重疊」**——區間重疊並不代表沒有差異，那是常見的誤讀。
-`evals/compare_runs.py` 會把兩次結果逐題配對，把區間放在**差值**上，順便消掉「有些題目本來就比較難」
+`evals/lib/compare_runs.py` 會把兩次結果逐題配對，把區間放在**差值**上，順便消掉「有些題目本來就比較難」
 造成的變異：
 
 ```bash
-docker exec -it disaster_app python evals/compare_runs.py   evals/results/gen_qwen2.5-7b.json evals/results/gen_llama3.2-3b.json
+docker exec -it disaster_app python evals/lib/compare_runs.py   evals/results/gen_qwen2.5-7b.json evals/results/gen_llama3.2-3b.json
 ```
 
 | | A = qwen2.5:7b | B = llama3.2:3b | A − B | A − B 的 95% CI | |
@@ -2151,7 +2213,7 @@ docker exec -it disaster_app python evals/compare_runs.py   evals/results/gen_qw
 但檢索與生成兩個評測都沒有量過這個判斷本身——而 `rag_eval.jsonl` 的 130 題裡只有 4 題含地理關鍵字、
 0 題含模擬關鍵字，也就是 **6 條路由裡有 4 條完全沒有測試覆蓋**，其中兩條正是讓這個路由「混合」的非 RAG 路徑。
 
-`evals/route_eval.jsonl` 是另一份 42 題的測試集，每題標上它*應該*走的路由，包含狀態相依的案例
+`evals/datasets/route_eval.jsonl` 是另一份 42 題的測試集，每題標上它*應該*走的路由，包含狀態相依的案例
 （「請給我疏散建議」在沒有模擬時該走 `no_simulation_advice`，模擬進行中該走 `simulation`）。
 後來又加了兩條路由：`off_topic` 與 `unknown_name`（見[不存在的場所](#不存在的場所)）；加入防災知識文件時再加 `knowledge` 與 `knowledge_mixed`（多 10 題，共 56 題；執行器也把知識庫換成替身，回傳該災害的第一段，混合題才會有知識結果）。
 執行器把向量庫與 repository 換成替身，因為 `metrics.route()` 是在 `build_context` 裡
@@ -2191,7 +2253,7 @@ unknown_name             2        2   1.000
 
 ## 防災知識評測
 
-`evals/knowledge_eval.jsonl`（56 題）從頭到尾檢查知識路由：
+`evals/datasets/knowledge_eval.jsonl`（56 題）從頭到尾檢查知識路由：
 
 - **40 題正例**：每題標出應該回哪一段，以及回答必須包含的關鍵事實（「18 小時」「趴下、掩護、穩住」「往兩側」）。
 - **8 題語料沒有的**：火災逃生、停班停課、補助、保險、簡訊通知、地震預測。
