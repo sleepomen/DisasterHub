@@ -41,6 +41,7 @@ LLM           Ollama + llama3.2:3b (running locally on the host)
 ```
 DisasterHub/
 ├── README.md / README.zh-TW.md # Front page (English / 繁體中文)
+├── LICENSE                     # MIT (code only; data keeps its own licences)
 ├── docs/                       # Detailed documentation; zh-TW/ holds the Chinese versions, images/ the screenshots
 ├── app.py                      # FastAPI application
 ├── config.py                   # Single place for all environment variables

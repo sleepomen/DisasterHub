@@ -41,6 +41,7 @@ LLM           Ollama + llama3.2:3b（宿主機本地部署）
 ```
 DisasterHub/
 ├── README.md / README.zh-TW.md # 首頁（英文 / 繁體中文）
+├── LICENSE                     # MIT（只涵蓋程式碼，資料沿用各自的授權）
 ├── docs/                       # 詳細文件；中文版在 zh-TW/，截圖在 images/
 ├── app.py                      # FastAPI 主程式
 ├── config.py                   # 所有環境變數集中處

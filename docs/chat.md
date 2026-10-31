@@ -12,7 +12,11 @@ Most shelter questions are answered by code, not by the LLM (`services/chat/dire
 - a named shelter (address, capacity, occupancy, the disasters it is designated for)
 - a filter that matched nothing ("no shelter matches; the closest are…")
 
-Only plain semantic questions with no condition (「知本附近有避難所嗎」), simulation questions and nearest-shelter questions still go to the model.
+The same goes for the nearest shelters to a pair of coordinates: road distance, walking and driving time, capacity and hazard warnings are formatted by code from the routing result.
+
+Only plain semantic questions with no condition (「知本附近有避難所嗎」) and simulation questions still go to the model.
+
+- **Nearest shelters were the last to move.** They were still copied by the model until a clean-install run on 2026-10-31: asked from the centre of Hualien City, the model wrote the second shelter (國立花蓮農業職業學校, 0.91 km, capacity 382) as 花蓮高商, the first one's name. The answer guard cannot catch that, because 花蓮高商 is in the data. Formatted by code, the answer takes about a second instead of about 29 s.
 
 - **Why.** These answers are structured data that the model was copying line by line. Copying was slow (listing p50 about 40 s) and lossy: one evaluation reply labelled every Taitung City shelter as 宜蘭, and named questions used to continue with invented 「宜蘭社區活動中心 30 人」 lines. The knowledge route had just shown that returning the source verbatim removes both problems (see [Disaster-Preparedness Knowledge](#disaster-preparedness-knowledge)).
 - **Result.** On the 207-question generation set, 201 replies no longer call the model, p50 latency went from 19.7 s to 0.2 s, and answer recall and precision improved significantly (see [Generation Quality Evaluation](evaluation.md#generation-quality-evaluation)). Mixed knowledge questions now need no generation at all: the passage, the shelter list and the sources are all assembled by code.
@@ -41,7 +45,7 @@ A language toggle in the top bar (EN / 中文, remembered in the browser) switch
 - **Shelter names and addresses stay in Chinese.** The official data has no English names; translating or romanizing them would not match the signs on site, and the answer guard would no longer recognise an invented name. Townships use the official English names of the township offices (`services/web/i18n.py`): 吉安鄉 → Ji'an Township.
 - **Code-formatted answers** (lists, rankings, overviews, named shelters, refusals) have English templates, so most English answers still take under a second.
 - **Disaster-preparedness passages** have English drafts in `data_reference/knowledge/en/`, each marked `reviewed: no`. Until a passage is reviewed, English mode shows the official Chinese text with a note that the translation is pending, because a mistranslated safety instruction is as dangerous as a model rewriting one. Flipping a passage to `reviewed: yes` puts its English version live after the next restart or `/api/sync`.
-- **The remaining LLM paths** (coordinates, simulation follow-ups, plain semantic questions) get an English system prompt that keeps names and addresses in Chinese.
+- **The remaining LLM paths** (simulation follow-ups, plain semantic questions) get an English system prompt that keeps names and addresses in Chinese.
 - **Not done yet (phase two):** English keyword tables so English questions get the same filters, recalibrated distance thresholds for cross-language retrieval, an answer guard for English-only invented names, and an English evaluation set.
 
 ## Example AI Queries

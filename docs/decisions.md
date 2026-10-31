@@ -8,9 +8,11 @@ Most of what this project does differently came from measuring something and not
 
 **Problem.** Shelter lists were answered by llama3.2:3b copying rows it had been given. Copying was slow (about 40 s for a list) and lossy: one evaluation reply labelled every 台東市 shelter as 宜蘭, and answers about a single shelter kept going with invented lines such as 「宜蘭社區活動中心 30 人」.
 
-**Decision.** When the rules layer has already decided which shelters answer the question (a region, township, facility, capacity condition or a named shelter), the reply is formatted by code straight from the index metadata. The model is only used for what code cannot answer: questions with coordinates, simulation follow-ups and plain semantic questions.
+**Decision.** When the rules layer has already decided which shelters answer the question (a region, township, facility, capacity condition or a named shelter), the reply is formatted by code straight from the index metadata. The model is only used for what code cannot answer: simulation follow-ups and plain semantic questions.
 
 **Result.** On the 207-question generation set, 201 replies no longer call the model. p50 latency went from 19.7 s to 0.2 s and p95 from 61.5 s to 0.5 s, and answer recall rose by 0.050 (95% CI [+0.021, +0.084]), because a list written by code cannot drop or misplace a shelter.
+
+**Found again.** Nearest-shelter answers were still copied by the model until a clean-install run on 2026-10-31. Asked from the centre of Hualien City, it wrote the second shelter as 花蓮高商, the first one's name, with the second one's distance and capacity. The answer guard could not catch it, because 花蓮高商 is a real shelter in the data. Those answers are now formatted by code too, in about a second instead of about 29 s.
 
 **Cost.** The questions left to the model are the weakest ones. 「知本附近有避難所嗎」 retrieves shelters in 吉安, because the place name only exists in the embedding, not in the rules. → [Direct answers](chat.md#direct-answers)
 
