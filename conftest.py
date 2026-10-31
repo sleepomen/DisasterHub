@@ -8,6 +8,8 @@ TEST_ENV = {
     "POSTGRES_PASSWORD": "test_password",
     "POSTGRES_HOST": "localhost",
     "POSTGRES_PORT": "5432",
+    # 測試不能連外抓即時警戒
+    "ALERT_POLL_SECONDS": "0",
 }
 
 for key, value in TEST_ENV.items():
