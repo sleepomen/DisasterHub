@@ -1,7 +1,7 @@
 """
 防災知識評測：知識題有沒有走對路、送對段落，回答有沒有忠於官方文件。
 
-題目在 evals/knowledge_eval.jsonl，分四種：
+題目在 evals/datasets/knowledge_eval.jsonl，分四種：
   positive  知識題，標出應該送出的段落（relevant）與回答必須講到的關鍵事實（facts）
   negative  語料沒有的題目（火災、停班停課、補助）：不能拿知識文件硬答
   mixed     同時問做法與避難所：知識那邊要送對段落
@@ -34,12 +34,12 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
 import config  # noqa: E402
-from evals.gen_metrics import is_abstention  # noqa: E402
-from services import query_rules  # noqa: E402
-from services.chat_service import knowledge_text  # noqa: E402
-from services.metrics import metrics  # noqa: E402
+from evals.lib.gen_metrics import is_abstention  # noqa: E402
+from services.chat import query_rules  # noqa: E402
+from services.retrieval.knowledge import knowledge_text  # noqa: E402
+from services.web.metrics import metrics  # noqa: E402
 
-DEFAULT_CASES = os.path.join(ROOT, "evals", "knowledge_eval.jsonl")
+DEFAULT_CASES = os.path.join(ROOT, "evals", "datasets", "knowledge_eval.jsonl")
 RESULTS_DIR = os.path.join(ROOT, "evals", "results")
 KNOWLEDGE_ROUTES = {"knowledge", "knowledge_mixed"}
 EXPECTED_ROUTE = {"positive": "knowledge", "mixed": "knowledge_mixed"}
@@ -128,8 +128,8 @@ def build_service(embedder_spec: str):
 
     from evals.run_rag_eval import make_embedder
     from evals.run_route_eval import StubRepo
-    from services.chat_service import ChatService
-    from services.knowledge import KnowledgeStore
+    from services.chat.service import ChatService
+    from services.retrieval.knowledge import KnowledgeStore
 
     knowledge = KnowledgeStore(embedding_function=make_embedder(embedder_spec), client=chromadb.Client())
     t0 = time.perf_counter()
@@ -146,8 +146,8 @@ class ShelterTextStore:
     LIMIT = 10
 
     def __init__(self):
-        from services.data_fetcher import DataFetcher
-        from services.vector_store import VectorStore
+        from services.ingest.fetcher import DataFetcher
+        from services.retrieval.vector_store import VectorStore
         self.shelters = DataFetcher().get_shelters()
         self.metadata = [VectorStore.build_metadata(s) for s in self.shelters]
         self.documents = [VectorStore.build_document(s) for s in self.shelters]
@@ -168,9 +168,9 @@ class ShelterTextStore:
         return self.search_result(query, n_results, plan).text
 
     def search_result(self, query, n_results=None, plan=None):
-        """有地點條件時跟正式服務一樣由程式排好清單（services/direct_answer.py），沒有的話交給模型"""
-        from services.direct_answer import compose
-        from services.vector_store import Hit, PlannedResult, SearchResult
+        """有地點條件時跟正式服務一樣由程式排好清單（services/chat/direct_answer.py），沒有的話交給模型"""
+        from services.chat.direct_answer import compose
+        from services.retrieval.vector_store import Hit, PlannedResult, SearchResult
         picked = self._pick(plan)
         shown = picked[:self.LIMIT]
         text = "\n".join(f"- {doc}" for doc, _ in shown)

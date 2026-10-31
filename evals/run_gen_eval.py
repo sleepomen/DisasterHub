@@ -1,6 +1,6 @@
 """
 生成端評測：每一題真的走 ChatService（規則層 → 檢索 → 組 prompt → Ollama 生成），
-用 evals/gen_metrics.py 的規則對最終回覆評分。
+用 evals/lib/gen_metrics.py 的規則對最終回覆評分。
 
 跑完 130 題要半小時到一小時，中途斷電或被中止不該從頭再來，
 所以每答完一題就把結果附加寫進 <out>.progress.jsonl 並 fsync 落地，
@@ -22,8 +22,8 @@ from statistics import mean
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
-from evals.gen_metrics import NEGATIVE_KEYS, POSITIVE_KEYS, aggregate, asks_capacity, build_catalog, score_reply  # noqa: E402
-from evals.metrics import (  # noqa: E402
+from evals.lib.gen_metrics import NEGATIVE_KEYS, POSITIVE_KEYS, aggregate, asks_capacity, build_catalog, score_reply  # noqa: E402
+from evals.lib.metrics import (  # noqa: E402
     BOOTSTRAP_ITERATIONS,
     BOOTSTRAP_SEED,
     bootstrap_ci,
@@ -72,7 +72,7 @@ def load_progress(path: str, signature: dict, key: str = "query") -> dict:
 
 
 def run(cases, store, shelters, progress_handle=None, done=None):
-    from services.chat_service import ChatService
+    from services.chat.service import ChatService
 
     catalog = build_catalog(shelters)
     svc = ChatService(vector_store=store, repo=None)
@@ -163,7 +163,7 @@ def summarize(rows):
         summary["micro"] = {k: round(v, 4) for k, v in aggregate([r["scores"] for r in positive_rows]).items()}
 
         # 95% 信賴區間。120 道正例題下，llama 的 0.961 與 qwen 的 0.971 差 0.01，
-        # 沒有區間就無法說這是差異還是雜訊（要比兩個設定請用 evals/compare_runs.py 做配對比較）
+        # 沒有區間就無法說這是差異還是雜訊（要比兩個設定請用 evals/lib/compare_runs.py 做配對比較）
         ci_keys = [k for k in CI_KEYS if all(k in r["scores"] for r in positive_rows)]
         per_cat = [
             [g["scores"] for g in by_cat[cat]] for cat in sorted(by_cat) if cat != "negative"
@@ -322,7 +322,7 @@ def main():
     if done:
         print(f"接續上次進度：{len(done)} / {len(cases)} 題已完成（{progress_path}）", flush=True)
 
-    from services.data_fetcher import DataFetcher
+    from services.ingest.fetcher import DataFetcher
     shelters = DataFetcher().get_shelters()
     store, docs, build_s = build_store(args.embedder, label)
 

@@ -8,17 +8,17 @@
 
 檢索結果與生成結果都適用：兩邊的 rows 都是逐題的 {"query": ..., "scores": {...}}。
 
-    python evals/compare_runs.py evals/results/gen_qwen2.5-7b.json evals/results/gen_llama3.2-3b.json
+    python evals/lib/compare_runs.py evals/results/gen_qwen2.5-7b.json evals/results/gen_llama3.2-3b.json
 """
 import argparse
 import json
 import os
 import sys
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, ROOT)
 
-from evals.metrics import (  # noqa: E402
+from evals.lib.metrics import (  # noqa: E402
     BOOTSTRAP_ITERATIONS,
     BOOTSTRAP_SEED,
     paired_bootstrap_ci,

@@ -3,13 +3,13 @@ import json
 import os
 import sys
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, ROOT)
 
-from services.shelter_profile import facility_of, township_of  # noqa: E402
+from services.retrieval.shelter_profile import facility_of, township_of  # noqa: E402
 
 DATA_DIR = os.path.join(ROOT, "data_for_refuge")
-OUT_PATH = os.path.join(ROOT, "evals", "rag_eval.jsonl")
+OUT_PATH = os.path.join(ROOT, "evals", "datasets", "rag_eval.jsonl")
 
 REGION_ZH = {"HUALIEN": "花蓮", "TAITUNG": "台東", "YILAN": "宜蘭"}
 

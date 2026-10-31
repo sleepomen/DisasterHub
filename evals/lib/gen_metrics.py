@@ -14,7 +14,7 @@ import re
 from dataclasses import dataclass, field
 from statistics import mean
 
-from services.shelter_profile import aliases_of, strip_region_tag
+from services.retrieval.shelter_profile import aliases_of, strip_region_tag
 
 # 回覆裡「說沒有資料」的講法；出現任何一個就視為拒答
 ABSTAIN_MARKERS = ("沒有相關資料", "本系統只涵蓋", "目前沒有相關", "無相關資料", "查無", "沒有找到", "尚未執行")

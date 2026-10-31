@@ -19,11 +19,11 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
 from models.shelter import NearbyShelter, Shelter  # noqa: E402
-from services.chat_service import ChatService  # noqa: E402
-from services.knowledge import KnowledgeHit, load_chunks  # noqa: E402
-from services.metrics import metrics  # noqa: E402
+from services.chat.service import ChatService  # noqa: E402
+from services.retrieval.knowledge import KnowledgeHit, load_chunks  # noqa: E402
+from services.web.metrics import metrics  # noqa: E402
 
-DEFAULT_CASES = os.path.join(ROOT, "evals", "route_eval.jsonl")
+DEFAULT_CASES = os.path.join(ROOT, "evals", "datasets", "route_eval.jsonl")
 
 # 模擬進行中的題目要有一份快照才測得到追問路由；內容不影響路由判斷
 FAKE_SIMULATION = {
@@ -44,14 +44,14 @@ class StubVectorStore:
         return "（路由評測的替身，不是真的檢索結果）"
 
     def search_result(self, query, n_results=None, plan=None):
-        from services.vector_store import SearchResult
+        from services.retrieval.vector_store import SearchResult
         return SearchResult(self.search(query, n_results, plan))
 
     def shelter_metadata(self):
         # 「點名的場所存不存在」要對真實名單判斷，否則每個名稱都會被當成不存在；
         # 只讀 data_for_refuge/ 的 JSON，不需要 ChromaDB
-        from services.data_fetcher import DataFetcher
-        from services.vector_store import VectorStore
+        from services.ingest.fetcher import DataFetcher
+        from services.retrieval.vector_store import VectorStore
         return [VectorStore.build_metadata(s) for s in DataFetcher().get_shelters()]
 
 

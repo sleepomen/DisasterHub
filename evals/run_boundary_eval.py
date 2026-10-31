@@ -30,19 +30,20 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
 import config  # noqa: E402
-from evals.faithfulness import MISSING_RE  # noqa: E402
-from evals.gen_metrics import (  # noqa: E402
+from evals.lib.faithfulness import MISSING_RE  # noqa: E402
+from evals.lib.gen_metrics import (  # noqa: E402
     MIN_CHECKED_NUMBER,
     build_catalog,
     integers_in,
     is_abstention,
     mentioned_shelters,
 )
-from services import query_rules  # noqa: E402
-from services.chat_service import ChatService, known_names_of  # noqa: E402
-from services.vector_store import NO_DATA, NO_MATCH, VectorStore  # noqa: E402
+from services.chat import query_rules  # noqa: E402
+from services.chat.service import ChatService  # noqa: E402
+from services.chat.shelter_names import known_names_of  # noqa: E402
+from services.retrieval.vector_store import NO_DATA, NO_MATCH, VectorStore  # noqa: E402
 
-DEFAULT_CASES = os.path.join(ROOT, "evals", "boundary_eval.jsonl")
+DEFAULT_CASES = os.path.join(ROOT, "evals", "datasets", "boundary_eval.jsonl")
 RESULTS_DIR = os.path.join(ROOT, "evals", "results")
 
 
@@ -103,7 +104,7 @@ def judge_nonexistent(reply: str, name: str, catalog) -> dict:
                    以句為單位判斷，「…容量 400 人。目前沒有完全符合的避難所」前一句已經編了，後一句救不回來
       substituted  沒交代就直接拿別間來答，使用者會以為那就是答案
       其他         「X：無」這種沒頭沒尾的回覆，沒編也沒換，但也沒告訴使用者資料裡沒有
-    反事實評測（evals/faithfulness.py）量到 qwen2.5:7b 在 57.8% 的漏撈題裡默默換答，
+    反事實評測（evals/lib/faithfulness.py）量到 qwen2.5:7b 在 57.8% 的漏撈題裡默默換答，
     這裡驗證線上路徑是不是也一樣。
     """
     # 「沒有空位」是在講狀態不是在說沒有這間，先換掉，否則 MISSING_RE 的「沒有」會把它當成交代
@@ -280,7 +281,7 @@ def main() -> int:
     cases = load_cases(args.cases)
     store, docs, _ = build_store(args.embedder, "boundary", "current")
     service = ChatService(vector_store=store, repo=None) if args.generate else None
-    from services.data_fetcher import DataFetcher
+    from services.ingest.fetcher import DataFetcher
     all_shelters = DataFetcher().get_shelters()
     catalog = build_catalog(all_shelters)
     rows = run(cases, store, service, catalog, {s.name: s for s in all_shelters})

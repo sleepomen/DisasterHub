@@ -1,5 +1,5 @@
 """
-反事實上下文忠實度評測（改資料的部分與評分在 evals/faithfulness.py）。
+反事實上下文忠實度評測（改資料的部分與評分在 evals/lib/faithfulness.py）。
 
 題目取 rag_eval.jsonl 裡只有一個正確答案的正例（64 題），每題做兩種改動：
   swap_number  真實檢索結果裡，目標那一行的容量換成假值 → 模型該講假值
@@ -21,12 +21,12 @@ import time
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
-from evals.faithfulness import KINDS, SCORE_KEYS, drop_target, score_drop, score_swap, swap_number  # noqa: E402
-from evals.gen_metrics import aggregate, build_catalog  # noqa: E402
-from evals.metrics import BOOTSTRAP_ITERATIONS, BOOTSTRAP_SEED, bootstrap_ci  # noqa: E402
+from evals.lib.faithfulness import KINDS, SCORE_KEYS, drop_target, score_drop, score_swap, swap_number  # noqa: E402
+from evals.lib.gen_metrics import aggregate, build_catalog  # noqa: E402
+from evals.lib.metrics import BOOTSTRAP_ITERATIONS, BOOTSTRAP_SEED, bootstrap_ci  # noqa: E402
 from evals.run_gen_eval import _append_line, load_progress, progress_path_for  # noqa: E402
 from evals.run_rag_eval import DEFAULT_CASES, RESULTS_DIR, build_store, load_cases  # noqa: E402
-from services.shelter_profile import strip_region_tag  # noqa: E402
+from services.retrieval.shelter_profile import strip_region_tag  # noqa: E402
 
 
 def single_answer_cases(cases: list[dict]) -> list[dict]:
@@ -190,8 +190,8 @@ def main():
     if done:
         print(f"接續上次進度：{len(done)} 筆已完成（{progress_path}）", flush=True)
 
-    from services.chat_service import ChatService
-    from services.data_fetcher import DataFetcher
+    from services.chat.service import ChatService
+    from services.ingest.fetcher import DataFetcher
     shelters = DataFetcher().get_shelters()
     catalog = build_catalog(shelters)
     capacities = {s.name: s.capacity for s in shelters}

@@ -8,7 +8,7 @@ from statistics import mean
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
-from evals.metrics import (  # noqa: E402
+from evals.lib.metrics import (  # noqa: E402
     BOOTSTRAP_ITERATIONS,
     BOOTSTRAP_SEED,
     aggregate,
@@ -19,7 +19,7 @@ from evals.metrics import (  # noqa: E402
     stratified_bootstrap_ci,
 )
 
-DEFAULT_CASES = os.path.join(ROOT, "evals", "rag_eval.jsonl")
+DEFAULT_CASES = os.path.join(ROOT, "evals", "datasets", "rag_eval.jsonl")
 RESULTS_DIR = os.path.join(ROOT, "evals", "results")
 
 
@@ -29,7 +29,7 @@ def load_cases(path):
 
 
 def make_embedder(spec: str):
-    from services.embeddings import build_embedding_function
+    from services.retrieval.embeddings import build_embedding_function
 
     if spec == "minilm":
         return build_embedding_function("minilm")
@@ -39,7 +39,7 @@ def make_embedder(spec: str):
 
 
 def legacy_document(s) -> str:
-    from services.shelter_profile import region_of, strip_region_tag
+    from services.retrieval.shelter_profile import region_of, strip_region_tag
 
     return (
         f"{region_of(s.name)}的{strip_region_tag(s.name)} 位於緯度 {s.lat}、經度 {s.lon}。"
@@ -51,8 +51,8 @@ def legacy_document(s) -> str:
 
 
 def build_store(embedder_spec: str, label: str, doc_style: str = "current"):
-    from services.data_fetcher import DataFetcher
-    from services.vector_store import VectorStore
+    from services.ingest.fetcher import DataFetcher
+    from services.retrieval.vector_store import VectorStore
 
     shelters = DataFetcher().get_shelters()
     if not shelters:
@@ -66,8 +66,8 @@ def build_store(embedder_spec: str, label: str, doc_style: str = "current"):
 
 
 def run(cases, store, ks, top, threshold, use_rules=True):
-    from services import query_rules
-    from services.chat_service import known_names_of
+    from services.chat import query_rules
+    from services.chat.shelter_names import known_names_of
 
     # 跟聊天層一樣：離題詞是避難所名稱的一部分（國軍805醫院）時不算離題
     known_names = known_names_of(store.shelter_metadata())

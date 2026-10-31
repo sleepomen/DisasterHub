@@ -13,7 +13,7 @@
 """
 import re
 
-from evals.gen_metrics import MIN_CHECKED_NUMBER, integers_in, is_abstention, mentioned_shelters
+from evals.lib.gen_metrics import MIN_CHECKED_NUMBER, integers_in, is_abstention, mentioned_shelters
 
 KINDS = ("swap_number", "drop_target")
 
@@ -81,7 +81,7 @@ def drop_target(hits: list, target_id: str, limit: int) -> str | None:
     檢索漏撈：拿純語意檢索的結果、去掉正確那間，排版跟 VectorStore.search 的無篩選路徑一樣
     （沒有標頭，因為標頭會說「使用者詢問的避難所資料如下」，等於替模型背書）。
     """
-    from services.vector_store import ALIAS_PATTERN
+    from services.retrieval.vector_store import ALIAS_PATTERN
 
     kept = [h for h in hits if h.name != target_id][:limit]
     if not kept:
