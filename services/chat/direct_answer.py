@@ -1,17 +1,18 @@
 """
-程式直接排好的避難所回答：清單、容量排名、概況、點名、篩選落空。
+程式直接排好的避難所回答：清單、容量排名、概況、點名、篩選落空，以及給座標問的最近避難所。
 
 這些題目的答案本來就是結構化資料（名稱、鄉鎮、容量、剩餘空位），以前也是把同樣的資料交給
 llama3.2:3b 逐字重抄一遍：清單題 p50 約 40 秒，而且會抄錯——生成評測裡台東市的避難所被標成「宜蘭」，
 點名題答完那一間又自己往下湊出不存在的「宜蘭社區活動中心 30 人」。
 防災知識題改成直接給原文之後從 11 秒變成不到 1 秒、編造歸零（見 services/retrieval/knowledge.py），這裡是同一個做法。
 
-只處理規則層已經決定好「要哪些避難所」的情況；沒有任何條件的純語意題（「知本附近」）
-top-k 裡混著不相干的，仍交給模型挑。
+只處理已經確定「要哪些避難所」的情況：規則層的條件，或路網算好的最近幾間。
+沒有任何條件的純語意題（「知本附近」）top-k 裡混著不相干的，仍交給模型挑。
 
 英文模式（lang="en"）：避難所名稱與地址保留中文（資料沒有英文，現場招牌也是中文），其餘用英文
 """
 from services.retrieval.shelter_profile import HAZARD_KEYS, strip_region_tag
+from services.simulation.evacuation import HAZARD_LABELS
 from services.web.i18n import FACILITY_EN, HAZARD_EN, place_en, shelters_en
 
 
@@ -173,3 +174,82 @@ def _compose_en(plan, result, metas: list[dict]) -> str | None:
         return f"{head}\n{_bullets(metas, 'en')}"
 
     return None
+
+
+def _nearest_distance(n, lang: str) -> str:
+    """一間最近避難所的距離與時間；到不了、只有直線距離、仍經過警戒範圍各有說法"""
+    en = lang == "en"
+    if n.unreachable:
+        return (
+            f"{n.distance_km} km in a straight line, but no safe road leads there now "
+            "(roads inside a red debris-flow alert zone are closed)" if en
+            else f"直線距離 {n.distance_km} 公里，但目前沒有安全道路可到（土石流紅色警戒範圍內的道路封閉）"
+        )
+    if n.road_km is None:
+        return f"{n.distance_km} km in a straight line" if en else f"直線距離 {n.distance_km} 公里"
+    text = (
+        f"{n.road_km} km by road ({n.distance_km} km straight)" if en
+        else f"道路距離 {n.road_km} 公里（直線 {n.distance_km} 公里）"
+    )
+    if n.walk_min is not None:
+        text += (
+            f", about {n.walk_min} min on foot or {n.drive_min} min by car" if en
+            else f"，步行約 {n.walk_min} 分鐘、開車約 {n.drive_min} 分鐘"
+        )
+    if n.hazard_m:
+        text += (
+            f"; the route passes {n.hazard_m} m through a debris-flow alert zone because there is no safer road" if en
+            else f"，路線有 {n.hazard_m} 公尺經過土石流警戒範圍，沒有更安全的路"
+        )
+    return text
+
+
+def _nearest_warning(name: str, inside: dict, near: dict, lang: str) -> str:
+    """避難所本身在土石流潛勢範圍內（豪雨時不宜前往）或很靠近（提醒留意）"""
+    en = lang == "en"
+    if name in inside:
+        refs = ", ".join(inside[name]) if en else "、".join(inside[name])
+        return (
+            f" (inside debris-flow impact zone {refs}; do not go there during heavy rain)" if en
+            else f"（注意：位於{HAZARD_LABELS['debris_flow']} {refs} 內，豪雨時不宜前往）"
+        )
+    if name in near:
+        info = near[name]
+        refs = ", ".join(info["refs"]) if en else "、".join(info["refs"])
+        return (
+            f" (about {info['distance_m']} m from debris-flow impact zone {refs}; take care during heavy rain)" if en
+            else f"（注意：距{HAZARD_LABELS['debris_flow']} {refs} 約 {info['distance_m']} 公尺，豪雨期間請留意）"
+        )
+    return ""
+
+
+def nearest_answer(lat: float, lon: float, results: list, inside: dict, near: dict, lang: str = "zh") -> str:
+    """
+    最近避難所的回答，由程式排好，不交給模型。
+    以前這一段是當成資料交給 llama3.2:3b 重抄：2026-10-31 實測從花蓮市中心問，第 2 名「國立花蓮農業職業學校」
+    被抄成第 1 名的「花蓮高商」，距離與容量卻是農業職業學校的。回答防護抓不到，因為「花蓮高商」確實在資料裡。
+    results 是 routing.nearest_by_road 的 NearbyShelter，inside / near 是 evacuation.split_hazard_hits 的結果
+    """
+    en = lang == "en"
+    routed = any(n.road_km is not None for n in results)
+    if en:
+        lines = [
+            f"Your location: latitude {lat}, longitude {lon}",
+            "Nearest shelters, by road, closest first (straight-line distance in brackets):" if routed
+            else "Nearest shelters, by straight-line distance (road distance could not be computed):",
+        ]
+    else:
+        lines = [
+            f"您的位置：緯度 {lat}、經度 {lon}",
+            "距離最近的避難所（依道路距離由近到遠排序，括號內是直線距離）：" if routed
+            else "距離最近的避難所（道路距離無法計算，依直線距離由近到遠排序）：",
+        ]
+    for i, n in enumerate(results, 1):
+        meta = {"capacity": n.shelter.capacity, "remaining": n.shelter.remaining}
+        sep = ": " if en else "："
+        joiner = ", " if en else "，"
+        lines.append(
+            f"{i}. {strip_region_tag(n.shelter.name)}{sep}{_nearest_distance(n, lang)}{joiner}"
+            f"{_capacity_text(meta, lang)}{_nearest_warning(n.shelter.name, inside, near, lang)}"
+        )
+    return "\n".join(lines)

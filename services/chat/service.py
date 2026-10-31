@@ -17,6 +17,7 @@ import time
 import config
 from services.chat import intent, llm_client, query_rules
 from services.chat.answer_guard import LineGuard, filter_lines, supported_names
+from services.chat.direct_answer import nearest_answer
 from services.chat.replies import (
     AI_UNAVAILABLE,
     GENERIC_ERROR,
@@ -48,8 +49,8 @@ from services.retrieval.knowledge import (
 )
 from services.retrieval.shelter_profile import aliases_of
 from services.retrieval.vector_store import NO_DATA, NO_MATCH, VectorStore
-from services.simulation.evacuation import HAZARD_LABELS, HAZARD_WARN_M, split_hazard_hits
-from services.simulation.text import hazard_lines, impacted_context, near_hazard_note, simulation_summary
+from services.simulation.evacuation import HAZARD_WARN_M, split_hazard_hits
+from services.simulation.text import hazard_lines, impacted_context, simulation_summary
 from services.web.metrics import metrics
 
 logger = logging.getLogger(__name__)
@@ -154,8 +155,11 @@ class ChatService:
             logger.exception("查詢土石流潛勢區域失敗")
             return {}, {}
 
-    def _get_nearest_context(self, lat: float, lon: float) -> tuple[str | None, str | None]:
-        """回傳 (context, early_reply)。查不到或查壞了都是固定回覆，不能當成資料送進 prompt"""
+    def _get_nearest_context(self, lat: float, lon: float, lang: str = "zh") -> tuple[str | None, str | None]:
+        """
+        回傳 (context, early_reply)。答案由程式排好、直接回給使用者（見 direct_answer.nearest_answer），
+        不再交給模型重抄：重抄會把名稱和距離配錯。查不到或查壞了是固定回覆
+        """
         if self.repo is None:
             logger.error("地理查詢無法進行：repo 未初始化")
             return None, GENERIC_ERROR
@@ -163,37 +167,9 @@ class ChatService:
             results = nearest_by_road(self.repo, lat, lon, limit=5)
             if not results:
                 return None, NO_NEARBY_REPLY
-
             inside, near = self._debris_flow_shelters()
-            label = HAZARD_LABELS["debris_flow"]
-            lines = [f"使用者位置：緯度 {lat}、經度 {lon}"]
-            if any(n.road_km is not None for n in results):
-                lines.append("距離最近的避難所（依道路距離由近到遠排序，括號內是直線距離）：")
-            else:
-                lines.append("距離最近的避難所（道路距離無法計算，依直線距離由近到遠排序）：")
-            for i, n in enumerate(results, 1):
-                s = n.shelter
-                if s.name in inside:
-                    warning = f"（注意：位於{label} {'、'.join(inside[s.name])} 內，豪雨時不宜前往）"
-                elif s.name in near:
-                    warning = f"（注意：{near_hazard_note(near[s.name], label)}，豪雨期間請留意）"
-                else:
-                    warning = ""
-                if n.unreachable:
-                    distance = f"直線距離 {n.distance_km} 公里，但目前沒有安全道路可到（土石流紅色警戒範圍內的道路封閉）"
-                elif n.road_km is not None:
-                    distance = f"道路距離 {n.road_km} 公里（直線 {n.distance_km} 公里）"
-                    if n.walk_min is not None:
-                        distance += f"，步行約 {n.walk_min} 分鐘、開車約 {n.drive_min} 分鐘"
-                    if n.hazard_m:
-                        distance += f"，路線有 {n.hazard_m} 公尺經過土石流警戒範圍，沒有更安全的路"
-                else:
-                    distance = f"直線距離 {n.distance_km} 公里"
-                lines.append(
-                    f"{i}. {display_name(s.name)}：{distance}，"
-                    f"容量 {s.capacity} 人，剩餘空間 {s.remaining} 人{warning}"
-                )
-            return "\n".join(lines), None
+            metrics.incr("chat.answer.direct")
+            return None, nearest_answer(lat, lon, results, inside, near, lang)
         except Exception:
             logger.exception("地理查詢失敗")
             return None, GENERIC_ERROR
@@ -304,7 +280,7 @@ class ChatService:
             coords = intent.extract_coords(user_message)
             if coords is not None:
                 metrics.route("nearest")
-                return self._get_nearest_context(*coords)
+                return self._get_nearest_context(*coords, lang)
             if not self._is_simulation_followup(user_message) and intent.needs_coordinates(user_message):
                 metrics.route("needs_coords")
                 return None, NEEDS_COORDS_REPLY
