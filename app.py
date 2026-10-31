@@ -31,6 +31,7 @@ from services.evacuation import (
     split_hazard_hits,
     undesignated,
 )
+from services.hazard_alerts import poll_alerts
 from services.knowledge import KnowledgeStore
 from services.map_service import MapService
 from services.metrics import metrics
@@ -188,11 +189,14 @@ async def lifespan(_: FastAPI):
     except Exception:
         logger.exception("啟動同步失敗，服務仍會啟動，接下來會在背景自動重試")
         retry_task = asyncio.create_task(retry_startup_sync())
+    # 即時土石流警戒：路線封閉或繞開警戒範圍內的道路
+    alert_task = asyncio.create_task(poll_alerts(repo)) if config.ALERT_POLL_SECONDS > 0 else None
     yield
-    if retry_task is not None:
-        retry_task.cancel()
-        with suppress(asyncio.CancelledError):
-            await retry_task
+    for task in (retry_task, alert_task):
+        if task is not None:
+            task.cancel()
+            with suppress(asyncio.CancelledError):
+                await task
 
 
 class RequestIdMiddleware:
@@ -470,11 +474,14 @@ async def simulate(request: SimulateRequest, http_request: Request, x_api_key: s
     # 誰去哪一間由後端決定，結果確定、可重現；前端只把這份分配畫成動畫。
     # 以前是瀏覽器用亂數分配、動畫跑完才回寫，AI 要等回寫成功才看得到同樣的數字。
     # 近者優先的「近」是道路距離；路網查不到時退回直線距離
+    # 路線繞開警戒範圍（紅色封閉、黃色繞行），淹水模擬另外繞開土石流潛勢範圍
     origins = origins_from(population, request.lat, request.lon)
-    road_m = await asyncio.to_thread(evacuation_road_distances, repo, origins, destinations)
+    road_m = await asyncio.to_thread(evacuation_road_distances, repo, origins, destinations, hazard)
     plan = plan_evacuation(origins, destinations, road_m)
-    # 路線只用來畫圖，分配已經決定好了；查不到就畫直線，不影響數字
-    await asyncio.to_thread(attach_evacuation_paths, repo, origins, destinations, plan["flows"])
+    # 實際路線用來畫圖、回報實際距離；分配已經決定好了，查不到就畫直線，不影響人數
+    await asyncio.to_thread(attach_evacuation_paths, repo, origins, destinations, plan["flows"], hazard)
+    plan["route_hazard"] = hazard
+    plan["alerts"] = await asyncio.to_thread(alert_summary)
     plan["excluded"] = excluded
     plan["near_hazard"] = near
     plan["hazard"] = hazard if excluded or near else None
@@ -516,6 +523,32 @@ async def simulate(request: SimulateRequest, http_request: Request, x_api_key: s
 @app.get("/api/hazard_zones")
 async def get_hazard_zones():
     return hazard_zones_geojson()
+
+
+def alert_summary() -> list[dict]:
+    """目前生效的土石流警戒，給地圖疊圖與模擬結果用；查不到就當成沒有，不影響其他功能"""
+    try:
+        alerts = repo.active_alerts()
+    except Exception:
+        logger.exception("查詢土石流警戒失敗")
+        return []
+    return [
+        {
+            "ref_no": a["ref_no"], "level": a["level"],
+            "place": f"{a['county'] or ''}{a['town'] or ''}{a['village'] or ''}",
+            "issued_at": a["issued_at"].isoformat() if a["issued_at"] else None,
+            "fetched_at": a["fetched_at"].isoformat(),
+            "road_km": round(a["road_m"] / 1000, 2),
+        }
+        for a in alerts
+    ]
+
+
+# 即時土石流警戒：哪些潛勢溪流發布了黃色或紅色警戒，以及範圍內有多少道路被封閉或要繞行
+@app.get("/api/alerts")
+async def get_alerts():
+    alerts = await asyncio.to_thread(alert_summary)
+    return {"alerts": alerts, "poll_seconds": config.ALERT_POLL_SECONDS}
 
 
 # 人口模型（海岸線 + 鄉鎮人口）：前端人群動畫用它決定人從哪裡出發
