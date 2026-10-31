@@ -14,6 +14,7 @@
 """
 from dataclasses import dataclass
 
+from models.travel import DEFAULT_MODE, fallback_seconds
 from services.population_service import distance_km
 
 # 哪些災害類型要避開哪一類潛勢區域。豪雨同時是淹水與土石流的觸發條件：淹水模擬時，
@@ -101,18 +102,20 @@ def split_hazard_hits(hits: dict[str, list[tuple[str, float]]]) -> tuple[dict[st
 
 def plan_evacuation(
     origins: list[Origin], shelters: list, road_m: dict[tuple[int, int], float | None] | None = None,
+    mode: str = DEFAULT_MODE,
 ) -> dict:
     """
     shelters 是 Shelter 物件（要有 name / lat / lon / remaining）。
-    road_m 是 {(起點序號, 避難所序號): 路線成本公尺}（沒有警戒、不繞潛勢範圍時就是道路距離），
-    沒有的配對用直線 × DETOUR_FACTOR；值是 None 代表沒有安全路線可到，這一組不分配。回傳：
-      flows     每一筆「從哪個鄉鎮、到哪間避難所、多少人、直線距離、道路距離」，依路線成本由低到高。
-                road_km 先放路線成本，routing.attach_evacuation_paths 再換成實際路線的公里數
+    road_m 是 {(起點序號, 避難所序號): 路線成本（秒）}（mode 的通行時間，警戒或潛勢範圍再加權），
+    沒有的配對用直線 × DETOUR_FACTOR 換算成時間；值是 None 代表沒有安全路線可到，這一組不分配。回傳：
+      flows     每一筆「從哪個鄉鎮、到哪間避難所、多少人、直線距離」，依路線成本由低到高。
+                routed 表示依路線分配；實際的 road_km / walk_min / drive_min 由 routing.attach_evacuation_paths 填上
       assigned  每間避難所分到的人數
       placed / unplaced  安置與安置不下的人數（總和等於需疏散人數）
       cut_off   哪些鄉鎮到任何一間避難所都沒有安全路線（人全部算在 unplaced 裡）
       unreachable  哪些避難所從任何一個鄉鎮都沒有安全路線可到（例如紅色警戒封了唯一的聯外道路）
       distance_basis  分配用的距離："road"（全部是道路距離）、"mixed"、"straight"
+      mode      步行或開車（「近」是哪一種交通方式的時間）
     """
     road_m = road_m or {}
     need = {o.name: o.people for o in origins}
@@ -126,13 +129,13 @@ def plan_evacuation(
             if (i, j) in road_m and road_m[(i, j)] is None:
                 continue
             straight = round(distance_km(o.lat, o.lon, s.lat, s.lon), 2)
-            road = round(road_m[(i, j)] / 1000, 2) if (i, j) in road_m else None
-            cost = road if road is not None else round(straight * DETOUR_FACTOR, 2)
-            pairs.append((cost, o.name, s.name, straight, road, o, s))
+            routed = (i, j) in road_m
+            cost = road_m[(i, j)] if routed else fallback_seconds(straight * 1000 * DETOUR_FACTOR, mode)
+            pairs.append((round(cost, 1), o.name, s.name, straight, routed, o, s))
     pairs.sort(key=lambda p: p[:3])
     flows = []
     assigned: dict[str, int] = {}
-    for _, _, _, dist, road, origin, shelter in pairs:
+    for _, _, _, dist, routed, origin, shelter in pairs:
         moving = min(need[origin.name], room[shelter.name])
         if moving <= 0:
             continue
@@ -148,10 +151,11 @@ def plan_evacuation(
             "to_lon": shelter.lon,
             "people": moving,
             "distance_km": dist,
-            "road_km": road,
+            "routed": routed,
+            "road_km": None,
         })
     placed = sum(assigned.values())
-    routed = [f["road_km"] is not None for f in flows] or [bool(road_m)]
+    routed = [f["routed"] for f in flows] or [bool(road_m)]
     return {
         "flows": flows,
         "assigned": assigned,
@@ -163,4 +167,5 @@ def plan_evacuation(
             if origins and all((i, j) in road_m and road_m[(i, j)] is None for i in range(len(origins)))
         ],
         "distance_basis": "road" if all(routed) else "mixed" if any(routed) else "straight",
+        "mode": mode,
     }

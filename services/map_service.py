@@ -52,6 +52,7 @@ class MapService:
             {
                 **self._shelter_dict(n.shelter), "distance_km": n.distance_km, "road_distance_km": n.road_km,
                 "unreachable": n.unreachable, "hazard_m": n.hazard_m,
+                "walk_min": n.walk_min, "drive_min": n.drive_min,
             }
             for n in nearby
         ]

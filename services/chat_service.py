@@ -459,10 +459,11 @@ def undesignated_lines(plan: dict) -> list[str]:
 
 # 疏散分配依哪一種距離決定「近者優先」（evacuation.plan_evacuation 的 distance_basis）
 BASIS_TEXT = {
-    "road": "依道路距離由近到遠",
-    "mixed": "依道路距離由近到遠，少數算不出道路距離的路線用直線距離估算",
-    "straight": "道路距離無法計算，依直線距離由近到遠",
+    "road": "依{mode}時間由短到長",
+    "mixed": "依{mode}時間由短到長，少數算不出道路路線的用直線距離估算",
+    "straight": "道路路線無法計算，依直線距離估算的{mode}時間由短到長",
 }
+MODE_TEXT = {"walk": "步行", "drive": "開車"}
 
 
 def evacuation_lines(plan: dict) -> list[str]:
@@ -476,7 +477,9 @@ def evacuation_lines(plan: dict) -> list[str]:
     if not assigned:
         return hazard_lines(plan)
     ranked = sorted(assigned.items(), key=lambda kv: (-kv[1], kv[0]))
-    basis = BASIS_TEXT.get(plan.get("distance_basis"), "依直線距離由近到遠")
+    basis = BASIS_TEXT.get(plan.get("distance_basis"), "依直線距離由近到遠").format(
+        mode=MODE_TEXT.get(plan.get("mode"), "步行"),
+    )
     lines = [f"疏散分配（共 {len(ranked)} 間，{basis}，並守住各避難所的剩餘空位）："]
     lines += [f"- {display_name(name)}：分配 {people} 人" for name, people in ranked]
     if plan.get("unplaced"):
@@ -669,6 +672,8 @@ class ChatService:
                     distance = f"直線距離 {n.distance_km} 公里，但目前沒有安全道路可到（土石流紅色警戒範圍內的道路封閉）"
                 elif n.road_km is not None:
                     distance = f"道路距離 {n.road_km} 公里（直線 {n.distance_km} 公里）"
+                    if n.walk_min is not None:
+                        distance += f"，步行約 {n.walk_min} 分鐘、開車約 {n.drive_min} 分鐘"
                     if n.hazard_m:
                         distance += f"，路線有 {n.hazard_m} 公尺經過土石流警戒範圍，沒有更安全的路"
                 else:
