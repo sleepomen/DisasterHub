@@ -14,3 +14,8 @@ TEST_ENV = {
 
 for key, value in TEST_ENV.items():
     os.environ.setdefault(key, value)
+
+# 向量索引一律放記憶體。在容器裡跑測試時環境已經有 CHROMA_PATH=/data/chroma，
+# 不蓋掉的話測試會跟正在服務的那個 process 共用同一份索引：測試建索引時換掉 collection，
+# 服務那邊重建到一半就會出現「Collection ... does not exist」，啟動同步失敗、網頁卡住
+os.environ["CHROMA_PATH"] = ""
