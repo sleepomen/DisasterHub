@@ -154,12 +154,13 @@ def test_prompt_tells_model_data_is_prefiltered(svc):
     assert "原樣引用" in prompt
 
 
-def test_nearest_context_has_no_region_tag(svc):
+def test_nearest_answer_has_no_region_tag(svc):
     ctx, early = svc._get_nearest_context(23.99, 121.6)
-    assert early is None
-    assert "花蓮縣立體育館" in ctx
-    assert "HUALIEN" not in ctx
-    assert "1.2 公里" in ctx
+    # 最近避難所由程式直接回答，不交給模型
+    assert ctx is None
+    assert "花蓮縣立體育館" in early
+    assert "HUALIEN" not in early
+    assert "1.2 公里" in early
 
 
 def test_capacity_ranking_goes_through_rules_layer(svc):
@@ -471,9 +472,10 @@ def test_out_of_scope_is_rejected_even_during_simulation(svc):
 def test_geo_query_with_coords_wins_over_simulation_followup(svc):
     svc.set_simulation(SIM)
     context, early = svc.build_context("緯度 23.99 經度 121.60 附近有什麼建議")
-    assert early is None
-    assert "距離最近的避難所" in context
-    assert "受影響避難所共" not in context
+    # 有座標就走最近避難所（由程式直接回答），不是模擬快照
+    assert context is None
+    assert "距離最近的避難所" in early
+    assert "受影響避難所共" not in early
 
 
 def test_geo_query_without_coords_during_simulation_uses_snapshot(svc):
@@ -552,7 +554,9 @@ def test_nearest_context_ranks_by_road_distance_and_shows_both(svc):
         (0, 0): RoadPath(15550.0, 0.0, "a", 1200.0), (0, 1): RoadPath(25600.0, 0.0, "b", 2100.0),
     }
     context, early = svc._get_nearest_context(24.40, 121.75)
-    lines = context.splitlines()
+    assert context is None
+    lines = early.splitlines()
+    assert lines[0] == "您的位置：緯度 24.4、經度 121.75"
     assert "依道路距離由近到遠排序" in lines[1]
     assert lines[2].startswith(
         "1. 南澳鄉綜合體育場：道路距離 15.55 公里（直線 8.84 公里），步行約 259 分鐘、開車約 20 分鐘"
@@ -563,8 +567,8 @@ def test_nearest_context_ranks_by_road_distance_and_shows_both(svc):
     # 路網查壞了：全部退回直線距離，標頭也要說清楚
     svc.repo.road_distances.side_effect = RuntimeError("pgrouting missing")
     context, early = svc._get_nearest_context(24.40, 121.75)
-    lines = context.splitlines()
-    assert early is None and "道路距離無法計算" in lines[1]
+    lines = early.splitlines()
+    assert context is None and "道路距離無法計算" in lines[1]
     assert lines[2].startswith("1. 澳花國小：直線距離 7.87 公里")
 
 
@@ -863,7 +867,7 @@ def test_nearest_results_warn_about_debris_flow_zones(svc):
     ]
     svc.repo.shelter_hazard_distances.return_value = {"[YILAN] 澳花國小": [("宜縣DF139", 0.0)]}
     context, early = svc._get_nearest_context(24.33, 121.73)
-    first, second = context.splitlines()[2:4]
+    first, second = early.splitlines()[2:4]
     assert "宜縣DF139" in first and "豪雨時不宜前往" in first
     assert "土石流" not in second
     svc.repo.shelter_hazard_distances.assert_called_with("debris_flow", 200)
@@ -871,14 +875,60 @@ def test_nearest_results_warn_about_debris_flow_zones(svc):
     # 範圍外但很近的只提醒留意，不說不宜前往
     svc.repo.shelter_hazard_distances.return_value = {"[YILAN] 南澳鄉綜合體育場": [("宜縣DF094", 150.6)]}
     context, early = svc._get_nearest_context(24.33, 121.73)
-    first, second = context.splitlines()[2:4]
+    first, second = early.splitlines()[2:4]
     assert "土石流" not in first
     assert "宜縣DF094 約 151 公尺" in second and "豪雨期間請留意" in second and "不宜前往" not in second
 
     # 潛勢區域查壞了，最近避難所仍要答得出來
     svc.repo.shelter_hazard_distances.side_effect = RuntimeError("db down")
     context, early = svc._get_nearest_context(24.33, 121.73)
-    assert early is None and "澳花國小" in context
+    assert context is None and "澳花國小" in early
+
+
+def test_nearest_answer_is_written_by_code_not_the_model(svc):
+    """
+    2026-10-31 實測：模型把第 2 名「國立花蓮農業職業學校」抄成第 1 名的「花蓮高商」，
+    距離與容量卻是農業職業學校的。改由程式排版之後，名稱和數字一定配對正確，也不打模型
+    """
+    from models.shelter import NearbyShelter
+
+    svc.repo = MagicMock()
+    svc.repo.shelter_hazard_distances.return_value = {}
+    svc.repo.get_nearest_shelters.return_value = [
+        NearbyShelter(Shelter("[HUALIEN] 花蓮高商", 266, 23.99, 121.60, 0), distance_km=0.46),
+        NearbyShelter(Shelter("[HUALIEN] 國立花蓮農業職業學校", 382, 23.99, 121.61, 0), distance_km=0.72),
+    ]
+    svc.repo.road_distances.return_value = {(0, 0): 560.0, (0, 1): 910.0}
+    svc.repo.road_paths.return_value = {
+        (0, 0): RoadPath(560.0, 0.0, "a", 180.0), (0, 1): RoadPath(910.0, 0.0, "b", 300.0),
+    }
+    with patch.object(svc, "generate_stream", side_effect=AssertionError("不該打模型")):
+        reply = svc.chat("緯度 23.99 經度 121.60 最近的避難所")
+    lines = reply.splitlines()
+    assert lines[2] == "1. 花蓮高商：道路距離 0.56 公里（直線 0.46 公里），步行約 9 分鐘、開車約 3 分鐘，容量 266 人，剩餘空位 266 人"
+    assert lines[3].startswith("2. 國立花蓮農業職業學校：道路距離 0.91 公里") and "容量 382 人" in lines[3]
+
+
+def test_nearest_answer_in_english(svc):
+    from models.shelter import NearbyShelter
+
+    svc.repo = MagicMock()
+    svc.repo.shelter_hazard_distances.return_value = {"[YILAN] 澳花國小": [("宜縣DF139", 0.0)]}
+    svc.repo.get_nearest_shelters.return_value = [
+        NearbyShelter(Shelter("[YILAN] 澳花國小", 150, 24.33, 121.73, 0), distance_km=1.2),
+        NearbyShelter(Shelter("[YILAN] 封路", 0, 24.34, 121.74, 0), distance_km=2.0),
+    ]
+    svc.repo.road_distances.return_value = {(0, 0): 1500.0, (0, 1): None}
+    svc.repo.road_paths.return_value = {(0, 0): RoadPath(1500.0, 0.0, "a", 240.0)}
+    context, early = svc._get_nearest_context(24.33, 121.73, "en")
+    lines = early.splitlines()
+    assert lines[0] == "Your location: latitude 24.33, longitude 121.73"
+    # 名稱保留中文，其餘英文；避難所本身在潛勢範圍內要警告
+    assert lines[2].startswith("1. 澳花國小: 1.5 km by road (1.2 km straight), about 25 min on foot or 4 min by car")
+    assert "inside debris-flow impact zone 宜縣DF139" in lines[2]
+    # 被紅色警戒封路擋住的排最後；來源沒填容量時不寫成「0 人」
+    assert lines[3].startswith("2. 封路: 2.0 km in a straight line, but no safe road leads there now")
+    assert lines[3].endswith("capacity not provided")
 
 
 def test_simulation_summary_names_the_excluded_shelters(svc):
