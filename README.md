@@ -53,16 +53,15 @@ flowchart LR
     R -- "out of area · off-topic<br/>unknown shelter · no clue" --> F[Fixed reply]
     R -- "how to · alert levels" --> K[Official passage<br/>+ sources]
     R -- "region · township · facility<br/>capacity · named shelter" --> D[Metadata filter<br/>list formatted by code]
-    R -- "coordinates" --> N[PostGIS + pgRouting<br/>nearest by road]
+    R -- "coordinates" --> N[PostGIS + pgRouting<br/>nearest by road, formatted by code]
     R -- "simulation follow-up" --> S[Simulation snapshot]
     R -- "anything else" --> V[Semantic retrieval]
-    N --> L[llama3.2:3b]
-    S --> L
+    S --> L[llama3.2:3b]
     V --> L
     L --> G[Answer guard<br/>drops invented shelters]
 ```
 
-Only the last three paths (coordinates, simulation follow-ups, plain semantic questions) still use the language model. Everything else is answered by code from the data, which is why most answers take well under a second and cannot invent a shelter or a number.
+Only the last two paths (simulation follow-ups and plain semantic questions) still use the language model. Everything else is answered by code from the data, which is why most answers take well under a second and cannot invent a shelter or a number.
 
 ## Quick start
 
@@ -93,7 +92,7 @@ Open <http://localhost:8501>. The first start loads the shelters, hazard zones a
 
 ## Limitations
 
-- **The language model is small and local** (llama3.2:3b). It only answers what code cannot: coordinates, simulation follow-ups and plain semantic questions. Those are the weakest answers; 「知本附近有避難所嗎」 retrieves shelters in 吉安 instead of 知本.
+- **The language model is small and local** (llama3.2:3b). It only answers what code cannot: simulation follow-ups and plain semantic questions. Those are the weakest answers; 「知本附近有避難所嗎」 retrieves shelters in 吉安 instead of 知本.
 - **The evacuation is a model, not a plan.** Each township starts from one centroid, the allocation is greedy rather than optimal, road speeds are fixed with no traffic or congestion, and roads are treated as two-way.
 - **Live alerts have not been seen live yet.** The feed reported no alerts while this was built, so the alert format is inferred from the dataset description.
 - **English mode is partial.** The 34 knowledge passages have draft translations awaiting review, so English answers still show the Chinese passage.
@@ -107,6 +106,10 @@ Open <http://localhost:8501>. The first start loads the shelters, hazard zones a
 - Preparedness passages: Central Weather Administration, National Fire Agency, Agency of Rural Development and Soil and Water Conservation
 
 All of the above are published under the [Open Government Data License, version 1.0](https://data.gov.tw/license). The road network is © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors, available under the Open Database License (ODbL 1.0); `data_reference/east_roads.json.gz` is a derived database under the same licence.
+
+## License
+
+The code is released under the [MIT License](LICENSE). The data keeps its own licences, listed under [Data sources](#data-sources): the government open data under the Open Government Data License, and the road network under the ODbL.
 
 ## Author
 
