@@ -63,3 +63,37 @@ CREATE TABLE IF NOT EXISTS dataset_versions (
     checksum VARCHAR(64) NOT NULL,
     loaded_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- 路線避開災害範圍：道路邊與潛勢範圍的對應、即時警戒、目前生效的道路限制（視圖）。
+-- 說明見 repositories/shelter_repository.py 的 ROUTE_HAZARD_SCHEMA_SQL；應用程式啟動時也會建立
+CREATE TABLE IF NOT EXISTS road_hazards (
+    edge_id INTEGER NOT NULL,
+    hazard_type VARCHAR(40) NOT NULL,
+    ref_no VARCHAR(40) NOT NULL,
+    risk VARCHAR(10),
+    inside_ratio REAL NOT NULL DEFAULT 1,
+    PRIMARY KEY (hazard_type, ref_no, edge_id)
+);
+CREATE INDEX IF NOT EXISTS idx_road_hazards_edge ON road_hazards (edge_id);
+
+CREATE TABLE IF NOT EXISTS hazard_alerts (
+    source VARCHAR(40) NOT NULL,
+    hazard_type VARCHAR(40) NOT NULL,
+    ref_no VARCHAR(40) NOT NULL,
+    level VARCHAR(10) NOT NULL CHECK (level IN ('red', 'yellow')),
+    county VARCHAR(20),
+    town VARCHAR(20),
+    village VARCHAR(40),
+    issued_at TIMESTAMPTZ,
+    fetched_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    expires_at TIMESTAMPTZ NOT NULL,
+    PRIMARY KEY (source, ref_no)
+);
+
+CREATE OR REPLACE VIEW road_closures AS
+SELECT rh.edge_id,
+       CASE a.level WHEN 'red' THEN 'closed' ELSE 'caution' END AS level,
+       a.source, a.ref_no, a.issued_at, a.expires_at, rh.inside_ratio
+FROM hazard_alerts a
+JOIN road_hazards rh ON rh.hazard_type = a.hazard_type AND rh.ref_no = a.ref_no
+WHERE a.expires_at > now();
