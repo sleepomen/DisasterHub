@@ -3,6 +3,7 @@ import logging
 import threading
 import time
 from contextlib import contextmanager
+from typing import NamedTuple
 
 from psycopg2 import OperationalError
 from psycopg2.pool import PoolError, ThreadedConnectionPool
@@ -105,6 +106,52 @@ ROAD_SCHEMA_SQL = (
     """,
 )
 
+# 路線避開災害範圍用的三張表／視圖：
+# road_hazards   哪些道路邊穿過哪一個潛勢範圍（靜態，同步時由 ST_Intersects 重算）
+# hazard_alerts  即時警戒（目前是農村水保署的土石流警戒），定期抓取，過期自動失效
+# road_closures  目前生效的道路限制：警戒範圍內的道路邊，紅色警戒封閉、黃色警戒繞行。
+#                是視圖，警戒或潛勢範圍任一邊更新就自動反映，不會有兩份資料對不上的時候。
+#                之後接其他來源（公路局阻斷、淹水感測器）就在這裡多 UNION 一段
+ROUTE_HAZARD_SCHEMA_SQL = (
+    """
+    CREATE TABLE IF NOT EXISTS road_hazards (
+        edge_id INTEGER NOT NULL,
+        hazard_type VARCHAR(40) NOT NULL,
+        ref_no VARCHAR(40) NOT NULL,
+        risk VARCHAR(10),
+        inside_ratio REAL NOT NULL DEFAULT 1,
+        PRIMARY KEY (hazard_type, ref_no, edge_id)
+    )
+    """,
+    # 一條邊常常只有一小段碰到範圍（山區一條邊可長達數公里）：加權與「經過範圍多長」都只算落在範圍內的比例
+    "ALTER TABLE road_hazards ADD COLUMN IF NOT EXISTS inside_ratio REAL NOT NULL DEFAULT 1",
+    "CREATE INDEX IF NOT EXISTS idx_road_hazards_edge ON road_hazards (edge_id)",
+    """
+    CREATE TABLE IF NOT EXISTS hazard_alerts (
+        source VARCHAR(40) NOT NULL,
+        hazard_type VARCHAR(40) NOT NULL,
+        ref_no VARCHAR(40) NOT NULL,
+        level VARCHAR(10) NOT NULL CHECK (level IN ('red', 'yellow')),
+        county VARCHAR(20),
+        town VARCHAR(20),
+        village VARCHAR(40),
+        issued_at TIMESTAMPTZ,
+        fetched_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        expires_at TIMESTAMPTZ NOT NULL,
+        PRIMARY KEY (source, ref_no)
+    )
+    """,
+    """
+    CREATE OR REPLACE VIEW road_closures AS
+    SELECT rh.edge_id,
+           CASE a.level WHEN 'red' THEN 'closed' ELSE 'caution' END AS level,
+           a.source, a.ref_no, a.issued_at, a.expires_at, rh.inside_ratio
+    FROM hazard_alerts a
+    JOIN road_hazards rh ON rh.hazard_type = a.hazard_type AND rh.ref_no = a.ref_no
+    WHERE a.expires_at > now()
+    """,
+)
+
 # 點離最近的道路超過這個距離就不吸附，該點不算道路距離（例如海上、深山）
 ROAD_SNAP_M = 1000
 # 疏散起點是鄉鎮人口重心，只是一個代表點，可能落在田裡或河床上，所以起點可以吸附得比較遠，
@@ -117,6 +164,20 @@ ROUTE_MARGIN_DEG = 0.05
 FRACTION_EPS = 1e-6
 # 路線幾何回傳前的簡化容許誤差（度，約 10 公尺）：地圖上看不出差別，疏散模擬一次幾十條路線的資料量少很多
 PATH_SIMPLIFY_DEG = 0.0001
+
+# 路線避開災害範圍的加權（成本 = 長度 × 係數）。係數的意思是「願意多繞幾倍路來避開」：
+# 高風險潛勢範圍內的 1 公里，寧可繞 3 公里的安全道路。只拿來挑路線，回報的距離仍是實際公尺數
+ROUTE_HAZARD_FACTORS = {"debris_flow": {"高": 3.0, "中": 2.0, "低": 1.5, "持續觀察": 1.5}}
+DEFAULT_RISK_FACTOR = 1.5
+# 黃色警戒（預防性疏散）範圍內的道路：還能走，但盡量繞開。紅色警戒範圍內的道路直接封閉
+CAUTION_FACTOR = 5.0
+
+
+class RoadPath(NamedTuple):
+    """一條實際路線：距離（公尺）、其中仍經過災害範圍的長度、路上那段的 encoded polyline"""
+    meters: float
+    hazard_m: float
+    polyline: str
 
 SELECT_COLUMNS = (
     "name, capacity, current_ppl, ST_Y(geom::geometry), ST_X(geom::geometry), COALESCE(address, ''), "
@@ -197,7 +258,7 @@ class ShelterRepository:
                     cursor.execute(statement)
                 cursor.execute("CREATE INDEX IF NOT EXISTS idx_shelters_geom ON shelters USING GIST (geom)")
                 cursor.execute(GEOGRAPHY_INDEX_SQL)
-                for statement in HAZARD_SCHEMA_SQL + ROAD_SCHEMA_SQL:
+                for statement in HAZARD_SCHEMA_SQL + ROAD_SCHEMA_SQL + ROUTE_HAZARD_SCHEMA_SQL:
                     cursor.execute(statement)
         except Exception as e:
             raise RuntimeError(f"ensure_schema 失敗：{e}") from e
@@ -457,6 +518,83 @@ class ShelterRepository:
         except Exception as e:
             raise RuntimeError(f"replace_road_network 失敗：{e}") from e
 
+    def rebuild_road_hazards(self) -> int:
+        """
+        重算哪些道路邊穿過哪一個潛勢範圍，回傳筆數。路網或潛勢範圍任一邊更新都要重算；
+        全東部 11 萬多條邊對 531 個範圍做 ST_Intersects 不到一秒，所以每次同步直接重算，不另外比對版本。
+        同一條溪流可能有好幾塊多邊形，(災害, 範圍編號, 邊) 只留一筆
+        """
+        try:
+            with self._cursor() as cursor:
+                cursor.execute("TRUNCATE road_hazards")
+                # 同一條溪流的幾塊多邊形先合併，比例才不會重複計算
+                cursor.execute(
+                    """
+                    INSERT INTO road_hazards (edge_id, hazard_type, ref_no, risk, inside_ratio)
+                    SELECT r.id, z.hazard_type, z.ref_no, z.risk,
+                           LEAST(1, ST_Length(ST_Intersection(r.geom, z.geom)::geography)
+                                    / NULLIF(ST_Length(r.geom::geography), 0))
+                    FROM roads r
+                    JOIN (
+                        SELECT hazard_type, ref_no, MAX(risk) AS risk, ST_Union(geom) AS geom
+                        FROM hazard_zones WHERE ref_no IS NOT NULL
+                        GROUP BY hazard_type, ref_no
+                    ) z ON ST_Intersects(r.geom, z.geom)
+                    WHERE ST_Length(r.geom) > 0
+                    """
+                )
+                return cursor.rowcount
+        except Exception as e:
+            raise RuntimeError(f"rebuild_road_hazards 失敗：{e}") from e
+
+    def replace_alerts(self, source: str, hazard_type: str, alerts: list[dict], ttl_minutes: int) -> int:
+        """
+        換掉某個來源的全部警戒（來源每次給的都是完整的目前狀態，解除的警戒就是不在清單裡）。
+        每筆警戒 ttl_minutes 分鐘後失效：抓取一直失敗時，舊警戒不會永遠擋著道路
+        """
+        try:
+            with self._cursor() as cursor:
+                cursor.execute("DELETE FROM hazard_alerts WHERE source = %s", (source,))
+                for a in alerts:
+                    cursor.execute(
+                        """
+                        INSERT INTO hazard_alerts
+                            (source, hazard_type, ref_no, level, county, town, village, issued_at, expires_at)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, now() + make_interval(mins => %s))
+                        ON CONFLICT (source, ref_no) DO UPDATE SET
+                            level = CASE WHEN EXCLUDED.level = 'red' THEN 'red' ELSE hazard_alerts.level END
+                        """,
+                        (source, hazard_type, a["ref_no"], a["level"], a.get("county"), a.get("town"),
+                         a.get("village"), a.get("issued_at"), ttl_minutes),
+                    )
+            return len(alerts)
+        except Exception as e:
+            raise RuntimeError(f"replace_alerts 失敗：{e}") from e
+
+    def active_alerts(self) -> list[dict]:
+        """目前生效的警戒，附上範圍內被封閉或要繞行的道路長度（公尺）"""
+        try:
+            with self._cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT a.source, a.hazard_type, a.ref_no, a.level, a.county, a.town, a.village,
+                           a.issued_at, a.fetched_at, a.expires_at,
+                           COUNT(rh.edge_id), COALESCE(SUM(r.cost * rh.inside_ratio), 0)
+                    FROM hazard_alerts a
+                    LEFT JOIN road_hazards rh ON rh.hazard_type = a.hazard_type AND rh.ref_no = a.ref_no
+                    LEFT JOIN roads r ON r.id = rh.edge_id
+                    WHERE a.expires_at > now()
+                    GROUP BY a.source, a.hazard_type, a.ref_no, a.level, a.county, a.town, a.village,
+                             a.issued_at, a.fetched_at, a.expires_at
+                    ORDER BY a.level DESC, a.ref_no
+                    """
+                )
+                keys = ("source", "hazard_type", "ref_no", "level", "county", "town", "village",
+                        "issued_at", "fetched_at", "expires_at", "edges", "road_m")
+                return [dict(zip(keys, row, strict=True)) for row in cursor.fetchall()]
+        except Exception as e:
+            raise RuntimeError(f"active_alerts 失敗：{e}") from e
+
     # 每個點吸附到最近的一條道路：邊的編號、在邊上的位置（0～1）、點到路的距離（公尺）。
     # KNN 用 geometry 的 <->（單位是度，東部緯度下經緯度的比例差不到一成，挑最近的一條夠用）。
     # 長度為 0 的邊（簡化後兩端落在同一公尺格內）算不出位置，不拿來吸附
@@ -473,30 +611,36 @@ class ShelterRepository:
 
     def road_distances(
         self, origins: list[tuple[float, float]], targets: list[tuple[float, float]],
-        snap_m: float = ROAD_SNAP_M, origin_snap_m: float | None = None,
-    ) -> dict[tuple[int, int], float]:
+        snap_m: float = ROAD_SNAP_M, origin_snap_m: float | None = None, hazard: str | None = None,
+    ) -> dict[tuple[int, int], float | None]:
         """
-        起點 × 終點的道路距離（公尺），key 是 (起點序號, 終點序號)，座標是 (lat, lon)。
-        距離＝起點走到最近道路＋沿路網的最短路徑＋終點離開道路的那一段。
-        吸附不到道路（終點離路超過 snap_m、起點超過 origin_snap_m，沒給就跟 snap_m 一樣）
-        或路網不連通的組合不會出現在結果裡，由呼叫端退回直線距離
+        起點 × 終點的路線成本（公尺），key 是 (起點序號, 終點序號)，座標是 (lat, lon)。
+        成本＝起點走到最近道路＋沿路網的最短路徑＋終點離開道路的那一段。路上那段每條邊依災害範圍加權
+        （見 _weights_sql）：沒有警戒、也沒指定 hazard 時，成本就是道路距離。
+        排序用這個成本；加權之後它不再是公尺數，實際走多遠由 road_paths 算。
+
+        值是 None 代表到不了：兩端都吸附到道路，整個路網卻找不到不經過封閉道路的路徑。
+        吸附不到道路（終點離路超過 snap_m、起點超過 origin_snap_m，沒給就跟 snap_m 一樣）的組合
+        不會出現在結果裡，由呼叫端退回直線距離
         """
         if not origins or not targets:
             return {}
+        points = list(origins) + list(targets)
         try:
             with self._cursor() as cursor:
                 snaps, starts, ends = self._snap(cursor, origins, targets, snap_m, origin_snap_m)
                 if not starts or not ends:
                     return {}
-                edges_sql, points_sql = self._routing_sql(list(origins) + list(targets), snaps, starts + ends)
-                cursor.execute(
-                    """
-                    SELECT start_pid, end_pid, agg_cost
-                    FROM pgr_withPointsCost(%s, %s, %s::bigint[], %s::bigint[], directed := false)
-                    """,
-                    (edges_sql, points_sql, [-(i + 1) for i in starts], [-(i + 1) for i in ends]),
-                )
-                routed = {(abs(s) - 1, abs(e) - 1): float(cost) for s, e, cost in cursor.fetchall()}
+                routed = self._route_costs(cursor, points, snaps, starts, ends, hazard, bounded=True)
+                missing = [
+                    (i, k) for i in starts for k in ends
+                    if (i, k) not in routed and snaps[i][:2] != snaps[k][:2]
+                ]
+                if missing:
+                    # 繞開封閉道路的路線可能走出起訖點周圍的子圖：只對算不出來的組合，用整個路網再算一次
+                    retry_starts = sorted({i for i, _ in missing})
+                    retry_ends = sorted({k for _, k in missing})
+                    routed |= self._route_costs(cursor, points, snaps, retry_starts, retry_ends, hazard, bounded=False)
         except Exception as e:
             raise RuntimeError(f"road_distances 失敗：{e}") from e
 
@@ -507,43 +651,71 @@ class ShelterRepository:
                 # 起訖吸附到同一個位置時 pgRouting 不回傳這一組，路上距離就是 0
                 if cost is None and snaps[i][:2] == snaps[k][:2]:
                     cost = 0.0
-                if cost is not None:
-                    result[(i, k - len(origins))] = cost + snaps[i][2] + snaps[k][2]
+                result[(i, k - len(origins))] = None if cost is None else cost + snaps[i][2] + snaps[k][2]
         return result
 
     def road_paths(
         self, origins: list[tuple[float, float]], targets: list[tuple[float, float]], pairs: list[tuple[int, int]],
-        snap_m: float = ROAD_SNAP_M, origin_snap_m: float | None = None,
-    ) -> dict[tuple[int, int], str]:
+        snap_m: float = ROAD_SNAP_M, origin_snap_m: float | None = None, hazard: str | None = None,
+    ) -> dict[tuple[int, int], RoadPath]:
         """
-        指定的 (起點序號, 終點序號) 組合沿路網的實際路線，回傳 encoded polyline（precision 5，lat/lon）。
-        路線只有路上的那一段，從起點吸附點到終點吸附點；走到路上、離開道路的那兩小段由畫圖的一方補直線。
-        吸附與子圖範圍跟 road_distances 一樣，畫出來的路線就是距離算的那一條
+        指定的 (起點序號, 終點序號) 組合沿路網的實際路線。回傳 RoadPath：
+          meters    實際距離（公尺），含走到路上、離開道路的兩小段，沒有加權
+          hazard_m  路上那段裡仍經過災害範圍（潛勢範圍或警戒範圍）的長度
+          polyline  路上那段的 encoded polyline（precision 5，lat/lon），頭尾兩小段由畫圖的一方補直線
+        吸附、子圖範圍、加權都跟 road_distances 一樣，畫出來的就是排序用的那一條。到不了的組合不在結果裡
         """
         if not pairs:
             return {}
+        points = list(origins) + list(targets)
+        n = len(origins)
         try:
             with self._cursor() as cursor:
                 snaps, starts, ends = self._snap(cursor, origins, targets, snap_m, origin_snap_m)
-                n = len(origins)
                 wanted = [(i, n + j) for i, j in pairs if i in starts and n + j in ends]
                 if not wanted:
                     return {}
-                used = sorted({p for pair in wanted for p in pair})
-                edges_sql, points_sql = self._routing_sql(list(origins) + list(targets), snaps, used)
-                values = ", ".join(f"({-(i + 1)}, {-(k + 1)})" for i, k in wanted)
-                combinations_sql = f"SELECT * FROM (VALUES {values}) AS c(source, target)"
-                cursor.execute(self.PATH_SQL, (
-                    [i + 1 for i in used], [snaps[i][1] for i in used],
-                    edges_sql, points_sql, combinations_sql, PATH_SIMPLIFY_DEG,
-                ))
-                return {(abs(s) - 1, abs(e) - 1 - n): polyline for s, e, polyline in cursor.fetchall()}
+                found = self._route_paths(cursor, points, snaps, wanted, hazard, bounded=True)
+                missing = [pair for pair in wanted if pair not in found]
+                if missing:
+                    found |= self._route_paths(cursor, points, snaps, missing, hazard, bounded=False)
         except Exception as e:
             raise RuntimeError(f"road_paths 失敗：{e}") from e
+        return {
+            (i, k - n): RoadPath(meters + snaps[i][2] + snaps[k][2], hazard_m, polyline)
+            for (i, k), (meters, hazard_m, polyline) in found.items()
+        }
+
+    def _route_costs(self, cursor, points, snaps, starts, ends, hazard, bounded: bool) -> dict:
+        edges_sql, points_sql = self._routing_sql(points, snaps, starts + ends, starts, hazard, bounded)
+        cursor.execute(
+            """
+            SELECT start_pid, end_pid, agg_cost
+            FROM pgr_withPointsCost(%s, %s, %s::bigint[], %s::bigint[], directed := false)
+            """,
+            (edges_sql, points_sql, [-(i + 1) for i in starts], [-(i + 1) for i in ends]),
+        )
+        return {(abs(s) - 1, abs(e) - 1): float(cost) for s, e, cost in cursor.fetchall()}
+
+    def _route_paths(self, cursor, points, snaps, wanted, hazard, bounded: bool) -> dict:
+        used = sorted({p for pair in wanted for p in pair})
+        starts = sorted({i for i, _ in wanted})
+        edges_sql, points_sql = self._routing_sql(points, snaps, used, starts, hazard, bounded)
+        values = ", ".join(f"({-(i + 1)}, {-(k + 1)})" for i, k in wanted)
+        combinations_sql = f"SELECT * FROM (VALUES {values}) AS c(source, target)"
+        cursor.execute(self.PATH_SQL.format(weights=self._weights_sql(hazard)), (
+            [i + 1 for i in used], [snaps[i][1] for i in used],
+            edges_sql, points_sql, combinations_sql, PATH_SIMPLIFY_DEG,
+        ))
+        return {
+            (abs(s) - 1, abs(e) - 1): (float(meters), float(hazard_m), polyline)
+            for s, e, meters, hazard_m, polyline in cursor.fetchall()
+        }
 
     # 把 pgr_withPoints 走過的邊接成一條線。吸附點在路徑上是負的節點編號，所在的那條邊只走一部分：
     # 每一步依「從哪個節點、到哪個節點」換算成邊上的位置（端點 0 或 1、吸附點用它的 fraction），
-    # 用 ST_LineSubstring 切出那一段；逆著邊的方向走就反轉，整條線才是從起點連到終點
+    # 用 ST_LineSubstring 切出那一段；逆著邊的方向走就反轉，整條線才是從起點連到終點。
+    # 實際距離用 roads.cost（原始長度）乘上走過的比例；受限的邊再乘上落在範圍內的比例，加總成 hazard_m
     PATH_SQL = """
         WITH pts AS (
             SELECT * FROM unnest(%s::bigint[], %s::float8[]) AS p(pid, fraction)
@@ -551,18 +723,25 @@ class ShelterRepository:
             SELECT start_pid, end_pid, path_seq, node, edge,
                    LEAD(node) OVER (PARTITION BY start_pid, end_pid ORDER BY path_seq) AS next_node
             FROM pgr_withPoints(%s, %s, %s, directed := false)
-        ), seg AS (
-            SELECT path.start_pid, path.end_pid, path.path_seq, r.geom,
+        ), w AS ({weights}), seg AS (
+            SELECT path.start_pid, path.end_pid, path.path_seq, r.geom, r.cost AS length,
+                   COALESCE(w.ratio, 0) AS hazard_ratio,
                    CASE WHEN path.node < 0 THEN (SELECT fraction FROM pts WHERE pid = -path.node)
                         WHEN path.node = r.source THEN 0 ELSE 1 END AS f0,
                    CASE WHEN path.next_node < 0 THEN (SELECT fraction FROM pts WHERE pid = -path.next_node)
                         WHEN path.next_node = r.source THEN 0 ELSE 1 END AS f1
-            FROM path JOIN roads r ON r.id = path.edge
+            FROM path
+            JOIN roads r ON r.id = path.edge
+            LEFT JOIN w ON w.edge_id = path.edge
         )
-        SELECT start_pid, end_pid, ST_AsEncodedPolyline(ST_Simplify(ST_MakeLine(
-            CASE WHEN f0 < f1 THEN ST_LineSubstring(geom, f0, f1) ELSE ST_Reverse(ST_LineSubstring(geom, f1, f0)) END
-            ORDER BY path_seq
-        ), %s), 5)
+        SELECT start_pid, end_pid,
+               SUM(length * abs(f1 - f0)),
+               SUM(length * abs(f1 - f0) * hazard_ratio),
+               ST_AsEncodedPolyline(ST_Simplify(ST_MakeLine(
+                   CASE WHEN f0 < f1 THEN ST_LineSubstring(geom, f0, f1)
+                        ELSE ST_Reverse(ST_LineSubstring(geom, f1, f0)) END
+                   ORDER BY path_seq
+               ), %s), 5)
         FROM seg WHERE f0 <> f1
         GROUP BY start_pid, end_pid
     """
@@ -589,17 +768,60 @@ class ShelterRepository:
         return snaps, starts, ends
 
     @staticmethod
-    def _routing_sql(points: list[tuple[float, float]], snaps: dict, used: list[int]) -> tuple[str, str]:
-        """pgRouting 的邊表與吸附點 SQL；邊只取這些點外接框（往外擴）內的，不必每次搜整個東部"""
-        lats = [points[i][0] for i in used]
-        lons = [points[i][1] for i in used]
-        pad_lat = ROUTE_MARGIN_DEG + (max(lats) - min(lats)) / 2
-        pad_lon = ROUTE_MARGIN_DEG + (max(lons) - min(lons)) / 2
-        # pgRouting 收的是 SQL 字串；放進去的只有這裡算出來的數字，不是使用者的文字
+    def _weights_sql(hazard: str | None) -> str:
+        """
+        每條受限道路邊的 (edge_id, closed, factor)：
+        - road_closures：紅色警戒範圍內封閉，黃色警戒範圍內成本 × CAUTION_FACTOR
+        - hazard 有指定時（淹水模擬 → 土石流潛勢範圍），範圍內的道路依風險等級加權，不封閉：
+          潛勢範圍涵蓋 564 公里道路，包含蘇花、花東沿線的省道，全部封掉東部會被切斷
+        一條邊落在好幾個範圍裡取最嚴格的
+        """
+        parts = [
+            "SELECT edge_id, level = 'closed' AS closed, "
+            f"CASE level WHEN 'caution' THEN {CAUTION_FACTOR} ELSE 1 END AS factor, inside_ratio FROM road_closures"
+        ]
+        if hazard is not None:
+            factors = ROUTE_HAZARD_FACTORS[hazard]  # 不認得的災害類型直接 KeyError，不會把字串拼進 SQL
+            cases = " ".join(f"WHEN '{risk}' THEN {f}" for risk, f in factors.items())
+            parts.append(
+                f"SELECT edge_id, false, CASE risk {cases} ELSE {DEFAULT_RISK_FACTOR} END, inside_ratio "
+                f"FROM road_hazards WHERE hazard_type = '{hazard}'"
+            )
+        union = " UNION ALL ".join(parts)
+        # 加權只套在落在範圍內的那一段：成本 = 長度 ×（1 +（係數 − 1）× 範圍內比例）
+        return (
+            "SELECT edge_id, bool_or(closed) AS closed, max(1 + (factor - 1) * inside_ratio) AS factor, "
+            f"max(inside_ratio) AS ratio FROM ({union}) x GROUP BY edge_id"
+        )
+
+    @classmethod
+    def _routing_sql(
+        cls, points: list[tuple[float, float]], snaps: dict, used: list[int], starts: list[int],
+        hazard: str | None, bounded: bool = True,
+    ) -> tuple[str, str]:
+        """
+        pgRouting 的邊表與吸附點 SQL。bounded 時邊只取這些點外接框（往外擴）內的，不必每次搜整個東部。
+        封閉的邊成本給 -1，pgRouting 會當成這條邊不存在。起點所在的那條邊例外：
+        人就在警戒範圍裡，正是要往外撤的人，不能因為腳下的路封了就困在原地
+        """
+        # pgRouting 收的是 SQL 字串；放進去的只有這裡算出來的數字與固定的設定，不是使用者的文字
+        open_edges = ", ".join(str(snaps[i][0]) for i in starts) or "0"
+        where = ""
+        if bounded:
+            lats = [points[i][0] for i in used]
+            lons = [points[i][1] for i in used]
+            pad_lat = ROUTE_MARGIN_DEG + (max(lats) - min(lats)) / 2
+            pad_lon = ROUTE_MARGIN_DEG + (max(lons) - min(lons)) / 2
+            where = (
+                f"WHERE r.geom && ST_MakeEnvelope({min(lons) - pad_lon}, {min(lats) - pad_lat}, "
+                f"{max(lons) + pad_lon}, {max(lats) + pad_lat}, 4326)"
+            )
+        closed = f"w.closed AND r.id NOT IN ({open_edges})"
         edges_sql = (
-            "SELECT id, source, target, cost, reverse_cost FROM roads "
-            f"WHERE geom && ST_MakeEnvelope({min(lons) - pad_lon}, {min(lats) - pad_lat}, "
-            f"{max(lons) + pad_lon}, {max(lats) + pad_lat}, 4326)"
+            "SELECT r.id, r.source, r.target, "
+            f"CASE WHEN {closed} THEN -1 ELSE r.cost * COALESCE(w.factor, 1) END AS cost, "
+            f"CASE WHEN {closed} THEN -1 ELSE r.reverse_cost * COALESCE(w.factor, 1) END AS reverse_cost "
+            f"FROM roads r LEFT JOIN ({cls._weights_sql(hazard)}) w ON w.edge_id = r.id {where}"
         )
         values = ", ".join(f"({i + 1}, {snaps[i][0]}, {snaps[i][1]})" for i in used)
         points_sql = f"SELECT pid, edge_id, fraction FROM (VALUES {values}) AS p(pid, edge_id, fraction)"
