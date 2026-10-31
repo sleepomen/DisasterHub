@@ -283,7 +283,7 @@
       "simulation": false,
       "expected": "nearest",
       "actual": "nearest",
-      "answered_without_llm": false,
+      "answered_without_llm": true,
       "note": "有座標的距離查詢"
     },
     {
@@ -291,7 +291,7 @@
       "simulation": false,
       "expected": "nearest",
       "actual": "nearest",
-      "answered_without_llm": false,
+      "answered_without_llm": true,
       "note": "裸座標"
     },
     {
@@ -299,7 +299,7 @@
       "simulation": false,
       "expected": "nearest",
       "actual": "nearest",
-      "answered_without_llm": false,
+      "answered_without_llm": true,
       "note": "座標順序顛倒"
     },
     {
@@ -307,7 +307,7 @@
       "simulation": false,
       "expected": "nearest",
       "actual": "nearest",
-      "answered_without_llm": false,
+      "answered_without_llm": true,
       "note": "全形標點的座標"
     },
     {
