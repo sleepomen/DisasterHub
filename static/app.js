@@ -1,4 +1,4 @@
-    const state = { city: 'all', loc: '121.60,23.98', type: 'earthquake' };
+    const state = { city: 'all', loc: '121.60,23.98', type: 'earthquake', mode: 'walk' };
 
     function toggleDropdown(e, id) {
         e.stopPropagation();
@@ -525,8 +525,12 @@
         clearRoutes();
         routeLayer = L.layerGroup().addTo(map);
         flows.forEach((f, i) => {
-            const vars = { from: f.from, to: f.to.replace(/\[.*?\]\s*/, ''), people: f.people, km: f.road_km, m: f.hazard_m };
-            const tip = I18N.t(f.path ? 'route_tip' : 'route_tip_straight', vars) + (f.hazard_m ? I18N.t('route_tip_hazard', vars) : '');
+            const vars = {
+                from: f.from, to: f.to.replace(/\[.*?\]\s*/, ''), people: f.people, km: f.road_km, m: f.hazard_m,
+                walk: f.walk_min, drive: f.drive_min,
+            };
+            // 打開時才組字，切換語言後提示也跟著換
+            const tip = () => I18N.t(f.path ? 'route_tip' : 'route_tip_straight', vars) + (f.hazard_m ? I18N.t('route_tip_hazard', vars) : '');
             L.polyline(routes[i].points.map(p => [p.lat, p.lon]), {
                 // 沒有更安全的路、仍有路段經過災害範圍的路線用橘色標出來
                 color: f.hazard_m ? '#ff9f43' : '#ffe14d',
@@ -721,7 +725,7 @@
         });
 
         try {
-            const result = await postAuthed('/api/simulate_disaster', { lat, lon, radius, type });
+            const result = await postAuthed('/api/simulate_disaster', { lat, lon, radius, type, mode: state.mode });
 
             if (result.impacted_count === 0) {
                 addChat(I18N.t('no_shelter_in_range'), 'ai');

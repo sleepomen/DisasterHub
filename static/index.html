@@ -93,6 +93,15 @@
                     <div class="dropdown-option" onclick="selectOption(event,'type','fire','type_fire')"><span data-i18n="type_fire">火災模擬</span></div>
                 </div>
             </div>
+            <div class="list-row" onclick="toggleDropdown(event,'mode-dropdown')">
+                <span class="row-label" data-i18n="label_mode">交通方式</span>
+                <span class="row-value" id="mode-display" data-i18n="mode_walk">步行</span>
+                <span class="chevron">›</span>
+                <div class="dropdown-menu" id="mode-dropdown">
+                    <div class="dropdown-option selected" onclick="selectOption(event,'mode','walk','mode_walk')"><span data-i18n="mode_walk">步行</span><span class="checkmark">✓</span></div>
+                    <div class="dropdown-option" onclick="selectOption(event,'mode','drive','mode_drive')"><span data-i18n="mode_drive">開車</span></div>
+                </div>
+            </div>
             <div class="slider-row">
                 <div class="slider-header">
                     <span class="slider-label" data-i18n="label_radius">受災半徑</span>
