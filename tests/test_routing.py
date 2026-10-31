@@ -146,14 +146,15 @@ def test_road_paths_route_only_the_requested_pairs():
     cursor, fake_cursor = fake_repo_cursor([
         # 起點 0、1；終點 2、3（序號接在起點後面），終點 3 離路 1500 公尺
         [(0, 10, 0.5, 20.0), (1, 11, 0.0, 30.0), (2, 12, 0.25, 5.0), (3, 13, 0.5, 1500.0)],
-        [(-1, -3, 1000.0, 0.0, "abc"), (-2, -3, 2000.0, 150.0, "def")],
+        [(-1, -3, 1000.0, 0.0, "abc", 60.0), (-2, -3, 2000.0, 150.0, "def", 100.0)],
     ])
     with patch.object(ShelterRepository, "_cursor", fake_cursor):
         result = ShelterRepository().road_paths(
             [(24.0, 121.0), (24.1, 121.1)], [(24.01, 121.0), (24.5, 121.5)], [(0, 0), (1, 0), (0, 1)],
         )
-    # 實際距離含走到路上、離開道路的兩小段
-    assert result == {(0, 0): RoadPath(1025.0, 0.0, "abc"), (1, 0): RoadPath(2035.0, 150.0, "def")}
+    # 實際距離含走到路上、離開道路的兩小段；開車時間的這兩小段用步行速度（1 m/s）
+    assert result == {(0, 0): RoadPath(1025.0, 0.0, "abc", 85.0), (1, 0): RoadPath(2035.0, 150.0, "def", 135.0)}
+    assert result[(0, 0)].walk_s == 1025.0
     pids, fractions, _, points_sql, combinations_sql, _ = cursor.execute.call_args.args[1]
     assert pids == [1, 2, 3] and fractions == [0.5, FRACTION_EPS, 0.25]
     assert "(-1, -3), (-2, -3)" in combinations_sql and "-4" not in combinations_sql
@@ -228,10 +229,12 @@ def test_nearest_by_road_reorders_and_keeps_unroutable_last():
         NearbyShelter(Shelter("到不了", 100, 24.50, 121.50), distance_km=2.0),
     ]
     repo.road_distances.return_value = {(0, 0): 25600.0, (0, 1): 15550.0}
-    repo.road_paths.return_value = {}
+    repo.road_paths.return_value = {(0, 0): RoadPath(15550.0, 0.0, "a", 1100.0), (0, 1): RoadPath(25600.0, 0.0, "b", 1900.0)}
     ranked = nearest_by_road(repo, 24.4, 121.75, limit=3)
     assert [n.shelter.name for n in ranked] == ["遠但有路", "近但繞山", "到不了"]
     assert [n.road_km for n in ranked] == [15.55, 25.6, None]
+    assert [(n.walk_min, n.drive_min) for n in ranked] == [(259, 18), (427, 32), (None, None)]
+    assert repo.road_distances.call_args.kwargs == {"mode": "walk"}
     repo.get_nearest_shelters.assert_called_once_with(24.4, 121.75, limit=10)
 
 
@@ -248,6 +251,7 @@ def test_nearest_ranks_by_route_cost_but_reports_actual_distance():
     ]
     # 第二間實際 3 公里，但有 1 公里在黃色警戒範圍內，成本被加權到 7 公里
     repo.road_distances.return_value = {(0, 0): None, (0, 1): 7000.0, (0, 2): 4000.0}
+    # 實際路線依排序後的順序查：安全、要穿過黃色警戒
     repo.road_paths.return_value = {(0, 0): RoadPath(4000.0, 0.0, "a"), (0, 1): RoadPath(3000.0, 1000.0, "b")}
     ranked = nearest_by_road(repo, 24.4, 121.75, limit=3)
     assert [n.shelter.name for n in ranked] == ["安全", "要穿過黃色警戒", "封路後到不了"]
@@ -276,24 +280,26 @@ def test_evacuation_distances_failure_returns_empty():
 
 def test_evacuation_paths_only_for_flows_with_road_distance():
     repo = MagicMock()
-    repo.road_paths.return_value = {(0, 1): RoadPath(1800.0, 250.0, "abc")}
+    repo.road_paths.return_value = {(0, 1): RoadPath(1800.0, 250.0, "abc", 300.0)}
     origins = [Origin("玉里鎮", 23.33, 121.31, 100)]
     shelters = [Shelter("甲", 300, 23.34, 121.31), Shelter("乙", 300, 23.35, 121.32)]
     flows = [
-        {"from": "玉里鎮", "to": "乙", "road_km": 2.1},
-        {"from": "玉里鎮", "to": "甲", "road_km": None},
+        {"from": "玉里鎮", "to": "乙", "routed": True, "road_km": None},
+        {"from": "玉里鎮", "to": "甲", "routed": False, "road_km": None},
     ]
-    attach_evacuation_paths(repo, origins, shelters, flows, "debris_flow")
+    attach_evacuation_paths(repo, origins, shelters, flows, "debris_flow", "drive")
     assert [f["path"] for f in flows] == ["abc", None]
-    # 分配時的 road_km 是加權成本，換成實際路線的距離
-    assert [(f["road_km"], f["hazard_m"]) for f in flows] == [(1.8, 250), (None, 0)]
+    # 實際路線的距離與時間（分配時用的是加權後的時間）
+    assert [(f["road_km"], f["hazard_m"], f["walk_min"], f["drive_min"]) for f in flows] == [
+        (1.8, 250, 30, 5), (None, 0, None, None),
+    ]
     assert repo.road_paths.call_args.args[2] == [(0, 1)]
-    assert repo.road_paths.call_args.kwargs == {"origin_snap_m": 5000, "hazard": "debris_flow"}
+    assert repo.road_paths.call_args.kwargs == {"origin_snap_m": 5000, "hazard": "debris_flow", "mode": "drive"}
 
 
 def test_evacuation_path_failure_draws_straight_lines():
     repo = MagicMock()
     repo.road_paths.side_effect = RuntimeError("no pgrouting")
-    flows = [{"from": "甲", "to": "乙", "road_km": 1.0}]
+    flows = [{"from": "甲", "to": "乙", "routed": True, "road_km": None}]
     attach_evacuation_paths(repo, [Origin("甲", 24.0, 121.6, 1)], [Shelter("乙", 1, 24.1, 121.6)], flows)
-    assert flows[0]["path"] is None
+    assert flows[0]["path"] is None and flows[0]["road_km"] is None

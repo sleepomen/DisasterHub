@@ -603,6 +603,8 @@ def test_nearest_shelter_response_shape(client):
     with (
         patch("repositories.shelter_repository.ShelterRepository.get_nearest_shelters", return_value=nearby),
         patch("repositories.shelter_repository.ShelterRepository.road_distances", return_value={(0, 0): 3140.0}),
+        patch("repositories.shelter_repository.ShelterRepository.road_paths",
+              return_value={(0, 0): RoadPath(3140.0, 0.0, "abc", 400.0)}),
     ):
         res = client.post("/api/nearest_shelter", json={"lat": 24.7, "lon": 121.7, "limit": 5})
     assert res.status_code == 200
@@ -610,7 +612,7 @@ def test_nearest_shelter_response_shape(client):
     assert body["count"] == 1
     row = body["shelters"][0]
     assert set(row) == {"name", "capacity", "current_ppl", "remaining", "lat", "lon", "address",
-                        "distance_km", "road_distance_km", "unreachable", "hazard_m"}
+                        "distance_km", "road_distance_km", "unreachable", "hazard_m", "walk_min", "drive_min"}
     assert (row["distance_km"], row["road_distance_km"], row["remaining"]) == (2.5, 3.14, 280)
 
 

@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from models.shelter import NearbyShelter, Shelter
+from repositories.shelter_repository import RoadPath
 from services.chat_service import (
     AI_UNAVAILABLE,
     GENERIC_ERROR,
@@ -549,11 +550,16 @@ def test_nearest_context_ranks_by_road_distance_and_shows_both(svc):
     ]
     # 澳花國小直線比較近，但要繞山；第三間吸附不到道路，只有直線距離
     svc.repo.road_distances.return_value = {(0, 0): 25600.0, (0, 1): 15550.0}
-    svc.repo.road_paths.return_value = {}
+    # 實際路線依排序後的順序查：體育場、澳花國小
+    svc.repo.road_paths.return_value = {
+        (0, 0): RoadPath(15550.0, 0.0, "a", 1200.0), (0, 1): RoadPath(25600.0, 0.0, "b", 2100.0),
+    }
     context, early = svc._get_nearest_context(24.40, 121.75)
     lines = context.splitlines()
     assert "依道路距離由近到遠排序" in lines[1]
-    assert lines[2].startswith("1. 南澳鄉綜合體育場：道路距離 15.55 公里（直線 8.84 公里）")
+    assert lines[2].startswith(
+        "1. 南澳鄉綜合體育場：道路距離 15.55 公里（直線 8.84 公里），步行約 259 分鐘、開車約 20 分鐘"
+    )
     assert lines[3].startswith("2. 澳花國小：道路距離 25.6 公里（直線 7.87 公里）")
     assert lines[4].startswith("3. 離路太遠：直線距離 9.5 公里")
 
@@ -831,11 +837,11 @@ def test_simulation_summary_quotes_the_server_side_evacuation_plan(svc):
 
 
 def test_simulation_summary_says_which_distance_decided_the_plan(svc):
-    for basis, expected in [("road", "依道路距離由近到遠，並守住"), ("mixed", "用直線距離估算"),
-                            ("straight", "道路距離無法計算")]:
+    for basis, mode, expected in [("road", "walk", "依步行時間由短到長，並守住"), ("mixed", "walk", "用直線距離估算"),
+                                  ("straight", "walk", "道路路線無法計算"), ("road", "drive", "依開車時間由短到長")]:
         svc.set_simulation({"type": "flood", "radius_km": 10, "impacted_count": 1, "impacted_shelters": [],
                             "evacuation": {"assigned": {"[HUALIEN] 甲": 90}, "placed": 90, "unplaced": 0,
-                                           "distance_basis": basis}})
+                                           "distance_basis": basis, "mode": mode}})
         assert expected in svc._simulation_summary()
 
 

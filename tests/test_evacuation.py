@@ -48,8 +48,10 @@ def test_road_distance_decides_who_is_nearest():
     origin = Origin("南澳鄉", 24.40, 121.75, 200)
     plan = plan_evacuation([origin], [NEAR, FAR], {(0, 0): 25600.0, (0, 1): 15550.0})
     assert [f["to"] for f in plan["flows"]] == ["[HUALIEN] 遠"]
-    assert plan["flows"][0]["road_km"] == 15.55 and plan["flows"][0]["distance_km"] > 0
-    assert plan["distance_basis"] == "road"
+    # 實際距離與時間由 routing.attach_evacuation_paths 沿路線算好再填
+    assert plan["flows"][0]["routed"] and plan["flows"][0]["road_km"] is None
+    assert plan["flows"][0]["distance_km"] > 0
+    assert plan["distance_basis"] == "road" and plan["mode"] == "walk"
 
 
 def test_unrouted_pairs_are_estimated_with_the_detour_factor():
@@ -60,8 +62,9 @@ def test_unrouted_pairs_are_estimated_with_the_detour_factor():
     origin = Origin("甲", 24.0, 121.6, 600)
     near = Shelter(name="直線近", capacity=100, lat=24.0 + 10 / 111.2, lon=121.6)
     far = Shelter(name="道路近", capacity=100, lat=24.0 - 10.5 / 111.2, lon=121.6)
+    # 步行 1 公尺 1 秒：道路 11000 秒，估算 11600 秒
     plan = plan_evacuation([origin], [near, far], {(0, 1): 11000.0})
-    assert [(f["to"], f["road_km"]) for f in plan["flows"]] == [("道路近", 11.0), ("直線近", None)]
+    assert [(f["to"], f["routed"]) for f in plan["flows"]] == [("道路近", True), ("直線近", False)]
     assert plan["distance_basis"] == "mixed"
     assert 1 < DETOUR_FACTOR < 1.5
 
@@ -69,7 +72,20 @@ def test_unrouted_pairs_are_estimated_with_the_detour_factor():
 def test_no_road_distances_falls_back_to_straight_line():
     plan = plan_evacuation([Origin("花蓮市", 23.977, 121.601, 50)], [NEAR, FAR], {})
     assert plan["distance_basis"] == "straight"
-    assert [f["road_km"] for f in plan["flows"]] == [None]
+    assert [f["routed"] for f in plan["flows"]] == [False]
+
+
+def test_driving_estimates_unrouted_pairs_at_driving_speed():
+    """
+    開車時算不出路線的配對要用車速估算時間，才能跟路線算出來的開車時間比：
+    直線 10 公里估成 11.6 公里、30 km/h 約 1392 秒，輸給路線 1200 秒的那間
+    """
+    origin = Origin("甲", 24.0, 121.6, 600)
+    near = Shelter(name="直線近", capacity=100, lat=24.0 + 10 / 111.2, lon=121.6)
+    far = Shelter(name="道路快", capacity=100, lat=24.0 - 10.5 / 111.2, lon=121.6)
+    plan = plan_evacuation([origin], [near, far], {(0, 1): 1200.0}, mode="drive")
+    assert [f["to"] for f in plan["flows"]] == ["道路快", "直線近"]
+    assert plan["mode"] == "drive"
 
 
 def test_origins_follow_population_weights():
