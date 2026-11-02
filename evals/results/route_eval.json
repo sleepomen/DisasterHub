@@ -1,7 +1,7 @@
 {
   "summary": {
-    "count": 56,
-    "correct": 56,
+    "count": 58,
+    "correct": 58,
     "accuracy": 1.0,
     "per_route": {
       "knowledge": {
@@ -42,6 +42,11 @@
       "out_of_scope": {
         "count": 4,
         "correct": 4,
+        "accuracy": 1.0
+      },
+      "place": {
+        "count": 2,
+        "correct": 2,
         "accuracy": 1.0
       },
       "rag": {
@@ -85,6 +90,9 @@
       "out_of_scope": {
         "out_of_scope": 4
       },
+      "place": {
+        "place": 2
+      },
       "rag": {
         "rag": 15
       },
@@ -104,6 +112,7 @@
       "no_simulation_advice",
       "off_topic",
       "out_of_scope",
+      "place",
       "rag",
       "simulation",
       "unknown_name"
@@ -153,10 +162,10 @@
     {
       "query": "知本附近有避難所嗎",
       "simulation": false,
-      "expected": "rag",
-      "actual": "rag",
-      "answered_without_llm": false,
-      "note": "有地理關鍵字但也有地名，設計上交給檢索而不是回頭要座標"
+      "expected": "place",
+      "actual": "place",
+      "answered_without_llm": true,
+      "note": "小地名換成座標（data_reference/east_places.json），依道路距離由程式回答"
     },
     {
       "query": "中華路一段附近的避難所",
@@ -557,6 +566,22 @@
       "actual": "simulation",
       "answered_without_llm": true,
       "note": "模擬進行中的「建議」要看這次的模擬，不是一般須知"
+    },
+    {
+      "query": "我在七星潭，可以去哪裡避難",
+      "simulation": false,
+      "expected": "place",
+      "actual": "place",
+      "answered_without_llm": true,
+      "note": "「我在＋地名」句型；七星潭不是鄉鎮也不是村里，只在 OSM 地名裡"
+    },
+    {
+      "query": "赤柯山附近有避難所嗎",
+      "simulation": false,
+      "expected": "rag",
+      "actual": "rag",
+      "answered_without_llm": false,
+      "note": "不在小地名檔裡的地名：仍是地點線索，交給檢索，不能回頭要座標"
     }
   ]
 }

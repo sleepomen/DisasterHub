@@ -3,7 +3,7 @@
 {"query": "容量最大的避難所是哪一間", "expected_route": "rag", "simulation": false, "note": "容量排名仍走檢索，排序在向量層做"}
 {"query": "台東哪些國小可以避難", "expected_route": "rag", "simulation": false, "note": "地區＋設施"}
 {"query": "避難所有提供飲水嗎", "expected_route": "rag", "simulation": false, "note": "語意題"}
-{"query": "知本附近有避難所嗎", "expected_route": "rag", "simulation": false, "note": "有地理關鍵字但也有地名，設計上交給檢索而不是回頭要座標"}
+{"query": "知本附近有避難所嗎", "expected_route": "place", "simulation": false, "note": "小地名換成座標（data_reference/east_places.json），依道路距離由程式回答"}
 {"query": "中華路一段附近的避難所", "expected_route": "rag", "simulation": false, "note": "同上，路名就是地點線索"}
 {"query": "頭城鎮附近的學校", "expected_route": "rag", "simulation": false, "note": "同上，鄉鎮名"}
 {"query": "台北到宜蘭之間有避難所嗎", "expected_route": "rag", "simulation": false, "note": "刻意同時出現範圍外與範圍內地名；設計上只有整句沒有範圍內線索才拒答"}
@@ -54,3 +54,5 @@
 {"query": "颱風天會停班停課嗎", "expected_route": "off_topic", "simulation": false, "note": "知識文件沒有停班停課；不擋的話會拿颱風注意事項來答"}
 {"query": "颱風要怎麼申請補助", "expected_route": "off_topic", "simulation": false, "note": "有災害詞也有「怎麼」，但補助不是知識文件的範圍"}
 {"query": "地震時有什麼建議", "expected_route": "simulation", "simulation": true, "note": "模擬進行中的「建議」要看這次的模擬，不是一般須知"}
+{"query": "我在七星潭，可以去哪裡避難", "expected_route": "place", "simulation": false, "note": "「我在＋地名」句型；七星潭不是鄉鎮也不是村里，只在 OSM 地名裡"}
+{"query": "赤柯山附近有避難所嗎", "expected_route": "rag", "simulation": false, "note": "不在小地名檔裡的地名：仍是地點線索，交給檢索，不能回頭要座標"}

@@ -1,0 +1,1120 @@
+{
+  "summary": {
+    "all": {
+      "n": 42,
+      "hit1": 0.905,
+      "precision": 0.695,
+      "llm": 0.048
+    },
+    "landmark": {
+      "n": 23,
+      "hit1": 0.87,
+      "precision": 0.722,
+      "llm": 0.087
+    },
+    "village": {
+      "n": 19,
+      "hit1": 0.947,
+      "precision": 0.663,
+      "llm": 0.0
+    }
+  },
+  "rows": [
+    {
+      "place": "知本",
+      "kind": "village",
+      "question": "知本附近有避難所嗎",
+      "expected": [
+        "臺東市",
+        "卑南鄉"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "臺東市",
+        "臺東市",
+        "宜蘭市",
+        "卑南鄉",
+        "臺東市"
+      ],
+      "shown": [
+        "[TAITUNG] 知本社區活動中心",
+        "[TAITUNG] 建業社區活動中心",
+        "[YILAN] 建業社區活動中心",
+        "[TAITUNG] F Hotel",
+        "[TAITUNG] 臺東縣臺東市建和國小"
+      ],
+      "hit1": true,
+      "precision": 0.8
+    },
+    {
+      "place": "富岡",
+      "kind": "village",
+      "question": "富岡最近的避難所在哪",
+      "expected": [
+        "臺東市"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "臺東市",
+        "臺東市",
+        "卑南鄉",
+        "卑南鄉",
+        "臺東市"
+      ],
+      "shown": [
+        "[TAITUNG] 臺東市老人文康活動中心",
+        "[TAITUNG] 富豐社區活動中心",
+        "[TAITUNG] 富山村活動中心",
+        "[TAITUNG] 富山國民小學",
+        "[TAITUNG] 中華社區活動中心"
+      ],
+      "hit1": true,
+      "precision": 0.6
+    },
+    {
+      "place": "都蘭",
+      "kind": "village",
+      "question": "我在都蘭，可以去哪裡避難",
+      "expected": [
+        "東河鄉"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "東河鄉",
+        "東河鄉",
+        "東河鄉",
+        "東河鄉",
+        "卑南鄉"
+      ],
+      "shown": [
+        "[TAITUNG] 都蘭活動中心",
+        "[TAITUNG] 都蘭國小",
+        "[TAITUNG] 興隆國小",
+        "[TAITUNG] 隆昌村辦公處活動中心",
+        "[TAITUNG] 富山國民小學"
+      ],
+      "hit1": true,
+      "precision": 0.8
+    },
+    {
+      "place": "多良",
+      "kind": "village",
+      "question": "多良附近有避難所嗎",
+      "expected": [
+        "太麻里鄉"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "太麻里鄉",
+        "大武鄉",
+        "達仁鄉",
+        "達仁鄉",
+        "達仁鄉"
+      ],
+      "shown": [
+        "[TAITUNG] 太麻里鄉多良村辦公處",
+        "[TAITUNG] 愛國蒲分校",
+        "[TAITUNG] 台?基督教會",
+        "[TAITUNG] 台?活動中心",
+        "[TAITUNG] 啦里吧活動中心"
+      ],
+      "hit1": true,
+      "precision": 0.2
+    },
+    {
+      "place": "東澳",
+      "kind": "village",
+      "question": "東澳最近的避難所在哪",
+      "expected": [
+        "蘇澳鎮"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "蘇澳鎮",
+        "南澳鄉",
+        "南澳鄉",
+        "蘇澳鎮",
+        "蘇澳鎮"
+      ],
+      "shown": [
+        "[YILAN] 東澳社區活動中心",
+        "[YILAN] 東澳國小",
+        "[YILAN] 東岳村災民收容中心",
+        "[YILAN] 永樂社區活動中心",
+        "[YILAN] 朝陽社區活動中心"
+      ],
+      "hit1": true,
+      "precision": 0.6
+    },
+    {
+      "place": "武塔",
+      "kind": "village",
+      "question": "我在武塔，可以去哪裡避難",
+      "expected": [
+        "南澳鄉"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "南澳鄉",
+        "南澳鄉",
+        "南澳鄉",
+        "南澳鄉",
+        "南澳鄉"
+      ],
+      "shown": [
+        "[YILAN] 金岳國小",
+        "[YILAN] 武塔國小",
+        "[YILAN] 南澳村辦公處",
+        "[YILAN] 鄉立武塔村幼兒園",
+        "[YILAN] 南澳國小"
+      ],
+      "hit1": true,
+      "precision": 1.0
+    },
+    {
+      "place": "崇德",
+      "kind": "village",
+      "question": "崇德附近有避難所嗎",
+      "expected": [
+        "秀林鄉"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "秀林鄉",
+        "新城鄉",
+        "新城鄉",
+        "新城鄉",
+        "新城鄉"
+      ],
+      "shown": [
+        "[HUALIEN] 崇德國小收容所",
+        "[HUALIEN] 興田社區活動中心",
+        "[HUALIEN] 新城社區活動中心",
+        "[HUALIEN] 天主教聲遠之家",
+        "[HUALIEN] 禪光育幼院"
+      ],
+      "hit1": true,
+      "precision": 0.2
+    },
+    {
+      "place": "北埔",
+      "kind": "village",
+      "question": "北埔最近的避難所在哪",
+      "expected": [
+        "新城鄉"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "新城鄉",
+        "新城鄉",
+        "新城鄉",
+        "新城鄉",
+        "新城鄉"
+      ],
+      "shown": [
+        "[HUALIEN] 北埔社區活動中心",
+        "[HUALIEN] 新城鄉立圖書館",
+        "[HUALIEN] 基督教芥菜種會",
+        "[HUALIEN] 新城鄉原住民文化館",
+        "[HUALIEN] 大漢社區活動中心"
+      ],
+      "hit1": true,
+      "precision": 1.0
+    },
+    {
+      "place": "初鹿",
+      "kind": "village",
+      "question": "我在初鹿，可以去哪裡避難",
+      "expected": [
+        "卑南鄉"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "卑南鄉",
+        "卑南鄉",
+        "卑南鄉",
+        "卑南鄉",
+        "卑南鄉"
+      ],
+      "shown": [
+        "[TAITUNG] 初鹿國民小學",
+        "[TAITUNG] 初鹿村多功能暨老人活動中心",
+        "[TAITUNG] 東成國民小學",
+        "[TAITUNG] 美農村活動中心",
+        "[TAITUNG] 賓朗老人暨多功能活動中心"
+      ],
+      "hit1": true,
+      "precision": 1.0
+    },
+    {
+      "place": "金崙",
+      "kind": "village",
+      "question": "金崙附近有避難所嗎",
+      "expected": [
+        "太麻里鄉"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "金峰鄉",
+        "金峰鄉",
+        "太麻里鄉",
+        "太麻里鄉",
+        "金峰鄉"
+      ],
+      "shown": [
+        "[TAITUNG] 賓茂國小",
+        "[TAITUNG] 賓茂活動中心",
+        "[TAITUNG] 金崙活動中心",
+        "[TAITUNG] 金崙溫泉長老教會",
+        "[TAITUNG] 歷坵活動中心"
+      ],
+      "hit1": false,
+      "precision": 0.4
+    },
+    {
+      "place": "靜浦",
+      "kind": "village",
+      "question": "靜浦最近的避難所在哪",
+      "expected": [
+        "豐濱鄉"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "豐濱鄉",
+        "豐濱鄉",
+        "瑞穗鄉",
+        "瑞穗鄉",
+        "瑞穗鄉"
+      ],
+      "shown": [
+        "[HUALIEN] 靜浦國小大禮堂",
+        "[HUALIEN] 港口活動中心",
+        "[HUALIEN] 奇美社區活動中心",
+        "[HUALIEN] 花蓮縣瑞穗鄉瑞美國民小學",
+        "[HUALIEN] 瑞美社區活動中心"
+      ],
+      "hit1": true,
+      "precision": 0.4
+    },
+    {
+      "place": "奇美",
+      "kind": "village",
+      "question": "我在奇美，可以去哪裡避難",
+      "expected": [
+        "瑞穗鄉"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "瑞穗鄉",
+        "瑞穗鄉",
+        "瑞穗鄉",
+        "瑞穗鄉",
+        "瑞穗鄉"
+      ],
+      "shown": [
+        "[HUALIEN] 奇美社區活動中心",
+        "[HUALIEN] 鶴岡社區活動中心",
+        "[HUALIEN] 花蓮縣瑞穗鄉瑞美國民小學",
+        "[HUALIEN] 瑞美社區活動中心",
+        "[HUALIEN] 瑞良社區活動中心"
+      ],
+      "hit1": true,
+      "precision": 1.0
+    },
+    {
+      "place": "舞鶴",
+      "kind": "village",
+      "question": "舞鶴附近有避難所嗎",
+      "expected": [
+        "瑞穗鄉"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "瑞穗鄉",
+        "玉里鎮",
+        "瑞穗鄉",
+        "卓溪鄉",
+        "萬榮鄉"
+      ],
+      "shown": [
+        "[HUALIEN] 舞鶴社區活動中心",
+        "[HUALIEN] 三民社區活動中心",
+        "[HUALIEN] 瑞祥社區活動中心",
+        "[HUALIEN] 崙山社區活動中心",
+        "[HUALIEN] 紅葉社區活動中心"
+      ],
+      "hit1": true,
+      "precision": 0.4
+    },
+    {
+      "place": "金岳",
+      "kind": "village",
+      "question": "金岳最近的避難所在哪",
+      "expected": [
+        "南澳鄉"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "南澳鄉",
+        "南澳鄉",
+        "南澳鄉",
+        "南澳鄉",
+        "南澳鄉"
+      ],
+      "shown": [
+        "[YILAN] 碧候國小",
+        "[YILAN] 南澳村辦公處",
+        "[YILAN] 武塔國小",
+        "[YILAN] 南澳國小",
+        "[YILAN] 金洋社區活動中心"
+      ],
+      "hit1": true,
+      "precision": 1.0
+    },
+    {
+      "place": "碧候",
+      "kind": "village",
+      "question": "我在碧候，可以去哪裡避難",
+      "expected": [
+        "南澳鄉"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "南澳鄉",
+        "南澳鄉",
+        "南澳鄉",
+        "蘇澳鎮",
+        "南澳鄉"
+      ],
+      "shown": [
+        "[YILAN] 碧候國小",
+        "[YILAN] 金洋社區活動中心",
+        "[YILAN] 南澳國小",
+        "[YILAN] 蓬萊國小",
+        "[YILAN] 南澳鄉公所二樓"
+      ],
+      "hit1": true,
+      "precision": 0.8
+    },
+    {
+      "place": "寒溪",
+      "kind": "village",
+      "question": "寒溪附近有避難所嗎",
+      "expected": [
+        "大同鄉"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "大同鄉",
+        "冬山鄉",
+        "三星鄉",
+        "三星鄉",
+        "三星鄉"
+      ],
+      "shown": [
+        "[YILAN] 寒溪活動中心",
+        "[YILAN] 大進社區活動中心",
+        "[YILAN] 雙義社區社區二次收容",
+        "[YILAN] 大洲社區二次收容",
+        "[YILAN] 三星國小臨時收容站"
+      ],
+      "hit1": true,
+      "precision": 0.2
+    },
+    {
+      "place": "磯崎",
+      "kind": "village",
+      "question": "磯崎最近的避難所在哪",
+      "expected": [
+        "豐濱鄉"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "豐濱鄉",
+        "豐濱鄉",
+        "豐濱鄉",
+        "壽豐鄉",
+        "鳳林鎮"
+      ],
+      "shown": [
+        "[HUALIEN] 磯崎村辦公處活動中心",
+        "[HUALIEN] 新社國小二樓綜合教室",
+        "[HUALIEN] 東興部落原住民多功能活動中心",
+        "[HUALIEN] 水璉活動中心",
+        "[HUALIEN] 大榮1村社區活動中心"
+      ],
+      "hit1": true,
+      "precision": 0.6
+    },
+    {
+      "place": "水璉",
+      "kind": "village",
+      "question": "我在水璉，可以去哪裡避難",
+      "expected": [
+        "壽豐鄉"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "壽豐鄉",
+        "豐濱鄉",
+        "壽豐鄉",
+        "壽豐鄉",
+        "壽豐鄉"
+      ],
+      "shown": [
+        "[HUALIEN] 水璉活動中心",
+        "[HUALIEN] 磯崎村辦公處活動中心",
+        "[HUALIEN] 豐坪活動中心",
+        "[HUALIEN] 月眉國小",
+        "[HUALIEN] 月眉國小-米棧分校"
+      ],
+      "hit1": true,
+      "precision": 0.8
+    },
+    {
+      "place": "豐里",
+      "kind": "village",
+      "question": "豐里附近有避難所嗎",
+      "expected": [
+        "臺東市"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "臺東市",
+        "臺東市",
+        "臺東市",
+        "臺東市",
+        "卑南鄉"
+      ],
+      "shown": [
+        "[TAITUNG] 豐里社區活動中心",
+        "[TAITUNG] 建農里民眾活動中心",
+        "[TAITUNG] 臺東市公所",
+        "[TAITUNG] 中華社區活動中心",
+        "[TAITUNG] 財團法人臺東縣私立仁愛之家"
+      ],
+      "hit1": true,
+      "precision": 0.8
+    },
+    {
+      "place": "七星潭",
+      "kind": "landmark",
+      "question": "七星潭最近的避難所在哪",
+      "expected": [
+        "新城鄉"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "新城鄉",
+        "新城鄉",
+        "新城鄉",
+        "新城鄉",
+        "新城鄉"
+      ],
+      "shown": [
+        "[HUALIEN] 七星潭社區活動中心",
+        "[HUALIEN] 復興南營區",
+        "[HUALIEN] 大漢社區活動中心",
+        "[HUALIEN] 北埔社區活動中心",
+        "[HUALIEN] 新城鄉立圖書館"
+      ],
+      "hit1": true,
+      "precision": 1.0
+    },
+    {
+      "place": "鯉魚潭",
+      "kind": "landmark",
+      "question": "我在鯉魚潭，可以去哪裡避難",
+      "expected": [
+        "壽豐鄉"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "壽豐鄉",
+        "秀林鄉",
+        "秀林鄉",
+        "壽豐鄉",
+        "壽豐鄉"
+      ],
+      "shown": [
+        "[HUALIEN] 池南活動中心",
+        "[HUALIEN] 文蘭活動中心",
+        "[HUALIEN] 銅門收容所",
+        "[HUALIEN] 光榮活動中心",
+        "[HUALIEN] 平和活動中心"
+      ],
+      "hit1": true,
+      "precision": 0.6
+    },
+    {
+      "place": "南方澳",
+      "kind": "landmark",
+      "question": "南方澳附近有避難所嗎",
+      "expected": [
+        "蘇澳鎮"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "蘇澳鎮",
+        "蘇澳鎮",
+        "蘇澳鎮",
+        "蘇澳鎮",
+        "蘇澳鎮"
+      ],
+      "shown": [
+        "[YILAN] 南成社區活動中心",
+        "[YILAN] 南興社區活動中心（蘇澳鎮）",
+        "[YILAN] 南寧社區活動中心",
+        "[YILAN] 南安國中",
+        "[YILAN] 南安國小"
+      ],
+      "hit1": true,
+      "precision": 1.0
+    },
+    {
+      "place": "蘇澳港",
+      "kind": "landmark",
+      "question": "蘇澳港最近的避難所在哪",
+      "expected": [
+        "蘇澳鎮"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "蘇澳鎮",
+        "蘇澳鎮",
+        "蘇澳鎮",
+        "蘇澳鎮",
+        "蘇澳鎮"
+      ],
+      "shown": [
+        "[YILAN] 南安國小",
+        "[YILAN] 南成社區活動中心",
+        "[YILAN] 南寧社區活動中心",
+        "[YILAN] 南興社區活動中心（蘇澳鎮）",
+        "[YILAN] 蘇東社區活動中心"
+      ],
+      "hit1": true,
+      "precision": 1.0
+    },
+    {
+      "place": "三仙台",
+      "kind": "landmark",
+      "question": "我在三仙台，可以去哪裡避難",
+      "expected": [
+        "成功鎮"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "成功鎮",
+        "成功鎮",
+        "成功鎮",
+        "成功鎮",
+        "成功鎮"
+      ],
+      "shown": [
+        "[TAITUNG] 三仙真耶穌教會",
+        "[TAITUNG] 高台真耶穌教會",
+        "[TAITUNG] 忠智里活動中心",
+        "[TAITUNG] 國立成功商業水產職業學校",
+        "[TAITUNG] 三民里第2市場"
+      ],
+      "hit1": true,
+      "precision": 1.0
+    },
+    {
+      "place": "石梯坪",
+      "kind": "landmark",
+      "question": "石梯坪附近有避難所嗎",
+      "expected": [
+        "豐濱鄉"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "豐濱鄉",
+        "豐濱鄉",
+        "瑞穗鄉",
+        "豐濱鄉",
+        "成功鎮"
+      ],
+      "shown": [
+        "[HUALIEN] 港口活動中心",
+        "[HUALIEN] 靜浦國小大禮堂",
+        "[HUALIEN] 奇美社區活動中心",
+        "[HUALIEN] 八里灣基督長老教會",
+        "[TAITUNG] 基督長老教會"
+      ],
+      "hit1": true,
+      "precision": 0.6
+    },
+    {
+      "place": "太魯閣",
+      "kind": "landmark",
+      "question": "太魯閣最近的避難所在哪",
+      "expected": [
+        "秀林鄉"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "秀林鄉",
+        "新城鄉",
+        "新城鄉",
+        "新城鄉",
+        "新城鄉"
+      ],
+      "shown": [
+        "[HUALIEN] 富世活動中心",
+        "[HUALIEN] 興田社區活動中心",
+        "[HUALIEN] 新城社區活動中心",
+        "[HUALIEN] 天主教聲遠之家",
+        "[HUALIEN] 禪光育幼院"
+      ],
+      "hit1": true,
+      "precision": 0.2
+    },
+    {
+      "place": "礁溪溫泉",
+      "kind": "landmark",
+      "question": "我在礁溪溫泉，可以去哪裡避難",
+      "expected": [
+        "礁溪鄉"
+      ],
+      "route": "rag",
+      "llm": false,
+      "shown_townships": [
+        "礁溪鄉",
+        "礁溪鄉",
+        "礁溪鄉",
+        "礁溪鄉",
+        "礁溪鄉"
+      ],
+      "shown": [
+        "[YILAN] 礁溪國小",
+        "[YILAN] 礁溪國中",
+        "[YILAN] 礁溪鄉公所二樓",
+        "[YILAN] 玉石活動中心",
+        "[YILAN] 玉田活動中心"
+      ],
+      "hit1": true,
+      "precision": 1.0
+    },
+    {
+      "place": "瑞穗溫泉",
+      "kind": "landmark",
+      "question": "瑞穗溫泉附近有避難所嗎",
+      "expected": [
+        "瑞穗鄉",
+        "萬榮鄉"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "萬榮鄉",
+        "瑞穗鄉",
+        "瑞穗鄉",
+        "瑞穗鄉",
+        "瑞穗鄉"
+      ],
+      "shown": [
+        "[HUALIEN] 紅葉社區活動中心",
+        "[HUALIEN] 瑞祥社區活動中心",
+        "[HUALIEN] 花蓮縣立瑞穗國民中學",
+        "[HUALIEN] 瑞穗社區活動中心",
+        "[HUALIEN] 瑞美社區活動中心"
+      ],
+      "hit1": true,
+      "precision": 1.0
+    },
+    {
+      "place": "鹿野高台",
+      "kind": "landmark",
+      "question": "鹿野高台最近的避難所在哪",
+      "expected": [
+        "鹿野鄉"
+      ],
+      "route": "rag",
+      "llm": false,
+      "shown_townships": [
+        "鹿野鄉",
+        "鹿野鄉",
+        "鹿野鄉",
+        "鹿野鄉",
+        "鹿野鄉"
+      ],
+      "shown": [
+        "[TAITUNG] 鹿野鄉公所",
+        "[TAITUNG] 和平社區活動中心",
+        "[TAITUNG] 鹿野國小",
+        "[TAITUNG] 鹿野鄉立托兒所",
+        "[TAITUNG] 鹿野國中"
+      ],
+      "hit1": true,
+      "precision": 1.0
+    },
+    {
+      "place": "美崙",
+      "kind": "landmark",
+      "question": "我在美崙，可以去哪裡避難",
+      "expected": [
+        "花蓮市"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "花蓮市",
+        "花蓮市",
+        "花蓮市",
+        "花蓮市",
+        "花蓮市"
+      ],
+      "shown": [
+        "[HUALIEN] 鑄強國小",
+        "[HUALIEN] 美崙國中",
+        "[HUALIEN] 民孝社區活動中心",
+        "[HUALIEN] 花蓮高工",
+        "[HUALIEN] 行政院國軍退除役官兵輔導委員會花"
+      ],
+      "hit1": true,
+      "precision": 1.0
+    },
+    {
+      "place": "小野柳",
+      "kind": "landmark",
+      "question": "小野柳附近有避難所嗎",
+      "expected": [
+        "臺東市"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "臺東市",
+        "卑南鄉",
+        "卑南鄉",
+        "臺東市",
+        "臺東市"
+      ],
+      "shown": [
+        "[TAITUNG] 臺東市老人文康活動中心",
+        "[TAITUNG] 富山村活動中心",
+        "[TAITUNG] 富山國民小學",
+        "[TAITUNG] 富豐社區活動中心",
+        "[TAITUNG] 中華社區活動中心"
+      ],
+      "hit1": true,
+      "precision": 0.6
+    },
+    {
+      "place": "加路蘭",
+      "kind": "landmark",
+      "question": "加路蘭最近的避難所在哪",
+      "expected": [
+        "臺東市",
+        "東河鄉"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "卑南鄉",
+        "卑南鄉",
+        "臺東市",
+        "豐濱鄉",
+        "豐濱鄉"
+      ],
+      "shown": [
+        "[TAITUNG] 富山村活動中心",
+        "[TAITUNG] 富山國民小學",
+        "[TAITUNG] 臺東市老人文康活動中心",
+        "[HUALIEN] 磯崎村辦公處活動中心",
+        "[HUALIEN] 新社國小二樓綜合教室"
+      ],
+      "hit1": false,
+      "precision": 0.2
+    },
+    {
+      "place": "都歷",
+      "kind": "landmark",
+      "question": "我在都歷，可以去哪裡避難",
+      "expected": [
+        "成功鎮"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "成功鎮",
+        "成功鎮",
+        "成功鎮",
+        "成功鎮",
+        "東河鄉"
+      ],
+      "shown": [
+        "[TAITUNG] 都歷活動中心",
+        "[TAITUNG] 成功鎮信義國民小學",
+        "[TAITUNG] 豐田活動中心",
+        "[TAITUNG] 小馬活動中心",
+        "[TAITUNG] 東河鄉公所2樓大會議室"
+      ],
+      "hit1": true,
+      "precision": 0.8
+    },
+    {
+      "place": "安通",
+      "kind": "landmark",
+      "question": "安通附近有避難所嗎",
+      "expected": [
+        "玉里鎮"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "富里鄉",
+        "玉里鎮",
+        "富里鄉",
+        "玉里鎮",
+        "玉里鎮"
+      ],
+      "shown": [
+        "[HUALIEN] 吳江社區活動中心",
+        "[HUALIEN] 樂合社區活動中心",
+        "[HUALIEN] 東里社區活動中心",
+        "[HUALIEN] 東豐社區活動中心",
+        "[HUALIEN] 玉里慈惠堂"
+      ],
+      "hit1": false,
+      "precision": 0.6
+    },
+    {
+      "place": "赤柯山",
+      "kind": "landmark",
+      "question": "赤柯山最近的避難所在哪",
+      "expected": [
+        "玉里鎮"
+      ],
+      "route": "rag",
+      "llm": true,
+      "shown_townships": [
+        "卓溪鄉",
+        "綠島鄉",
+        "宜蘭市",
+        "宜蘭市",
+        "冬山鄉"
+      ],
+      "shown": [
+        "[HUALIEN] 立山社區活動中心",
+        "[TAITUNG] 空軍綠島探空分隊",
+        "[YILAN] 東嶽廟",
+        "[YILAN] 茭白社區活動中心",
+        "[YILAN] 柯林社區活動中心"
+      ],
+      "hit1": false,
+      "precision": 0.0
+    },
+    {
+      "place": "六十石山",
+      "kind": "landmark",
+      "question": "我在六十石山，可以去哪裡避難",
+      "expected": [
+        "富里鄉"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "富里鄉",
+        "富里鄉",
+        "富里鄉",
+        "玉里鎮",
+        "富里鄉"
+      ],
+      "shown": [
+        "[HUALIEN] 萬寧社區活動中心",
+        "[HUALIEN] 東里社區活動中心",
+        "[HUALIEN] 新興竹田聯合社區活動中心",
+        "[HUALIEN] 長良社區活動中心",
+        "[HUALIEN] 吳江社區活動中心"
+      ],
+      "hit1": true,
+      "precision": 0.8
+    },
+    {
+      "place": "梅花湖",
+      "kind": "landmark",
+      "question": "梅花湖附近有避難所嗎",
+      "expected": [
+        "冬山鄉"
+      ],
+      "route": "rag",
+      "llm": true,
+      "shown_townships": [
+        "冬山鄉",
+        "宜蘭市",
+        "宜蘭市",
+        "花蓮市",
+        "蘇澳鎮"
+      ],
+      "shown": [
+        "[YILAN] 梅花社區活動中心",
+        "[YILAN] 梅洲社區活動中心",
+        "[YILAN] 梅洲里鎮平宮",
+        "[HUALIEN] 行政院國軍退除役官兵輔導委員會花",
+        "[YILAN] 聖湖社區活動中心"
+      ],
+      "hit1": true,
+      "precision": 0.2
+    },
+    {
+      "place": "冬山河",
+      "kind": "landmark",
+      "question": "冬山河最近的避難所在哪",
+      "expected": [
+        "冬山鄉",
+        "五結鄉"
+      ],
+      "route": "rag",
+      "llm": false,
+      "shown_townships": [
+        "冬山鄉",
+        "冬山鄉",
+        "冬山鄉",
+        "冬山鄉",
+        "冬山鄉"
+      ],
+      "shown": [
+        "[YILAN] 冬山社區活動中心",
+        "[YILAN] 清溝社區活動中心",
+        "[YILAN] 丸山社區活動中心",
+        "[YILAN] 鹿埔社區活動中心",
+        "[YILAN] 南興社區活動中心（冬山鄉）"
+      ],
+      "hit1": true,
+      "precision": 1.0
+    },
+    {
+      "place": "外澳",
+      "kind": "landmark",
+      "question": "我在外澳，可以去哪裡避難",
+      "expected": [
+        "頭城鎮"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "頭城鎮",
+        "頭城鎮",
+        "頭城鎮",
+        "頭城鎮",
+        "頭城鎮"
+      ],
+      "shown": [
+        "[YILAN] 外澳里-外澳社區活動中心",
+        "[YILAN] 港口里-港口社區活動中心",
+        "[YILAN] 更新里-更新漁民活動中心",
+        "[YILAN] 武營里-頭城國小",
+        "[YILAN] 城東里-城東社區活動中心"
+      ],
+      "hit1": true,
+      "precision": 1.0
+    },
+    {
+      "place": "松羅",
+      "kind": "landmark",
+      "question": "松羅附近有避難所嗎",
+      "expected": [
+        "大同鄉"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "大同鄉",
+        "三星鄉",
+        "大同鄉",
+        "三星鄉",
+        "三星鄉"
+      ],
+      "shown": [
+        "[YILAN] 松羅活動中心",
+        "[YILAN] 大義社區臨時收容站",
+        "[YILAN] 崙埤活動中心",
+        "[YILAN] 員山社區臨時收容站",
+        "[YILAN] 憲明國小臨時收容站"
+      ],
+      "hit1": true,
+      "precision": 0.4
+    },
+    {
+      "place": "馬太鞍",
+      "kind": "landmark",
+      "question": "馬太鞍最近的避難所在哪",
+      "expected": [
+        "光復鄉"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "光復鄉",
+        "光復鄉",
+        "萬榮鄉",
+        "光復鄉",
+        "萬榮鄉"
+      ],
+      "shown": [
+        "[HUALIEN] 光復國中",
+        "[HUALIEN] 光復鄉公所",
+        "[HUALIEN] 馬太鞍社區活動中心",
+        "[HUALIEN] 大同活動中心",
+        "[HUALIEN] 明利社區活動中心"
+      ],
+      "hit1": true,
+      "precision": 0.6
+    },
+    {
+      "place": "太巴塱",
+      "kind": "landmark",
+      "question": "我在太巴塱，可以去哪裡避難",
+      "expected": [
+        "光復鄉"
+      ],
+      "route": "place",
+      "llm": false,
+      "shown_townships": [
+        "光復鄉",
+        "光復鄉",
+        "光復鄉",
+        "光復鄉",
+        "光復鄉"
+      ],
+      "shown": [
+        "[HUALIEN] 西南活動中心",
+        "[HUALIEN] 太巴塱國小",
+        "[HUALIEN] 砂荖活動中心",
+        "[HUALIEN] 大同活動中心",
+        "[HUALIEN] 光復國中"
+      ],
+      "hit1": true,
+      "precision": 1.0
+    }
+  ]
+}
