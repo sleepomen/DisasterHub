@@ -39,6 +39,16 @@ SIMULATION_FOLLOWUP_KEYWORDS = [
 # 明確在要疏散建議、但還沒有模擬可依據：直接請使用者先跑模擬，不要拿全域檢索硬湊
 EVACUATION_ADVICE_KEYWORDS = ["疏散建議", "怎麼疏散", "如何疏散", "疏散到哪", "疏散計畫"]
 
+# 模擬追問在問哪一部分。模擬的回答由程式依這幾類組出來（services/simulation/text.simulation_answer），
+# 不交給模型：2026-11-02 的模擬追問評測裡，模型把沒被排除的 26 間說成「被排除」、長清單列到一半就截斷。
+# 一題可以同時問好幾類；都沒有對到（「有什麼建議」「模擬結果」）就回整體摘要與建議
+SIMULATION_TOPICS = {
+    "excluded": ["排除", "沒有列", "沒列", "不能去", "為什麼沒有", "剔除"],
+    "unplaced": ["沒有被安置", "沒被安置", "無法安置", "安置不下", "缺口", "夠不夠", "不夠", "多少人沒"],
+    "allocation": ["分配", "去哪", "各去", "每間", "安置到"],
+    "impacted": ["受影響", "影響範圍", "受災避難所", "哪些被影響", "還有空間", "空位", "剩餘"],
+}
+
 COORD_PATTERNS = [
     re.compile(r"緯度[：:＝=\s]*(\d{2}\.\d+)[,，/\s]*經度[：:＝=\s]*(\d{3}\.\d+)"),
     re.compile(r"經度[：:＝=\s]*(\d{3}\.\d+)[,，/\s]*緯度[：:＝=\s]*(\d{2}\.\d+)"),
@@ -84,6 +94,11 @@ def is_explicit_simulation_query(message: str) -> bool:
 def mentions_simulation_followup(message: str) -> bool:
     """模擬追問的字眼；有沒有模擬在跑由呼叫端判斷"""
     return any(kw in message for kw in SIMULATION_FOLLOWUP_KEYWORDS)
+
+
+def simulation_topics(message: str) -> list[str]:
+    """模擬追問問到哪幾類，依 SIMULATION_TOPICS 的順序；都沒有就是空清單（回摘要與建議）"""
+    return [topic for topic, words in SIMULATION_TOPICS.items() if any(w in message for w in words)]
 
 
 def asks_evacuation_advice(message: str) -> bool:

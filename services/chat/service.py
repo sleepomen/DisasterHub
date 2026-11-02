@@ -50,7 +50,7 @@ from services.retrieval.knowledge import (
 from services.retrieval.shelter_profile import aliases_of
 from services.retrieval.vector_store import NO_DATA, NO_MATCH, VectorStore
 from services.simulation.evacuation import HAZARD_WARN_M, split_hazard_hits
-from services.simulation.text import hazard_lines, impacted_context, simulation_summary
+from services.simulation.text import simulation_answer
 from services.web.metrics import metrics
 
 logger = logging.getLogger(__name__)
@@ -127,22 +127,19 @@ class ChatService:
     def _is_simulation_query(self, message: str) -> bool:
         return intent.is_explicit_simulation_query(message) or self._is_simulation_followup(message)
 
-    def _simulation_summary(self) -> str:
-        sim = self._snapshot()
-        return simulation_summary(sim) if sim else ""
-
-    def _get_simulation_context(self) -> tuple[str | None, str | None]:
+    def _get_simulation_context(self, user_message: str = "", lang: str = "zh") -> tuple[str | None, str | None]:
         """
-        回傳 (context, early_reply)，跟 build_context 同一個形狀。
-        沒有模擬、或範圍內沒有受影響的避難所時，答案就是那一句固定回覆，
-        不必當成資料餵給 LLM 再等它抄一遍。
+        回傳 (context, early_reply)，跟 build_context 同一個形狀。模擬追問一律由程式回答
+        （services/simulation/text.simulation_answer），依問題問的是分配、未安置、受影響、排除或建議組出來。
+        以前交給模型重抄：長清單會截斷、問「有沒有被排除」5 題錯 4 題（evals/run_simulation_eval.py）
         """
         sim = self._snapshot()
         if not sim:
             return None, NOT_SIMULATED_REPLY
         if not sim.get("impacted_shelters"):
             return None, NO_IMPACTED_REPLY
-        return impacted_context(sim), None
+        metrics.incr("chat.answer.direct")
+        return None, simulation_answer(sim, intent.simulation_topics(user_message), lang)
 
     def _debris_flow_shelters(self) -> tuple[dict[str, list[str]], dict[str, dict]]:
         """
@@ -274,7 +271,7 @@ class ChatService:
 
         if intent.is_explicit_simulation_query(user_message):
             metrics.route("simulation")
-            return self._get_simulation_context()
+            return self._get_simulation_context(user_message, lang)
 
         if intent.is_geo_query(user_message):
             coords = intent.extract_coords(user_message)
@@ -287,7 +284,7 @@ class ChatService:
 
         if self._is_simulation_followup(user_message):
             metrics.route("simulation")
-            return self._get_simulation_context()
+            return self._get_simulation_context(user_message, lang)
 
         if intent.asks_evacuation_advice(user_message):
             metrics.route("no_simulation_advice")
@@ -362,12 +359,11 @@ class ChatService:
             return None
         return unknown_shelter_reply(name, shelters, lang)
 
-    def build_prompt(self, user_message: str, shelter_context: str, with_simulation: bool = False, lang: str = "zh") -> str:
+    def build_prompt(self, user_message: str, shelter_context: str, lang: str = "zh") -> str:
         """
-        模擬摘要只附在走模擬路線的問題上。一般檢索、最近避難所也附的話，小模型會把兩份資料混在一起：
-        實測南山附近淹水模擬進行中問「我們一家五口可以去哪」，回答把模擬裡的南山國小
-        配上檢索結果裡另一間學校的鄉鎮與容量。收容人數本來就已經回寫進資料庫與向量文件，
-        一般檢索看到的負載跟模擬一致，不需要再靠摘要補。
+        不附模擬摘要：模擬追問已經由程式回答，走到這裡的是一般檢索。以前一般檢索也附摘要時，
+        小模型會把兩份資料混在一起（南山附近淹水模擬中問「我們一家五口可以去哪」，回答把模擬裡的南山國小
+        配上另一間學校的鄉鎮與容量）。收容人數已經回寫進資料庫與向量文件，檢索看到的負載跟模擬一致。
 
         混合題只把避難所那一段和問避難所的那半句交給模型：知識原文由程式另外送，
         整句都給的話模型會順手回答「颱風要準備什麼」，又回到自己改寫的老問題
@@ -376,9 +372,6 @@ class ChatService:
             shelter_context = shelter_part(shelter_context)
             user_message = query_rules.shelter_clauses(user_message)
         full_context = f"{SHELTER_HEADER}\n{shelter_context}"
-        summary = self._simulation_summary() if with_simulation else ""
-        if summary:
-            full_context += f"\n\n【目前災害模擬結果】\n{summary}"
 
         if lang == "en":
             return f"""{full_context}
@@ -437,9 +430,7 @@ Instructions:
         cited = self.knowledge_chunks(shelter_context)
         if cited:
             yield {"type": "delta", "text": knowledge_text(cited, lang) + "\n\n"}
-        prompt = self.build_prompt(
-            user_message, shelter_context, with_simulation=metrics.last_route() == "simulation", lang=lang,
-        )
+        prompt = self.build_prompt(user_message, shelter_context, lang=lang)
         reply_chars = 0
         guard = LineGuard(self.prompt_names(prompt))
         try:
@@ -473,12 +464,6 @@ Instructions:
             self._log_summary("generated", "empty", len(shelter_context), 0, started)
             yield {"type": "error", "text": tr(AI_UNAVAILABLE, lang)}
             return
-        # 被排除的避難所由程式補在最後，不交給模型：實測 3 次回答都照「名稱：容量、剩餘空位」的格式
-        # 把澳花國小列成剩餘 150 人，附註整個被省略——看起來就像豪雨時可以去。靠近區域的警告同理
-        if metrics.last_route() == "simulation":
-            notes = hazard_lines((self._snapshot() or {}).get("evacuation") or {}, lang)
-            if notes:
-                yield {"type": "delta", "text": "\n\n" + "\n".join(notes)}
         if cited:
             yield {"type": "delta", "text": "\n\n" + sources_text(cited, lang)}
         metrics.incr("chat.generation.ok")
