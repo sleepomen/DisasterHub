@@ -39,6 +39,11 @@ HIGHWAYS = {
 # 停車場內的車道、私人車道對路網連通沒有幫助，只會讓吸附點落在死路上
 SKIP_SERVICE = {"parking_aisle", "driveway", "drive-through"}
 SKIP_ACCESS = {"no", "private"}
+# 單行道：開車只能沿 way 畫的方向走。高速公路與圓環沒寫 oneway 也是單行（OSM 的慣例）
+ONEWAY_YES = {"yes", "true", "1"}
+ONEWAY_REVERSE = {"-1", "reverse"}
+IMPLIED_ONEWAY_HIGHWAYS = {"motorway", "motorway_link"}
+IMPLIED_ONEWAY_JUNCTIONS = {"roundabout", "circular"}
 # 先用外接框擋掉西部，再做精確的縣界判斷（lon_min, lat_min, lon_max, lat_max）
 BBOX = (120.6, 21.8, 122.1, 25.1)
 # 連通片段少於這麼多條邊就丟掉。綠島、蘭嶼本身各有上百條邊，不會被誤刪
@@ -190,6 +195,20 @@ def encode_polyline(coords: list[tuple[float, float]]) -> str:
     return "".join(out)
 
 
+def oneway_of(tags, highway: str) -> int:
+    """1：只能沿 way 畫的方向走；-1：只能逆著走；0：雙向"""
+    value = (tags.get("oneway") or "").strip().lower()
+    if value in ONEWAY_YES:
+        return 1
+    if value in ONEWAY_REVERSE:
+        return -1
+    if value in ("no", "false", "0"):
+        return 0
+    if highway in IMPLIED_ONEWAY_HIGHWAYS or tags.get("junction") in IMPLIED_ONEWAY_JUNCTIONS:
+        return 1
+    return 0
+
+
 def split_at_junctions(ways: list[dict]) -> list[dict]:
     """
     每條 way 在路口切開。路口是被兩條以上 way 共用（或同一條 way 經過兩次）的節點，
@@ -211,7 +230,7 @@ def split_at_junctions(ways: list[dict]) -> list[dict]:
                 length = line_length_m(part)
                 if length > 0:
                     edges.append({"source": refs[start], "target": refs[i], "length": length,
-                                  "highway": w["highway"], "coords": part})
+                                  "highway": w["highway"], "coords": part, "oneway": w.get("oneway", 0)})
                 start = i
     return edges
 
@@ -288,7 +307,13 @@ def read_osm(path: str):
             lon_min, lat_min, lon_max, lat_max = BBOX
             if not any(lon_min <= lon <= lon_max and lat_min <= lat <= lat_max for lon, lat in coords):
                 return
-            self.roads.append({"refs": refs, "coords": coords, "highway": highway})
+            oneway = oneway_of(tags, highway)
+            if oneway == -1:
+                # 逆向的單行道把整條 way 反過來，之後一律「沿著 source → target 才能走」
+                refs.reverse()
+                coords.reverse()
+                oneway = 1
+            self.roads.append({"refs": refs, "coords": coords, "highway": highway, "oneway": oneway})
 
     boundaries = Boundaries()
     boundaries.apply_file(path)
@@ -323,11 +348,11 @@ def build(path: str) -> dict:
     return {
         "type": "road_network",
         "source": {**SOURCE, "built": datetime.date.today().isoformat()},
-        "counts": {"nodes": nodes, "edges": len(edges), "km": round(total_km)},
-        # [source, target, 長度（公尺）, 道路等級, encoded polyline]
+        "counts": {"nodes": nodes, "edges": len(edges), "km": round(total_km), "oneway_edges": sum(e["oneway"] for e in edges)},
+        # [source, target, 長度（公尺）, 道路等級, encoded polyline, 單行道（1 = 只能 source → target）]
         "edges": [
             [e["source"], e["target"], round(e["length"], 1), e["highway"],
-             encode_polyline(simplify(e["coords"], SIMPLIFY_DEG))]
+             encode_polyline(simplify(e["coords"], SIMPLIFY_DEG)), e["oneway"]]
             for e in edges
         ],
     }
