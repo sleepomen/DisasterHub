@@ -2,15 +2,15 @@
   "summary": {
     "all": {
       "n": 42,
-      "hit1": 0.905,
-      "precision": 0.695,
-      "llm": 0.048
+      "hit1": 0.929,
+      "precision": 0.733,
+      "llm": 0.0
     },
     "landmark": {
       "n": 23,
-      "hit1": 0.87,
-      "precision": 0.722,
-      "llm": 0.087
+      "hit1": 0.913,
+      "precision": 0.791,
+      "llm": 0.0
     },
     "village": {
       "n": 19,
@@ -914,24 +914,24 @@
       "expected": [
         "玉里鎮"
       ],
-      "route": "rag",
-      "llm": true,
+      "route": "place",
+      "llm": false,
       "shown_townships": [
-        "卓溪鄉",
-        "綠島鄉",
-        "宜蘭市",
-        "宜蘭市",
-        "冬山鄉"
+        "玉里鎮",
+        "玉里鎮",
+        "玉里鎮",
+        "玉里鎮",
+        "卓溪鄉"
       ],
       "shown": [
-        "[HUALIEN] 立山社區活動中心",
-        "[TAITUNG] 空軍綠島探空分隊",
-        "[YILAN] 東嶽廟",
-        "[YILAN] 茭白社區活動中心",
-        "[YILAN] 柯林社區活動中心"
+        "[HUALIEN] 觀音社區活動中心",
+        "[HUALIEN] 大禹社區活動中心",
+        "[HUALIEN] 東豐社區活動中心",
+        "[HUALIEN] 松浦社區活動中心",
+        "[HUALIEN] 太平國小"
       ],
-      "hit1": false,
-      "precision": 0.0
+      "hit1": true,
+      "precision": 0.8
     },
     {
       "place": "六十石山",
@@ -966,24 +966,24 @@
       "expected": [
         "冬山鄉"
       ],
-      "route": "rag",
-      "llm": true,
+      "route": "place",
+      "llm": false,
       "shown_townships": [
         "冬山鄉",
-        "宜蘭市",
-        "宜蘭市",
-        "花蓮市",
-        "蘇澳鎮"
+        "冬山鄉",
+        "冬山鄉",
+        "冬山鄉",
+        "冬山鄉"
       ],
       "shown": [
+        "[YILAN] 鹿埔社區活動中心",
         "[YILAN] 梅花社區活動中心",
-        "[YILAN] 梅洲社區活動中心",
-        "[YILAN] 梅洲里鎮平宮",
-        "[HUALIEN] 行政院國軍退除役官兵輔導委員會花",
-        "[YILAN] 聖湖社區活動中心"
+        "[YILAN] 廣安社區活動中心",
+        "[YILAN] 大進社區活動中心",
+        "[YILAN] 廣興社區活動中心"
       ],
       "hit1": true,
-      "precision": 0.2
+      "precision": 1.0
     },
     {
       "place": "冬山河",
