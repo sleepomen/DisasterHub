@@ -1,6 +1,6 @@
 # 模擬與路線規劃
 
-[← README](../../README.zh-TW.md) · [English](../simulation-and-routing.md) · 繁體中文
+[← README](../../README.md#zh-tw) · [English](../simulation-and-routing.md) · 繁體中文
 
 ## 模擬狀態與收容人數
 

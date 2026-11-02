@@ -1,6 +1,6 @@
 # 架構
 
-[← README](../../README.zh-TW.md) · [English](../architecture.md) · 繁體中文
+[← README](../../README.md#zh-tw) · [English](../architecture.md) · 繁體中文
 
 <p align="center"><img src="../images/map.jpg" alt="644 間官方避難所地圖" width="100%"></p>
 
@@ -40,7 +40,7 @@ LLM           Ollama + llama3.2:3b（宿主機本地部署）
 
 ```
 DisasterHub/
-├── README.md / README.zh-TW.md # 首頁（英文 / 繁體中文）
+├── README.md                   # 首頁，英文在前、繁體中文在後
 ├── LICENSE                     # MIT（只涵蓋程式碼，資料沿用各自的授權）
 ├── docs/                       # 詳細文件；中文版在 zh-TW/，截圖在 images/
 ├── app.py                      # FastAPI 主程式

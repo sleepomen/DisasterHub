@@ -1,6 +1,6 @@
 # 問答流程
 
-[← README](../../README.zh-TW.md) · [English](../chat.md) · 繁體中文
+[← README](../../README.md#zh-tw) · [English](../chat.md) · 繁體中文
 
 ## 程式直接回答
 

@@ -1,6 +1,6 @@
 # 安裝與開發
 
-[← README](../../README.zh-TW.md) · [English](../setup.md) · 繁體中文
+[← README](../../README.md#zh-tw) · [English](../setup.md) · 繁體中文
 
 ## 快速開始
 

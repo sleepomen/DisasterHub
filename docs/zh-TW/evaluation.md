@@ -1,6 +1,6 @@
 # 評測
 
-[← README](../../README.zh-TW.md) · [English](../evaluation.md) · 繁體中文
+[← README](../../README.md#zh-tw) · [English](../evaluation.md) · 繁體中文
 
 ## RAG 召回率評測
 

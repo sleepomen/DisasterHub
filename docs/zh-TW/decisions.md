@@ -1,6 +1,6 @@
 # 設計決定
 
-[← README](../../README.zh-TW.md) · [English](../decisions.md) · 繁體中文
+[← README](../../README.md#zh-tw) · [English](../decisions.md) · 繁體中文
 
 這個專案大部分跟一般做法不一樣的地方，都是先量了某個東西、發現結果不對，才改出來的。下面每一節是其中一次：遇到什麼問題、怎麼發現的、決定怎麼做、付出什麼代價。
 

@@ -1,6 +1,6 @@
 # API 與監控
 
-[← README](../../README.zh-TW.md) · [English](../api.md) · 繁體中文
+[← README](../../README.md#zh-tw) · [English](../api.md) · 繁體中文
 
 ## API 端點
 
