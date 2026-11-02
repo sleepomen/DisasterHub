@@ -131,7 +131,7 @@ def test_geo_query_without_coords_returns_prompt(svc):
     assert "座標" in early
 
 
-@pytest.mark.parametrize("msg", ["知本附近", "頭城鎮附近的學校", "中華路一段附近", "宜蘭市附近有哪些避難所"])
+@pytest.mark.parametrize("msg", ["赤柯山附近", "頭城鎮附近的學校", "中華路一段附近", "宜蘭市附近有哪些避難所"])
 def test_geo_query_with_place_name_goes_to_retrieval(svc, msg):
     # 使用者已經講了地點，就交給檢索，不要回頭要座標
     context, early = svc.build_context(msg)
@@ -685,9 +685,23 @@ def test_geo_question_with_only_question_words_still_asks_for_coords(svc, msg):
 
 
 def test_place_name_outside_every_known_list_still_counts_as_a_clue(svc):
-    # 補黑名單時不能把「知本」這種不在任何鄉鎮清單裡的地名一起剝掉
-    context, early = svc.build_context("知本附近")
+    # 補黑名單時不能把不在任何清單裡的地名一起剝掉：「赤柯山」不是鄉鎮，也不在小地名檔裡，
+    # 仍然是地點線索，要交給檢索，不能回頭要座標
+    context, early = svc.build_context("赤柯山附近")
     assert early is None and context is not None
+
+
+def test_small_place_names_are_answered_by_road_distance(svc):
+    """「知本附近」：小地名換成座標，跟給座標一樣由程式依道路距離回答，不交給模型"""
+    context, early = svc.build_context("知本附近有避難所嗎")
+    assert context is None
+    assert early.startswith("以「知本」一帶為準（緯度 22.70618、經度 121.05311）")
+    svc.vector_store.search.assert_not_called()
+
+
+def test_coordinates_win_over_a_place_name(svc):
+    context, early = svc.build_context("我在知本 緯度 23.99 經度 121.60 最近的避難所")
+    assert early.startswith("您的位置：緯度 23.99、經度 121.6")
 
 
 @pytest.mark.parametrize("msg,topic", [

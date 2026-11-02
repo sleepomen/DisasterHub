@@ -161,6 +161,16 @@ def test_road_paths_route_only_the_requested_pairs():
     assert "13" not in points_sql
 
 
+def test_road_paths_at_the_same_spot_are_just_the_walk_to_the_road():
+    """起訖吸附到同一個位置：沒有路上的路線，距離只剩兩端走到路上的那兩小段，不能變成「算不出來」"""
+    cursor, fake_cursor = fake_repo_cursor([[(0, 10, 0.5, 3.0), (1, 10, 0.5, 4.0)]])
+    with patch.object(ShelterRepository, "_cursor", fake_cursor):
+        result = ShelterRepository().road_paths([(24.0, 121.0)], [(24.0, 121.0)], [(0, 0)])
+    assert result == {(0, 0): RoadPath(7.0, 0.0, "", 7.0)}
+    # 只有吸附那一次查詢，沒有打 pgRouting
+    assert cursor.execute.call_count == 1
+
+
 def test_road_paths_skip_the_database_without_pairs():
     with patch.object(ShelterRepository, "_cursor", side_effect=AssertionError("不該查詢")):
         assert ShelterRepository().road_paths([(24.0, 121.0)], [(24.01, 121.0)], []) == {}
