@@ -31,6 +31,7 @@ Built in response to the 2025 barrier-lake disaster in Guangfu Township, Hualien
 | Boundary and refusal questions | 53 / 53 |
 | Routing decisions | 56 / 56 |
 | Knowledge questions, right passage returned | 40 / 40 |
+| Simulation follow-ups, complete and correct | 20 / 20 in 0.1 s (the model: lists cut off, 4 of 5 "excluded" answers wrong) |
 | Route length inside debris-flow zones (太麻里 flood example) | 6.18 km → 2.21 km, for 3.3 km more driving |
 
 <table>
@@ -61,14 +62,13 @@ flowchart LR
     R -- "how to · alert levels" --> K[Official passage<br/>+ sources]
     R -- "region · township · facility<br/>capacity · named shelter" --> D[Metadata filter<br/>list formatted by code]
     R -- "coordinates" --> N[PostGIS + pgRouting<br/>nearest by road, formatted by code]
-    R -- "simulation follow-up" --> S[Simulation snapshot]
+    R -- "simulation follow-up" --> S[Simulation snapshot<br/>answered by code]
     R -- "anything else" --> V[Semantic retrieval]
-    S --> L[llama3.2:3b]
-    V --> L
+    V --> L[llama3.2:3b]
     L --> G[Answer guard<br/>drops invented shelters]
 ```
 
-Only the last two paths (simulation follow-ups and plain semantic questions) still use the language model. Everything else is answered by code from the data, which is why most answers take well under a second and cannot invent a shelter or a number.
+Only the last path, plain semantic questions with no condition, still uses the language model. Everything else is answered by code from the data, which is why most answers take well under a second and cannot invent a shelter or a number.
 
 ## Quick start
 
@@ -90,7 +90,7 @@ Open <http://localhost:8501>. The first start loads the shelters, hazard zones a
 | Document | What it covers |
 |---|---|
 | [Design decisions](docs/decisions.md) | What went wrong along the way, how it was measured, and what was decided. **Start here.** |
-| [Evaluation](docs/evaluation.md) | Retrieval, generation, boundary, routing and knowledge evaluations, with confidence intervals |
+| [Evaluation](docs/evaluation.md) | Retrieval, generation, boundary, routing, knowledge and simulation follow-up evaluations, with confidence intervals |
 | [Question answering](docs/chat.md) | Answers written by code, verbatim knowledge passages, English mode, example questions |
 | [Simulation and routing](docs/simulation-and-routing.md) | Evacuation assignment, road routes, hazard-aware routing, live alerts, walking and driving |
 | [Architecture](docs/architecture.md) | Features, stack, project structure, data sources |
@@ -99,7 +99,7 @@ Open <http://localhost:8501>. The first start loads the shelters, hazard zones a
 
 ## Limitations
 
-- **The language model is small and local** (llama3.2:3b). It only answers what code cannot: simulation follow-ups and plain semantic questions. Those are the weakest answers; 「知本附近有避難所嗎」 retrieves shelters in 吉安 instead of 知本.
+- **The language model is small and local** (llama3.2:3b). It only answers what code cannot: plain semantic questions with no condition. Those are the weakest answers; 「知本附近有避難所嗎」 retrieves shelters in 吉安 instead of 知本.
 - **The evacuation is a model, not a plan.** Each township starts from one centroid, the allocation is greedy rather than optimal, road speeds are fixed with no traffic or congestion, and roads are treated as two-way.
 - **Live alerts have not been seen live yet.** The feed reported no alerts while this was built, so the alert format is inferred from the dataset description.
 - **English mode is partial.** The 34 knowledge passages have draft translations awaiting review, so English answers still show the Chinese passage.
@@ -158,6 +158,7 @@ The code is released under the [MIT License](LICENSE). The data keeps its own li
 | 邊界與拒答題 | 53 / 53 |
 | 路由判斷 | 56 / 56 |
 | 防災知識題回到正確段落 | 40 / 40 |
+| 模擬追問完整且正確 | 20 / 20，0.1 秒（交給模型時：長清單被截斷，「排除」5 題錯 4 題） |
 | 路線落在土石流潛勢範圍內的長度（太麻里淹水模擬） | 6.18 公里 → 2.21 公里，多開 3.3 公里 |
 
 <table>
@@ -188,14 +189,13 @@ flowchart LR
     R -- "怎麼做・警戒等級" --> K[官方原文<br/>＋出處]
     R -- "地區・鄉鎮・設施<br/>容量・點名" --> D[metadata 篩選<br/>程式排版清單]
     R -- "座標" --> N[PostGIS + pgRouting<br/>道路距離最近，程式排版]
-    R -- "模擬追問" --> S[模擬快照]
+    R -- "模擬追問" --> S[模擬快照<br/>程式回答]
     R -- "其他" --> V[語意檢索]
-    S --> L[llama3.2:3b]
-    V --> L
+    V --> L[llama3.2:3b]
     L --> G[回答防護<br/>拿掉編造的避難所]
 ```
 
-只有最後兩條路（模擬追問、純語意題）還會用到語言模型，其餘都由程式依資料直接回答。所以大部分回答遠低於一秒，也不可能編出不存在的避難所或數字。
+只有最後一條路（沒有任何條件的純語意題）還會用到語言模型，其餘都由程式依資料直接回答。所以大部分回答遠低於一秒，也不可能編出不存在的避難所或數字。
 
 ## 快速開始
 
@@ -217,7 +217,7 @@ docker compose up --build
 | 文件 | 內容 |
 |---|---|
 | [設計決定](docs/zh-TW/decisions.md) | 一路上遇到的問題、怎麼量出來的、最後怎麼決定。**建議從這裡開始看。** |
-| [評測](docs/zh-TW/evaluation.md) | 檢索、生成、拒答、路由、防災知識評測，附信賴區間 |
+| [評測](docs/zh-TW/evaluation.md) | 檢索、生成、拒答、路由、防災知識、模擬追問評測，附信賴區間 |
 | [問答流程](docs/zh-TW/chat.md) | 程式直接回答、防災知識原文、英文模式、問題範例 |
 | [模擬與路線規劃](docs/zh-TW/simulation-and-routing.md) | 疏散分配、道路路線、避開災害範圍、即時警戒、步行與開車 |
 | [架構](docs/zh-TW/architecture.md) | 功能、技術架構、專案結構、資料來源 |
@@ -226,7 +226,7 @@ docker compose up --build
 
 ## 限制
 
-- **語言模型小、跑在本機**（llama3.2:3b）。它只回答程式答不了的題目：模擬中的追問、沒有任何條件的語意題。這些也是答得最弱的；「知本附近有避難所嗎」會撈到吉安的避難所，而不是知本。
+- **語言模型小、跑在本機**（llama3.2:3b）。它只回答程式答不了的題目：沒有任何條件的語意題。這些也是答得最弱的；「知本附近有避難所嗎」會撈到吉安的避難所，而不是知本。
 - **疏散是模型，不是計畫**。每個鄉鎮只用一個人口重心當起點，分配是貪婪法而不是最佳解，道路速度是固定值、沒有路況與壅塞，道路一律當作雙向。
 - **即時警戒還沒遇過真的警戒**。開發期間來源都回報沒有警戒，所以警戒格式是依資料集說明推斷的。
 - **英文模式只做了一部分**。34 段防災知識的英文稿還在等審稿，英文回答目前仍顯示中文原文。

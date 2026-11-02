@@ -536,3 +536,28 @@ Answers (llama3.2:3b, the 44 questions that return a passage):
 - **The current numbers are partly true by construction.** A verbatim passage scores full marks on facts and faithfulness. What matters for knowledge-only questions is the retrieval table above, because the user sees exactly the passage that was retrieved. The remaining 0.003 is a mixed answer's 「花蓮市有以下避難所」 heading.
 - **Mixed questions still call the model** for the shelter list (about 40 s), and those numbers checked out against the shelter data.
 - **The eval set needs an independent author.** It was written by the same person as the passages and the rules, like the other evaluation sets here.
+
+## Simulation Follow-up Evaluation
+
+`evals/run_simulation_eval.py` runs five simulations through the real API (log in, simulate, ask, reset) and asks each the same four follow-ups: the allocation per shelter, how many people were not placed, which shelters are affected, and which were excluded. Scenarios: 花蓮市 earthquake 10 km, 台東市 flood 10 km by car, 南澳 flood 10 km with a red alert inserted as test data, 宜蘭市 earthquake 5 km, 玉里 flood 15 km by car.
+
+```bash
+docker exec disaster_app python evals/run_simulation_eval.py --label sim_code
+```
+
+Scoring checks each line that names one shelter: its numbers must include that shelter's own value (headcount, capacity, occupancy or free space). Coverage is the share of the expected shelters mentioned. Note sentences that name several shelters with distances (「以下避難所靠近…：甲（約 137 公尺）、乙…」) are not pair-checked, and a shelter mentioned in a sentence that says it is still used is not counted as "said to be excluded".
+
+| | Answered by the model (`sim_llama3.2-3b`) | Answered by code (`sim_code`) |
+|---|---|---|
+| Allocation: coverage | 0.742 | **1.000** |
+| Affected: coverage | 0.522 | **1.000** |
+| Answers cut off | 5 | **0** |
+| Name–number pairs | 1.000 | 1.000 |
+| Unplaced count stated | 5 / 5 | 5 / 5 |
+| "Excluded" answered correctly | 1 of 5 roughly | **5 / 5** |
+| Invented or out-of-range shelters | 0 | 0 |
+| p50 time | 34.9 s (lists 34–108 s) | **0.1 s** |
+
+- **The model run scored only what the model wrote** (`--model-text-only`): the notes appended by code were removed first. The code run scores the whole reply, since the exclusion notes are the answer.
+- **What the model got wrong.** In 台東市 it said 「有 26 個避難所被排除」 when none were. In 玉里 it listed 21 shelters that had received people as excluded, all tagged with the same unrelated zone. In 花蓮市 it answered the number of unplaced people instead, missing the 18 shelters not designated for earthquakes. In 宜蘭市 it invented a reason.
+- **What this does not measure.** In all five scenarios demand exceeds capacity, so every shelter is filled and its headcount equals its free space. Whether the model answered with the headcount or just copied the capacity could not be told apart (0 distinguishing cases).
