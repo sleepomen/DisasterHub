@@ -131,7 +131,7 @@ def test_geo_query_without_coords_returns_prompt(svc):
     assert "座標" in early
 
 
-@pytest.mark.parametrize("msg", ["赤柯山附近", "頭城鎮附近的學校", "中華路一段附近", "宜蘭市附近有哪些避難所"])
+@pytest.mark.parametrize("msg", ["龜山島附近", "頭城鎮附近的學校", "中華路一段附近", "宜蘭市附近有哪些避難所"])
 def test_geo_query_with_place_name_goes_to_retrieval(svc, msg):
     # 使用者已經講了地點，就交給檢索，不要回頭要座標
     context, early = svc.build_context(msg)
@@ -685,9 +685,9 @@ def test_geo_question_with_only_question_words_still_asks_for_coords(svc, msg):
 
 
 def test_place_name_outside_every_known_list_still_counts_as_a_clue(svc):
-    # 補黑名單時不能把不在任何清單裡的地名一起剝掉：「赤柯山」不是鄉鎮，也不在小地名檔裡，
+    # 補黑名單時不能把不在任何清單裡的地名一起剝掉：「龜山島」不是鄉鎮，也不在小地名檔裡，
     # 仍然是地點線索，要交給檢索，不能回頭要座標
-    context, early = svc.build_context("赤柯山附近")
+    context, early = svc.build_context("龜山島附近")
     assert early is None and context is not None
 
 
@@ -855,8 +855,8 @@ def test_allocation_answer_quotes_the_server_side_evacuation_plan(svc):
 
 
 def test_allocation_answer_says_which_distance_decided_the_plan(svc):
-    for basis, mode, expected in [("road", "walk", "依步行時間由短到長，並守住"), ("mixed", "walk", "用直線距離估算"),
-                                  ("straight", "walk", "道路路線無法計算"), ("road", "drive", "依開車時間由短到長")]:
+    for basis, mode, expected in [("road", "walk", "讓所有人的步行時間加總最短，並守住"), ("mixed", "walk", "用直線距離估算"),
+                                  ("straight", "walk", "道路路線無法計算"), ("road", "drive", "讓所有人的開車時間加總最短")]:
         svc.set_simulation({"type": "flood", "radius_km": 10, "impacted_count": 1,
                             "impacted_shelters": [Shelter("[HUALIEN] 甲", 100, 23.9, 121.6, 10)],
                             "evacuation": {"assigned": {"[HUALIEN] 甲": 90}, "placed": 90, "unplaced": 0,

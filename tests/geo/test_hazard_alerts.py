@@ -99,7 +99,7 @@ def test_unroutable_pairs_retry_on_the_whole_network_then_are_unreachable():
     with patch.object(ShelterRepository, "_cursor", fake_cursor):
         result = ShelterRepository().road_distances([(24.0, 121.0)], [(24.01, 121.0), (24.5, 121.5)])
     assert result == {(0, 0): 1050.0, (0, 1): None}
-    edges_sql, _, starts, ends = cursor.execute.call_args.args[1]
+    edges_sql, _, starts, ends, directed = cursor.execute.call_args.args[1]
     assert "ST_MakeEnvelope" not in edges_sql and starts == [-1] and ends == [-3]
 
 

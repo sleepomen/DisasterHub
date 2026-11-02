@@ -92,7 +92,10 @@ def test_bundled_network_covers_the_three_counties():
     network = json.loads(gzip.decompress(NETWORK.read_bytes()))
     assert network["source"]["license"].startswith("ODbL")
     assert network["counts"]["edges"] == len(network["edges"]) > 100000
-    source, target, length, highway, polyline = network["edges"][0]
+    source, target, length, highway, polyline, oneway = network["edges"][0]
+    assert oneway in (0, 1)
+    # 單行道（多半是分隔島兩側各畫一條的省道）
+    assert network["counts"]["oneway_edges"] == sum(e[5] for e in network["edges"]) > 1000
     assert isinstance(source, int) and length > 0 and highway and polyline
 
 
@@ -107,8 +110,10 @@ def test_road_distances_add_the_walk_to_and_from_the_road():
     with patch.object(ShelterRepository, "_cursor", fake_cursor):
         result = ShelterRepository().road_distances([(24.0, 121.0)], [(24.01, 121.0), (24.5, 121.5)])
     assert result == {(0, 0): 1050.0}
-    _, (edges_sql, points_sql, starts, ends) = cursor.execute.call_args.args
+    _, (edges_sql, points_sql, starts, ends, directed) = cursor.execute.call_args.args
     assert starts == [-1] and ends == [-2]
+    # 步行不管單行道
+    assert directed is False and "oneway" not in edges_sql
     assert "(1, 10, 0.5)" in points_sql and "12" not in points_sql
 
 
@@ -155,7 +160,8 @@ def test_road_paths_route_only_the_requested_pairs():
     # 實際距離含走到路上、離開道路的兩小段；開車時間的這兩小段用步行速度（1 m/s）
     assert result == {(0, 0): RoadPath(1025.0, 0.0, "abc", 85.0), (1, 0): RoadPath(2035.0, 150.0, "def", 135.0)}
     assert result[(0, 0)].walk_s == 1025.0
-    pids, fractions, _, points_sql, combinations_sql, _ = cursor.execute.call_args.args[1]
+    pids, fractions, _, points_sql, combinations_sql, directed, _ = cursor.execute.call_args.args[1]
+    assert directed is False
     assert pids == [1, 2, 3] and fractions == [0.5, FRACTION_EPS, 0.25]
     assert "(-1, -3), (-2, -3)" in combinations_sql and "-4" not in combinations_sql
     assert "13" not in points_sql
@@ -169,6 +175,33 @@ def test_road_paths_at_the_same_spot_are_just_the_walk_to_the_road():
     assert result == {(0, 0): RoadPath(7.0, 0.0, "", 7.0)}
     # 只有吸附那一次查詢，沒有打 pgRouting
     assert cursor.execute.call_count == 1
+
+
+def test_driving_respects_one_way_streets():
+    """開車時單行道的反方向擋掉、圖改成有向；步行兩個方向都能走"""
+    snaps = {0: (101, 0.5, 5.0), 1: (202, 0.5, 5.0)}
+    drive, _ = ShelterRepository._routing_sql([(24.0, 121.0), (24.1, 121.1)], snaps, [0, 1], [0], None, "drive")
+    walk, _ = ShelterRepository._routing_sql([(24.0, 121.0), (24.1, 121.1)], snaps, [0, 1], [0], None, "walk")
+    assert "OR r.oneway = 1 THEN -1" in drive
+    assert "oneway" not in walk
+    cursor, fake_cursor = fake_repo_cursor([[(0, 10, 0.5, 20.0), (1, 11, 0.25, 30.0)], [(-1, -2, 100.0)]])
+    with patch.object(ShelterRepository, "_cursor", fake_cursor):
+        ShelterRepository().road_distances([(24.0, 121.0)], [(24.01, 121.0)], mode="drive")
+    assert cursor.execute.call_args.args[1][4] is True
+
+
+def test_old_network_files_without_the_oneway_column_still_import():
+    cursor = MagicMock()
+    cursor.fetchone.return_value = None
+
+    @contextmanager
+    def fake_cursor(self):
+        yield cursor
+
+    with patch.object(ShelterRepository, "_cursor", fake_cursor), patch("psycopg2.extras.execute_values") as values:
+        ShelterRepository().replace_road_network([[1, 2, 10.0, "primary", "??"], [2, 3, 5.0, "primary", "??", 1]], "x")
+    rows = values.call_args.args[2]
+    assert [row[6] for row in rows] == [0, 1]
 
 
 def test_road_paths_skip_the_database_without_pairs():

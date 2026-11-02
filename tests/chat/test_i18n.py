@@ -172,7 +172,7 @@ def test_chat_stream_passes_the_language_to_the_model():
     vs.search_result.return_value = SearchResult("- 知本國小")
     svc = ChatService(vs, None)
     with patch.object(svc, "generate_stream", return_value=iter(["知本國小: Taitung City\n"])) as gen:
-        # 「赤柯山」不在小地名檔裡：還是交給檢索與模型
-        text = svc.chat("赤柯山附近有避難所嗎", "en")
+        # 「龜山島」不在小地名檔裡：還是交給檢索與模型
+        text = svc.chat("龜山島附近有避難所嗎", "en")
     assert gen.call_args.args[1] == "en"
     assert text == "知本國小: Taitung City"

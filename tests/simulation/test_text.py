@@ -82,7 +82,7 @@ def test_two_topics_in_one_question_get_both_sections():
 def test_answers_in_english():
     answer = simulation_answer(SIM, ["allocation", "unplaced"], "en")
     assert answer.startswith("Simulation: flood, 10 km radius, 3 shelters affected.")
-    assert "Evacuation plan (2 shelters, fastest on foot first, never over a shelter's free space):" in answer
+    assert "Evacuation plan (2 shelters, shortest total time on foot for everyone, never over a shelter's free space):" in answer
     assert "- 南澳國小: 200 people" in answer
     assert "1320 people need to evacuate: 240 are placed in 2 shelters and 1080 could not be placed." in answer
     assert "No safe road leads to these shelters" in answer

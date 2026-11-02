@@ -86,3 +86,11 @@ def test_the_bundled_place_file_covers_well_known_places():
     assert {"知本", "七星潭", "三仙台", "太魯閣", "南方澳", "石梯坪"} <= names
     # 鄉鎮名不在裡面
     assert not {"南澳", "玉里", "花蓮市", "池上鄉"} & names
+
+
+def test_other_spellings_and_manual_places_are_found():
+    """評測裡兩個來源都找不到的：OSM 寫「赤科山」、問的人寫「赤柯山」；梅花湖的水域在 OSM 沒有名字"""
+    found = index([osm("赤科山", 23.388, 121.388)]).find("赤柯山附近有避難所嗎")
+    assert found and found[0] == "赤柯山" and found[1][0].lat == 23.388
+    name, places = index().find("梅花湖附近有避難所嗎")
+    assert name == "梅花湖" and abs(places[0].lat - 24.645) < 0.01
