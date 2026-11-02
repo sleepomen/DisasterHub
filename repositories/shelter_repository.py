@@ -82,8 +82,9 @@ HAZARD_SCHEMA_SQL = (
     "CREATE INDEX IF NOT EXISTS idx_hazard_zones_type ON hazard_zones (hazard_type)",
 )
 
-# 路網（pgRouting 的邊表）。cost / reverse_cost 是公尺；兩個方向一樣長，不考慮單行道——
-# 疏散時步行與車行都有，單行道對步行沒有意義。KNN 吸附用 geometry 的 GiST 索引
+# 路網（pgRouting 的邊表）。cost / reverse_cost 是公尺，兩個方向一樣長（步行不管單行道）；
+# oneway = 1 代表開車只能 source → target，開車時查詢才把反方向擋掉（見 _routing_sql）。
+# KNN 吸附用 geometry 的 GiST 索引
 ROAD_SCHEMA_SQL = (
     """
     CREATE TABLE IF NOT EXISTS roads (
@@ -96,6 +97,7 @@ ROAD_SCHEMA_SQL = (
         geom GEOMETRY(LineString, 4326)
     )
     """,
+    "ALTER TABLE roads ADD COLUMN IF NOT EXISTS oneway SMALLINT NOT NULL DEFAULT 0",
     "CREATE INDEX IF NOT EXISTS idx_roads_geom ON roads USING GIST (geom)",
     # 大檔案每次啟動都重灌太慢：記下匯入的是哪一版，內容沒變就跳過
     """
@@ -509,10 +511,11 @@ class ShelterRepository:
                 cursor.execute("TRUNCATE roads")
                 execute_values(
                     cursor,
-                    "INSERT INTO roads (id, source, target, cost, reverse_cost, highway, geom) VALUES %s",
-                    [(i, s, t, length, length, highway, polyline)
-                     for i, (s, t, length, highway, polyline) in enumerate(edges, 1)],
-                    template="(%s, %s, %s, %s, %s, %s, ST_LineFromEncodedPolyline(%s, 5))",
+                    "INSERT INTO roads (id, source, target, cost, reverse_cost, highway, oneway, geom) VALUES %s",
+                    # 第 6 欄是單行道；舊版的路網檔沒有這一欄，當成雙向
+                    [(i, s, t, length, length, highway, rest[0] if rest else 0, polyline)
+                     for i, (s, t, length, highway, polyline, *rest) in enumerate(edges, 1)],
+                    template="(%s, %s, %s, %s, %s, %s, %s, ST_LineFromEncodedPolyline(%s, 5))",
                     page_size=2000,
                 )
                 cursor.execute(
@@ -713,9 +716,9 @@ class ShelterRepository:
         cursor.execute(
             """
             SELECT start_pid, end_pid, agg_cost
-            FROM pgr_withPointsCost(%s, %s, %s::bigint[], %s::bigint[], directed := false)
+            FROM pgr_withPointsCost(%s, %s, %s::bigint[], %s::bigint[], directed := %s)
             """,
-            (edges_sql, points_sql, [-(i + 1) for i in starts], [-(i + 1) for i in ends]),
+            (edges_sql, points_sql, [-(i + 1) for i in starts], [-(i + 1) for i in ends], mode == "drive"),
         )
         return {(abs(s) - 1, abs(e) - 1): float(cost) for s, e, cost in cursor.fetchall()}
 
@@ -727,7 +730,7 @@ class ShelterRepository:
         combinations_sql = f"SELECT * FROM (VALUES {values}) AS c(source, target)"
         cursor.execute(self.PATH_SQL.format(weights=self._weights_sql(hazard), drive_mps=self._drive_mps_sql()), (
             [i + 1 for i in used], [snaps[i][1] for i in used],
-            edges_sql, points_sql, combinations_sql, PATH_SIMPLIFY_DEG,
+            edges_sql, points_sql, combinations_sql, mode == "drive", PATH_SIMPLIFY_DEG,
         ))
         return {
             (abs(s) - 1, abs(e) - 1): (float(meters), float(hazard_m), polyline, float(drive_s))
@@ -745,7 +748,7 @@ class ShelterRepository:
         ), path AS (
             SELECT start_pid, end_pid, path_seq, node, edge,
                    LEAD(node) OVER (PARTITION BY start_pid, end_pid ORDER BY path_seq) AS next_node
-            FROM pgr_withPoints(%s, %s, %s, directed := false)
+            FROM pgr_withPoints(%s, %s, %s, directed := %s)
         ), w AS ({weights}), seg AS (
             SELECT path.start_pid, path.end_pid, path.path_seq, r.geom, r.cost AS length,
                    {drive_mps} AS drive_mps,
@@ -852,10 +855,12 @@ class ShelterRepository:
                 f"{max(lons) + pad_lon}, {max(lats) + pad_lat}, 4326)"
             )
         closed = f"w.closed AND r.id NOT IN ({open_edges})"
+        # 開車時單行道的反方向不能走（成本 -1），圖也改成有向；步行兩個方向都能走
+        against_oneway = " OR r.oneway = 1" if mode == "drive" else ""
         edges_sql = (
             "SELECT r.id, r.source, r.target, "
             f"CASE WHEN {closed} THEN -1 ELSE r.cost / {speed} * COALESCE(w.factor, 1) END AS cost, "
-            f"CASE WHEN {closed} THEN -1 ELSE r.reverse_cost / {speed} * COALESCE(w.factor, 1) END AS reverse_cost "
+            f"CASE WHEN {closed}{against_oneway} THEN -1 ELSE r.reverse_cost / {speed} * COALESCE(w.factor, 1) END AS reverse_cost "
             f"FROM roads r LEFT JOIN ({cls._weights_sql(hazard)}) w ON w.edge_id = r.id {where}"
         )
         values = ", ".join(f"({i + 1}, {snaps[i][0]}, {snaps[i][1]})" for i in used)
