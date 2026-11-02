@@ -5,9 +5,11 @@
 同一組參數每次模擬分配都不一樣，AI 助手引用的數字也要等動畫結束、回寫成功之後才對得上。
 現在由後端算出確定的分配並直接寫入資料庫，前端只負責把這份分配畫成動畫。
 
-演算法是「全域最近優先」的貪婪分配：把所有（鄉鎮, 避難所）配對依距離由近到遠排序，
-依序把鄉鎮剩下的人塞進避難所剩下的空位。容量一定守得住、結果可重現、也容易對人解釋；
-它不保證總移動距離最小（那是運輸問題，要用最小成本流）。
+分配是運輸問題，用最小成本流解（services/simulation/min_cost_flow.py）：守住每間避難所的剩餘空位，
+先安置最多的人，同樣人數下讓所有人的通行時間加總最短。結果可以重現。
+以前用「全域最近優先」的貪婪法（所有配對依時間排序、依序塞滿）；2026-11-02 在 114 個情境比較
+（evals/run_assignment_eval.py），兩者安置人數一樣，貪婪法的總時間平均只多 0.4%，最多多 6.4%。
+最小成本流在每個指標都不比貪婪法差，解一次不到 0.05 秒，所以換掉。
 
 距離用路網上的道路距離（services/routing.evacuation_road_distances）。個別算不出道路距離的配對
 不能直接拿直線距離來比，直線一定比較短，會被排到前面；改用「直線 × DETOUR_FACTOR」估算
@@ -15,6 +17,7 @@
 from dataclasses import dataclass
 
 from models.travel import DEFAULT_MODE, fallback_seconds
+from services.simulation.min_cost_flow import min_cost_flow
 from services.simulation.population import distance_km
 
 # 哪些災害類型要避開哪一類潛勢區域。豪雨同時是淹水與土石流的觸發條件：淹水模擬時，
@@ -100,6 +103,23 @@ def split_hazard_hits(hits: dict[str, list[tuple[str, float]]]) -> tuple[dict[st
     return inside, near
 
 
+def pair_costs(origins: list[Origin], shelters: list, road_m: dict, mode: str) -> dict[tuple[int, int], tuple[float, float, bool]]:
+    """
+    {(起點序號, 避難所序號): (每人的通行成本秒數, 直線公里, 是否依路線)}。沒有安全路線（None）的配對不在裡面；
+    算不出路線的用直線 × DETOUR_FACTOR 換成時間，才能跟路線算出來的時間放在一起比
+    """
+    costs = {}
+    for i, o in enumerate(origins):
+        for j, s in enumerate(shelters):
+            if (i, j) in road_m and road_m[(i, j)] is None:
+                continue
+            straight = round(distance_km(o.lat, o.lon, s.lat, s.lon), 2)
+            routed = (i, j) in road_m
+            cost = road_m[(i, j)] if routed else fallback_seconds(straight * 1000 * DETOUR_FACTOR, mode)
+            costs[(i, j)] = (round(cost, 1), straight, routed)
+    return costs
+
+
 def plan_evacuation(
     origins: list[Origin], shelters: list, road_m: dict[tuple[int, int], float | None] | None = None,
     mode: str = DEFAULT_MODE,
@@ -109,6 +129,7 @@ def plan_evacuation(
     road_m 是 {(起點序號, 避難所序號): 路線成本（秒）}（mode 的通行時間，警戒或潛勢範圍再加權），
     沒有的配對用直線 × DETOUR_FACTOR 換算成時間；值是 None 代表沒有安全路線可到，這一組不分配。回傳：
       flows     每一筆「從哪個鄉鎮、到哪間避難所、多少人、直線距離」，依路線成本由低到高。
+                人數由最小成本流決定：先安置最多的人，再讓所有人的通行時間加總最短
                 routed 表示依路線分配；實際的 road_km / walk_min / drive_min 由 routing.attach_evacuation_paths 填上
       assigned  每間避難所分到的人數
       placed / unplaced  安置與安置不下的人數（總和等於需疏散人數）
@@ -118,30 +139,22 @@ def plan_evacuation(
       mode      步行或開車（「近」是哪一種交通方式的時間）
     """
     road_m = road_m or {}
-    need = {o.name: o.people for o in origins}
-    room = {s.name: max(0, int(s.remaining)) for s in shelters}
-    pairs = []
-    cut_off = []
-    for i, o in enumerate(origins):
-        if shelters and o.people > 0 and all((i, j) in road_m and road_m[(i, j)] is None for j in range(len(shelters))):
-            cut_off.append(o.name)
-        for j, s in enumerate(shelters):
-            if (i, j) in road_m and road_m[(i, j)] is None:
-                continue
-            straight = round(distance_km(o.lat, o.lon, s.lat, s.lon), 2)
-            routed = (i, j) in road_m
-            cost = road_m[(i, j)] if routed else fallback_seconds(straight * 1000 * DETOUR_FACTOR, mode)
-            pairs.append((round(cost, 1), o.name, s.name, straight, routed, o, s))
-    pairs.sort(key=lambda p: p[:3])
+    costs = pair_costs(origins, shelters, road_m, mode)
+    cut_off = [
+        o.name for i, o in enumerate(origins)
+        if shelters and o.people > 0 and all((i, j) in road_m and road_m[(i, j)] is None for j in range(len(shelters)))
+    ]
+    moved = min_cost_flow(
+        [o.people for o in origins], [max(0, int(s.remaining)) for s in shelters],
+        {pair: cost for pair, (cost, _, _) in costs.items()},
+    )
     flows = []
     assigned: dict[str, int] = {}
-    for _, _, _, dist, routed, origin, shelter in pairs:
-        moving = min(need[origin.name], room[shelter.name])
-        if moving <= 0:
-            continue
-        need[origin.name] -= moving
-        room[shelter.name] -= moving
-        assigned[shelter.name] = assigned.get(shelter.name, 0) + moving
+    # 依通行時間由短到長列，同樣時間依名稱，結果可以重現
+    for (i, j), people in sorted(moved.items(), key=lambda kv: (costs[kv[0]][0], origins[kv[0][0]].name, shelters[kv[0][1]].name)):
+        origin, shelter = origins[i], shelters[j]
+        _, straight, routed = costs[(i, j)]
+        assigned[shelter.name] = assigned.get(shelter.name, 0) + people
         flows.append({
             "from": origin.name,
             "from_lat": origin.lat,
@@ -149,8 +162,8 @@ def plan_evacuation(
             "to": shelter.name,
             "to_lat": shelter.lat,
             "to_lon": shelter.lon,
-            "people": moving,
-            "distance_km": dist,
+            "people": people,
+            "distance_km": straight,
             "routed": routed,
             "road_km": None,
         })

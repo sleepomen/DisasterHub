@@ -16,16 +16,16 @@ DISASTER_TYPE_LABELS = {"earthquake": "強震", "flood": "淹水", "fire": "火�
 DISASTER_TYPE_LABELS_EN = {"earthquake": "earthquake", "flood": "flood", "fire": "fire"}
 HAZARD_LABELS_EN = {"debris_flow": "a debris-flow impact zone"}
 
-# 疏散分配依哪一種距離決定「近者優先」（evacuation.plan_evacuation 的 distance_basis）
+# 疏散分配用哪一種時間（evacuation.plan_evacuation 的 distance_basis）；分配本身讓所有人的時間加總最短
 BASIS_TEXT = {
-    "road": "依{mode}時間由短到長",
-    "mixed": "依{mode}時間由短到長，少數算不出道路路線的用直線距離估算",
-    "straight": "道路路線無法計算，依直線距離估算的{mode}時間由短到長",
+    "road": "讓所有人的{mode}時間加總最短",
+    "mixed": "讓所有人的{mode}時間加總最短，少數算不出道路路線的用直線距離估算",
+    "straight": "道路路線無法計算，依直線距離估算{mode}時間，讓加總最短",
 }
 BASIS_TEXT_EN = {
-    "road": "fastest {mode} first",
-    "mixed": "fastest {mode} first; a few pairs without a road route are estimated from straight-line distance",
-    "straight": "road routes could not be computed, so time {mode} is estimated from straight-line distance",
+    "road": "shortest total time {mode} for everyone",
+    "mixed": "shortest total time {mode} for everyone; a few pairs without a road route are estimated from straight-line distance",
+    "straight": "road routes could not be computed, so time {mode} is estimated from straight-line distance and minimised in total",
 }
 MODE_TEXT = {"walk": "步行", "drive": "開車"}
 MODE_TEXT_EN = {"walk": "on foot", "drive": "by car"}

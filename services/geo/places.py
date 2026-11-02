@@ -8,6 +8,7 @@
 地名有兩個來源：
 - data_reference/east_places.json：OpenStreetMap 的村落、部落、社區、海灣、湖、山、景點（tools/build_place_names.py）
 - 避難所資料的村里（「知本里」→「知本」），補 OSM 沒有的；座標用該村里避難所的平均位置
+- 手動補的幾筆（SPELLING_VARIANTS、MANUAL_PLACES）：評測裡兩個來源都找不到的地名
 
 只在「地名＋附近／最近／周邊…」或「我在／住在＋地名」的句型裡認地名：兩個字的地名很多是一般詞
 （和平、復興、平台），整句隨便比對會誤判。同名的地方 5 公里內算同一處；分散成 4 處以上的
@@ -37,6 +38,16 @@ TOWNSHIP_NAMES = (
     | {t[:-1] for ts in TOWNSHIPS.values() for t in ts if len(t) > 2}
     | {"宜蘭", "花蓮", "台東", "臺東", "宜蘭縣", "花蓮縣", "台東縣", "臺東縣"}
 )
+
+# 同一個地方的不同寫法。OSM 把玉里的赤科山寫成「赤科山」（花蓮縣府的寫法），
+# 問的人常寫「赤柯山」；OSM 另一個「赤柯山」在新竹，不在三縣裡
+SPELLING_VARIANTS = {"赤科山": ("赤柯山",)}
+# OSM 有名字的只有周邊設施，湖本身的水域沒有名字，所以沒收進地名檔。
+# 座標取 OSM 上 梅花湖停車場（way 280453948）、梅花湖獅子公園（way 1165014082）、
+# 梅花湖風景區污水淨化處理系統（node 9395626768）三個點的平均，落在湖的中間
+MANUAL_PLACES = [
+    {"name": "梅花湖", "forms": ["梅花湖"], "kind": "manual", "lat": 24.64478, "lon": 121.73323},
+]
 
 
 @dataclass
@@ -75,10 +86,11 @@ def _cluster(points: list[tuple[float, float]]) -> list[tuple[float, float]]:
 class PlaceIndex:
     def __init__(self, osm_places: list[dict], shelters: list | None = None):
         points: dict[str, list[tuple[float, float]]] = {}
-        for p in osm_places:
+        for p in [*osm_places, *MANUAL_PLACES]:
             for form in p["forms"]:
-                if form not in TOWNSHIP_NAMES:
-                    points.setdefault(form, []).append((p["lat"], p["lon"]))
+                for spelling in (form, *SPELLING_VARIANTS.get(form, ())):
+                    if spelling not in TOWNSHIP_NAMES:
+                        points.setdefault(spelling, []).append((p["lat"], p["lon"]))
         shelters = shelters or []
         for stem, coords in self._villages(shelters).items():
             # OSM 已經有、而且在附近的就不重複；不在附近的是另一個同名的地方
