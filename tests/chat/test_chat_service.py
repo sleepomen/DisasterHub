@@ -176,14 +176,20 @@ def test_capacity_ranking_goes_through_rules_layer(svc):
     assert svc.vector_store.search.call_args.kwargs["plan"].capacity_order == "asc"
 
 
+def sim_answer(svc, question: str) -> str:
+    """模擬追問由程式回答：沒有給模型的資料，只有直接回給使用者的回答"""
+    context, early = svc._get_simulation_context(question)
+    assert context is None
+    return early
+
+
 def test_simulation_context_includes_remaining(svc):
     svc.set_simulation({"type": "flood", "radius_km": 10, "impacted_count": 1, "impacted_shelters": [
         Shelter("[TAITUNG] 丙", 200, 22.7, 121.1, 50)]})
-    ctx, early = svc._get_simulation_context()
-    assert early is None
-    assert "淹水" in ctx
-    assert "剩餘空間 150 人" in ctx
-    assert "TAITUNG" not in ctx
+    answer = sim_answer(svc, "哪些避難所受影響？")
+    assert "淹水" in answer
+    assert "剩餘空間 150 人" in answer
+    assert "TAITUNG" not in answer
 
 
 def test_simulation_with_nothing_to_report_answers_without_the_llm(svc):
@@ -195,18 +201,15 @@ def test_simulation_with_nothing_to_report_answers_without_the_llm(svc):
     assert ctx is None and "沒有受影響" in early
 
 
-def test_prompt_includes_simulation_summary(svc):
-    svc.set_simulation({"type": "earthquake", "lat": 23.9, "lon": 121.6, "radius_km": 5, "impacted_count": 3, "impacted_shelters": []})
-    prompt = svc.build_prompt("有什麼建議", "資料", with_simulation=True)
-    assert "【目前災害模擬結果】" in prompt
-    assert "強震" in prompt
-    # 一般檢索不附模擬摘要，小模型會把兩份資料混在一起
-    assert "【目前災害模擬結果】" not in svc.build_prompt("有什麼建議", "資料")
-    svc.clear_simulation()
-    assert "【目前災害模擬結果】" not in svc.build_prompt("有什麼建議", "資料", with_simulation=True)
+def test_prompt_never_includes_the_simulation(svc):
+    """模擬追問由程式回答，交給模型的只剩一般檢索：附上模擬摘要只會讓小模型把兩份資料混在一起"""
+    svc.set_simulation({"type": "earthquake", "lat": 23.9, "lon": 121.6, "radius_km": 5, "impacted_count": 3,
+                        "impacted_shelters": []})
+    prompt = svc.build_prompt("有什麼建議", "資料")
+    assert "模擬" not in prompt and "強震" not in prompt
 
 
-def test_only_simulation_route_gets_the_simulation_summary_in_the_prompt(svc):
+def test_simulation_followups_are_answered_without_the_model(svc):
     svc.set_simulation({"type": "flood", "lat": 24.44, "lon": 121.38, "radius_km": 5, "impacted_count": 1,
                         "impacted_shelters": [Shelter("[YILAN] 南山國小", 200, 24.44, 121.38, 157)],
                         "evacuation": {"assigned": {"[YILAN] 南山國小": 157}, "placed": 157, "unplaced": 0}})
@@ -223,9 +226,10 @@ def test_only_simulation_route_gets_the_simulation_summary_in_the_prompt(svc):
         patch.object(svc, "_unknown_shelter", return_value=None),
     ):
         svc.chat("我們一家五口可以去哪")
-        svc.chat("這次模擬每間避難所分配了多少人？")
-    assert "【目前災害模擬結果】" not in prompts[0]
-    assert "【目前災害模擬結果】" in prompts[1] and "南山國小：分配 157 人" in prompts[1]
+        reply = svc.chat("這次模擬每間避難所分配了多少人？")
+    # 只有一般檢索打了模型，而且 prompt 裡沒有模擬
+    assert len(prompts) == 1 and "南山國小" not in prompts[0]
+    assert "南山國小：分配 157 人" in reply
 
 
 def test_errors_do_not_leak_details():
@@ -319,9 +323,9 @@ def test_refresh_occupancy_updates_simulation_snapshot(svc):
     svc.set_simulation({"type": "flood", "radius_km": 10, "impacted_count": 1, "impacted_shelters": [
         Shelter("[TAITUNG] 丙", 200, 22.7, 121.1, 50)]})
     svc.refresh_occupancy([Shelter("[TAITUNG] 丙", 200, 22.7, 121.1, 190)])
-    ctx, _ = svc._get_simulation_context()
-    assert "目前收容 190 人" in ctx
-    assert "剩餘空間 10 人" in ctx
+    answer = sim_answer(svc, "哪些避難所受影響？")
+    assert "目前收容 190 人" in answer
+    assert "剩餘空間 10 人" in answer
 
 
 def test_refresh_occupancy_without_simulation_is_noop(svc):
@@ -350,11 +354,12 @@ def test_refresh_occupancy_recomputes_population_totals(svc):
     assert pop["placed"] == 240
     assert pop["placeable"] == 250 and pop["shortfall"] == 150
 
-    ctx, _ = svc._get_simulation_context()
-    assert "模擬當下範圍內避難所剩餘空間合計約 250 人" in ctx
-    assert "疏散已安置約 240 人" in ctx
-    assert "目前範圍內避難所剩餘空間合計約 10 人" in ctx
-    assert "剩餘空間 0 人" in ctx and "剩餘空間 10 人" in ctx
+    summary = sim_answer(svc, "有什麼建議")
+    assert "模擬當下範圍內避難所剩餘空間合計約 250 人" in summary
+    assert "疏散已安置約 240 人" in summary
+    assert "目前範圍內避難所剩餘空間合計約 10 人" in summary
+    listing = sim_answer(svc, "哪些避難所受影響？")
+    assert "剩餘空間 0 人" in listing and "剩餘空間 10 人" in listing
 
     # 再回寫一次，基準值不能被覆蓋
     svc.refresh_occupancy([
@@ -374,7 +379,7 @@ def test_format_people_uses_wan_for_large_numbers():
     assert format_people(None) == "不明"
 
 
-def test_simulation_summary_and_context_include_population(svc):
+def test_simulation_summary_and_listing_include_population(svc):
     svc.set_simulation({
         "type": "earthquake", "lat": 23.977, "lon": 121.601, "radius_km": 10, "impacted_count": 1,
         "impacted_shelters": [Shelter("[HUALIEN] 甲", 100, 23.9, 121.6, 0)],
@@ -384,15 +389,13 @@ def test_simulation_summary_and_context_include_population(svc):
             "townships": [{"name": "花蓮市", "weight": 99000}, {"name": "吉安鄉", "weight": 60000}],
         },
     })
-    summary = svc._simulation_summary()
+    summary = sim_answer(svc, "有什麼建議")
     assert "約 17.5 萬人" in summary
     assert "主要為花蓮市、吉安鄉" in summary
     assert "預估需疏散約 2.1 萬人" in summary
     assert "12% 比例" in summary
     assert "收容缺口約 2.1 萬人" in summary
-    ctx, _ = svc._get_simulation_context()
-    assert "約 17.5 萬人" in ctx
-    assert "受影響避難所共 1 個" in ctx
+    assert "受影響避難所共 1 個" in sim_answer(svc, "哪些避難所受影響？")
 
 
 def test_population_lines_when_fallback_and_no_shortfall():
@@ -452,8 +455,8 @@ def test_followup_routes_to_simulation_only_when_active(svc):
         Shelter("[HUALIEN] 甲", 100, 23.9, 121.6, 0)]})
     assert svc._is_simulation_query("請給我疏散建議") is True
     context, early = svc.build_context("避難所還有空間嗎")
-    assert early is None
-    assert "受影響避難所共 1 個" in context
+    assert context is None
+    assert "受影響避難所共 1 個" in early
     svc.clear_simulation()
     assert svc._is_simulation_query("避難所還有空間嗎") is False
 
@@ -481,8 +484,8 @@ def test_geo_query_with_coords_wins_over_simulation_followup(svc):
 def test_geo_query_without_coords_during_simulation_uses_snapshot(svc):
     svc.set_simulation(SIM)
     context, early = svc.build_context("附近的避難所還有空間嗎")
-    assert early is None
-    assert "受影響避難所共 1 個" in context
+    assert context is None
+    assert "受影響避難所共 1 個" in early
     svc.clear_simulation()
     context, early = svc.build_context("附近的避難所還有空間嗎")
     assert context is None and "座標" in early
@@ -825,35 +828,37 @@ def test_clue_check_only_applies_without_filters_and_with_a_name_list(svc):
     assert early is None and context is not None
 
 
-def test_simulation_summary_quotes_the_server_side_evacuation_plan(svc):
+def test_allocation_answer_quotes_the_server_side_evacuation_plan(svc):
     svc.set_simulation({
         "type": "flood", "lat": 23.97, "lon": 121.6, "radius_km": 10, "impacted_count": 2,
-        "impacted_shelters": [],
+        "impacted_shelters": [Shelter("[HUALIEN] 甲", 100, 23.9, 121.6, 10)],
         "evacuation": {"assigned": {"[HUALIEN] 甲": 90, "[HUALIEN] 丙": 300}, "placed": 390, "unplaced": 15},
     })
-    summary = svc._simulation_summary()
-    assert summary.index("丙：分配 300 人") < summary.index("甲：分配 90 人")
-    assert "[HUALIEN]" not in summary
-    assert "仍有 15 人無法安置" in summary
+    answer = sim_answer(svc, "每間避難所分配了多少人？")
+    assert answer.index("丙：分配 300 人") < answer.index("甲：分配 90 人")
+    assert "[HUALIEN]" not in answer
+    assert "仍有 15 人無法安置" in answer
 
 
-def test_simulation_summary_says_which_distance_decided_the_plan(svc):
+def test_allocation_answer_says_which_distance_decided_the_plan(svc):
     for basis, mode, expected in [("road", "walk", "依步行時間由短到長，並守住"), ("mixed", "walk", "用直線距離估算"),
                                   ("straight", "walk", "道路路線無法計算"), ("road", "drive", "依開車時間由短到長")]:
-        svc.set_simulation({"type": "flood", "radius_km": 10, "impacted_count": 1, "impacted_shelters": [],
+        svc.set_simulation({"type": "flood", "radius_km": 10, "impacted_count": 1,
+                            "impacted_shelters": [Shelter("[HUALIEN] 甲", 100, 23.9, 121.6, 10)],
                             "evacuation": {"assigned": {"[HUALIEN] 甲": 90}, "placed": 90, "unplaced": 0,
                                            "distance_basis": basis, "mode": mode}})
-        assert expected in svc._simulation_summary()
+        assert expected in sim_answer(svc, "每間避難所分配了多少人？")
 
 
-def test_every_assigned_shelter_is_listed_so_the_model_cannot_fill_gaps(svc):
-    # 只列前 10 間加「其餘 4 間合計」時，模型會自己編名稱湊滿 14 間
-    assigned = {f"[HUALIEN] 避難所{i:02d}": 100 + i for i in range(14)}
-    svc.set_simulation({"type": "flood", "radius_km": 10, "impacted_count": 14, "impacted_shelters": [],
+def test_every_assigned_shelter_is_listed(svc):
+    # 交給模型照抄時，63 間只列到 26 間就被截斷；由程式排就一間都不少
+    assigned = {f"[HUALIEN] 避難所{i:02d}": 100 + i for i in range(63)}
+    svc.set_simulation({"type": "flood", "radius_km": 10, "impacted_count": 63,
+                        "impacted_shelters": [Shelter("[HUALIEN] 避難所00", 200, 23.9, 121.6, 0)],
                         "evacuation": {"assigned": assigned, "placed": sum(assigned.values()), "unplaced": 0}})
-    summary = svc._simulation_summary()
-    assert all(f"避難所{i:02d}：分配 {100 + i} 人" in summary for i in range(14))
-    assert "其餘" not in summary and "共 14 間" in summary
+    answer = sim_answer(svc, "每間避難所分配了多少人？")
+    assert all(f"避難所{i:02d}：分配 {100 + i} 人" in answer for i in range(63))
+    assert "其餘" not in answer and "共 63 間" in answer
 
 
 def test_nearest_results_warn_about_debris_flow_zones(svc):
@@ -931,14 +936,16 @@ def test_nearest_answer_in_english(svc):
     assert lines[3].endswith("capacity not provided")
 
 
-def test_simulation_summary_names_the_excluded_shelters(svc):
+def test_simulation_answer_names_the_excluded_shelters(svc):
     svc.set_simulation({
-        "type": "flood", "radius_km": 10, "impacted_count": 2, "impacted_shelters": [],
+        "type": "flood", "radius_km": 10, "impacted_count": 2,
+        "impacted_shelters": [Shelter("[YILAN] 澳花國小", 150, 24.33, 121.73, 0)],
         "evacuation": {"assigned": {"[YILAN] 安全": 100}, "placed": 100, "unplaced": 0,
                        "excluded": {"[YILAN] 澳花國小": ["宜縣DF139"]}, "hazard": "debris_flow"},
     })
-    summary = svc._simulation_summary()
-    assert "澳花國小（宜縣DF139）" in summary and "土石流潛勢溪流影響範圍" in summary
+    # 問分配時，排除的說明照樣附在最後
+    answer = sim_answer(svc, "每間避難所分配了多少人？")
+    assert "澳花國小（宜縣DF139）" in answer and "土石流潛勢溪流影響範圍" in answer
 
 
 def test_near_hazard_shelters_are_warned_but_still_destinations(svc):
@@ -949,17 +956,12 @@ def test_near_hazard_shelters_are_warned_but_still_destinations(svc):
                        "near_hazard": {"[YILAN] 南山國小": {"refs": ["宜縣DF079"], "distance_m": 121}},
                        "hazard": "debris_flow"},
     })
-    summary = svc._simulation_summary()
-    assert "南山國小：分配 120 人" in summary
-    assert "仍列為疏散目的地，豪雨期間請留意：南山國小（距土石流潛勢溪流影響範圍 宜縣DF079 約 121 公尺）" in summary
-    context, _ = svc._get_simulation_context()
-    assert "南山國小：容量 200 人，目前收容 0 人，剩餘空間 200 人（距土石流潛勢溪流影響範圍" in context
-    assert "未列為疏散目的地" not in context
-
-    # 警告也由程式補在回答最後
-    with patch("services.chat.llm_client.requests.post", return_value=FakeStream(ndjson("南山國小分配 120 人"))):
-        reply = svc.chat("這次模擬每間避難所分配了多少人？")
-    assert reply.endswith("豪雨期間請留意：南山國小（距土石流潛勢溪流影響範圍 宜縣DF079 約 121 公尺）。")
+    answer = sim_answer(svc, "每間避難所分配了多少人？")
+    assert "南山國小：分配 120 人" in answer
+    assert answer.endswith("仍列為疏散目的地，豪雨期間請留意：南山國小（距土石流潛勢溪流影響範圍 宜縣DF079 約 121 公尺）。")
+    listing = sim_answer(svc, "哪些避難所受影響？")
+    assert "南山國小：容量 200 人，目前收容 0 人，剩餘空間 200 人（距土石流潛勢溪流影響範圍" in listing
+    assert "未列為疏散目的地" not in listing
 
 
 def test_excluded_shelters_are_appended_by_code_on_simulation_answers(svc):
@@ -980,7 +982,7 @@ def test_excluded_shelters_are_appended_by_code_on_simulation_answers(svc):
 
 
 
-def test_simulation_summary_names_undesignated_shelters(svc):
+def test_simulation_answer_names_undesignated_shelters(svc):
     from models.shelter import Shelter
     svc.set_simulation({
         "type": "flood", "radius_km": 10, "impacted_count": 2,
@@ -989,10 +991,10 @@ def test_simulation_summary_names_undesignated_shelters(svc):
         "evacuation": {"assigned": {"[HUALIEN] 收水災": 100}, "placed": 100, "unplaced": 0,
                        "undesignated": ["[HUALIEN] 只收震災"], "designation": "水災"},
     })
-    assert "以下 1 間避難所的適用災害不含水災，本次未列為疏散目的地：只收震災。" in svc._simulation_summary()
-    # 受影響清單裡也要標出來：它還有 500 個空位，不標的話模型會把它當成可以去的地方
-    context, _ = svc._get_simulation_context()
-    assert "只收震災：容量 500 人，目前收容 0 人，剩餘空間 500 人（適用災害不含水災，本次未列為疏散目的地）" in context
+    assert "以下 1 間避難所的適用災害不含水災，本次未列為疏散目的地：只收震災。" in sim_answer(svc, "有沒有避難所被排除？")
+    # 受影響清單裡也要標出來：它還有 500 個空位，不標的話看起來像可以去
+    listing = sim_answer(svc, "哪些避難所受影響？")
+    assert "只收震災：容量 500 人，目前收容 0 人，剩餘空間 500 人（適用災害不含水災，本次未列為疏散目的地）" in listing
 
 
 def test_shelter_name_containing_an_off_topic_word_is_answered(svc):
