@@ -85,7 +85,8 @@ DisasterHub/
 │   │   └── text.py             # Simulation results as text: population, allocation, hazard and route notes
 │   ├── geo/                    # Road network and alerts
 │   │   ├── routing.py          # Road distances for nearest shelters and evacuation, straight-line fallback
-│   │   └── hazard_alerts.py    # Live debris-flow alerts (SWCB open data), polled in the background
+│   │   ├── hazard_alerts.py    # Live debris-flow alerts (SWCB open data), polled in the background
+│   │   └── places.py           # Small place names (知本, 七星潭) → coordinates
 │   ├── ingest/                 # Data import
 │   │   ├── fetcher.py          # Reads the JSON data
 │   │   └── sync.py             # Data synchronization
@@ -106,13 +107,15 @@ DisasterHub/
 │   ├── east_taiwan_population.json  # Coastline polylines + population of 29 townships (shared by the frontend animation and the AI)
 │   ├── debris_flow_east.geojson     # Debris-flow impact zones in the three eastern counties (Ministry of Agriculture)
 │   ├── east_roads.json.gz           # Road network of the three eastern counties (OpenStreetMap, ODbL)
+│   ├── east_places.json             # Place names of the three eastern counties (OpenStreetMap, ODbL)
 │   ├── shelter_coordinate_fixes.json # Official shelter coordinates corrected from OpenStreetMap
 │   └── knowledge/                   # Disaster-preparedness passages, one Markdown file per hazard (README explains the format)
 │
 ├── tools/
 │   ├── build_hazard_zones.py   # Ministry of Agriculture SHP → debris_flow_east.geojson (TWD97 → WGS84)
 │   ├── build_shelters.py       # National Fire Agency CSV → data_for_refuge/*.json
-│   └── build_road_network.py   # OpenStreetMap PBF → east_roads.json.gz (pgRouting edge table)
+│   ├── build_road_network.py   # OpenStreetMap PBF → east_roads.json.gz (pgRouting edge table)
+│   └── build_place_names.py    # OpenStreetMap PBF → east_places.json (villages, landmarks)
 │
 ├── static/
 │   ├── index.html              # Page skeleton

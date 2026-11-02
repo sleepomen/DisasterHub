@@ -561,3 +561,23 @@ Scoring checks each line that names one shelter: its numbers must include that s
 - **The model run scored only what the model wrote** (`--model-text-only`): the notes appended by code were removed first. The code run scores the whole reply, since the exclusion notes are the answer.
 - **What the model got wrong.** In 台東市 it said 「有 26 個避難所被排除」 when none were. In 玉里 it listed 21 shelters that had received people as excluded, all tagged with the same unrelated zone. In 花蓮市 it answered the number of unplaced people instead, missing the 18 shelters not designated for earthquakes. In 宜蘭市 it invented a reason.
 - **What this does not measure.** In all five scenarios demand exceeds capacity, so every shelter is filled and its headcount equals its free space. Whether the model answered with the headcount or just copied the capacity could not be told apart (0 distinguishing cases).
+
+## Place-Name Evaluation
+
+`evals/datasets/place_eval.jsonl` has 42 small place names in the three counties: 19 that are village names in the shelter data (知本, 富岡, 都蘭, 東澳…) and 23 landmarks that are not (七星潭, 鯉魚潭, 南方澳, 三仙台, 太魯閣…). Each is labelled with the township it lies in, from geography rather than from the system's place data, so the labels do not come from the thing being tested. Names that are also township names (南澳, 大武), ambiguous ones (大溪, 清水) and places outside the three counties (梨山) are left out. Three phrasings rotate: 「X附近有避難所嗎」「X最近的避難所在哪」「我在X，可以去哪裡避難」.
+
+```bash
+docker exec disaster_app python evals/run_place_eval.py --label place_code
+```
+
+The script scores what `build_context` returns, without generation: the answer when code answers, or the data handed to the model, in retrieval order. If retrieval puts the wrong area first, the model cannot answer well either.
+
+| | Semantic retrieval (`place_baseline`) | Place names to coordinates (`place_code`) |
+|---|---|---|
+| First shelter in the right township (hit@1) | 0.667 | **0.905** |
+| Share of the first five in the right township | 0.314 | **0.695** |
+| Landmarks only, hit@1 | 0.522 | **0.870** |
+| Questions sent to the model | 88% | **4.8%** |
+
+- **The township is a proxy.** 金崙, 加路蘭 and 安通 sit near a township border, and their nearest shelters by road are across it (金峰鄉, 卑南鄉, 富里鄉), which the metric counts as wrong. The same proxy keeps the share of the first five below 1: the fourth and fifth nearest shelters are often in the next township.
+- **Misses that are real.** 赤柯山 and 梅花湖 are in neither place source and still go to retrieval; 梅花湖 scores as a hit only because retrieval happened to land in 冬山鄉.

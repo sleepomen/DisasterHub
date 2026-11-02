@@ -14,7 +14,7 @@ Most of what this project does differently came from measuring something and not
 
 **Found again.** Nearest-shelter answers were still copied by the model until a clean-install run on 2026-10-31. Asked from the centre of Hualien City, it wrote the second shelter as 花蓮高商, the first one's name, with the second one's distance and capacity. The answer guard could not catch it, because 花蓮高商 is a real shelter in the data. Those answers are now formatted by code too, in about a second instead of about 29 s. Simulation follow-ups were measured next and moved for the same reasons: lists cut off at 26 of 63 shelters, and 4 of 5 "which shelters were excluded" answers wrong (see [Simulation follow-ups](simulation-and-routing.md#simulation-follow-ups)).
 
-**Cost.** The questions left to the model are the weakest ones. 「知本附近有避難所嗎」 retrieves shelters in 吉安, because the place name only exists in the embedding, not in the rules. → [Direct answers](chat.md#direct-answers)
+**Cost.** The questions left to the model are the weakest ones. 「知本附近有避難所嗎」 used to retrieve shelters in 吉安, because the place name only existed in the embedding; small place names are now resolved to coordinates from OpenStreetMap and the shelter data (see [Small place names](chat.md#small-place-names)), and a place the system does not know still falls back to retrieval. → [Direct answers](chat.md#direct-answers)
 
 ## 2. Return official guidance verbatim, never rewritten
 

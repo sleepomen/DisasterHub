@@ -31,6 +31,7 @@ Built in response to the 2025 barrier-lake disaster in Guangfu Township, Hualien
 | Boundary and refusal questions | 53 / 53 |
 | Routing decisions | 56 / 56 |
 | Knowledge questions, right passage returned | 40 / 40 |
+| Small place names (知本, 七星潭…), first shelter in the right township | 38 / 42 (semantic retrieval: 28 / 42) |
 | Simulation follow-ups, complete and correct | 20 / 20 in 0.1 s (the model: lists cut off, 4 of 5 "excluded" answers wrong) |
 | Route length inside debris-flow zones (太麻里 flood example) | 6.18 km → 2.21 km, for 3.3 km more driving |
 
@@ -61,7 +62,7 @@ flowchart LR
     R -- "out of area · off-topic<br/>unknown shelter · no clue" --> F[Fixed reply]
     R -- "how to · alert levels" --> K[Official passage<br/>+ sources]
     R -- "region · township · facility<br/>capacity · named shelter" --> D[Metadata filter<br/>list formatted by code]
-    R -- "coordinates" --> N[PostGIS + pgRouting<br/>nearest by road, formatted by code]
+    R -- "coordinates · small place name" --> N[PostGIS + pgRouting<br/>nearest by road, formatted by code]
     R -- "simulation follow-up" --> S[Simulation snapshot<br/>answered by code]
     R -- "anything else" --> V[Semantic retrieval]
     V --> L[llama3.2:3b]
@@ -99,7 +100,7 @@ Open <http://localhost:8501>. The first start loads the shelters, hazard zones a
 
 ## Limitations
 
-- **The language model is small and local** (llama3.2:3b). It only answers what code cannot: plain semantic questions with no condition. Those are the weakest answers; 「知本附近有避難所嗎」 retrieves shelters in 吉安 instead of 知本.
+- **The language model is small and local** (llama3.2:3b). It only answers what code cannot: plain semantic questions with no condition. Those are the weakest answers: a place the system does not know (「赤柯山附近」) still falls back to semantic retrieval and gets shelters from elsewhere.
 - **The evacuation is a model, not a plan.** Each township starts from one centroid, the allocation is greedy rather than optimal, road speeds are fixed with no traffic or congestion, and roads are treated as two-way.
 - **Live alerts have not been seen live yet.** The feed reported no alerts while this was built, so the alert format is inferred from the dataset description.
 - **English mode is partial.** The 34 knowledge passages have draft translations awaiting review, so English answers still show the Chinese passage.
@@ -112,7 +113,7 @@ Open <http://localhost:8501>. The first start loads the shelters, hazard zones a
 - Debris-flow alerts: Agency of Rural Development and Soil and Water Conservation, [土石流及大規模崩塌警戒資料](https://data.gov.tw/dataset/148402)
 - Preparedness passages: Central Weather Administration, National Fire Agency, Agency of Rural Development and Soil and Water Conservation
 
-All of the above are published under the [Open Government Data License, version 1.0](https://data.gov.tw/license). The road network is © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors, available under the Open Database License (ODbL 1.0); `data_reference/east_roads.json.gz` is a derived database under the same licence.
+All of the above are published under the [Open Government Data License, version 1.0](https://data.gov.tw/license). The road network and place names are © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors, available under the Open Database License (ODbL 1.0); `data_reference/east_roads.json.gz` and `data_reference/east_places.json` are derived databases under the same licence.
 
 ## License
 
@@ -158,6 +159,7 @@ The code is released under the [MIT License](LICENSE). The data keeps its own li
 | 邊界與拒答題 | 53 / 53 |
 | 路由判斷 | 56 / 56 |
 | 防災知識題回到正確段落 | 40 / 40 |
+| 小地名（知本、七星潭…），第一間在對的鄉鎮 | 38 / 42（語意檢索：28 / 42） |
 | 模擬追問完整且正確 | 20 / 20，0.1 秒（交給模型時：長清單被截斷，「排除」5 題錯 4 題） |
 | 路線落在土石流潛勢範圍內的長度（太麻里淹水模擬） | 6.18 公里 → 2.21 公里，多開 3.3 公里 |
 
@@ -188,7 +190,7 @@ flowchart LR
     R -- "範圍外・離題<br/>不存在的避難所・無線索" --> F[固定回覆]
     R -- "怎麼做・警戒等級" --> K[官方原文<br/>＋出處]
     R -- "地區・鄉鎮・設施<br/>容量・點名" --> D[metadata 篩選<br/>程式排版清單]
-    R -- "座標" --> N[PostGIS + pgRouting<br/>道路距離最近，程式排版]
+    R -- "座標・小地名" --> N[PostGIS + pgRouting<br/>道路距離最近，程式排版]
     R -- "模擬追問" --> S[模擬快照<br/>程式回答]
     R -- "其他" --> V[語意檢索]
     V --> L[llama3.2:3b]
@@ -226,7 +228,7 @@ docker compose up --build
 
 ## 限制
 
-- **語言模型小、跑在本機**（llama3.2:3b）。它只回答程式答不了的題目：沒有任何條件的語意題。這些也是答得最弱的；「知本附近有避難所嗎」會撈到吉安的避難所，而不是知本。
+- **語言模型小、跑在本機**（llama3.2:3b）。它只回答程式答不了的題目：沒有任何條件的語意題。這些也是答得最弱的：系統不認得的地名（「赤柯山附近」）仍交給語意檢索，撈到別處的避難所。
 - **疏散是模型，不是計畫**。每個鄉鎮只用一個人口重心當起點，分配是貪婪法而不是最佳解，道路速度是固定值、沒有路況與壅塞，道路一律當作雙向。
 - **即時警戒還沒遇過真的警戒**。開發期間來源都回報沒有警戒，所以警戒格式是依資料集說明推斷的。
 - **英文模式只做了一部分**。34 段防災知識的英文稿還在等審稿，英文回答目前仍顯示中文原文。
@@ -239,7 +241,7 @@ docker compose up --build
 - 土石流警戒：農業部農村發展及水土保持署「[土石流及大規模崩塌警戒資料](https://data.gov.tw/dataset/148402)」
 - 防災知識：中央氣象署、內政部消防署、農業部農村發展及水土保持署
 
-以上皆依[政府資料開放授權條款第 1 版](https://data.gov.tw/license)使用。路網 © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors，以開放資料庫授權（ODbL 1.0）提供；`data_reference/east_roads.json.gz` 是衍生資料庫，以同樣的授權散布。
+以上皆依[政府資料開放授權條款第 1 版](https://data.gov.tw/license)使用。路網與地名 © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors，以開放資料庫授權（ODbL 1.0）提供；`data_reference/east_roads.json.gz` 與 `data_reference/east_places.json` 是衍生資料庫，以同樣的授權散布。
 
 ## 授權
 

@@ -14,14 +14,27 @@ Most shelter questions are answered by code, not by the LLM (`services/chat/dire
 
 The same goes for the nearest shelters to a pair of coordinates: road distance, walking and driving time, capacity and hazard warnings are formatted by code from the routing result.
 
-Simulation follow-ups are answered by code as well (see [Simulation follow-ups](simulation-and-routing.md#simulation-follow-ups)). Only plain semantic questions with no condition (「知本附近有避難所嗎」) still go to the model.
+Simulation follow-ups are answered by code as well (see [Simulation follow-ups](simulation-and-routing.md#simulation-follow-ups)). Small place names (「知本附近」) are turned into coordinates and answered like nearest-shelter questions (see [Small place names](#small-place-names)). Only plain semantic questions with no condition (「有沒有可以帶寵物的避難所」) still go to the model.
 
 - **Nearest shelters were the last to move.** They were still copied by the model until a clean-install run on 2026-10-31: asked from the centre of Hualien City, the model wrote the second shelter (國立花蓮農業職業學校, 0.91 km, capacity 382) as 花蓮高商, the first one's name. The answer guard cannot catch that, because 花蓮高商 is in the data. Formatted by code, the answer takes about a second instead of about 29 s.
 
 - **Why.** These answers are structured data that the model was copying line by line. Copying was slow (listing p50 about 40 s) and lossy: one evaluation reply labelled every Taitung City shelter as 宜蘭, and named questions used to continue with invented 「宜蘭社區活動中心 30 人」 lines. The knowledge route had just shown that returning the source verbatim removes both problems (see [Disaster-Preparedness Knowledge](#disaster-preparedness-knowledge)).
 - **Result.** On the 207-question generation set, 201 replies no longer call the model, p50 latency went from 19.7 s to 0.2 s, and answer recall and precision improved significantly (see [Generation Quality Evaluation](evaluation.md#generation-quality-evaluation)). Mixed knowledge questions now need no generation at all: the passage, the shelter list and the sources are all assembled by code.
 - **Interface.** `VectorStore.search_result()` returns both the prompt text and the formatted answer; `ChatService` returns the formatted answer as an early reply. `search()` still returns the prompt text for the evaluation scripts.
-- **Known weak spot.** The questions that remain with the model are the weakest. 「知本附近有避難所嗎」 retrieves shelters in Hualien's 吉安 instead of Taitung's 知本, because the place name only exists in the embedding, not in the rules.
+- **Known weak spot.** The questions that remain with the model are the weakest. 「知本附近有避難所嗎」 used to retrieve shelters in Hualien's 吉安 instead of Taitung's 知本, because the place name only existed in the embedding; small place names are now resolved to coordinates (see [Small place names](#small-place-names)), but a place missing from the place list still falls back to retrieval.
+
+## Small place names
+
+「知本附近有避難所嗎」, 「我在七星潭」, 「三仙台最近的避難所在哪」: these name a place that is not a township, so the rules layer used to pass them to semantic retrieval, which guessed. 「七星潭」 got shelters in Yilan, 「南方澳」 got 南澳鄉 because the names look alike, and only 31% of the first five shelters were in the right township (see [Place-name evaluation](evaluation.md#place-name-evaluation)).
+
+Now a small place name is turned into coordinates and answered like a question with coordinates: the nearest shelters by road, formatted by code (`services/geo/places.py`).
+
+- **Where the names come from.** `data_reference/east_places.json` holds 3,475 OpenStreetMap place points in the three counties: villages, hamlets and tribal settlements, neighbourhoods, bays, lakes, peaks, hot springs and attractions (`tools/build_place_names.py`, © OpenStreetMap contributors, ODbL). Village names from the shelter data fill in what OSM lacks: 「多良村」 becomes 「多良」, located at the average position of that village's shelters. Township and county names are left out; the rules layer already handles them.
+- **Only in location phrases.** A name counts only before 附近 / 最近 / 周邊 / 一帶 / 的避難所 or after 我在 / 住在 / 人在. Many two-character place names are ordinary words (和平, 復興, 平台), and matching them anywhere in a sentence would misfire. The longest name wins, so 「七星潭」 is not read as 「七星」.
+- **Same name, different places.** Points within 5 km are one place. A name found in two or three places is answered for each, labelled with its county and township (「花蓮縣豐濱鄉的新社」「宜蘭縣壯圍鄉的新社」); naming the township in the question picks one. A name spread over four or more places (觀景台, 生態池, 清水) is treated as a common word and ignored.
+- **Coordinates win.** A question with coordinates still takes the nearest-shelter route.
+- **Rebuilding.** Download the Geofabrik extract as for the road network, then run `tools/build_place_names.py` in a throwaway container (the command is in its docstring); it takes about a minute.
+- **Still unhandled.** A place missing from both sources (赤柯山, 梅花湖) falls back to semantic retrieval, which still guesses.
 
 ## Disaster-Preparedness Knowledge
 

@@ -85,7 +85,8 @@ DisasterHub/
 │   │   └── text.py             # 模擬結果寫成文字：人口、分配、潛勢範圍與路線說明
 │   ├── geo/                    # 路網與警戒
 │   │   ├── routing.py          # 最近避難所與疏散分配的道路距離，算不出來退回直線距離
-│   │   └── hazard_alerts.py    # 即時土石流警戒（農村水保署開放資料），背景定期抓取
+│   │   ├── hazard_alerts.py    # 即時土石流警戒（農村水保署開放資料），背景定期抓取
+│   │   └── places.py           # 小地名（知本、七星潭）→ 座標
 │   ├── ingest/                 # 資料匯入
 │   │   ├── fetcher.py          # 讀取 JSON 資料
 │   │   └── sync.py             # 資料同步
@@ -106,13 +107,15 @@ DisasterHub/
 │   ├── east_taiwan_population.json  # 海岸線折線 + 29 個鄉鎮人口（前端動畫與 AI 共用）
 │   ├── debris_flow_east.geojson     # 宜花東土石流潛勢溪流影響範圍（農業部）
 │   ├── east_roads.json.gz           # 宜花東路網（OpenStreetMap，ODbL）
+│   ├── east_places.json             # 宜花東地名（OpenStreetMap，ODbL）
 │   ├── shelter_coordinate_fixes.json # 用 OpenStreetMap 修正的官方避難所座標
 │   └── knowledge/                   # 防災知識文件，每種災害一個 Markdown 檔（格式見資料夾內 README）
 │
 ├── tools/
 │   ├── build_hazard_zones.py   # 農業部 SHP → debris_flow_east.geojson（TWD97 → WGS84）
 │   ├── build_shelters.py       # 消防署 CSV → data_for_refuge/*.json
-│   └── build_road_network.py   # OpenStreetMap PBF → east_roads.json.gz（pgRouting 邊表）
+│   ├── build_road_network.py   # OpenStreetMap PBF → east_roads.json.gz（pgRouting 邊表）
+│   └── build_place_names.py    # OpenStreetMap PBF → east_places.json（村落、地標）
 │
 ├── static/
 │   ├── index.html              # 頁面骨架
