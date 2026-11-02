@@ -227,7 +227,7 @@
       "simulation": true,
       "expected": "simulation",
       "actual": "simulation",
-      "answered_without_llm": false,
+      "answered_without_llm": true,
       "note": "明確問模擬結果"
     },
     {
@@ -235,7 +235,7 @@
       "simulation": true,
       "expected": "simulation",
       "actual": "simulation",
-      "answered_without_llm": false,
+      "answered_without_llm": true,
       "note": "明確問模擬結果"
     },
     {
@@ -243,7 +243,7 @@
       "simulation": true,
       "expected": "simulation",
       "actual": "simulation",
-      "answered_without_llm": false,
+      "answered_without_llm": true,
       "note": "明確問模擬結果"
     },
     {
@@ -259,7 +259,7 @@
       "simulation": true,
       "expected": "simulation",
       "actual": "simulation",
-      "answered_without_llm": false,
+      "answered_without_llm": true,
       "note": "模擬進行中的追問"
     },
     {
@@ -267,7 +267,7 @@
       "simulation": true,
       "expected": "simulation",
       "actual": "simulation",
-      "answered_without_llm": false,
+      "answered_without_llm": true,
       "note": "模擬進行中的追問"
     },
     {
@@ -275,7 +275,7 @@
       "simulation": true,
       "expected": "simulation",
       "actual": "simulation",
-      "answered_without_llm": false,
+      "answered_without_llm": true,
       "note": "模擬進行中的追問"
     },
     {
@@ -379,7 +379,7 @@
       "simulation": true,
       "expected": "simulation",
       "actual": "simulation",
-      "answered_without_llm": false,
+      "answered_without_llm": true,
       "note": "同一句話在模擬進行中該改走模擬快照——路由必須看狀態不只看關鍵字"
     },
     {
@@ -475,7 +475,7 @@
       "simulation": true,
       "expected": "simulation",
       "actual": "simulation",
-      "answered_without_llm": false,
+      "answered_without_llm": true,
       "note": "模擬進行中問分配與排除：走全域檢索時模型會把不相干的避難所混進來"
     },
     {
@@ -555,7 +555,7 @@
       "simulation": true,
       "expected": "simulation",
       "actual": "simulation",
-      "answered_without_llm": false,
+      "answered_without_llm": true,
       "note": "模擬進行中的「建議」要看這次的模擬，不是一般須知"
     }
   ]
