@@ -34,7 +34,7 @@ Now a small place name is turned into coordinates and answered like a question w
 - **Same name, different places.** Points within 5 km are one place. A name found in two or three places is answered for each, labelled with its county and township (「花蓮縣豐濱鄉的新社」「宜蘭縣壯圍鄉的新社」); naming the township in the question picks one. A name spread over four or more places (觀景台, 生態池, 清水) is treated as a common word and ignored.
 - **Coordinates win.** A question with coordinates still takes the nearest-shelter route.
 - **Rebuilding.** Download the Geofabrik extract as for the road network, then run `tools/build_place_names.py` in a throwaway container (the command is in its docstring); it takes about a minute.
-- **Still unhandled.** A place missing from both sources (赤柯山, 梅花湖) falls back to semantic retrieval, which still guesses.
+- **Added by hand.** Two names the evaluation found missing: 赤柯山 as another spelling of OSM's 「赤科山」, and 梅花湖, whose lake has no name in OSM. A place missing from every source (龜山島) still falls back to semantic retrieval, which guesses.
 
 ## Disaster-Preparedness Knowledge
 

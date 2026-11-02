@@ -54,7 +54,7 @@ Most of what this project does differently came from measuring something and not
 
 **Result.** The map, the database and the AI's answer show the same numbers as soon as the simulation returns, and the same parameters always give the same plan.
 
-**Cost.** The greedy rule does not minimise total travel time; that would be a min-cost-flow problem. → [Evacuation assignment](simulation-and-routing.md#evacuation-assignment)
+**Later.** The first plan was nearest-first greedy, which does not minimise total travel time. On 2026-11-02 it was replaced with min-cost flow after measuring the gap on 114 scenarios: the same number of people placed, greedy 0.4% slower in total on average and 6.4% at worst. **Cost.** The optimal plan is harder to explain: a township can be sent past its nearest shelter so that another township is not sent much farther. → [Evacuation assignment](simulation-and-routing.md#evacuation-assignment)
 
 ## 6. Roads, not straight lines, and hazards change roads instead of removing them
 
@@ -66,7 +66,7 @@ Most of what this project does differently came from measuring something and not
 
 **What measuring caught.** The first version weighted a whole road segment if any part of it touched a zone. Mountain segments run for kilometres, so one route was reported as 12.87 km inside zones against 0.95 km measured. Only the part inside a zone is weighted now. → [Avoiding hazard zones and live alerts](simulation-and-routing.md#avoiding-hazard-zones-and-live-alerts)
 
-**Cost.** Speeds are fixed per road class with no traffic or congestion, roads are two-way, and the alert feed has not yet been observed with a real alert.
+**Cost.** Speeds are fixed per road class with no traffic or congestion, and the alert feed has not yet been observed with a real alert.
 
 ## 7. Tests must not touch what they test
 

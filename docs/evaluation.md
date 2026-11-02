@@ -98,11 +98,15 @@ DisasterHub/
 │   ├── run_knowledge_eval.py   # Knowledge routing, retrieval and, with --generate, answer faithfulness
 │   ├── run_gen_eval.py         # Runs the generation evaluation (real ChatService + Ollama)
 │   ├── run_faithfulness_eval.py # Does the model follow a changed / incomplete context?
+│   ├── run_simulation_eval.py  # Simulation follow-ups through the real API (allocation, unplaced, affected, excluded)
+│   ├── run_place_eval.py       # Small place names: are the shelters in the right township?
+│   ├── run_assignment_eval.py  # Evacuation assignment: min-cost flow against the old greedy rule
 │   ├── datasets/               # Question sets
 │   │   ├── rag_eval.jsonl      # The evaluation set
 │   │   ├── route_eval.jsonl    # Routing test set (56 questions, all ten routes)
 │   │   ├── boundary_eval.jsonl # Boundary / abstention set (43 questions, five defences)
-│   │   └── knowledge_eval.jsonl # Knowledge questions (positive / not covered / mixed / shelter look-alikes)
+│   │   ├── knowledge_eval.jsonl # Knowledge questions (positive / not covered / mixed / shelter look-alikes)
+│   │   └── place_eval.jsonl    # Small place names with the township each lies in
 │   ├── lib/                    # Scoring, statistics and tools shared by the runners
 │   │   ├── metrics.py          # Recall / Precision / MRR / R-Precision / ceilings / bootstrap CIs
 │   │   ├── gen_metrics.py      # Answer recall / hallucination / number faithfulness / format rules
@@ -574,10 +578,30 @@ The script scores what `build_context` returns, without generation: the answer w
 
 | | Semantic retrieval (`place_baseline`) | Place names to coordinates (`place_code`) |
 |---|---|---|
-| First shelter in the right township (hit@1) | 0.667 | **0.905** |
-| Share of the first five in the right township | 0.314 | **0.695** |
-| Landmarks only, hit@1 | 0.522 | **0.870** |
-| Questions sent to the model | 88% | **4.8%** |
+| First shelter in the right township (hit@1) | 0.667 | **0.929** |
+| Share of the first five in the right township | 0.314 | **0.733** |
+| Landmarks only, hit@1 | 0.522 | **0.913** |
+| Questions sent to the model | 88% | **0%** |
 
 - **The township is a proxy.** 金崙, 加路蘭 and 安通 sit near a township border, and their nearest shelters by road are across it (金峰鄉, 卑南鄉, 富里鄉), which the metric counts as wrong. The same proxy keeps the share of the first five below 1: the fourth and fifth nearest shelters are often in the next township.
-- **Misses that are real.** 赤柯山 and 梅花湖 are in neither place source and still go to retrieval; 梅花湖 scores as a hit only because retrieval happened to land in 冬山鄉.
+- **Two names added by hand.** The first run (hit@1 0.905, 4.8% sent to the model) missed 赤柯山 and 梅花湖. OSM spells the Yuli one 「赤科山」 (its other 「赤柯山」 is in Hsinchu), so 赤柯山 is now a spelling variant of it; 梅花湖's water area has no name in OSM, only the car park, park and treatment plant around it, so it is placed at the average of those three. Both are in `SPELLING_VARIANTS` / `MANUAL_PLACES` in `services/geo/places.py`, with the OSM ids.
+
+## Assignment Evaluation
+
+`evals/run_assignment_eval.py` compares the evacuation plan in use (min-cost flow) with the rule it replaced (nearest-first greedy). Each of the 29 township population centroids is a simulation centre, at radii of 5 and 10 km, for earthquakes and floods (shelters not designated for the disaster are left out): 114 scenarios. Origins, shelters and the cost of every pair are computed exactly as `/api/simulate_disaster` does (`services/simulation/evacuation.pair_costs`), on foot.
+
+```bash
+docker exec disaster_app python evals/run_assignment_eval.py
+```
+
+| | Capacity fits demand (20) | Demand exceeds capacity (94) |
+|---|---|---|
+| Scenarios where the number placed differs | 0 | 0 |
+| Scenarios where min-cost flow is strictly better | 6 | 20 |
+| Extra total time taken by greedy | mean 0.4%, max 3.0% | mean 0.4%, max 6.4% |
+| Minutes per person, greedy → min-cost | 44.3 → 44.1 | 55.4 → 55.2 |
+| Longest single trip (mean), greedy → min-cost | 114.7 → 112.6 min | 141.4 → 139.5 min |
+
+- **Greedy was already close.** It never placed fewer people, and on 88 of 114 scenarios it found the optimal plan. The largest gaps were 新城鄉 10 km (7,448 against 6,971 person-hours, 6.4%), 冬山鄉 10 km (6.0%) and 五結鄉 10 km (5.3%).
+- **Why switch anyway.** Min-cost flow is no worse on any measure here, including the longest trip, and solves the largest scenario in 0.045 s. The cost is explainability: the plan can send a township past its nearest shelter.
+- **The solver is checked against brute force** on 200 small random cases (`tests/simulation/test_min_cost_flow.py`).
