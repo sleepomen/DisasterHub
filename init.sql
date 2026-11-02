@@ -53,6 +53,8 @@ CREATE TABLE IF NOT EXISTS roads (
     cost DOUBLE PRECISION NOT NULL,
     reverse_cost DOUBLE PRECISION NOT NULL,
     highway VARCHAR(20),
+    -- 1 = 單行道，開車只能 source → target；步行不管
+    oneway SMALLINT NOT NULL DEFAULT 0,
     geom GEOMETRY(LineString, 4326)
 );
 CREATE INDEX IF NOT EXISTS idx_roads_geom ON roads USING GIST (geom);
