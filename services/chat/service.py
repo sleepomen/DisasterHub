@@ -33,6 +33,7 @@ from services.chat.replies import (
     tr,
 )
 from services.chat.shelter_names import display_name, known_names_of, typo_note, unknown_shelter_reply
+from services.geo.places import PlaceIndex, load_osm_places, place_label
 from services.geo.routing import nearest_by_road
 from services.retrieval.knowledge import (
     KNOWLEDGE_HEADER,
@@ -81,6 +82,8 @@ class ChatService:
         # 寫入一律持鎖，讀取一律拿深拷貝，就不會讀到改到一半的清單
         self._lock = threading.Lock()
         self.latest_simulation: dict = {}
+        # 小地名索引，第一次問到小地名才建（要讀全部避難所）
+        self._places: PlaceIndex | None = None
 
     def set_simulation(self, simulation: dict):
         with self._lock:
@@ -169,6 +172,54 @@ class ChatService:
             return None, nearest_answer(lat, lon, results, inside, near, lang)
         except Exception:
             logger.exception("地理查詢失敗")
+            return None, GENERIC_ERROR
+
+    def _place_index(self) -> PlaceIndex:
+        """第一次用到才建：OSM 地名加上避難所資料的村里。讀不到避難所就只用 OSM 地名"""
+        if self._places is None:
+            try:
+                shelters = self.repo.get_all_shelters() if self.repo is not None else []
+            except Exception:
+                logger.exception("讀取避難所失敗，小地名只用 OSM 地名")
+                shelters = []
+            self._places = PlaceIndex(load_osm_places(), shelters)
+        return self._places
+
+    def _find_place(self, user_message: str):
+        try:
+            return self._place_index().find(user_message)
+        except Exception:
+            # 地名比對壞掉不能讓整題失敗，交給後面的路由
+            logger.exception("小地名比對失敗")
+            return None
+
+    def _get_place_context(self, name: str, places: list, lang: str = "zh") -> tuple[str | None, str | None]:
+        """
+        小地名附近的避難所，由程式依道路距離回答。同名的地方（2～3 處）各列最近的 3 間，
+        並說明是哪個鄉鎮的；只有一處就列 5 間
+        """
+        if self.repo is None:
+            return None, GENERIC_ERROR
+        try:
+            inside, near = self._debris_flow_shelters()
+            limit = 5 if len(places) == 1 else 3
+            sections = []
+            for place in places:
+                results = nearest_by_road(self.repo, place.lat, place.lon, limit=limit)
+                if results:
+                    sections.append(nearest_answer(
+                        place.lat, place.lon, results, inside, near, lang, place=place_label(place, len(places)),
+                    ))
+            if not sections:
+                return None, NO_NEARBY_REPLY
+            if len(sections) > 1:
+                head = (f"There are {len(sections)} places called 「{name}」:" if lang == "en"
+                        else f"有 {len(sections)} 個地方叫「{name}」，分別列出：")
+                sections.insert(0, head)
+            metrics.incr("chat.answer.direct")
+            return None, "\n\n".join(sections)
+        except Exception:
+            logger.exception("小地名查詢失敗")
             return None, GENERIC_ERROR
 
     def build_context(self, user_message: str, lang: str = "zh"):
@@ -272,6 +323,14 @@ class ChatService:
         if intent.is_explicit_simulation_query(user_message):
             metrics.route("simulation")
             return self._get_simulation_context(user_message, lang)
+
+        # 小地名（「知本附近」「我在七星潭」）：換成座標，跟給座標一樣由程式依道路距離回答。
+        # 有座標的照舊走 nearest
+        if intent.extract_coords(user_message) is None:
+            place = self._find_place(user_message)
+            if place is not None:
+                metrics.route("place")
+                return self._get_place_context(*place, lang)
 
         if intent.is_geo_query(user_message):
             coords = intent.extract_coords(user_message)

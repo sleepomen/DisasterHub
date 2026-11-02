@@ -62,6 +62,8 @@ ROUTE_COUNTERS = (
     "chat.route.off_topic",
     "chat.route.simulation",
     "chat.route.nearest",
+    # 小地名（「知本附近」「我在七星潭」）：換成座標，跟 nearest 一樣依道路距離由程式回答
+    "chat.route.place",
     "chat.route.needs_coords",
     "chat.route.no_simulation_advice",
     "chat.route.unknown_name",

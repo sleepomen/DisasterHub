@@ -690,12 +690,16 @@ class ShelterRepository:
             with self._cursor() as cursor:
                 snaps, starts, ends = self._snap(cursor, origins, targets, snap_m, origin_snap_m)
                 wanted = [(i, n + j) for i, j in pairs if i in starts and n + j in ends]
-                if not wanted:
-                    return {}
-                found = self._route_paths(cursor, points, snaps, wanted, hazard, mode, bounded=True)
-                missing = [pair for pair in wanted if pair not in found]
-                if missing:
-                    found |= self._route_paths(cursor, points, snaps, missing, hazard, mode, bounded=False)
+                # 起訖吸附到道路上同一個位置時 pgRouting 不回傳路線：路上那段是 0，只剩走到路上、離開道路的兩小段。
+                # 小地名用村里避難所的位置當座標時，最近的那間就是起點本身（2026-11-02 實測「新社」）
+                same_spot = {pair: (0.0, 0.0, "", 0.0) for pair in wanted if snaps[pair[0]][:2] == snaps[pair[1]][:2]}
+                wanted = [pair for pair in wanted if pair not in same_spot]
+                found = dict(same_spot)
+                if wanted:
+                    found |= self._route_paths(cursor, points, snaps, wanted, hazard, mode, bounded=True)
+                    missing = [pair for pair in wanted if pair not in found]
+                    if missing:
+                        found |= self._route_paths(cursor, points, snaps, missing, hazard, mode, bounded=False)
         except Exception as e:
             raise RuntimeError(f"road_paths 失敗：{e}") from e
         result = {}

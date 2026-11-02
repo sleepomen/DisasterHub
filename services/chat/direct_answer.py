@@ -223,24 +223,27 @@ def _nearest_warning(name: str, inside: dict, near: dict, lang: str) -> str:
     return ""
 
 
-def nearest_answer(lat: float, lon: float, results: list, inside: dict, near: dict, lang: str = "zh") -> str:
+def nearest_answer(
+    lat: float, lon: float, results: list, inside: dict, near: dict, lang: str = "zh", place: str | None = None,
+) -> str:
     """
     最近避難所的回答，由程式排好，不交給模型。
     以前這一段是當成資料交給 llama3.2:3b 重抄：2026-10-31 實測從花蓮市中心問，第 2 名「國立花蓮農業職業學校」
     被抄成第 1 名的「花蓮高商」，距離與容量卻是農業職業學校的。回答防護抓不到，因為「花蓮高商」確實在資料裡。
-    results 是 routing.nearest_by_road 的 NearbyShelter，inside / near 是 evacuation.split_hazard_hits 的結果
+    results 是 routing.nearest_by_road 的 NearbyShelter，inside / near 是 evacuation.split_hazard_hits 的結果。
+    place 是問句裡的小地名（「知本」）：有的話第一行寫以那個地方為準，而不是「您的位置」
     """
     en = lang == "en"
     routed = any(n.road_km is not None for n in results)
     if en:
         lines = [
-            f"Your location: latitude {lat}, longitude {lon}",
+            f"Around 「{place}」 (latitude {lat}, longitude {lon})" if place else f"Your location: latitude {lat}, longitude {lon}",
             "Nearest shelters, by road, closest first (straight-line distance in brackets):" if routed
             else "Nearest shelters, by straight-line distance (road distance could not be computed):",
         ]
     else:
         lines = [
-            f"您的位置：緯度 {lat}、經度 {lon}",
+            f"以「{place}」一帶為準（緯度 {lat}、經度 {lon}）" if place else f"您的位置：緯度 {lat}、經度 {lon}",
             "距離最近的避難所（依道路距離由近到遠排序，括號內是直線距離）：" if routed
             else "距離最近的避難所（道路距離無法計算，依直線距離由近到遠排序）：",
         ]
