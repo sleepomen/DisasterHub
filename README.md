@@ -52,6 +52,10 @@ Built in response to the 2025 barrier-lake disaster in Guangfu Township, Hualien
 <td>「花蓮市的國小」: a filtered list built from the index metadata in 0.2 s, one shelter per line.</td>
 <td>「土石流黃色警戒是什麼意思」: the official passage verbatim, with its sources appended.</td>
 </tr>
+<tr>
+<td width="50%"><img src="docs/images/chat_place.jpg" alt="A question about 七星潭 answered with the nearest shelters by road"></td>
+<td>「七星潭附近有避難所嗎」: 七星潭 is not a township, so the rules layer does not know it. It is looked up in 3,475 OpenStreetMap place names, turned into coordinates, and answered by code with the five nearest shelters by road distance, walking and driving time. See <a href="docs/chat.md#small-place-names">Question answering</a>.</td>
+</tr>
 </table>
 
 ## How a question is answered
@@ -179,6 +183,10 @@ The code is released under the [MIT License](LICENSE). The data keeps its own li
 <tr>
 <td>「花蓮市的國小」：依索引 metadata 直接排出的清單，0.2 秒，一間一行。</td>
 <td>「土石流黃色警戒是什麼意思」：直接回官方原文，最後附上出處。</td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/images/chat_place.jpg" alt="以道路距離回答七星潭附近最近的避難所"></td>
+<td>「七星潭附近有避難所嗎」：七星潭不是鄉鎮，規則層不認得。先在 3,475 個 OpenStreetMap 地名裡找到它、換成座標，再由程式依道路距離列出最近的 5 間，附步行與開車時間。詳見<a href="docs/zh-TW/chat.md#小地名">問答流程</a>。</td>
 </tr>
 </table>
 
