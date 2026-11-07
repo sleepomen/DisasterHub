@@ -22,7 +22,7 @@ import config
 from repositories.shelter_repository import ShelterRepository
 from services.chat.service import ChatService
 from services.geo.hazard_alerts import poll_alerts
-from services.geo.routing import attach_evacuation_paths, evacuation_road_distances, nearest_by_road
+from services.geo.routing import attach_evacuation_paths, evacuation_road_distances, nearest_by_road, solve_assignment
 from services.ingest.sync import HAZARD_FILES, DataSyncService
 from services.retrieval.knowledge import KnowledgeStore
 from services.retrieval.vector_store import VectorStore
@@ -476,11 +476,13 @@ async def simulate(request: SimulateRequest, http_request: Request, x_api_key: s
     )
     # 誰去哪一間由後端決定，結果確定、可重現；前端只把這份分配畫成動畫。
     # 以前是瀏覽器用亂數分配、動畫跑完才回寫，AI 要等回寫成功才看得到同樣的數字。
-    # 近者優先的「近」是道路距離；路網查不到時退回直線距離
-    # 路線繞開警戒範圍（紅色封閉、黃色繞行），淹水模擬另外繞開土石流潛勢範圍
+    # 每個受影響的村里一個起點；分配讓所有人的通行時間加總最短（最小成本流，在資料庫裡解），
+    # 時間依路網計算，路網查不到時退回直線距離。路線繞開警戒範圍（紅色封閉、黃色繞行），淹水模擬另外繞開土石流潛勢範圍
     origins = origins_from(population, request.lat, request.lon)
     road_m = await asyncio.to_thread(evacuation_road_distances, repo, origins, destinations, hazard, request.mode)
-    plan = plan_evacuation(origins, destinations, road_m, request.mode)
+    plan = await asyncio.to_thread(
+        plan_evacuation, origins, destinations, road_m, request.mode, functools.partial(solve_assignment, repo),
+    )
     # 實際路線用來畫圖、回報實際距離；分配已經決定好了，查不到就畫直線，不影響人數
     await asyncio.to_thread(attach_evacuation_paths, repo, origins, destinations, plan["flows"], hazard, request.mode)
     plan["route_hazard"] = hazard
