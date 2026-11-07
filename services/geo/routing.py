@@ -20,6 +20,7 @@ import logging
 
 from models.travel import DEFAULT_MODE, minutes
 from repositories.shelter_repository import ORIGIN_SNAP_M
+from services.simulation.min_cost_flow import min_cost_flow
 from services.web.metrics import metrics
 
 logger = logging.getLogger(__name__)
@@ -29,6 +30,7 @@ CANDIDATES = 10
 metrics.register(
     "routing.road", "routing.fallback", "routing.failed", "routing.unreachable",
     "routing.evacuation_road", "routing.evacuation_fallback", "routing.evacuation_failed", "routing.path_failed",
+    "routing.assignment_db", "routing.assignment_fallback",
 )
 
 
@@ -98,9 +100,9 @@ def evacuation_road_distances(
     repo, origins: list, shelters: list, hazard: str | None = None, mode: str = DEFAULT_MODE,
 ) -> dict:
     """
-    疏散起點（鄉鎮人口重心）× 目的地避難所的路線成本（秒），給 plan_evacuation 用；None 是到不了。
+    疏散起點（村里）× 目的地避難所的路線成本（秒），給 plan_evacuation 用；None 是到不了。
     hazard 是這次模擬要繞開的潛勢範圍（淹水 → 土石流），mode 是步行或開車。
-    一次多對多查完：實測全部 29 個鄉鎮 × 644 間避難所 0.54 秒，所以不先篩候選。
+    一次多對多查完：實測宜蘭市 10 公里 145 個村里 × 130 間避難所 0.46 秒，蘇澳鎮 30 公里 229 × 220 約 1.1 秒，所以不先篩候選。
     查詢失敗回傳空 dict，分配整個退回直線距離，模擬本身不能因此失敗
     """
     if not origins or not shelters:
@@ -116,6 +118,22 @@ def evacuation_road_distances(
         return {}
     metrics.incr("routing.evacuation_road" if costs else "routing.evacuation_fallback")
     return costs
+
+
+def solve_assignment(repo, supply: list[int], capacity: list[int], cost: dict) -> dict:
+    """
+    疏散分配的最小成本流，在資料庫裡解（pgr_maxFlowMinCost）。起點改成村里之後最大的情境有 5 萬多組配對，
+    純 Python 的 successive shortest path 要 5～8 秒，pgRouting 的 C++ 實作不到 0.5 秒，結果一樣
+    （evals/run_assignment_eval.py 逐一比對）。資料庫查詢失敗才退回 Python，慢但答案相同
+    """
+    try:
+        flows = repo.assignment_flows(supply, capacity, cost)
+    except Exception:
+        metrics.incr("routing.assignment_fallback")
+        logger.exception("資料庫解疏散分配失敗，改用 Python 解")
+        return min_cost_flow(supply, capacity, cost)
+    metrics.incr("routing.assignment_db")
+    return flows
 
 
 def attach_evacuation_paths(

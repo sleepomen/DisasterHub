@@ -14,6 +14,7 @@
 距離用路網上的道路距離（services/routing.evacuation_road_distances）。個別算不出道路距離的配對
 不能直接拿直線距離來比，直線一定比較短，會被排到前面；改用「直線 × DETOUR_FACTOR」估算
 """
+from collections.abc import Callable
 from dataclasses import dataclass
 
 from models.travel import DEFAULT_MODE, fallback_seconds
@@ -47,7 +48,7 @@ HAZARD_WARN_M = 200
 # 只用在個別算不出道路距離的配對上
 DETOUR_FACTOR = 1.16
 
-# 範圍內沒有任何鄉鎮人口重心時（海域、無人山區），疏散人數由面積保底估算，起點就放在災害中心
+# 範圍內沒有任何村里起點時（海域、無人山區），疏散人數由面積保底估算，起點就放在災害中心
 FALLBACK_ORIGIN = "災害中心"
 
 
@@ -77,13 +78,16 @@ def apportion(total: int, weights: dict[str, int]) -> dict[str, int]:
 
 
 def origins_from(population: dict, center_lat: float, center_lon: float) -> list[Origin]:
-    """人口估算 → 疏散起點。需疏散的人數依各鄉鎮的受影響人口比例分攤"""
+    """
+    人口估算 → 疏散起點，每個受影響的村里一個（名稱是「鄉鎮＋村里」，村里名在不同鄉鎮會重複）。
+    需疏散的人數依各村里的受影響人口比例分攤
+    """
     evacuees = int(population.get("estimated_evacuees") or 0)
-    townships = population.get("townships") or []
-    if not townships:
+    places = population.get("villages") or []
+    if not places:
         return [Origin(FALLBACK_ORIGIN, center_lat, center_lon, evacuees)] if evacuees > 0 else []
-    shares = apportion(evacuees, {t["name"]: int(t["weight"]) for t in townships})
-    return [Origin(t["name"], t["lat"], t["lon"], shares[t["name"]]) for t in townships if shares[t["name"]] > 0]
+    shares = apportion(evacuees, {p["name"]: int(p["weight"]) for p in places})
+    return [Origin(p["name"], p["lat"], p["lon"], shares[p["name"]]) for p in places if shares[p["name"]] > 0]
 
 
 def split_hazard_hits(hits: dict[str, list[tuple[str, float]]]) -> tuple[dict[str, list[str]], dict[str, dict]]:
@@ -122,7 +126,7 @@ def pair_costs(origins: list[Origin], shelters: list, road_m: dict, mode: str) -
 
 def plan_evacuation(
     origins: list[Origin], shelters: list, road_m: dict[tuple[int, int], float | None] | None = None,
-    mode: str = DEFAULT_MODE,
+    mode: str = DEFAULT_MODE, solve: Callable[[list[int], list[int], dict], dict] = min_cost_flow,
 ) -> dict:
     """
     shelters 是 Shelter 物件（要有 name / lat / lon / remaining）。
@@ -137,6 +141,7 @@ def plan_evacuation(
       unreachable  哪些避難所從任何一個鄉鎮都沒有安全路線可到（例如紅色警戒封了唯一的聯外道路）
       distance_basis  分配用的距離："road"（全部是道路距離）、"mixed"、"straight"
       mode      步行或開車（「近」是哪一種交通方式的時間）
+    solve 是最小成本流的解法：預設是純 Python 的 min_cost_flow，模擬 API 傳資料庫的版本（routing.solve_assignment）
     """
     road_m = road_m or {}
     costs = pair_costs(origins, shelters, road_m, mode)
@@ -144,7 +149,7 @@ def plan_evacuation(
         o.name for i, o in enumerate(origins)
         if shelters and o.people > 0 and all((i, j) in road_m and road_m[(i, j)] is None for j in range(len(shelters)))
     ]
-    moved = min_cost_flow(
+    moved = solve(
         [o.people for o in origins], [max(0, int(s.remaining)) for s in shelters],
         {pair: cost for pair, (cost, _, _) in costs.items()},
     )

@@ -3,8 +3,14 @@
 
 避難所名稱一律保留中文：消防署資料沒有英文名稱，自己翻或轉拼音都不可靠，
 使用者到現場看到的招牌也是中文。鄉鎮、縣市、設施類型、災害類別翻成英文，
-鄉鎮用各鄉鎮市公所的官方英文名稱
+鄉鎮用各鄉鎮市公所的官方英文名稱；村里（疏散起點）用 OSM 村里界的英文名（data_reference/east_villages.json）
 """
+import json
+from functools import cache
+from pathlib import Path
+
+VILLAGE_FILE = Path(__file__).resolve().parents[2] / "data_reference" / "east_villages.json"
+
 LANGS = ("zh", "en")
 DEFAULT_LANG = "zh"
 
@@ -42,10 +48,25 @@ HAZARD_EN = {"水災": "floods", "震災": "earthquakes", "土石流": "debris f
 SIZE_EN = {"大型": "large", "中型": "medium-sized", "小型": "small"}
 
 
+@cache
+def _villages_en() -> dict[str, str]:
+    """「壽豐鄉豐裡村」→「Fengli Village, Shoufeng Township」；讀不到村里檔就只剩鄉鎮"""
+    try:
+        villages = json.loads(VILLAGE_FILE.read_text(encoding="utf-8"))["villages"]
+    except (OSError, ValueError, KeyError):
+        return {}
+    out = {}
+    for v in villages:
+        township = v["township"].replace("臺", "台")
+        if v.get("village_en"):
+            out[township + v["village"]] = f"{v['village_en']}, {TOWNSHIP_EN.get(township, township)}"
+    return out
+
+
 def place_en(name: str) -> str:
-    """鄉鎮、縣、地區 → 英文；不認得就原樣回傳"""
+    """鄉鎮、縣、地區、疏散起點的村里 → 英文；不認得就原樣回傳"""
     name = (name or "").replace("臺", "台")
-    return TOWNSHIP_EN.get(name) or COUNTY_EN.get(name) or REGION_EN.get(name) or name
+    return TOWNSHIP_EN.get(name) or COUNTY_EN.get(name) or REGION_EN.get(name) or _villages_en().get(name) or name
 
 
 def shelters_en(n: int) -> str:
