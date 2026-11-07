@@ -157,10 +157,9 @@ ROUTE_HAZARD_SCHEMA_SQL = (
 
 # 點離最近的道路超過這個距離就不吸附，該點不算道路距離（例如海上、深山）
 ROAD_SNAP_M = 1000
-# 疏散起點是鄉鎮人口重心，只是一個代表點，可能落在田裡或河床上，所以起點可以吸附得比較遠，
-# 那一段走到路上的距離照樣算進道路距離。目前 29 個重心離路最遠的是新城鄉 734 公尺，都在 1 公里內；
-# 當初看到「玉里鎮重心離路 3.2 公里」其實是路網缺了富里縱谷（見 tools/build_road_network.py 的 build），
-# 修好之後這個寬限只是保險
+# 疏散起點以前是鄉鎮人口重心，只是一個代表點，可能落在田裡或河床上，所以起點可以吸附得比較遠，
+# 那一段走到路上的距離照樣算進道路距離。現在起點是村里裡離道路 1 公里內、建物最密的那棟
+# （tools/build_villages.py），554 個離路的中位數 19 公尺、最遠 336 公尺（達仁鄉台坂村），這個寬限只是保險
 ORIGIN_SNAP_M = 5000
 # 路徑可能繞出起訖點的外接框（沿海岸繞過山）。框往外擴大這麼多度，再至少擴大框本身的一半
 ROUTE_MARGIN_DEG = 0.05
@@ -606,6 +605,55 @@ class ShelterRepository:
                 return [dict(zip(keys, row, strict=True)) for row in cursor.fetchall()]
         except Exception as e:
             raise RuntimeError(f"active_alerts 失敗：{e}") from e
+
+    # 疏散分配的最小成本最大流（pgRouting 3.4 的 pgr_maxFlowMinCost，Boost 的 successive shortest path）。
+    # 節點：1..m 是起點、m+1..m+n 是避難所、m+n+1 源點、m+n+2 匯點。
+    # 成本用整數（0.1 秒為單位）：用浮點數時 Boost 的位能累積誤差會算出 -1e-12 的邊，直接報
+    # 「The graph may not contain an edge with negative weight」。pair_costs 本來就四捨五入到 0.1 秒，換算沒有誤差
+    MIN_COST_FLOW_SQL = """
+        SELECT edge, flow FROM pgr_maxFlowMinCost(
+            'SELECT id, source, target, capacity, cost FROM assignment_edges', %s::bigint, %s::bigint
+        ) WHERE flow > 0
+    """
+
+    def assignment_flows(
+        self, supply: list[int], capacity: list[int], cost: dict[tuple[int, int], float],
+    ) -> dict[tuple[int, int], int]:
+        """
+        跟 services/simulation/min_cost_flow.min_cost_flow 同樣的輸入與輸出，改在資料庫裡解：
+        先安置最多的人，同樣人數下總成本最小。回傳 {(起點序號, 避難所序號): 人數}
+        """
+        m, n = len(supply), len(capacity)
+        source, sink = m + n + 1, m + n + 2
+        rows, pairs = [], {}
+        for i, people in enumerate(supply):
+            if people > 0:
+                rows.append((source, i + 1, people, 0))
+        for j, room in enumerate(capacity):
+            if room > 0:
+                rows.append((m + 1 + j, sink, room, 0))
+        for (i, j), c in cost.items():
+            if supply[i] > 0 and capacity[j] > 0:
+                pairs[len(rows) + 1] = (i, j)
+                rows.append((i + 1, m + 1 + j, min(supply[i], capacity[j]), round(c * 10)))
+        if not pairs:
+            return {}
+        try:
+            with self._cursor() as cursor:
+                cursor.execute(
+                    "CREATE TEMP TABLE assignment_edges "
+                    "(id bigint, source bigint, target bigint, capacity bigint, cost bigint) ON COMMIT DROP"
+                )
+                cursor.execute(
+                    "INSERT INTO assignment_edges SELECT * FROM unnest("
+                    "%s::bigint[], %s::bigint[], %s::bigint[], %s::bigint[], %s::bigint[])",
+                    (list(range(1, len(rows) + 1)), *(list(col) for col in zip(*rows, strict=True))),
+                )
+                cursor.execute(self.MIN_COST_FLOW_SQL, (source, sink))
+                result = cursor.fetchall()
+        except Exception as e:
+            raise RuntimeError(f"assignment_flows 失敗：{e}") from e
+        return {pairs[edge]: int(flow) for edge, flow in result if edge in pairs}
 
     # 每個點吸附到最近的一條道路：邊的編號、在邊上的位置（0～1）、點到路的距離（公尺）。
     # KNN 用 geometry 的 <->（單位是度，東部緯度下經緯度的比例差不到一成，挑最近的一條夠用）。
