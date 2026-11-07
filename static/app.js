@@ -442,8 +442,9 @@
     }
 
     const PEOPLE_PER_DOT = 25;
-    // 起點在鄉鎮人口重心附近散開的範圍（公里）；只影響畫面，不影響分配
-    const SPAWN_SPREAD_KM = 1.2;
+    // 起點在村里起點（最大聚落）附近散開的範圍（公里）；只影響畫面，不影響分配。
+    // 以前起點是鄉鎮重心，散開 1.2 公里；村里小得多
+    const SPAWN_SPREAD_KM = 0.3;
 
     function gaussRand() {
         let u = 0, v = 0;
@@ -517,7 +518,7 @@
     function flowRoute(f) {
         const from = { lat: f.from_lat, lon: f.from_lon };
         const to = { lat: f.to_lat, lon: f.to_lon };
-        // 路線只有路上那段，頭尾補上鄉鎮重心走到路上、離開道路走到避難所的兩小段
+        // 路線只有路上那段，頭尾補上村里起點走到路上、離開道路走到避難所的兩小段
         return measuredRoute(f.path ? [from, ...decodePolyline(f.path), to] : [from, to]);
     }
 
