@@ -18,7 +18,7 @@ Built in response to the 2025 barrier-lake disaster in Guangfu Township, Hualien
 
 ## At a glance
 
-- **Real data.** 644 shelters from the National Fire Agency's open dataset, 531 debris-flow zones, the OpenStreetMap road network of the three counties, and 34 disaster-preparedness passages rewritten from official Central Weather Administration, Fire Agency and Soil and Water Conservation pages.
+- **Real data.** 644 shelters from the National Fire Agency's open dataset, the registered population of all 554 villages, 531 debris-flow zones, the OpenStreetMap road network of the three counties, and 34 disaster-preparedness passages rewritten from official Central Weather Administration, Fire Agency and Soil and Water Conservation pages.
 - **Answers in under a second, mostly without the LLM.** When the rules layer already knows which shelters or which passage answer a question, the reply is assembled by code. 201 of the 207 generation-eval questions never call the model. p50 latency is 0.2 s, and accuracy went up, because the model can no longer misquote a list it is copying.
 - **Refuses what it does not know.** Out-of-area counties, off-topic questions, shelters that do not exist and misspelled names are handled before the model sees anything. 53 of 53 boundary questions are answered or refused correctly.
 - **Evacuation by road, not straight line.** Simulations send evacuees to the shelters with room that they can reach fastest, on foot or by car, along the OpenStreetMap road network (pgRouting). The actual routes are drawn on the map, they bend around debris-flow zones in floods, and a red debris-flow alert from the soil and water conservation agency closes the roads inside its zone.
@@ -41,7 +41,7 @@ Built in response to the 2025 barrier-lake disaster in Guangfu Township, Hualien
 <td width="50%"><img src="docs/images/alert.jpg" alt="A red debris-flow alert closing the road north of Nan'ao"></td>
 </tr>
 <tr>
-<td>Each yellow line is one township → shelter allocation, drawn along the road. Hovering shows the headcount, the road distance, and the time on foot and by car.</td>
+<td>Each yellow line is one village → shelter allocation, drawn along the road. Hovering shows the headcount, the road distance, and the time on foot and by car.</td>
 <td>A red debris-flow alert closes the Su-Hua Highway north of 南澳, so no one is sent to the two 東澳 shelters, and the reply says why. This alert was inserted for the screenshot; live alerts come from the agency's feed every 10 minutes.</td>
 </tr>
 <tr>
@@ -105,7 +105,7 @@ Open <http://localhost:8501>. The first start loads the shelters, hazard zones a
 ## Limitations
 
 - **The language model is small and local** (llama3.2:3b). It only answers what code cannot: plain semantic questions with no condition. Those are the weakest answers: a place the system does not know (「龜山島附近」) still falls back to semantic retrieval and gets shelters from elsewhere.
-- **The evacuation is a model, not a plan.** Each township starts from one centroid, and road speeds are fixed with no traffic or congestion.
+- **The evacuation is a model, not a plan.** Each village starts from one point (its largest settlement), the population is the registered one rather than who is there at the time, and road speeds are fixed with no traffic or congestion.
 - **Live alerts have not been seen live yet.** The feed reported no alerts while this was built, so the alert format is inferred from the dataset description.
 - **English mode is partial.** The 34 knowledge passages have draft translations awaiting review, so English answers still show the Chinese passage.
 - **Two retrieval categories are partly circular.** The township and facility answers in the retrieval set come from the same functions that write the index metadata, so they partly test the retriever against itself. The alias, semantic, boundary, routing and knowledge questions are written by hand.
@@ -116,8 +116,9 @@ Open <http://localhost:8501>. The first start loads the shelters, hazard zones a
 - Debris-flow impact zones: Ministry of Agriculture, [土石流潛勢溪流影響範圍圖](https://data.gov.tw/dataset/176526)
 - Debris-flow alerts: Agency of Rural Development and Soil and Water Conservation, [土石流及大規模崩塌警戒資料](https://data.gov.tw/dataset/148402)
 - Preparedness passages: Central Weather Administration, National Fire Agency, Agency of Rural Development and Soil and Water Conservation
+- Village population: Ministry of the Interior, [村里戶數、單一年齡人口](https://www.ris.gov.tw/app/portal/3053) (September 2025)
 
-All of the above are published under the [Open Government Data License, version 1.0](https://data.gov.tw/license). The road network and place names are © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors, available under the Open Database License (ODbL 1.0); `data_reference/east_roads.json.gz` and `data_reference/east_places.json` are derived databases under the same licence.
+All of the above are published under the [Open Government Data License, version 1.0](https://data.gov.tw/license). The road network, place names, village boundaries and buildings are © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors, available under the Open Database License (ODbL 1.0); `data_reference/east_roads.json.gz`, `data_reference/east_places.json` and the origin points in `data_reference/east_villages.json` are derived databases under the same licence.
 
 ## License
 
@@ -150,7 +151,7 @@ The code is released under the [MIT License](LICENSE). The data keeps its own li
 
 ## 重點一覽
 
-- **真實資料**：消防署開放資料的 644 間避難所、531 個土石流潛勢區域、三縣的 OpenStreetMap 路網，以及依中央氣象署、消防署、農村水保署官方頁面改寫的 34 段防災知識。
+- **真實資料**：消防署開放資料的 644 間避難所、554 個村里的戶籍人口、531 個土石流潛勢區域、三縣的 OpenStreetMap 路網，以及依中央氣象署、消防署、農村水保署官方頁面改寫的 34 段防災知識。
 - **不到一秒回答，大部分不經過 LLM**：只要規則層已經知道答案是哪些避難所或哪一段知識，回覆就由程式組出來。生成評測 207 題裡有 201 題完全不打模型，p50 延遲 0.2 秒；正確率也跟著提升，因為模型沒機會在重抄清單時抄錯。
 - **不知道的就不答**：範圍外縣市、離題問題、不存在的避難所、錯字名稱，都在模型看到之前處理掉。邊界題 53 題全部正確回答或拒答。
 - **依道路疏散，不是直線**：模擬時沿 OpenStreetMap 路網（pgRouting），把疏散人口送到步行或開車最快到、還有空位的避難所。實際路線畫在地圖上，淹水時會繞開土石流潛勢範圍；農村水保署發布土石流紅色警戒時，範圍內的道路直接封閉。
@@ -173,7 +174,7 @@ The code is released under the [MIT License](LICENSE). The data keeps its own li
 <td width="50%"><img src="docs/images/alert.jpg" alt="土石流紅色警戒封閉南澳北邊的道路"></td>
 </tr>
 <tr>
-<td>每條黃線是一筆「鄉鎮 → 避難所」的分配，沿道路畫出。滑鼠移上去會顯示人數、道路距離，以及步行和開車各要幾分鐘。</td>
+<td>每條黃線是一筆「村里 → 避難所」的分配，沿道路畫出。滑鼠移上去會顯示人數、道路距離，以及步行和開車各要幾分鐘。</td>
 <td>土石流紅色警戒封閉南澳北邊的蘇花公路，所以沒有人被送往東澳的兩間避難所，回答裡也會說明原因。這張的警戒是為截圖插入的測試資料；實際警戒由農村水保署的資料每 10 分鐘更新一次。</td>
 </tr>
 <tr>
@@ -237,7 +238,7 @@ docker compose up --build
 ## 限制
 
 - **語言模型小、跑在本機**（llama3.2:3b）。它只回答程式答不了的題目：沒有任何條件的語意題。這些也是答得最弱的：系統不認得的地名（「龜山島附近」）仍交給語意檢索，撈到別處的避難所。
-- **疏散是模型，不是計畫**。每個鄉鎮只用一個人口重心當起點，道路速度是固定值、沒有路況與壅塞。
+- **疏散是模型，不是計畫**。每個村里只用一個點（最大的聚落）當起點，人口是戶籍人口而不是當下實際在那裡的人，道路速度是固定值、沒有路況與壅塞。
 - **即時警戒還沒遇過真的警戒**。開發期間來源都回報沒有警戒，所以警戒格式是依資料集說明推斷的。
 - **英文模式只做了一部分**。34 段防災知識的英文稿還在等審稿，英文回答目前仍顯示中文原文。
 - **檢索評測有兩類部分是循環的**。檢索題庫裡鄉鎮與設施兩類的正解，是用寫進索引 metadata 的同一組函式算出來的，等於讓檢索器考自己。別名、語意、拒答、路由與防災知識題都是人工出題。
@@ -248,8 +249,9 @@ docker compose up --build
 - 土石流潛勢範圍：農業部「[土石流潛勢溪流影響範圍圖](https://data.gov.tw/dataset/176526)」
 - 土石流警戒：農業部農村發展及水土保持署「[土石流及大規模崩塌警戒資料](https://data.gov.tw/dataset/148402)」
 - 防災知識：中央氣象署、內政部消防署、農業部農村發展及水土保持署
+- 村里人口：內政部戶政司「[村里戶數、單一年齡人口](https://www.ris.gov.tw/app/portal/3053)」（2025 年 9 月）
 
-以上皆依[政府資料開放授權條款第 1 版](https://data.gov.tw/license)使用。路網與地名 © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors，以開放資料庫授權（ODbL 1.0）提供；`data_reference/east_roads.json.gz` 與 `data_reference/east_places.json` 是衍生資料庫，以同樣的授權散布。
+以上皆依[政府資料開放授權條款第 1 版](https://data.gov.tw/license)使用。路網、地名、村里界與建物 © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors，以開放資料庫授權（ODbL 1.0）提供；`data_reference/east_roads.json.gz`、`data_reference/east_places.json` 與 `data_reference/east_villages.json` 的起點座標是衍生資料庫，以同樣的授權散布。
 
 ## 授權
 
