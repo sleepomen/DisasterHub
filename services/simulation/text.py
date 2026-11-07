@@ -202,11 +202,16 @@ def route_notes(plan: dict, lang: str = "zh") -> list[tuple[str, str]]:
             label = (HAZARD_LABELS_EN if en else HAZARD_LABELS).get(hazard, hazard)
             notes.append(("detour", f"Evacuation routes avoid {label} where possible." if en else f"疏散路線已盡量繞開{label}。"))
         if through:
-            km = round(sum(f["hazard_m"] for f in through) / 1000, 2)
+            # 常常只有幾公尺（道路擦過範圍邊界）：不到 1 公里用公尺，才不會寫成「合計 0.0 公里」
+            meters = sum(f["hazard_m"] for f in through)
+            if meters >= 1000:
+                length = f"{meters / 1000:.2f} km" if en else f"{meters / 1000:.2f} 公里"
+            else:
+                length = f"{meters:.0f} m" if en else f"{meters:.0f} 公尺"
             notes.append(("detour",
-                          f"{len(through)} route(s) still pass through a hazard zone for {km} km in total, "
+                          f"{len(through)} route(s) still pass through a hazard zone for {length} in total, "
                           "because there is no safer road." if en
-                          else f"其中 {len(through)} 條路線沒有更安全的道路，仍有部分路段經過災害範圍（合計 {km} 公里）。"))
+                          else f"其中 {len(through)} 條路線沒有更安全的道路，仍有部分路段經過災害範圍（合計 {length}）。"))
     unreachable = plan.get("unreachable") or []
     if unreachable:
         names = ", ".join(display_name(n) for n in unreachable) if en else "、".join(display_name(n) for n in unreachable)
