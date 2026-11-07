@@ -52,3 +52,43 @@ def test_plan_uses_the_optimal_assignment():
     plan = plan_evacuation(origins, shelters, road)
     assert sorted((f["from"], f["to"]) for f in plan["flows"]) == [("乙", "A"), ("甲", "B")]
     assert plan["placed"] == 2 and plan["unplaced"] == 0
+
+
+def test_database_solver_gets_integer_costs_and_maps_edges_back():
+    """
+    pgr_maxFlowMinCost 的邊：源點→起點、避難所→匯點、起點→避難所。成本換成 0.1 秒的整數
+    （浮點數時 Boost 會算出 -1e-12 的邊而報錯），回傳的邊編號要對回 (起點, 避難所)
+    """
+    from contextlib import contextmanager
+    from unittest.mock import MagicMock, patch
+
+    from repositories.shelter_repository import ShelterRepository
+
+    cursor = MagicMock()
+    # 邊的編號從 1 開始，依序：源點→甲、源點→乙、A→匯點、B→匯點、甲→A、甲→B、乙→A
+    cursor.fetchall.return_value = [(1, 2), (5, 1), (6, 1), (3, 1)]
+
+    @contextmanager
+    def fake_cursor(self):
+        yield cursor
+
+    cost = {(0, 0): 60.4, (0, 1): 120.0, (1, 0): 30.0}
+    with patch.object(ShelterRepository, "_cursor", fake_cursor):
+        flows = ShelterRepository().assignment_flows([2, 1], [1, 5], cost)
+    assert flows == {(0, 0): 1, (0, 1): 1}
+    ids, sources, targets, caps, costs = cursor.execute.call_args_list[1].args[1]
+    assert ids == [1, 2, 3, 4, 5, 6, 7]
+    assert (sources[0], targets[0]) == (5, 1)  # 源點是 m + n + 1
+    assert targets[2] == 6  # 匯點是 m + n + 2
+    assert costs[4:] == [604, 1200, 300] and caps[4:] == [1, 2, 1]
+
+
+def test_falls_back_to_python_when_the_database_fails():
+    from unittest.mock import MagicMock
+
+    from services.geo.routing import solve_assignment
+
+    repo = MagicMock()
+    repo.assignment_flows.side_effect = RuntimeError("db down")
+    cost = {(0, 0): 1, (0, 1): 2, (1, 0): 2, (1, 1): 10}
+    assert solve_assignment(repo, [1, 1], [1, 1], cost) == {(0, 1): 1, (1, 0): 1}

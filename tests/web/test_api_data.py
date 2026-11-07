@@ -359,7 +359,7 @@ def test_population_endpoint(client):
     res = client.get("/api/population")
     assert res.status_code == 200
     body = res.json()
-    assert len(body["townships"]) == 29
+    assert len(body["townships"]) == 41
     assert {"name", "county", "lat", "lon", "pop"} <= set(body["townships"][0].keys())
     assert len(body["coastline"]) > 10
 
@@ -663,8 +663,9 @@ def test_simulate_assigns_by_road_distance(client):
         Shelter(name="[HUALIEN] 甲", capacity=100, lat=23.98, lon=121.60, current_people=10),
         Shelter(name="[HUALIEN] 丙", capacity=50000, lat=24.00, lon=121.60, current_people=0),
     ]
-    roads = {(i, 0): 30000.0 for i in range(40)} | {(i, 1): 3000.0 for i in range(40)}
-    paths = {(i, 1): RoadPath(3000.0, 0.0, f"route{i}") for i in range(40)}
+    # 每個村里一個起點：花蓮市 10 公里內有一百多個
+    roads = {(i, 0): 30000.0 for i in range(400)} | {(i, 1): 3000.0 for i in range(400)}
+    paths = {(i, 1): RoadPath(3000.0, 0.0, f"route{i}") for i in range(400)}
     with (
         patch("repositories.shelter_repository.ShelterRepository.get_shelters_in_radius", return_value=impacted),
         patch("repositories.shelter_repository.ShelterRepository.road_distances", return_value=roads),

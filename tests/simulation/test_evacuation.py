@@ -91,19 +91,19 @@ def test_driving_estimates_unrouted_pairs_at_driving_speed():
 def test_origins_follow_population_weights():
     population = {
         "estimated_evacuees": 100,
-        "townships": [
-            {"name": "花蓮市", "lat": 23.98, "lon": 121.60, "weight": 300},
-            {"name": "吉安鄉", "lat": 23.96, "lon": 121.57, "weight": 100},
+        "villages": [
+            {"name": "花蓮市國富里", "lat": 23.98, "lon": 121.60, "weight": 300},
+            {"name": "吉安鄉北昌村", "lat": 23.96, "lon": 121.57, "weight": 100},
         ],
     }
     origins = origins_from(population, 23.97, 121.6)
-    assert [(o.name, o.people) for o in origins] == [("花蓮市", 75), ("吉安鄉", 25)]
+    assert [(o.name, o.people) for o in origins] == [("花蓮市國富里", 75), ("吉安鄉北昌村", 25)]
 
 
 def test_no_settlement_starts_from_the_disaster_center():
-    origins = origins_from({"estimated_evacuees": 30, "townships": []}, 23.5, 121.5)
+    origins = origins_from({"estimated_evacuees": 30, "villages": []}, 23.5, 121.5)
     assert [(o.name, o.lat, o.lon, o.people) for o in origins] == [(FALLBACK_ORIGIN, 23.5, 121.5, 30)]
-    assert origins_from({"estimated_evacuees": 0, "townships": []}, 23.5, 121.5) == []
+    assert origins_from({"estimated_evacuees": 0, "villages": []}, 23.5, 121.5) == []
 
 
 def test_split_hazard_hits_separates_inside_from_near():

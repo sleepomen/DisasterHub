@@ -176,3 +176,13 @@ def test_chat_stream_passes_the_language_to_the_model():
         text = svc.chat("龜山島附近有避難所嗎", "en")
     assert gen.call_args.args[1] == "en"
     assert text == "知本國小: Taitung City"
+
+
+def test_village_origins_have_english_names():
+    """疏散起點是村里：「沒有安全道路」的提示在英文模式要講得出是哪裡"""
+    from services.web.i18n import place_en
+    assert place_en("壽豐鄉豐裡村") == "Fengli Village, Shoufeng Township"
+    assert place_en("臺東市豐安里").endswith(", Taitung City")
+    assert place_en("壽豐鄉") == "Shoufeng Township"
+    assert place_en("不存在村") == "不存在村"
+

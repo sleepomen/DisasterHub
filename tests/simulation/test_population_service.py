@@ -12,9 +12,14 @@ def model():
 
 
 def test_bundled_model_loads(model):
-    assert len(model.townships) == 29
+    # 內政部 115 年 9 月的村里戶籍人口：三縣 554 個村里、41 個鄉鎮市
+    assert len(model.villages) == 554
+    assert len(model.townships) == 41
+    assert sum(v["pop"] for v in model.villages) > 900000
     assert len(model.coastline) > 10
-    assert {t["county"] for t in model.townships} == {"宜蘭縣", "花蓮縣", "台東縣"}
+    assert {t["county"] for t in model.townships} == {"宜蘭縣", "花蓮縣", "臺東縣"}
+    # 村里名在不同鄉鎮會重複，起點名稱帶鄉鎮才不會撞
+    assert len({v["name"] for v in model.villages}) == 554
     # 海岸線由北往南排列，內插才會正確
     lats = [p[0] for p in model.coastline]
     assert lats == sorted(lats, reverse=True)
@@ -29,16 +34,17 @@ def test_coastline_interpolation(model):
     assert model.coast_lon_at(21.0) == model.coastline[-1][1]
 
 
-def test_covered_townships_weighted_by_distance(model):
-    covered = model.covered_townships(23.977, 121.601, 10)
-    names = [t["name"] for t in covered]
-    assert names[0] == "花蓮市"
-    assert "吉安鄉" in names and "新城鄉" in names
-    assert "台東市" not in names
-    # 中心點所在鄉鎮不打折
-    assert covered[0]["weight"] == 99000
-    assert all(t["weight"] > 0 for t in covered)
-    assert [t["weight"] for t in covered] == sorted((t["weight"] for t in covered), reverse=True)
+def test_covered_villages_weighted_by_distance(model):
+    covered = model.covered_villages(23.977, 121.601, 10)
+    assert all(v["weight"] > 0 for v in covered)
+    assert [v["weight"] for v in covered] == sorted((v["weight"] for v in covered), reverse=True)
+    # 中心附近的村里不打折
+    near = [v for v in covered if v["distance_km"] <= 1]
+    assert near and all(v["weight"] == v["pop"] for v in near)
+    towns = [t["name"] for t in model.summarize_townships(covered)]
+    assert towns[0] == "花蓮市"
+    assert "吉安鄉" in towns and "新城鄉" in towns
+    assert "臺東市" not in towns
 
 
 def test_estimate_uses_disaster_ratio(model):
@@ -71,8 +77,8 @@ def test_estimate_falls_back_to_area_when_uninhabited(model):
 
 
 def test_missing_data_file_degrades_gracefully(tmp_path):
-    model = PopulationModel(tmp_path / "missing.json")
-    assert model.townships == []
+    model = PopulationModel(tmp_path / "missing.json", tmp_path / "missing_villages.json")
+    assert model.townships == [] and model.villages == []
     assert model.is_land(23.9, 121.6)  # 沒海岸線就一律當陸地
     est = model.estimate(23.9, 121.6, 3, "flood")
     assert est["fallback_estimate"] is True
@@ -80,15 +86,21 @@ def test_missing_data_file_degrades_gracefully(tmp_path):
 
 def test_custom_data_file(tmp_path):
     path = tmp_path / "pop.json"
-    path.write_text(json.dumps({
-        "coastline": [[24.0, 121.7], [23.0, 121.5]],
-        "townships": [{"name": "甲鎮", "county": "花蓮縣", "lat": 23.5, "lon": 121.4, "pop": 1000}],
-    }), encoding="utf-8")
-    model = PopulationModel(path)
-    assert model.to_dict()["townships"][0]["name"] == "甲鎮"
+    path.write_text(json.dumps({"coastline": [[24.0, 121.7], [23.0, 121.5]]}), encoding="utf-8")
+    villages = tmp_path / "villages.json"
+    villages.write_text(json.dumps({"villages": [
+        {"county": "花蓮縣", "township": "甲鎮", "village": "東里", "lat": 23.5, "lon": 121.4, "pop": 1000},
+        {"county": "花蓮縣", "township": "甲鎮", "village": "西里", "lat": 23.5, "lon": 121.3, "pop": 3000},
+    ]}), encoding="utf-8")
+    model = PopulationModel(path, villages)
+    # 鄉鎮由村里加總，位置依人口加權
+    town = model.to_dict()["townships"][0]
+    assert town["name"] == "甲鎮" and town["pop"] == 4000 and town["lon"] == pytest.approx(121.325)
     assert model.coast_lon_at(23.5) == pytest.approx(121.6)
-    est = model.estimate(23.5, 121.4, 5, "earthquake")
-    assert est["covered_population"] == 1000
+    est = model.estimate(23.5, 121.35, 50, "earthquake")
+    assert est["covered_population"] == 4000
+    assert [v["name"] for v in est["villages"]] == ["甲鎮西里", "甲鎮東里"]
+    assert est["townships"] == [{"name": "甲鎮", "county": "花蓮縣", "weight": 4000}]
 
 
 def test_distance_km_matches_haversine():
