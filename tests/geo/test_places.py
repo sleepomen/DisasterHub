@@ -94,3 +94,26 @@ def test_other_spellings_and_manual_places_are_found():
     assert found and found[0] == "赤柯山" and found[1][0].lat == 23.388
     name, places = index().find("梅花湖附近有避難所嗎")
     assert name == "梅花湖" and abs(places[0].lat - 24.645) < 0.01
+
+
+XIKOU = [osm("溪口", 23.82, 121.47)]
+SHOUFENG = [*SHELTERS, Shelter("[HUALIEN] 溪口國小", 100, 23.82, 121.47, township="壽豐鄉", village="溪口村")]
+
+
+@pytest.mark.parametrize("question", ["蘭陽溪口附近有避難所嗎", "宜蘭的蘭陽溪口附近", "卑南溪口附近", "宜蘭溪口附近"])
+def test_two_character_names_inside_longer_names_are_ignored(question):
+    """「蘭陽溪口」「卑南溪口」都不是花蓮壽豐的「溪口」部落：前面緊接的字不是虛詞，也不是溪口所在的縣或鄉鎮"""
+    assert index(XIKOU, SHOUFENG).find(question) is None
+
+
+@pytest.mark.parametrize("question", [
+    "溪口附近有避難所嗎", "請問溪口附近有避難所嗎", "我想去溪口附近看看", "到溪口最近的避難所",
+    "壽豐溪口附近", "壽豐鄉溪口附近", "我在溪口", "颱風天，溪口附近",
+])
+def test_two_character_names_after_their_township_or_a_joining_word_still_count(question):
+    found = index(XIKOU, SHOUFENG).find(question)
+    assert found and found[0] == "溪口" and found[1][0].township == "壽豐鄉"
+
+
+def test_longer_names_are_not_checked_for_what_comes_before():
+    assert index([osm("七星潭", 24.026, 121.632)]).find("我想知道七星潭附近有什麼避難所")
