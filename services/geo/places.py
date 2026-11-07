@@ -13,6 +13,10 @@
 只在「地名＋附近／最近／周邊…」或「我在／住在＋地名」的句型裡認地名：兩個字的地名很多是一般詞
 （和平、復興、平台），整句隨便比對會誤判。同名的地方 5 公里內算同一處；分散成 4 處以上的
 （觀景台、生態池、清水）當成一般詞，不認
+
+兩個字的地名還常是更長地名的尾巴：「蘭陽溪口附近」裡的「溪口」是花蓮壽豐的部落，不是宜蘭的溪口。
+所以兩個字的地名前面緊接著別的中文字時，只有那幾個字是「我在」、常見的虛詞（去、到、在…），
+或是這個地名真的所在的縣或鄉鎮（「豐濱新社」）才算；「卑南溪口」「南澳農場」不是卑南、南澳的溪口與農場
 """
 import json
 import logging
@@ -32,6 +36,9 @@ AFTER_PLACE = ("附近", "周邊", "周圍", "一帶", "最近", "旁邊", "這�
                "有哪些避難所", "可以去哪", "要去哪", "該去哪")
 BEFORE_PLACE = ("我在", "人在", "住在", "我人在", "目前在", "現在在", "我們在")
 REGION_OF_TAG = {"YILAN": "宜蘭縣", "HUALIEN": "花蓮縣", "TAITUNG": "台東縣"}
+# 兩個字的地名前面可以緊接的字：「去知本」「到知本」「請問知本附近」。其他中文字代表這兩個字是更長名字的一部分
+SHORT_NAME = 2
+JOINERS = set("在去到往從離近的問是於靠和跟與或找住回想要")
 # 鄉鎮全名、簡稱、縣名：規則層已經認得，不當小地名
 TOWNSHIP_NAMES = (
     {t for ts in TOWNSHIPS.values() for t in ts}
@@ -138,20 +145,45 @@ class PlaceIndex:
             start = question.find(form)
             while start != -1:
                 before, after = question[:start], question[start + len(form):]
-                if after.startswith(AFTER_PLACE) or before.endswith(BEFORE_PLACE):
-                    return form, self._narrow(question, self.places[form])
+                if (after.startswith(AFTER_PLACE) or before.endswith(BEFORE_PLACE)) and self._stands_alone(form, before):
+                    # 兩字地名前面緊接縣或鄉鎮（「壽豐溪口」）：只留真的在那裡的
+                    prefixed = len(form) <= SHORT_NAME and _joined(before)
+                    places = self._narrow(before if prefixed else question, self.places[form], strict=prefixed)
+                    if places:
+                        return form, places
                 start = question.find(form, start + 1)
         return None
 
     @staticmethod
-    def _narrow(question: str, places: list[Place]) -> list[Place]:
+    def _stands_alone(form: str, before: str) -> bool:
+        """兩個字的地名不能是更長名字的尾巴（「蘭陽溪口」的「溪口」）；三個字以上的不檢查"""
+        if len(form) > SHORT_NAME or not _joined(before):
+            return True
+        normalized = before.replace("臺", "台")
+        return any(normalized.endswith(name.replace("臺", "台")) for name in TOWNSHIP_NAMES)
+
+    @staticmethod
+    def _in_area(text: str, place: "Place") -> bool:
+        return bool(
+            (place.township and (place.township.replace("臺", "台") in text or place.township[:-1].replace("臺", "台") in text))
+            or (place.county and place.county[:2] in text)
+        )
+
+    @classmethod
+    def _narrow(cls, question: str, places: list[Place], strict: bool = False) -> list[Place]:
+        """問句寫了縣或鄉鎮就只留那裡的；strict 時一個都不符就回空（不是那裡的地名）"""
         normalized = question.replace("臺", "台")
-        picked = [
-            p for p in places
-            if (p.township and (p.township.replace("臺", "台") in normalized or p.township[:-1].replace("臺", "台") in normalized))
-            or (p.county and p.county[:2] in normalized)
-        ]
-        return picked or places
+        picked = [p for p in places if cls._in_area(normalized, p)]
+        # 沒有避難所清單（路由評測的假資料庫）就不知道地名在哪個鄉鎮，無從判斷，照舊全列
+        known = any(p.township or p.county for p in places)
+        return picked if picked or (strict and known) else places
+
+
+def _joined(before: str) -> bool:
+    """地名前面緊接著別的中文字，而且不是虛詞或「我在」這類句型（要再看是不是縣或鄉鎮）"""
+    if not before or not "一" <= before[-1] <= "鿿":
+        return False
+    return before[-1] not in JOINERS and not before.endswith(BEFORE_PLACE)
 
 
 def load_osm_places(path: Path = PLACES_FILE) -> list[dict]:
