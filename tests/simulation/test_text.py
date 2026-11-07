@@ -91,3 +91,14 @@ def test_answers_in_english():
     assert "Suggestions:" in summary
     listing = simulation_answer(SIM, ["impacted"], "en")
     assert "3. 東澳國小: capacity 300, sheltering 0, 300 spaces left (no safe road; not used as a destination)" in listing
+
+
+def test_short_hazard_crossings_are_given_in_metres():
+    """道路擦過範圍邊界只有幾公尺時，不能寫成「合計 0.0 公里」"""
+    from services.simulation.text import route_lines
+    plan = {"route_hazard": "debris_flow", "flows": [{"hazard_m": 3}, {"hazard_m": 1}, {"hazard_m": 0}]}
+    assert "其中 2 條路線沒有更安全的道路，仍有部分路段經過災害範圍（合計 4 公尺）。" in route_lines(plan)
+    assert "for 4 m in total" in " ".join(route_lines(plan, "en"))
+    long = {"route_hazard": "debris_flow", "flows": [{"hazard_m": 1500}, {"hazard_m": 710}]}
+    assert "（合計 2.21 公里）" in " ".join(route_lines(long))
+

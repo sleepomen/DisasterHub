@@ -130,7 +130,7 @@ def test_route_notes_mention_alerts_detours_and_cut_off_areas():
     lines = route_lines(plan)
     assert lines[0].startswith("目前有 1 條潛勢溪流發布土石流紅色警戒")
     assert "疏散路線已盡量繞開土石流潛勢溪流影響範圍" in lines[1]
-    assert "1 條路線沒有更安全的道路" in lines[2] and "0.31 公里" in lines[2]
+    assert "1 條路線沒有更安全的道路" in lines[2] and "313 公尺" in lines[2]
     assert lines[3] == "以下避難所的聯外道路被封閉，沒有安全路線可到，本次未列為疏散目的地：東澳國小。"
     assert lines[4] == "以下地區沒有安全道路可到任何避難所，人數計入無法安置：南澳鄉。"
     assert "Nan'ao Township" in route_lines(plan, "en")[-1]
