@@ -56,3 +56,4 @@
 {"query": "地震時有什麼建議", "expected_route": "simulation", "simulation": true, "note": "模擬進行中的「建議」要看這次的模擬，不是一般須知"}
 {"query": "我在七星潭，可以去哪裡避難", "expected_route": "place", "simulation": false, "note": "「我在＋地名」句型；七星潭不是鄉鎮也不是村里，只在 OSM 地名裡"}
 {"query": "龜山島附近有避難所嗎", "expected_route": "rag", "simulation": false, "note": "不在小地名檔裡的地名（龜山島不在地名檔裡）：仍是地點線索，交給檢索，不能回頭要座標"}
+{"query": "蘭陽溪口附近有避難所嗎", "expected_route": "rag", "simulation": false, "note": "「溪口」是花蓮壽豐的部落，但這裡是「蘭陽溪口」的尾巴：兩字地名前面緊接別的字，不當小地名"}
