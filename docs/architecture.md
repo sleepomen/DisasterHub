@@ -9,7 +9,7 @@
 - **Real map visualization** — Leaflet.js + OpenStreetMap. 644 official shelters (National Fire Agency open data) across Yilan, Hualien and Taitung are plotted at their real coordinates; marker size scales with capacity, and clicking one shows live information.
 - **PostGIS spatial simulation** — Set a disaster epicenter and impact radius; the backend computes the list of affected shelters via `ST_DWithin`. Earthquake, flood and fire scenarios are supported.
 - **Road routing** — Nearest-shelter answers and evacuation plans follow the OpenStreetMap road network (pgRouting), not straight lines. The shelter reached fastest on foot or by car comes first, the actual routes are drawn on the map, and the evacuees in the animation move along them.
-- **Crowd evacuation animation** — The backend estimates the population inside the impact radius and the resulting evacuation demand from a township population model, then computes a deterministic, capacity-bounded evacuation plan (shortest total travel time, by min-cost flow) and writes it to the database and the vector index straight away. The frontend only replays that plan as an animation, so the loads the AI assistant reports match the map as soon as the simulation returns.
+- **Crowd evacuation animation** — The backend estimates the population inside the impact radius and the resulting evacuation demand from village-level registered population (554 villages, one evacuation origin each), then computes a deterministic, capacity-bounded evacuation plan (shortest total travel time, by min-cost flow in pgRouting) and writes it to the database and the vector index straight away. The frontend only replays that plan as an animation, so the loads the AI assistant reports match the map as soon as the simulation returns.
 - **Debris-flow hazard zones** — 531 debris-flow impact zones in Yilan, Hualien and Taitung from the Ministry of Agriculture are imported into PostGIS and drawn on the map. Flood simulations keep evacuees out of shelters inside a zone, and nearest-shelter answers warn when a shelter lies inside one.
 - **Hazard-aware routes and live alerts** — Flood routes bend around debris-flow zones. Debris-flow alerts from the Agency of Rural Development and Soil and Water Conservation are polled every 10 minutes: roads inside a red-alert zone are closed, roads inside a yellow-alert zone are avoided where possible, and a shelter or township with no safe road is reported as such instead of being routed in a straight line.
 - **AI decision assistant** — A rules layer plus RAG and a local LLM answer questions from real shelter data, covering semantic lookups, geographic distance queries, capacity rankings, and simulation-result queries. Region, township, facility and capacity conditions become metadata filters, and questions about counties outside the coverage area are declined outright.
@@ -80,9 +80,9 @@ DisasterHub/
 │   │   ├── knowledge.py        # Disaster-preparedness passages: parsing, index, retrieval, answer text, source lines
 │   │   └── shelter_profile.py  # Name/address → township, facilities, aliases
 │   ├── simulation/             # Disaster simulation
-│   │   ├── evacuation.py       # Evacuation plan: townships → shelters, capacity-bounded
-│   │   ├── min_cost_flow.py    # Min-cost max-flow: most people placed, shortest total time
-│   │   ├── population.py       # Coastline + township population model, evacuee estimation
+│   │   ├── evacuation.py       # Evacuation plan: villages → shelters, capacity-bounded
+│   │   ├── min_cost_flow.py    # Min-cost max-flow in Python (fallback and test reference; the API solves it in pgRouting)
+│   │   ├── population.py       # Coastline + village population model, evacuee estimation
 │   │   └── text.py             # Simulation results as text: population, allocation, hazard and route notes
 │   ├── geo/                    # Road network and alerts
 │   │   ├── routing.py          # Road distances for nearest shelters and evacuation, straight-line fallback
@@ -105,7 +105,8 @@ DisasterHub/
 │   └── yilan_shelter.json      # Yilan (249 entries)
 │
 ├── data_reference/
-│   ├── east_taiwan_population.json  # Coastline polylines + population of 29 townships (shared by the frontend animation and the AI)
+│   ├── east_taiwan_population.json  # Coastline polyline for the land check
+│   ├── east_villages.json           # 554 villages: registered population (Ministry of the Interior) and evacuation origin (OSM)
 │   ├── debris_flow_east.geojson     # Debris-flow impact zones in the three eastern counties (Ministry of Agriculture)
 │   ├── east_roads.json.gz           # Road network of the three eastern counties (OpenStreetMap, ODbL)
 │   ├── east_places.json             # Place names of the three eastern counties (OpenStreetMap, ODbL)
@@ -116,7 +117,8 @@ DisasterHub/
 │   ├── build_hazard_zones.py   # Ministry of Agriculture SHP → debris_flow_east.geojson (TWD97 → WGS84)
 │   ├── build_shelters.py       # National Fire Agency CSV → data_for_refuge/*.json
 │   ├── build_road_network.py   # OpenStreetMap PBF → east_roads.json.gz (pgRouting edge table)
-│   └── build_place_names.py    # OpenStreetMap PBF → east_places.json (villages, landmarks)
+│   ├── build_place_names.py    # OpenStreetMap PBF → east_places.json (villages, landmarks)
+│   └── build_villages.py       # Ministry of the Interior population + OSM village boundaries and buildings → east_villages.json
 │
 ├── static/
 │   ├── index.html              # Page skeleton

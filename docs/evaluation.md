@@ -588,20 +588,36 @@ The script scores what `build_context` returns, without generation: the answer w
 
 ## Assignment Evaluation
 
-`evals/run_assignment_eval.py` compares the evacuation plan in use (min-cost flow) with the rule it replaced (nearest-first greedy). Each of the 29 township population centroids is a simulation centre, at radii of 5 and 10 km, for earthquakes and floods (shelters not designated for the disaster are left out): 114 scenarios. Origins, shelters and the cost of every pair are computed exactly as `/api/simulate_disaster` does (`services/simulation/evacuation.pair_costs`), on foot.
+`evals/run_assignment_eval.py` checks the evacuation assignment three ways. Each of the 41 townships' population-weighted centres is a simulation centre, at radii of 5 and 10 km, for earthquakes and floods (shelters not designated for the disaster are left out): 159 scenarios with shelters. Origins, shelters and the cost of every pair are computed exactly as `/api/simulate_disaster` does (`services/simulation/evacuation.pair_costs`), on foot.
 
 ```bash
 docker exec disaster_app python evals/run_assignment_eval.py
 ```
 
-| | Capacity fits demand (20) | Demand exceeds capacity (94) |
+**1. The database and Python solvers agree.** `pgr_maxFlowMinCost` and the pure-Python `min_cost_flow` give the same number placed and the same total time in 159 of 159 scenarios. The largest (宜蘭市 10 km: 145 villages × 130 shelters) takes 0.22 s in the database and 1.49 s in Python; over all scenarios the slowest database solve is 0.32 s.
+
+**2. Min-cost flow against nearest-first greedy** (the rule used until 2026-11-02):
+
+| | Capacity fits demand (61) | Demand exceeds capacity (98) |
 |---|---|---|
 | Scenarios where the number placed differs | 0 | 0 |
-| Scenarios where min-cost flow is strictly better | 6 | 20 |
-| Extra total time taken by greedy | mean 0.4%, max 3.0% | mean 0.4%, max 6.4% |
-| Minutes per person, greedy → min-cost | 44.3 → 44.1 | 55.4 → 55.2 |
-| Longest single trip (mean), greedy → min-cost | 114.7 → 112.6 min | 141.4 → 139.5 min |
+| Scenarios where min-cost flow is strictly better | 39 | 73 |
+| Extra total time taken by greedy | mean 3.5%, max 17.8% | mean 2.9%, max 17.5% |
+| Minutes per person, greedy → min-cost | 40.8 → 39.4 | 30.8 → 29.8 |
+| Longest single trip (mean), greedy → min-cost | 215.2 → 183.0 min | 124.8 → 107.0 min |
 
-- **Greedy was already close.** It never placed fewer people, and on 88 of 114 scenarios it found the optimal plan. The largest gaps were 新城鄉 10 km (7,448 against 6,971 person-hours, 6.4%), 冬山鄉 10 km (6.0%) and 五結鄉 10 km (5.3%).
-- **Why switch anyway.** Min-cost flow is no worse on any measure here, including the longest trip, and solves the largest scenario in 0.045 s. The cost is explainability: the plan can send a township past its nearest shelter.
-- **The solver is checked against brute force** on 200 small random cases (`tests/simulation/test_min_cost_flow.py`).
+- **The gap grew with village origins.** With 29 township centroids greedy was 0.4% slower on average and 6.4% at worst, and found the optimum in 88 of 114 scenarios. With hundreds of origins competing for the same shelters, greedy now loses in 112 of 159 and costs up to 17.8% more (池上鄉 5 km flood: 440 against 362 person-hours; 金峰鄉 10 km flood 17.5%; 池上鄉 10 km flood 16.0%).
+- **The longest trip drops by about 15%** (215 → 183 min, 125 → 107 min), although only the total is minimised: greedy fills nearby shelters with whoever comes first and leaves the last villages the far ones.
+
+**3. Villages against township centroids.** The same evacuees, assigned the same way, once from village origins and once all from their township's population-weighted centre:
+
+| | Township centroids | Villages |
+|---|---|---|
+| Minutes per person (mean over scenarios) | 66.7 | 33.5 |
+| Longest single trip (mean) | 168.4 min | 136.2 min |
+
+- **A centroid makes trips about twice as long on average.** In a spread-out township the population-weighted centre falls between settlements, often in fields or on a slope, and everyone walks from there: 東河鄉 10 km flood 289 → 132 min per person, 卓溪鄉 10 km flood 115 → 22.
+- **In 6 scenarios villages are slower.** Five are in the mountain townships 大同鄉 and 金峰鄉, where the centroid happened to lie near the shelters while the villages are far up the valleys (大同鄉 10 km earthquake 65 → 145 min); the sixth is 鳳林鎮 10 km earthquake (38 → 43). That is the model becoming more realistic, not worse.
+- **The number placed does not change** (0 of 159): capacity, not origins, decides how many fit.
+
+**Tests.** The Python solver is checked against brute force on 200 small random cases; the database call is checked for its edge layout, integer costs and the mapping back to pairs, and for falling back to Python when it fails (`tests/simulation/test_min_cost_flow.py`).

@@ -9,7 +9,7 @@
 - **真實地圖視覺化** — Leaflet.js + OpenStreetMap，宜花東 644 處官方避難所（消防署開放資料）標記於真實座標，marker 大小依容量縮放，點擊顯示即時資訊
 - **PostGIS 空間模擬** — 設定災害中心點與影響半徑，後端透過 `ST_DWithin` 計算受影響避難所清單，支援強震、淹水、火災三種類型
 - **道路路線規劃** — 最近避難所與疏散分配都沿 OpenStreetMap 路網（pgRouting）計算，不是直線：步行或開車最快到的排前面，實際路線畫在地圖上，動畫裡的人群也沿著路線移動
-- **人群疏散動畫** — 後端以鄉鎮人口模型估算圈內人口與疏散需求，算出確定、不超過容量的疏散分配（最小成本流，總通行時間最短），並立即寫入資料庫與向量索引；前端只負責把這份分配畫成動畫，模擬一回傳，AI 助手回答的負載就跟地圖一致
+- **人群疏散動畫** — 後端以村里戶籍人口（554 個村里，各是一個疏散起點）估算圈內人口與疏散需求，算出確定、不超過容量的疏散分配（在 pgRouting 裡解最小成本流，總通行時間最短），並立即寫入資料庫與向量索引；前端只負責把這份分配畫成動畫，模擬一回傳，AI 助手回答的負載就跟地圖一致
 - **土石流潛勢區域** — 匯入農業部宜花東 531 個土石流潛勢溪流影響範圍到 PostGIS 並顯示在地圖上；淹水模擬不把人送進範圍內的避難所，查最近避難所時若落在範圍內會加註警告
 - **避開災害範圍與即時警戒** — 淹水時路線繞開土石流潛勢範圍。每 10 分鐘抓一次農村水保署的土石流警戒：紅色警戒範圍內的道路封閉、黃色警戒範圍內的道路盡量繞行；沒有安全道路可到的避難所或鄉鎮會明確標出，不會用直線硬算
 - **AI 決策助手** — 整合規則層 + RAG + 本地 LLM，根據避難所真實資料回答問題，支援語意查詢、地理距離查詢、容量排序查詢、模擬結果查詢；地區 / 鄉鎮 / 設施 / 容量條件轉成 metadata 篩選，範圍外縣市直接拒答
@@ -80,9 +80,9 @@ DisasterHub/
 │   │   ├── knowledge.py        # 防災知識文件：解析、索引、檢索、回答組字、出處
 │   │   └── shelter_profile.py  # 名稱/地址 → 鄉鎮、設施、別名
 │   ├── simulation/             # 災害模擬
-│   │   ├── evacuation.py       # 疏散分配：鄉鎮 → 避難所，不超過容量
-│   │   ├── min_cost_flow.py    # 最小成本流：先安置最多的人，再讓總時間最短
-│   │   ├── population.py       # 海岸線 + 鄉鎮人口模型，疏散人數估算
+│   │   ├── evacuation.py       # 疏散分配：村里 → 避難所，不超過容量
+│   │   ├── min_cost_flow.py    # 純 Python 的最小成本流（備援與測試對照；API 在 pgRouting 裡解）
+│   │   ├── population.py       # 海岸線 + 村里人口模型，疏散人數估算
 │   │   └── text.py             # 模擬結果寫成文字：人口、分配、潛勢範圍與路線說明
 │   ├── geo/                    # 路網與警戒
 │   │   ├── routing.py          # 最近避難所與疏散分配的道路距離，算不出來退回直線距離
@@ -105,7 +105,8 @@ DisasterHub/
 │   └── yilan_shelter.json      # 宜蘭（249 筆）
 │
 ├── data_reference/
-│   ├── east_taiwan_population.json  # 海岸線折線 + 29 個鄉鎮人口（前端動畫與 AI 共用）
+│   ├── east_taiwan_population.json  # 海岸線折線（陸地判定）
+│   ├── east_villages.json           # 554 個村里：戶籍人口（內政部）與疏散起點（OSM）
 │   ├── debris_flow_east.geojson     # 宜花東土石流潛勢溪流影響範圍（農業部）
 │   ├── east_roads.json.gz           # 宜花東路網（OpenStreetMap，ODbL）
 │   ├── east_places.json             # 宜花東地名（OpenStreetMap，ODbL）
@@ -116,7 +117,8 @@ DisasterHub/
 │   ├── build_hazard_zones.py   # 農業部 SHP → debris_flow_east.geojson（TWD97 → WGS84）
 │   ├── build_shelters.py       # 消防署 CSV → data_for_refuge/*.json
 │   ├── build_road_network.py   # OpenStreetMap PBF → east_roads.json.gz（pgRouting 邊表）
-│   └── build_place_names.py    # OpenStreetMap PBF → east_places.json（村落、地標）
+│   ├── build_place_names.py    # OpenStreetMap PBF → east_places.json（村落、地標）
+│   └── build_villages.py       # 內政部村里人口 + OSM 村里界與建物 → east_villages.json
 │
 ├── static/
 │   ├── index.html              # 頁面骨架
