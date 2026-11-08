@@ -38,11 +38,11 @@ Built in response to the 2025 barrier-lake disaster in Guangfu Township, Hualien
 <table>
 <tr>
 <td width="50%"><img src="docs/images/routes.jpg" alt="Evacuation routes drawn along the roads, with a tooltip showing the walking and driving time"></td>
-<td width="50%"><img src="docs/images/alert.jpg" alt="A red debris-flow alert closing the road north of Nan'ao"></td>
+<td width="50%"><img src="docs/images/alert.jpg" alt="Red debris-flow alerts west of Taitung City cutting off four villages"></td>
 </tr>
 <tr>
 <td>Each yellow line is one village → shelter allocation, drawn along the road. Hovering shows the headcount, the road distance, and the time on foot and by car.</td>
-<td>A red debris-flow alert closes the Su-Hua Highway north of 南澳, so no one is sent to the two 東澳 shelters, and the reply says why. This alert was inserted for the screenshot; live alerts come from the agency's feed every 10 minutes.</td>
+<td>Red debris-flow alerts on nine zones west of 台東市 leave four villages (大王村, 龍田村, 嘉豐村, 紅葉村) with no safe road to any shelter, and three shelters with no safe road in. Those villages' evacuees are counted as unplaced, no one is sent to those shelters, and the summary says why. The alerts were inserted for the screenshot; live alerts come from the agency's feed every 10 minutes.</td>
 </tr>
 <tr>
 <td width="50%"><img src="docs/images/chat_list.jpg" alt="A filtered shelter list formatted by code"></td>
@@ -171,11 +171,11 @@ The code is released under the [MIT License](LICENSE). The data keeps its own li
 <table>
 <tr>
 <td width="50%"><img src="docs/images/routes.jpg" alt="沿著道路畫出的疏散路線，提示顯示步行與開車時間"></td>
-<td width="50%"><img src="docs/images/alert.jpg" alt="土石流紅色警戒封閉南澳北邊的道路"></td>
+<td width="50%"><img src="docs/images/alert.jpg" alt="台東市西邊的土石流紅色警戒切斷四個村里"></td>
 </tr>
 <tr>
 <td>每條黃線是一筆「村里 → 避難所」的分配，沿道路畫出。滑鼠移上去會顯示人數、道路距離，以及步行和開車各要幾分鐘。</td>
-<td>土石流紅色警戒封閉南澳北邊的蘇花公路，所以沒有人被送往東澳的兩間避難所，回答裡也會說明原因。這張的警戒是為截圖插入的測試資料；實際警戒由農村水保署的資料每 10 分鐘更新一次。</td>
+<td>台東市西邊九條潛勢溪流發布土石流紅色警戒，大王村、龍田村、嘉豐村、紅葉村四個村里因此沒有安全道路可到任何避難所，另有三間避難所沒有安全道路可到。這四個村里的需疏散人數計入無法安置，那三間避難所沒有分配人員前往，摘要裡也說明原因。這張的警戒是為截圖插入的測試資料；實際警戒由農村水保署的資料每 10 分鐘更新一次。</td>
 </tr>
 <tr>
 <td width="50%"><img src="docs/images/chat_list.jpg" alt="程式排版的避難所清單"></td>
