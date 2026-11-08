@@ -136,7 +136,10 @@ def hazard_notes(plan: dict, lang: str = "zh") -> list[tuple[str, str]]:
     plan = plan or {}
     en = lang == "en"
     excluded = plan.get("excluded") or {}
-    near = plan.get("near_hazard") or {}
+    # 「靠近潛勢範圍、仍列為疏散目的地」只講真的是目的地的：紅色警戒封了聯外道路的避難所
+    # 也可能靠近潛勢範圍，2026-11-08 截圖時同一間被說成「未列為目的地」又「仍列為目的地」
+    not_used = _not_destinations(plan)
+    near = {name: info for name, info in (plan.get("near_hazard") or {}).items() if name not in not_used}
     notes = []
     if en:
         label = HAZARD_LABELS_EN.get(plan.get("hazard"), "a hazard zone")
