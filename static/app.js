@@ -882,6 +882,18 @@
         }
     };
 
+    // 半徑滑桿：標籤與填色跟著數值走。1e2791d（加登入）時被不小心刪掉，
+    // 之後拖滑桿標籤一直停在「10 km」，送出去的半徑卻是新的值（2026-11-08 截圖時發現）
+    const radiusInput = document.getElementById('sim-radius');
+    function showRadius() {
+        const v = radiusInput.value;
+        document.getElementById('radius-val').textContent = `${v} km`;
+        const pct = ((v - radiusInput.min) / (radiusInput.max - radiusInput.min)) * 100;
+        radiusInput.style.background = `linear-gradient(to right, #ffbe2e ${pct}%, rgba(255,190,46,0.15) ${pct}%)`;
+    }
+    radiusInput.addEventListener('input', showRadius);
+    showRadius();
+
     const langBtn = document.getElementById('btn-lang');
     if (langBtn) {
         langBtn.addEventListener('click', () => {
