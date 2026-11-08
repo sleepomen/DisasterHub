@@ -102,3 +102,12 @@ def test_short_hazard_crossings_are_given_in_metres():
     long = {"route_hazard": "debris_flow", "flows": [{"hazard_m": 1500}, {"hazard_m": 710}]}
     assert "（合計 2.21 公里）" in " ".join(route_lines(long))
 
+
+def test_unreachable_shelters_are_not_also_called_still_used():
+    """聯外道路被封閉的避難所靠近潛勢範圍時，不能同時出現在「仍列為疏散目的地」裡"""
+    plan = {**SIM["evacuation"], "unreachable": ["[YILAN] 碧候國小"]}
+    lines = hazard_lines(plan)
+    assert any("碧候國小" in line and "聯外道路被封閉" in line for line in lines)
+    assert not any("仍列為疏散目的地" in line and "碧候國小" in line for line in lines)
+    assert not any("still used" in line and "碧候國小" in line for line in hazard_lines(plan, "en"))
+
