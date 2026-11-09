@@ -9,7 +9,8 @@
 | GET | `/health` | Liveness — only reports that the process is alive |
 | GET | `/health/ready` | Readiness — actually checks the database and vector index; returns 503 when not ready |
 | GET | `/api/shelters` | Fetch all shelter data |
-| GET | `/api/population` | The population model (coastline polylines + township population) used by the frontend crowd animation |
+| GET | `/api/population` | The population model (coastline polyline + township totals summed from villages) used by the frontend |
+| GET | `/api/locate?lat=&lon=` | Names a point picked on the map: the nearest village origin's township and village (within 5 km), and whether the point is on land |
 | GET | `/api/stats` | Online counters and latency percentiles (requires login, or `X-API-Key`) |
 | POST | `/api/login` | Log in with the administrator credentials; sets an HttpOnly session cookie. Five consecutive failures lock the source for 5 minutes |
 | POST | `/api/logout` | Log out and clear the cookie |

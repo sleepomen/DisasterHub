@@ -68,6 +68,8 @@ Straight-line distance misleads in eastern Taiwan: mountains and rivers force lo
 
 - **Geometry.** Each flow of the evacuation plan carries its actual route as an encoded polyline (`path`), built in SQL from `pgr_withPoints`. The snapped start and end lie partway along an edge, so every step is cut with `ST_LineSubstring` and reversed when it runs against the edge direction, then the line is simplified to about 10 m.
 - **The drawn route is the measured one.** Route length plus the two off-road legs matches the road distance within 0.1–0.3 %; the gap is the 5 m simplification applied when the network file was built.
+- **Picking the centre.** Besides the three city presets, clicking anywhere on the map makes that point the simulation centre. `/api/locate` labels it after the nearest village origin within 5 km (「頭城鎮福成里附近」), or as a point at sea; the label is only a name, and near a township border it can name the neighbour. Clicks on a shelter, a hazard zone, a route or an origin open that item instead, and the simulation circle ignores clicks so a new centre can be picked inside it.
+- **Origins on the map.** After a simulation every affected village is drawn as a ring at its origin, larger for more people affected, with its name and affected population on hover.
 - **Map.** One line per flow, wider for more people. A flow without a route is drawn as a dashed straight line, and a route that still crosses a hazard zone is orange. Evacuees spread about 300 m around their village's origin, walk to the start of the route and follow it. A 10 km simulation in Hualien City routes all 57 flows in 0.07 s.
 
 ## Avoiding hazard zones and live alerts

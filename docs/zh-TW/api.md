@@ -9,7 +9,8 @@
 | GET | `/health` | liveness，只表示 process 還活著 |
 | GET | `/health/ready` | readiness，實際檢查資料庫與向量索引；未就緒回 503 |
 | GET | `/api/shelters` | 取得所有避難所資料 |
-| GET | `/api/population` | 人口模型（海岸線折線 + 鄉鎮人口），前端人群動畫用 |
+| GET | `/api/population` | 人口模型（海岸線折線 + 由村里加總的鄉鎮人口），前端用 |
+| GET | `/api/locate?lat=&lon=` | 地圖上點選的位置叫什麼：最近的村里起點所在的鄉鎮與村里（5 公里內），以及在不在陸地上 |
 | GET | `/api/stats` | 線上計數器與延遲百分位（需登入，或帶 `X-API-Key`）|
 | POST | `/api/login` | 以管理者帳密登入，成功後發 HttpOnly session cookie；連續失敗 5 次會鎖 5 分鐘 |
 | POST | `/api/logout` | 登出，清除 cookie |
