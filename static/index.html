@@ -166,6 +166,15 @@
 </div>
 
 <script src="/static/i18n.js"></script>
-<script src="/static/app.js"></script>
+<!-- 依序載入、共用同一個全域範圍：後面的檔案用得到前面的；main.js 最後載入，負責頁面載入時要做的事 -->
+<script src="/static/js/controls.js"></script>
+<script src="/static/js/auth.js"></script>
+<script src="/static/js/map.js"></script>
+<script src="/static/js/shelters.js"></script>
+<script src="/static/js/crowd.js"></script>
+<script src="/static/js/simulation.js"></script>
+<script src="/static/js/picking.js"></script>
+<script src="/static/js/chat.js"></script>
+<script src="/static/js/main.js"></script>
 </body>
 </html>

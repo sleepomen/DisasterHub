@@ -1,7 +1,7 @@
 // 介面語言（中文 / English）。第一階段只翻介面與回答：問題仍以中文最準，
 // 避難所名稱與地址保留中文（資料沒有英文名稱，現場招牌也是中文）。
 // 頁面上的固定文字用 data-i18n（文字）、data-i18n-placeholder（輸入框提示）標記，切換時一次換掉；
-// app.js 動態產生的訊息用 I18N.t(key, vars)
+// static/js/*.js 動態產生的訊息用 I18N.t(key, vars)
 (function () {
     const STORAGE_KEY = 'disasterhub.lang';
 
