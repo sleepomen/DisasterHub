@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Literal
 
 import uvicorn
-from fastapi import FastAPI, Header, HTTPException, Request, Response
+from fastapi import FastAPI, Header, HTTPException, Query, Request, Response
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
@@ -37,6 +37,7 @@ from services.simulation.evacuation import (
 )
 from services.simulation.population import PopulationModel
 from services.web import auth, health
+from services.web.i18n import place_en
 from services.web.map_service import MapService
 from services.web.metrics import metrics
 from services.web.rate_limit import RateLimiter
@@ -560,6 +561,14 @@ async def get_alerts():
 @app.get("/api/population")
 async def get_population():
     return population_model.to_dict()
+
+
+# 地圖上點選的模擬中心是哪裡：最近的村里與鄉鎮（只是標籤），以及在不在陸地上
+@app.get("/api/locate")
+async def locate(lat: float = Query(..., ge=-90, le=90), lon: float = Query(..., ge=-180, le=180)):
+    place = population_model.locate(lat, lon)
+    return {**place, "township_en": place_en(place["township"]) if place["township"] else "",
+            "village_en": place_en(f"{place['township']}{place['village']}") if place["village"] else ""}
 
 # 疏散動畫結束後由前端回寫各避難所的收容人數。
 # 沒有這一步，地圖上滿載變紅的避難所在資料庫裡仍是 0 人，AI 會回答跟畫面相反的結論。
