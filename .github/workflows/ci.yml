@@ -18,6 +18,9 @@ jobs:
       #   pip install ruff==0.16.10 && ruff check .
       - run: pip install ruff==0.16.10
       - run: ruff check .
+      # 前端是九個依序載入的 <script>（static/js/）：任何一個有語法錯誤，整頁的功能就停在那裡，
+      # 而 Python 的測試碰不到它們。runner 內建 Node，只檢查語法；實際操作見 e2e/
+      - run: for f in static/*.js static/js/*.js; do node --check "$f" || exit 1; done
 
   test:
     runs-on: ubuntu-latest
