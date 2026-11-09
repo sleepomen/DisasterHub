@@ -6,6 +6,7 @@
 1. 資料庫解（pgr_maxFlowMinCost，模擬 API 用的）跟純 Python 的 min_cost_flow 是不是同一個答案（安置人數、總時間）。
 2. 最小成本流跟「全域最近優先」貪婪法（2026-11-02 以前用的）差多少：安置人數、總時間、每人平均分鐘、最遠一趟。
 3. 起點從鄉鎮重心換成村里差多少：同樣的需疏散人數，以前全部從鄉鎮重心出發，現在從各村里出發。
+   另外記下兩種起點離最近道路多遠（那一段不論步行或開車都算步行時間）。
 
     docker exec disaster_app python evals/run_assignment_eval.py
 """
@@ -62,6 +63,16 @@ def township_origins(population: dict, model: PopulationModel) -> list[Origin]:
         Origin(t["name"], centers[(t["county"], t["name"])]["lat"], centers[(t["county"], t["name"])]["lon"], shares[t["name"]])
         for t in towns if shares[t["name"]] > 0
     ]
+
+
+def road_gap(repo, points: list[tuple[float, float]]) -> dict:
+    """每個點離最近道路的距離（公尺）：中位數、最大、超過 200 公尺的個數"""
+    with repo._cursor() as cursor:
+        cursor.execute(ShelterRepository.SNAP_SQL,
+                       (list(range(len(points))), [lon for _, lon in points], [lat for lat, _ in points]))
+        meters = sorted(row[3] for row in cursor.fetchall())
+    return {"count": len(meters), "median_m": round(statistics.median(meters)), "max_m": round(meters[-1]),
+            "over_200_m": sum(m > 200 for m in meters)}
 
 
 def problem(repo, origins, shelters, mode):
@@ -153,6 +164,10 @@ def main() -> int:
         "capacity_fits_demand": block([r for r in rows if r["demand_fits"]]),
         "demand_exceeds_capacity": block([r for r in rows if not r["demand_fits"]]),
         "villages_vs_township_centroids": origins_block(rows),
+        "origin_to_road": {
+            "villages": road_gap(repo, [(v["lat"], v["lon"]) for v in model.villages]),
+            "township_centres": road_gap(repo, [(t["lat"], t["lon"]) for t in model.townships]),
+        },
         "largest_gaps": [
             {"scenario": r["scenario"], "greedy_person_hours": r["greedy"]["person_hours"],
              "min_cost_person_hours": r["min_cost"]["person_hours"], "gap": round(gap(r), 4)}

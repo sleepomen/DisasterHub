@@ -8,9 +8,9 @@
       "townships_max": 9
     },
     "seconds_max": {
-      "cost_matrix": 0.845,
-      "db_solver": 0.254,
-      "python_solver": 1.519
+      "cost_matrix": 0.819,
+      "db_solver": 0.229,
+      "python_solver": 1.514
     },
     "capacity_fits_demand": {
       "scenarios": 61,
@@ -58,6 +58,20 @@
       },
       "scenarios_longer_with_villages": 2
     },
+    "origin_to_road": {
+      "villages": {
+        "count": 554,
+        "median_m": 19,
+        "max_m": 336,
+        "over_200_m": 1
+      },
+      "township_centres": {
+        "count": 41,
+        "median_m": 50,
+        "max_m": 2337,
+        "over_200_m": 6
+      }
+    },
     "largest_gaps": [
       {
         "scenario": "鹿野鄉 10 km flood",
@@ -88,9 +102,9 @@
       "pairs": 4473,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.239,
-        "db_solver": 0.054,
-        "python_solver": 0.154
+        "cost_matrix": 0.211,
+        "db_solver": 0.042,
+        "python_solver": 0.149
       },
       "min_cost": {
         "placed": 9240,
@@ -125,9 +139,9 @@
       "pairs": 4473,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.249,
-        "db_solver": 0.047,
-        "python_solver": 0.087
+        "cost_matrix": 0.199,
+        "db_solver": 0.044,
+        "python_solver": 0.086
       },
       "min_cost": {
         "placed": 9240,
@@ -162,9 +176,9 @@
       "pairs": 18850,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.845,
-        "db_solver": 0.245,
-        "python_solver": 1.519
+        "cost_matrix": 0.819,
+        "db_solver": 0.229,
+        "python_solver": 1.514
       },
       "min_cost": {
         "placed": 21417,
@@ -199,9 +213,9 @@
       "pairs": 18270,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.759,
-        "db_solver": 0.152,
-        "python_solver": 0.838
+        "cost_matrix": 0.732,
+        "db_solver": 0.165,
+        "python_solver": 0.744
       },
       "min_cost": {
         "placed": 20525,
@@ -236,9 +250,9 @@
       "pairs": 2842,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.142,
-        "db_solver": 0.025,
-        "python_solver": 0.051
+        "cost_matrix": 0.143,
+        "db_solver": 0.028,
+        "python_solver": 0.052
       },
       "min_cost": {
         "placed": 8874,
@@ -273,9 +287,9 @@
       "pairs": 2610,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.145,
-        "db_solver": 0.027,
-        "python_solver": 0.03
+        "cost_matrix": 0.141,
+        "db_solver": 0.025,
+        "python_solver": 0.034
       },
       "min_cost": {
         "placed": 8064,
@@ -310,9 +324,9 @@
       "pairs": 18705,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.826,
-        "db_solver": 0.162,
-        "python_solver": 1.078
+        "cost_matrix": 0.785,
+        "db_solver": 0.161,
+        "python_solver": 1.172
       },
       "min_cost": {
         "placed": 18178,
@@ -347,9 +361,9 @@
       "pairs": 17958,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.653,
+        "cost_matrix": 0.779,
         "db_solver": 0.146,
-        "python_solver": 0.706
+        "python_solver": 0.731
       },
       "min_cost": {
         "placed": 17338,
@@ -384,9 +398,9 @@
       "pairs": 864,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.067,
-        "db_solver": 0.015,
-        "python_solver": 0.015
+        "cost_matrix": 0.063,
+        "db_solver": 0.016,
+        "python_solver": 0.011
       },
       "min_cost": {
         "placed": 2250,
@@ -421,9 +435,9 @@
       "pairs": 864,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.041,
-        "db_solver": 0.016,
-        "python_solver": 0.01
+        "cost_matrix": 0.047,
+        "db_solver": 0.015,
+        "python_solver": 0.008
       },
       "min_cost": {
         "placed": 2189,
@@ -458,9 +472,9 @@
       "pairs": 3366,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.271,
-        "db_solver": 0.033,
-        "python_solver": 0.061
+        "cost_matrix": 0.284,
+        "db_solver": 0.027,
+        "python_solver": 0.064
       },
       "min_cost": {
         "placed": 4295,
@@ -495,8 +509,8 @@
       "pairs": 3168,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.201,
-        "db_solver": 0.032,
+        "cost_matrix": 0.212,
+        "db_solver": 0.028,
         "python_solver": 0.036
       },
       "min_cost": {
@@ -533,7 +547,7 @@
       "demand_fits": false,
       "seconds": {
         "cost_matrix": 0.031,
-        "db_solver": 0.006,
+        "db_solver": 0.007,
         "python_solver": 0.003
       },
       "min_cost": {
@@ -569,9 +583,9 @@
       "pairs": 260,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.03,
-        "db_solver": 0.011,
-        "python_solver": 0.003
+        "cost_matrix": 0.031,
+        "db_solver": 0.013,
+        "python_solver": 0.001
       },
       "min_cost": {
         "placed": 1220,
@@ -606,9 +620,9 @@
       "pairs": 1247,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.13,
-        "db_solver": 0.018,
-        "python_solver": 0.021
+        "cost_matrix": 0.125,
+        "db_solver": 0.014,
+        "python_solver": 0.024
       },
       "min_cost": {
         "placed": 3730,
@@ -643,8 +657,8 @@
       "pairs": 1032,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.125,
-        "db_solver": 0.017,
+        "cost_matrix": 0.13,
+        "db_solver": 0.016,
         "python_solver": 0.008
       },
       "min_cost": {
@@ -680,9 +694,9 @@
       "pairs": 735,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.118,
-        "db_solver": 0.018,
-        "python_solver": 0.01
+        "cost_matrix": 0.148,
+        "db_solver": 0.016,
+        "python_solver": 0.009
       },
       "min_cost": {
         "placed": 3566,
@@ -717,9 +731,9 @@
       "pairs": 720,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.143,
-        "db_solver": 0.013,
-        "python_solver": 0.008
+        "cost_matrix": 0.149,
+        "db_solver": 0.011,
+        "python_solver": 0.009
       },
       "min_cost": {
         "placed": 5022,
@@ -754,9 +768,9 @@
       "pairs": 9964,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.63,
-        "db_solver": 0.12,
-        "python_solver": 0.531
+        "cost_matrix": 0.584,
+        "db_solver": 0.091,
+        "python_solver": 0.505
       },
       "min_cost": {
         "placed": 12803,
@@ -791,9 +805,9 @@
       "pairs": 9434,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.514,
-        "db_solver": 0.079,
-        "python_solver": 0.262
+        "cost_matrix": 0.513,
+        "db_solver": 0.074,
+        "python_solver": 0.258
       },
       "min_cost": {
         "placed": 13711,
@@ -828,9 +842,9 @@
       "pairs": 2145,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.137,
-        "db_solver": 0.026,
-        "python_solver": 0.044
+        "cost_matrix": 0.136,
+        "db_solver": 0.024,
+        "python_solver": 0.039
       },
       "min_cost": {
         "placed": 4305,
@@ -865,8 +879,8 @@
       "pairs": 2035,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.134,
-        "db_solver": 0.019,
+        "cost_matrix": 0.149,
+        "db_solver": 0.023,
         "python_solver": 0.034
       },
       "min_cost": {
@@ -902,9 +916,9 @@
       "pairs": 17255,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.598,
-        "db_solver": 0.151,
-        "python_solver": 1.061
+        "cost_matrix": 0.626,
+        "db_solver": 0.154,
+        "python_solver": 1.092
       },
       "min_cost": {
         "placed": 17121,
@@ -939,9 +953,9 @@
       "pairs": 16095,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.608,
-        "db_solver": 0.146,
-        "python_solver": 0.563
+        "cost_matrix": 0.68,
+        "db_solver": 0.128,
+        "python_solver": 0.641
       },
       "min_cost": {
         "placed": 18072,
@@ -976,9 +990,9 @@
       "pairs": 2160,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.125,
-        "db_solver": 0.028,
-        "python_solver": 0.039
+        "cost_matrix": 0.151,
+        "db_solver": 0.021,
+        "python_solver": 0.048
       },
       "min_cost": {
         "placed": 4273,
@@ -1013,9 +1027,9 @@
       "pairs": 2160,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.136,
-        "db_solver": 0.023,
-        "python_solver": 0.034
+        "cost_matrix": 0.145,
+        "db_solver": 0.019,
+        "python_solver": 0.032
       },
       "min_cost": {
         "placed": 4273,
@@ -1050,9 +1064,9 @@
       "pairs": 16820,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.834,
-        "db_solver": 0.161,
-        "python_solver": 1.347
+        "cost_matrix": 0.738,
+        "db_solver": 0.164,
+        "python_solver": 1.362
       },
       "min_cost": {
         "placed": 17421,
@@ -1087,9 +1101,9 @@
       "pairs": 16385,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.794,
-        "db_solver": 0.14,
-        "python_solver": 0.75
+        "cost_matrix": 0.772,
+        "db_solver": 0.135,
+        "python_solver": 0.768
       },
       "min_cost": {
         "placed": 17835,
@@ -1124,9 +1138,9 @@
       "pairs": 2385,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.117,
-        "db_solver": 0.023,
-        "python_solver": 0.051
+        "cost_matrix": 0.114,
+        "db_solver": 0.021,
+        "python_solver": 0.049
       },
       "min_cost": {
         "placed": 7693,
@@ -1161,9 +1175,9 @@
       "pairs": 2120,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.11,
-        "db_solver": 0.024,
-        "python_solver": 0.029
+        "cost_matrix": 0.114,
+        "db_solver": 0.023,
+        "python_solver": 0.027
       },
       "min_cost": {
         "placed": 6911,
@@ -1198,9 +1212,9 @@
       "pairs": 10647,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.608,
+        "cost_matrix": 0.629,
         "db_solver": 0.085,
-        "python_solver": 0.37
+        "python_solver": 0.36
       },
       "min_cost": {
         "placed": 12755,
@@ -1235,9 +1249,9 @@
       "pairs": 10148,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.472,
-        "db_solver": 0.083,
-        "python_solver": 0.229
+        "cost_matrix": 0.525,
+        "db_solver": 0.078,
+        "python_solver": 0.222
       },
       "min_cost": {
         "placed": 11943,
@@ -1272,9 +1286,9 @@
       "pairs": 2565,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.152,
-        "db_solver": 0.026,
-        "python_solver": 0.061
+        "cost_matrix": 0.138,
+        "db_solver": 0.028,
+        "python_solver": 0.06
       },
       "min_cost": {
         "placed": 7996,
@@ -1309,9 +1323,9 @@
       "pairs": 2223,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.15,
-        "db_solver": 0.03,
-        "python_solver": 0.033
+        "cost_matrix": 0.16,
+        "db_solver": 0.024,
+        "python_solver": 0.029
       },
       "min_cost": {
         "placed": 7374,
@@ -1346,9 +1360,9 @@
       "pairs": 18864,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.645,
-        "db_solver": 0.186,
-        "python_solver": 1.178
+        "cost_matrix": 0.71,
+        "db_solver": 0.183,
+        "python_solver": 1.228
       },
       "min_cost": {
         "placed": 18728,
@@ -1383,9 +1397,9 @@
       "pairs": 18000,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.631,
-        "db_solver": 0.154,
-        "python_solver": 0.681
+        "cost_matrix": 0.648,
+        "db_solver": 0.153,
+        "python_solver": 0.74
       },
       "min_cost": {
         "placed": 17893,
@@ -1420,8 +1434,8 @@
       "pairs": 220,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.079,
-        "db_solver": 0.005,
+        "cost_matrix": 0.078,
+        "db_solver": 0.009,
         "python_solver": 0.002
       },
       "min_cost": {
@@ -1457,8 +1471,8 @@
       "pairs": 280,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.071,
-        "db_solver": 0.008,
+        "cost_matrix": 0.079,
+        "db_solver": 0.011,
         "python_solver": 0.002
       },
       "min_cost": {
@@ -1494,9 +1508,9 @@
       "pairs": 7957,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.532,
-        "db_solver": 0.073,
-        "python_solver": 0.333
+        "cost_matrix": 0.566,
+        "db_solver": 0.069,
+        "python_solver": 0.343
       },
       "min_cost": {
         "placed": 9019,
@@ -1531,9 +1545,9 @@
       "pairs": 8175,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.523,
-        "db_solver": 0.097,
-        "python_solver": 0.237
+        "cost_matrix": 0.593,
+        "db_solver": 0.064,
+        "python_solver": 0.224
       },
       "min_cost": {
         "placed": 10605,
@@ -1568,8 +1582,8 @@
       "pairs": 2,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.005,
-        "db_solver": 0.004,
+        "cost_matrix": 0.004,
+        "db_solver": 0.01,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -1642,7 +1656,7 @@
       "pairs": 12,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.027,
+        "cost_matrix": 0.026,
         "db_solver": 0.005,
         "python_solver": 0.0
       },
@@ -1716,8 +1730,8 @@
       "pairs": 77,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.186,
-        "db_solver": 0.01,
+        "cost_matrix": 0.193,
+        "db_solver": 0.006,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -1753,8 +1767,8 @@
       "pairs": 77,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.197,
-        "db_solver": 0.008,
+        "cost_matrix": 0.207,
+        "db_solver": 0.01,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -1790,7 +1804,7 @@
       "pairs": 117,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.202,
+        "cost_matrix": 0.193,
         "db_solver": 0.01,
         "python_solver": 0.001
       },
@@ -1827,8 +1841,8 @@
       "pairs": 117,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.197,
-        "db_solver": 0.006,
+        "cost_matrix": 0.202,
+        "db_solver": 0.01,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -1864,7 +1878,7 @@
       "pairs": 165,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.042,
+        "cost_matrix": 0.037,
         "db_solver": 0.006,
         "python_solver": 0.0
       },
@@ -1901,8 +1915,8 @@
       "pairs": 363,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.039,
-        "db_solver": 0.011,
+        "cost_matrix": 0.042,
+        "db_solver": 0.006,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -1938,9 +1952,9 @@
       "pairs": 920,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.079,
+        "cost_matrix": 0.072,
         "db_solver": 0.011,
-        "python_solver": 0.008
+        "python_solver": 0.006
       },
       "min_cost": {
         "placed": 1139,
@@ -1975,7 +1989,7 @@
       "pairs": 1426,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.078,
+        "cost_matrix": 0.079,
         "db_solver": 0.02,
         "python_solver": 0.013
       },
@@ -2012,7 +2026,7 @@
       "pairs": 25,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.013,
+        "cost_matrix": 0.01,
         "db_solver": 0.004,
         "python_solver": 0.0
       },
@@ -2086,7 +2100,7 @@
       "pairs": 60,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.036,
+        "cost_matrix": 0.032,
         "db_solver": 0.004,
         "python_solver": 0.0
       },
@@ -2123,8 +2137,8 @@
       "pairs": 90,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.03,
-        "db_solver": 0.005,
+        "cost_matrix": 0.029,
+        "db_solver": 0.009,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -2160,8 +2174,8 @@
       "pairs": 99,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.02,
-        "db_solver": 0.005,
+        "cost_matrix": 0.021,
+        "db_solver": 0.007,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -2197,8 +2211,8 @@
       "pairs": 99,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.019,
-        "db_solver": 0.005,
+        "cost_matrix": 0.02,
+        "db_solver": 0.004,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -2234,8 +2248,8 @@
       "pairs": 832,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.05,
-        "db_solver": 0.017,
+        "cost_matrix": 0.046,
+        "db_solver": 0.015,
         "python_solver": 0.006
       },
       "min_cost": {
@@ -2272,8 +2286,8 @@
       "demand_fits": true,
       "seconds": {
         "cost_matrix": 0.049,
-        "db_solver": 0.254,
-        "python_solver": 0.009
+        "db_solver": 0.014,
+        "python_solver": 0.008
       },
       "min_cost": {
         "placed": 2426,
@@ -2308,8 +2322,8 @@
       "pairs": 126,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.034,
-        "db_solver": 0.011,
+        "cost_matrix": 0.031,
+        "db_solver": 0.012,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -2345,8 +2359,8 @@
       "pairs": 154,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.034,
-        "db_solver": 0.014,
+        "cost_matrix": 0.033,
+        "db_solver": 0.005,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -2382,9 +2396,9 @@
       "pairs": 988,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.089,
-        "db_solver": 0.011,
-        "python_solver": 0.006
+        "cost_matrix": 0.093,
+        "db_solver": 0.019,
+        "python_solver": 0.005
       },
       "min_cost": {
         "placed": 1094,
@@ -2419,8 +2433,8 @@
       "pairs": 1404,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.094,
-        "db_solver": 0.014,
+        "cost_matrix": 0.099,
+        "db_solver": 0.013,
         "python_solver": 0.009
       },
       "min_cost": {
@@ -2457,7 +2471,7 @@
       "demand_fits": true,
       "seconds": {
         "cost_matrix": 0.017,
-        "db_solver": 0.005,
+        "db_solver": 0.009,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -2493,8 +2507,8 @@
       "pairs": 133,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.018,
-        "db_solver": 0.006,
+        "cost_matrix": 0.019,
+        "db_solver": 0.004,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -2530,8 +2544,8 @@
       "pairs": 609,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.065,
-        "db_solver": 0.014,
+        "cost_matrix": 0.061,
+        "db_solver": 0.012,
         "python_solver": 0.006
       },
       "min_cost": {
@@ -2567,8 +2581,8 @@
       "pairs": 609,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.062,
-        "db_solver": 0.014,
+        "cost_matrix": 0.065,
+        "db_solver": 0.013,
         "python_solver": 0.007
       },
       "min_cost": {
@@ -2604,8 +2618,8 @@
       "pairs": 208,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.021,
-        "db_solver": 0.015,
+        "cost_matrix": 0.022,
+        "db_solver": 0.011,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -2641,8 +2655,8 @@
       "pairs": 234,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.024,
-        "db_solver": 0.005,
+        "cost_matrix": 0.032,
+        "db_solver": 0.012,
         "python_solver": 0.002
       },
       "min_cost": {
@@ -2678,8 +2692,8 @@
       "pairs": 676,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.052,
-        "db_solver": 0.014,
+        "cost_matrix": 0.054,
+        "db_solver": 0.013,
         "python_solver": 0.007
       },
       "min_cost": {
@@ -2715,9 +2729,9 @@
       "pairs": 858,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.056,
-        "db_solver": 0.015,
-        "python_solver": 0.013
+        "cost_matrix": 0.054,
+        "db_solver": 0.012,
+        "python_solver": 0.014
       },
       "min_cost": {
         "placed": 2871,
@@ -2753,7 +2767,7 @@
       "demand_fits": false,
       "seconds": {
         "cost_matrix": 0.012,
-        "db_solver": 0.004,
+        "db_solver": 0.008,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -2790,7 +2804,7 @@
       "demand_fits": false,
       "seconds": {
         "cost_matrix": 0.011,
-        "db_solver": 0.003,
+        "db_solver": 0.004,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -2826,8 +2840,8 @@
       "pairs": 24,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.042,
-        "db_solver": 0.003,
+        "cost_matrix": 0.05,
+        "db_solver": 0.01,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -2863,8 +2877,8 @@
       "pairs": 60,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.048,
-        "db_solver": 0.009,
+        "cost_matrix": 0.05,
+        "db_solver": 0.005,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -2938,7 +2952,7 @@
       "demand_fits": true,
       "seconds": {
         "cost_matrix": 0.008,
-        "db_solver": 0.004,
+        "db_solver": 0.003,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -2974,8 +2988,8 @@
       "pairs": 153,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.035,
-        "db_solver": 0.007,
+        "cost_matrix": 0.034,
+        "db_solver": 0.005,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -3011,8 +3025,8 @@
       "pairs": 153,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.043,
-        "db_solver": 0.007,
+        "cost_matrix": 0.038,
+        "db_solver": 0.005,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -3048,8 +3062,8 @@
       "pairs": 56,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.011,
-        "db_solver": 0.003,
+        "cost_matrix": 0.01,
+        "db_solver": 0.005,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -3085,9 +3099,9 @@
       "pairs": 80,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.01,
-        "db_solver": 0.005,
-        "python_solver": 0.002
+        "cost_matrix": 0.012,
+        "db_solver": 0.004,
+        "python_solver": 0.001
       },
       "min_cost": {
         "placed": 860,
@@ -3122,7 +3136,7 @@
       "pairs": 140,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.031,
+        "cost_matrix": 0.025,
         "db_solver": 0.005,
         "python_solver": 0.001
       },
@@ -3159,8 +3173,8 @@
       "pairs": 224,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.028,
-        "db_solver": 0.006,
+        "cost_matrix": 0.026,
+        "db_solver": 0.005,
         "python_solver": 0.002
       },
       "min_cost": {
@@ -3196,8 +3210,8 @@
       "pairs": 18,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.005,
-        "db_solver": 0.003,
+        "cost_matrix": 0.007,
+        "db_solver": 0.004,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -3234,7 +3248,7 @@
       "demand_fits": true,
       "seconds": {
         "cost_matrix": 0.005,
-        "db_solver": 0.004,
+        "db_solver": 0.003,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -3270,7 +3284,7 @@
       "pairs": 150,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.009,
+        "cost_matrix": 0.01,
         "db_solver": 0.005,
         "python_solver": 0.001
       },
@@ -3307,8 +3321,8 @@
       "pairs": 180,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.011,
-        "db_solver": 0.005,
+        "cost_matrix": 0.01,
+        "db_solver": 0.004,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -3381,8 +3395,8 @@
       "pairs": 24,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.004,
-        "db_solver": 0.004,
+        "cost_matrix": 0.003,
+        "db_solver": 0.003,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -3419,7 +3433,7 @@
       "demand_fits": true,
       "seconds": {
         "cost_matrix": 0.003,
-        "db_solver": 0.004,
+        "db_solver": 0.003,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -3566,9 +3580,9 @@
       "pairs": 504,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.035,
+        "cost_matrix": 0.038,
         "db_solver": 0.009,
-        "python_solver": 0.004
+        "python_solver": 0.003
       },
       "min_cost": {
         "placed": 902,
@@ -3603,7 +3617,7 @@
       "pairs": 525,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.035,
+        "cost_matrix": 0.037,
         "db_solver": 0.008,
         "python_solver": 0.004
       },
@@ -3640,8 +3654,8 @@
       "pairs": 78,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.014,
-        "db_solver": 0.008,
+        "cost_matrix": 0.013,
+        "db_solver": 0.014,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -3677,9 +3691,9 @@
       "pairs": 78,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.013,
+        "cost_matrix": 0.014,
         "db_solver": 0.004,
-        "python_solver": 0.001
+        "python_solver": 0.0
       },
       "min_cost": {
         "placed": 590,
@@ -3714,8 +3728,8 @@
       "pairs": 540,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.063,
-        "db_solver": 0.012,
+        "cost_matrix": 0.054,
+        "db_solver": 0.013,
         "python_solver": 0.007
       },
       "min_cost": {
@@ -3751,9 +3765,9 @@
       "pairs": 540,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.06,
-        "db_solver": 0.01,
-        "python_solver": 0.006
+        "cost_matrix": 0.053,
+        "db_solver": 0.012,
+        "python_solver": 0.005
       },
       "min_cost": {
         "placed": 1170,
@@ -3789,7 +3803,7 @@
       "demand_fits": true,
       "seconds": {
         "cost_matrix": 0.009,
-        "db_solver": 0.004,
+        "db_solver": 0.008,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -3825,9 +3839,9 @@
       "pairs": 54,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.01,
-        "db_solver": 0.005,
-        "python_solver": 0.0
+        "cost_matrix": 0.009,
+        "db_solver": 0.004,
+        "python_solver": 0.001
       },
       "min_cost": {
         "placed": 751,
@@ -3863,7 +3877,7 @@
       "demand_fits": false,
       "seconds": {
         "cost_matrix": 0.026,
-        "db_solver": 0.006,
+        "db_solver": 0.005,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -3899,9 +3913,9 @@
       "pairs": 238,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.027,
-        "db_solver": 0.006,
-        "python_solver": 0.002
+        "cost_matrix": 0.029,
+        "db_solver": 0.007,
+        "python_solver": 0.003
       },
       "min_cost": {
         "placed": 1400,
@@ -3936,8 +3950,8 @@
       "pairs": 18,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.006,
-        "db_solver": 0.004,
+        "cost_matrix": 0.005,
+        "db_solver": 0.003,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -3974,7 +3988,7 @@
       "demand_fits": true,
       "seconds": {
         "cost_matrix": 0.005,
-        "db_solver": 0.006,
+        "db_solver": 0.003,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -4010,9 +4024,9 @@
       "pairs": 150,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.01,
-        "db_solver": 0.005,
-        "python_solver": 0.001
+        "cost_matrix": 0.009,
+        "db_solver": 0.004,
+        "python_solver": 0.0
       },
       "min_cost": {
         "placed": 563,
@@ -4085,7 +4099,7 @@
       "demand_fits": true,
       "seconds": {
         "cost_matrix": 0.004,
-        "db_solver": 0.006,
+        "db_solver": 0.003,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -4159,7 +4173,7 @@
       "demand_fits": true,
       "seconds": {
         "cost_matrix": 0.003,
-        "db_solver": 0.004,
+        "db_solver": 0.003,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -4195,7 +4209,7 @@
       "pairs": 24,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.003,
+        "cost_matrix": 0.004,
         "db_solver": 0.004,
         "python_solver": 0.0
       },
@@ -4232,9 +4246,9 @@
       "pairs": 2240,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.087,
-        "db_solver": 0.024,
-        "python_solver": 0.027
+        "cost_matrix": 0.091,
+        "db_solver": 0.025,
+        "python_solver": 0.025
       },
       "min_cost": {
         "placed": 6915,
@@ -4269,9 +4283,9 @@
       "pairs": 2816,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.093,
-        "db_solver": 0.03,
-        "python_solver": 0.036
+        "cost_matrix": 0.102,
+        "db_solver": 0.033,
+        "python_solver": 0.035
       },
       "min_cost": {
         "placed": 9205,
@@ -4306,9 +4320,9 @@
       "pairs": 3525,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.142,
-        "db_solver": 0.032,
-        "python_solver": 0.041
+        "cost_matrix": 0.134,
+        "db_solver": 0.031,
+        "python_solver": 0.042
       },
       "min_cost": {
         "placed": 7605,
@@ -4343,9 +4357,9 @@
       "pairs": 4350,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.147,
-        "db_solver": 0.046,
-        "python_solver": 0.058
+        "cost_matrix": 0.137,
+        "db_solver": 0.034,
+        "python_solver": 0.059
       },
       "min_cost": {
         "placed": 9982,
@@ -4380,8 +4394,8 @@
       "pairs": 50,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.018,
-        "db_solver": 0.006,
+        "cost_matrix": 0.016,
+        "db_solver": 0.008,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -4417,8 +4431,8 @@
       "pairs": 120,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.017,
-        "db_solver": 0.006,
+        "cost_matrix": 0.018,
+        "db_solver": 0.005,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -4454,8 +4468,8 @@
       "pairs": 434,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.065,
-        "db_solver": 0.015,
+        "cost_matrix": 0.067,
+        "db_solver": 0.009,
         "python_solver": 0.004
       },
       "min_cost": {
@@ -4491,8 +4505,8 @@
       "pairs": 868,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.073,
-        "db_solver": 0.014,
+        "cost_matrix": 0.074,
+        "db_solver": 0.118,
         "python_solver": 0.011
       },
       "min_cost": {
@@ -4528,7 +4542,7 @@
       "pairs": 77,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.022,
+        "cost_matrix": 0.019,
         "db_solver": 0.01,
         "python_solver": 0.0
       },
@@ -4565,8 +4579,8 @@
       "pairs": 380,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.041,
-        "db_solver": 0.007,
+        "cost_matrix": 0.042,
+        "db_solver": 0.006,
         "python_solver": 0.002
       },
       "min_cost": {
@@ -4603,7 +4617,7 @@
       "demand_fits": false,
       "seconds": {
         "cost_matrix": 0.043,
-        "db_solver": 0.012,
+        "db_solver": 0.007,
         "python_solver": 0.004
       },
       "min_cost": {
@@ -4639,7 +4653,7 @@
       "pairs": 504,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.041,
+        "cost_matrix": 0.039,
         "db_solver": 0.012,
         "python_solver": 0.005
       },
@@ -4676,9 +4690,9 @@
       "pairs": 3330,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.137,
-        "db_solver": 0.032,
-        "python_solver": 0.052
+        "cost_matrix": 0.131,
+        "db_solver": 0.033,
+        "python_solver": 0.057
       },
       "min_cost": {
         "placed": 7612,
@@ -4713,9 +4727,9 @@
       "pairs": 4218,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.138,
-        "db_solver": 0.035,
-        "python_solver": 0.067
+        "cost_matrix": 0.133,
+        "db_solver": 0.044,
+        "python_solver": 0.071
       },
       "min_cost": {
         "placed": 10012,
@@ -4750,9 +4764,9 @@
       "pairs": 1830,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.087,
-        "db_solver": 0.022,
-        "python_solver": 0.021
+        "cost_matrix": 0.085,
+        "db_solver": 0.021,
+        "python_solver": 0.017
       },
       "min_cost": {
         "placed": 5851,
@@ -4787,9 +4801,9 @@
       "pairs": 2318,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.092,
-        "db_solver": 0.029,
-        "python_solver": 0.026
+        "cost_matrix": 0.09,
+        "db_solver": 0.026,
+        "python_solver": 0.027
       },
       "min_cost": {
         "placed": 8102,
@@ -4824,9 +4838,9 @@
       "pairs": 4029,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.167,
-        "db_solver": 0.033,
-        "python_solver": 0.06
+        "cost_matrix": 0.15,
+        "db_solver": 0.038,
+        "python_solver": 0.056
       },
       "min_cost": {
         "placed": 7851,
@@ -4861,9 +4875,9 @@
       "pairs": 4977,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.149,
+        "cost_matrix": 0.165,
         "db_solver": 0.044,
-        "python_solver": 0.09
+        "python_solver": 0.079
       },
       "min_cost": {
         "placed": 10298,
@@ -4898,7 +4912,7 @@
       "pairs": 132,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.033,
+        "cost_matrix": 0.034,
         "db_solver": 0.009,
         "python_solver": 0.001
       },
@@ -4936,7 +4950,7 @@
       "demand_fits": false,
       "seconds": {
         "cost_matrix": 0.033,
-        "db_solver": 0.007,
+        "db_solver": 0.006,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -4972,9 +4986,9 @@
       "pairs": 550,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.096,
-        "db_solver": 0.009,
-        "python_solver": 0.005
+        "cost_matrix": 0.09,
+        "db_solver": 0.013,
+        "python_solver": 0.004
       },
       "min_cost": {
         "placed": 952,
@@ -5009,8 +5023,8 @@
       "pairs": 575,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.093,
-        "db_solver": 0.008,
+        "cost_matrix": 0.096,
+        "db_solver": 0.009,
         "python_solver": 0.004
       },
       "min_cost": {
@@ -5047,7 +5061,7 @@
       "demand_fits": true,
       "seconds": {
         "cost_matrix": 0.016,
-        "db_solver": 0.006,
+        "db_solver": 0.009,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -5083,8 +5097,8 @@
       "pairs": 110,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.016,
-        "db_solver": 0.004,
+        "cost_matrix": 0.019,
+        "db_solver": 0.005,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -5120,8 +5134,8 @@
       "pairs": 558,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.048,
-        "db_solver": 0.01,
+        "cost_matrix": 0.05,
+        "db_solver": 0.013,
         "python_solver": 0.006
       },
       "min_cost": {
@@ -5157,8 +5171,8 @@
       "pairs": 806,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.058,
-        "db_solver": 0.011,
+        "cost_matrix": 0.055,
+        "db_solver": 0.017,
         "python_solver": 0.012
       },
       "min_cost": {
@@ -5194,7 +5208,7 @@
       "pairs": 2,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.007,
+        "cost_matrix": 0.006,
         "db_solver": 0.0,
         "python_solver": 0.0
       },
@@ -5269,7 +5283,7 @@
       "demand_fits": false,
       "seconds": {
         "cost_matrix": 0.027,
-        "db_solver": 0.005,
+        "db_solver": 0.009,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -5305,7 +5319,7 @@
       "pairs": 21,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.03,
+        "cost_matrix": 0.029,
         "db_solver": 0.005,
         "python_solver": 0.0
       },
@@ -5342,8 +5356,8 @@
       "pairs": 9,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.012,
-        "db_solver": 0.005,
+        "cost_matrix": 0.011,
+        "db_solver": 0.003,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -5380,7 +5394,7 @@
       "demand_fits": false,
       "seconds": {
         "cost_matrix": 0.012,
-        "db_solver": 0.005,
+        "db_solver": 0.004,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -5416,8 +5430,8 @@
       "pairs": 42,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.034,
-        "db_solver": 0.005,
+        "cost_matrix": 0.04,
+        "db_solver": 0.008,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -5453,9 +5467,9 @@
       "pairs": 567,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.042,
-        "db_solver": 0.01,
-        "python_solver": 0.01
+        "cost_matrix": 0.047,
+        "db_solver": 0.008,
+        "python_solver": 0.005
       },
       "min_cost": {
         "placed": 1895,
@@ -5490,8 +5504,8 @@
       "pairs": 80,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.019,
-        "db_solver": 0.005,
+        "cost_matrix": 0.018,
+        "db_solver": 0.004,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -5528,8 +5542,8 @@
       "demand_fits": false,
       "seconds": {
         "cost_matrix": 0.039,
-        "db_solver": 0.006,
-        "python_solver": 0.001
+        "db_solver": 0.009,
+        "python_solver": 0.0
       },
       "min_cost": {
         "placed": 250,
@@ -5564,7 +5578,7 @@
       "pairs": 400,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.05,
+        "cost_matrix": 0.048,
         "db_solver": 0.008,
         "python_solver": 0.003
       },
@@ -5602,7 +5616,7 @@
       "demand_fits": true,
       "seconds": {
         "cost_matrix": 0.02,
-        "db_solver": 0.004,
+        "db_solver": 0.01,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -5638,8 +5652,8 @@
       "pairs": 48,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.021,
-        "db_solver": 0.004,
+        "cost_matrix": 0.02,
+        "db_solver": 0.005,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -5675,9 +5689,9 @@
       "pairs": 399,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.049,
-        "db_solver": 0.008,
-        "python_solver": 0.003
+        "cost_matrix": 0.048,
+        "db_solver": 0.097,
+        "python_solver": 0.005
       },
       "min_cost": {
         "placed": 1304,
@@ -5712,8 +5726,8 @@
       "pairs": 462,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.049,
-        "db_solver": 0.015,
+        "cost_matrix": 0.047,
+        "db_solver": 0.011,
         "python_solver": 0.003
       },
       "min_cost": {
@@ -5749,8 +5763,8 @@
       "pairs": 60,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.015,
-        "db_solver": 0.007,
+        "cost_matrix": 0.014,
+        "db_solver": 0.004,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -5786,8 +5800,8 @@
       "pairs": 120,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.018,
-        "db_solver": 0.005,
+        "cost_matrix": 0.016,
+        "db_solver": 0.004,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -5823,8 +5837,8 @@
       "pairs": 486,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.046,
-        "db_solver": 0.013,
+        "cost_matrix": 0.043,
+        "db_solver": 0.009,
         "python_solver": 0.004
       },
       "min_cost": {
@@ -5860,9 +5874,9 @@
       "pairs": 702,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.049,
-        "db_solver": 0.015,
-        "python_solver": 0.01
+        "cost_matrix": 0.052,
+        "db_solver": 0.009,
+        "python_solver": 0.008
       },
       "min_cost": {
         "placed": 2222,
@@ -5897,8 +5911,8 @@
       "pairs": 60,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.018,
-        "db_solver": 0.011,
+        "cost_matrix": 0.019,
+        "db_solver": 0.004,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -5935,7 +5949,7 @@
       "demand_fits": false,
       "seconds": {
         "cost_matrix": 0.042,
-        "db_solver": 0.01,
+        "db_solver": 0.008,
         "python_solver": 0.001
       },
       "min_cost": {
