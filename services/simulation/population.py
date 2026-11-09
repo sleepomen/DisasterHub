@@ -4,6 +4,8 @@ import math
 from itertools import pairwise
 from pathlib import Path
 
+from services.web.i18n import place_en
+
 logger = logging.getLogger(__name__)
 
 DATA_FILE = Path(__file__).resolve().parents[2] / "data_reference" / "east_taiwan_population.json"
@@ -22,6 +24,9 @@ COAST_MARGIN_DEG = 0.004
 
 # 半徑內完全沒有村里起點時的保底估算：每平方公里 2 人
 FALLBACK_DENSITY = 2
+
+# 地圖選點時，離最近的村里起點超過這個距離就不冠村里名稱（海上、深山）
+NAMED_WITHIN_KM = 5
 
 
 def distance_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -66,6 +71,8 @@ class PopulationModel:
         self.villages = [
             {
                 "name": f"{v['township']}{v['village']}",
+                # 英文模式的地圖提示用（「Fengli Village, Shoufeng Township」）
+                "name_en": place_en(f"{v['township']}{v['village']}"),
                 "county": str(v["county"]),
                 "township": str(v["township"]),
                 "village": str(v["village"]),
@@ -118,6 +125,21 @@ class PopulationModel:
         if coast is None:
             return True
         return lon <= coast - COAST_MARGIN_DEG
+
+    def locate(self, lat: float, lon: float) -> dict:
+        """
+        地圖上點選的模擬中心 → 名稱。用最近的村里起點（最大聚落）的鄉鎮與村里，
+        超過 NAMED_WITHIN_KM 就不冠名稱。只是標籤：鄉鎮交界附近可能標成隔壁鄉鎮
+        """
+        nearest = min(self.villages, key=lambda v: distance_km(v["lat"], v["lon"], lat, lon), default=None)
+        out = {"lat": round(lat, 5), "lon": round(lon, 5), "land": self.is_land(lat, lon),
+               "county": "", "township": "", "village": "", "distance_km": None}
+        if nearest:
+            d = distance_km(nearest["lat"], nearest["lon"], lat, lon)
+            out["distance_km"] = round(d, 1)
+            if d <= NAMED_WITHIN_KM:
+                out |= {"county": nearest["county"], "township": nearest["township"], "village": nearest["village"]}
+        return out
 
     # ── 疏散估算 ──────────────────────────────────────────────
     def covered_villages(self, lat: float, lon: float, radius_km: float) -> list[dict]:
