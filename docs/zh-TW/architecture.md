@@ -57,6 +57,7 @@ DisasterHub/
 ├── .env.example
 ├── .github/workflows/ci.yml    # push / PR 自動跑測試
 ├── conftest.py                 # 測試用環境變數預設值
+├── e2e/test_browser.py         # 對正在跑的網站做瀏覽器冒煙測試（Playwright；CI 不跑）
 │
 ├── models/
 │   └── shelter.py              # Shelter 與 NearbyShelter（避難所 + 該次查詢的距離）
@@ -123,6 +124,7 @@ DisasterHub/
 ├── static/
 │   ├── index.html              # 頁面骨架
 │   ├── style.css               # 介面樣式
+│   ├── favicon.svg             # 跟左上角標誌同一個圖形
 │   ├── i18n.js                 # 介面的中英文字串與語言切換
 │   └── js/                     # 頁面邏輯，依序用一般的 <script> 載入、共用同一個全域範圍
 │       ├── controls.js         # 左側面板的下拉選單與目前的選項

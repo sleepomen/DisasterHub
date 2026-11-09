@@ -108,7 +108,24 @@ ruff check .
 CI runs three jobs: `ruff check .`; the tests on a clean Python 3.12 installed from the lock file,
 followed by the routing evaluation as a regression gate (`--min-accuracy 1.0`); and `docker build`
 followed by the tests *inside* the image — the last one is what proves the image carries everything it
-needs and that the "no compiler required" assumption still holds.
+needs and that the "no compiler required" assumption still holds. The lint job also runs `node --check` on
+every frontend script, since the Python tests never load them.
+
+### Browser smoke test
+
+`e2e/test_browser.py` drives the running site in a real browser: the region filter, a shelter popup, picking the
+simulation centre on the map, the language toggle and a chat question; with an admin login it also runs a simulation
+and resets it. It is the only test of `static/js/`. It needs the stack running and Playwright on the host, so CI does
+not run it:
+
+```bash
+pip install pytest playwright
+playwright install chromium            # or use an installed Edge / Chrome: E2E_BROWSER_CHANNEL=msedge
+E2E_BASE_URL=http://localhost:8501 pytest e2e/ -v
+```
+
+Set `ADMIN_USERNAME` and `ADMIN_PASSWORD` to include the simulation test, which writes occupancy and resets it at the
+end; without them it is skipped.
 
 ## Deployment notes
 

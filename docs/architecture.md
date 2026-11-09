@@ -57,6 +57,7 @@ DisasterHub/
 ├── .env.example
 ├── .github/workflows/ci.yml    # Runs the tests on push / PR
 ├── conftest.py                 # Default environment variables for tests
+├── e2e/test_browser.py         # Browser smoke test of the running site (Playwright; not run in CI)
 │
 ├── models/
 │   └── shelter.py              # Shelter + NearbyShelter (shelter plus a per-query distance)
@@ -123,6 +124,7 @@ DisasterHub/
 ├── static/
 │   ├── index.html              # Page skeleton
 │   ├── style.css               # UI styles
+│   ├── favicon.svg             # Same mark as the top-left logo
 │   ├── i18n.js                 # Interface strings in Chinese and English, language toggle
 │   └── js/                     # Page logic, loaded in order as plain scripts sharing one global scope
 │       ├── controls.js         # Side-panel dropdowns and the current choices

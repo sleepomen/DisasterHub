@@ -107,7 +107,21 @@ ruff check .
 
 CI 有三個 job：`ruff check .`；在乾淨的 Python 3.12 上從 lock 檔安裝後跑測試，
 接著把路由評測當回歸哨兵跑一次（`--min-accuracy 1.0`）；以及 `docker build` 之後在**映像裡面**
-跑測試——最後這個才證明映像自己帶齊了依賴，而且「不需要編譯器」的前提還成立。
+跑測試——最後這個才證明映像自己帶齊了依賴，而且「不需要編譯器」的前提還成立。lint 那個 job 另外對每個前端
+腳本跑 `node --check`，因為 Python 的測試完全不會載入它們。
+
+### 瀏覽器冒煙測試
+
+`e2e/test_browser.py` 用真的瀏覽器操作正在跑的網站：地區篩選、避難所資訊框、在地圖上選模擬中心、語言切換、問一題；
+有管理員帳號時再跑一次模擬並重置。這是 `static/js/` 唯一的測試。它需要服務在跑、主機上有 Playwright，所以 CI 不跑：
+
+```bash
+pip install pytest playwright
+playwright install chromium            # 或用已安裝的 Edge / Chrome：E2E_BROWSER_CHANNEL=msedge
+E2E_BASE_URL=http://localhost:8501 pytest e2e/ -v
+```
+
+設定 `ADMIN_USERNAME`、`ADMIN_PASSWORD` 才會跑模擬的那個測試，它會寫入收容人數、結束時重置；沒設定就跳過。
 
 ## 部署建議
 
