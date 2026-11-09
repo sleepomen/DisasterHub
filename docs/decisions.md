@@ -77,3 +77,11 @@ Most of what this project does differently came from measuring something and not
 **Result.** The error has not come back, and the test suite got faster (about 30 s to 24 s), since it no longer writes to disk.
 
 **Lesson.** The failure surfaced as a flaky server, not a failing test. It was found by lining up the server log with the times the tests ran.
+
+## 8. Look like a public-service tool, not a game
+
+**Problem.** The first interface was a dark heads-up display: neon yellow, chamfered panels, a monospace sci-fi font, hexagon markers and labels like 「// 觀測區域」 and 「即時監測中」. It looked like a game, which undercut a tool meant for evacuation planning, and the bright yellow carried no meaning.
+
+**Decision.** A beige background with deep blue as the only accent, Noto Sans TC for text and Noto Serif TC for titles, plain round markers and plain wording (「東台灣避難所決策系統」, 「查詢範圍」, 「決策助手」). Colour now carries meaning: brick red only for danger (affected shelters, red alerts, full shelters), amber for caution. The map colours live in one `THEME` object (`static/js/controls.js`) that the legend and the browser test read too. The layout and every feature stayed the same. Two accents, deep blue and dark green, were previewed side by side on the same simulation before choosing.
+
+**Cost.** Dark map tiles hid the busy OpenStreetMap colours; the light tiles are desaturated instead, and routes had to get thicker and more opaque to stay visible on them.
