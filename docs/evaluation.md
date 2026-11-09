@@ -606,7 +606,7 @@ docker exec disaster_app python evals/run_assignment_eval.py
 | Minutes per person, greedy → min-cost | 40.8 → 39.4 | 30.8 → 29.8 |
 | Longest single trip (mean), greedy → min-cost | 215.2 → 183.0 min | 124.8 → 107.0 min |
 
-- **The gap grew with village origins.** With 29 township centroids greedy was 0.4% slower on average and 6.4% at worst, and found the optimum in 88 of 114 scenarios. With hundreds of origins competing for the same shelters, greedy now loses in 112 of 159 and costs up to 17.8% more (池上鄉 5 km flood: 440 against 362 person-hours; 金峰鄉 10 km flood 17.5%; 池上鄉 10 km flood 16.0%).
+- **The gap grew with village origins.** In the earlier evaluation (before 2026-11-07: 29 township centroids with rounded population as both origins and simulation centres, 114 scenarios) greedy was 0.4% slower on average and 6.4% at worst, and found the optimum in 88 of 114 scenarios. With hundreds of origins competing for the same shelters, greedy now loses in 112 of 159 and costs up to 17.8% more (池上鄉 5 km flood: 440 against 362 person-hours; 金峰鄉 10 km flood 17.5%; 池上鄉 10 km flood 16.0%).
 - **The longest trip drops by about 15%** (215 → 183 min, 125 → 107 min), although only the total is minimised: greedy fills nearby shelters with whoever comes first and leaves the last villages the far ones.
 
 **3. Villages against township centroids.** The same evacuees, assigned the same way, once from village origins and once all from their township's population-weighted centre:
@@ -624,12 +624,14 @@ docker exec disaster_app python evals/run_assignment_eval.py
 
 | | Capacity fits demand (61) | Demand exceeds capacity (98) |
 |---|---|---|
+| Scenarios where the number placed differs | 0 | 0 |
 | Scenarios where min-cost flow is strictly better | 42 | 75 |
 | Extra total time taken by greedy | mean 2.8%, max 11.1% | mean 2.8%, max 15.3% |
+| Minutes per person, greedy → min-cost | 5.8 → 5.6 | 4.3 → 4.1 |
 | Longest single trip (mean), greedy → min-cost | 25.6 → 23.1 min | 15.0 → 13.1 min |
 
 - **The database and Python still agree** in 159 of 159 scenarios; the slowest database solve is 0.25 s.
 - **Largest gaps:** 鹿野鄉 10 km flood (205 against 173 person-hours, 15.3%), 太麻里鄉 5 km earthquake (15.0%), 金峰鄉 10 km earthquake (14.8%).
-- **Township centroids overstate driving even more:** 12.2 against 4.7 minutes per person (2.6×), with villages slower in only 2 scenarios. The walked leg from origin to road explains little of it: township centres are a median 50 m from a road (6 of 41 over 200 m) against 19 m for village origins. Most of the gap is that one centre stands in for settlements spread kilometres apart.
+- **Township centroids overstate driving even more:** 12.2 against 4.7 minutes per person (2.6×), with villages slower in only 2 scenarios. The leg from an origin to the nearest road is charged at walking speed even when driving, but it explains little of the gap: township centres are a median 50 m from a road (6 of 41 over 200 m) against 19 m for village origins (`summary.origin_to_road` in both result files). Most of the gap is that one centre stands in for settlements spread kilometres apart.
 
 **Tests.** The Python solver is checked against brute force on 200 small random cases; the database call is checked for its edge layout, integer costs and the mapping back to pairs, and for falling back to Python when it fails (`tests/simulation/test_min_cost_flow.py`).
