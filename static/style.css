@@ -198,8 +198,10 @@
         }
         .list-row:hover { border-color: var(--line-strong); background: rgba(255, 190, 46, 0.06); }
 
-        .row-label { font-size: 13px; color: var(--text-dim); flex: 1; letter-spacing: 0.04em; }
-        .row-value { font-size: 13.5px; font-weight: 700; color: var(--text); margin-right: 8px; }
+        .row-label { font-size: 13px; color: var(--text-dim); flex: 1 0 auto; letter-spacing: 0.04em; margin-right: 10px; }
+        .row-value { font-size: 13.5px; font-weight: 700; color: var(--text); margin-right: 8px;
+            /* 地圖選點的名稱可能很長（Near Fucheng Village, Toucheng Township）：用掉標籤以外的空間，再長才截斷 */
+            min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .chevron { color: var(--accent); font-size: 12px; transform: rotate(90deg); }
 
         .dropdown-menu {
@@ -237,6 +239,8 @@
         .dropdown-option:hover { background: var(--accent-dim); color: var(--text); }
         .dropdown-option.selected { color: var(--accent); font-weight: 700; border-left: 2px solid var(--accent); padding-left: 11px; }
         .checkmark { font-size: 12px; color: var(--accent); }
+        .dropdown-hint { padding: 8px 13px; font-size: 12px; color: var(--text-dim); border-top: 1px solid var(--hairline); cursor: default; }
+        .legend-ring { width: 9px; height: 9px; border-radius: 50%; border: 2px solid #e8f0ff; flex-shrink: 0; }
 
         .slider-row { padding: 2px 2px 8px; }
         .slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 9px; padding: 0 2px; }
