@@ -83,9 +83,10 @@ def click_map(page, lat, lon):
     page.wait_for_timeout(1500)
 
 
-def count_layers(page, color):
-    return page.evaluate("""color => { let n = 0; window.__map.eachLayer(l => {
-        if (l instanceof L.Path && !(l instanceof L.Polygon) && l.options.color === color) n++; }); return n; }""", color)
+def count_layers(page, theme_key):
+    """地圖上用 THEME[theme_key] 這個顏色畫的線或圈有幾個（THEME 在 static/js/controls.js）"""
+    return page.evaluate("""key => { let n = 0; window.__map.eachLayer(l => {
+        if (l instanceof L.Path && !(l instanceof L.Polygon) && l.options.color === THEME[key]) n++; }); return n; }""", theme_key)
 
 
 def last_message(page):
@@ -124,7 +125,7 @@ def test_browse_without_login(page):
     page.wait_for_timeout(1000)
     click_map(page, *PICK)
     assert page.locator("#loc-display").inner_text().startswith("頭城鎮")
-    assert count_layers(page, "#ffbe2e") == 1
+    assert count_layers(page, "picked") == 1
 
     # 語言切換：介面與選點名稱一起換，再換回來
     page.click("#btn-lang")
@@ -137,7 +138,7 @@ def test_browse_without_login(page):
     # 選回預設中心，選點標記要消失
     page.click("#loc-display")
     page.click("#loc-dropdown [data-i18n='loc_hualien']")
-    assert count_layers(page, "#ffbe2e") == 0
+    assert count_layers(page, "picked") == 0
 
     # 聊天：列表題由程式直接回答，不需要模型
     assert "花蓮市" in ask(page, "花蓮市的國小")
@@ -168,14 +169,14 @@ def test_simulation_round_trip(page):
         page.wait_for_function("!document.getElementById('btn-simulate').disabled", timeout=240000)
         page.wait_for_timeout(1000)
         assert "疏散模擬完成" in last_message(page)
-        assert count_layers(page, "#ffe14d") + count_layers(page, "#ff9f43") > 0  # 路線
-        assert count_layers(page, "#e8f0ff") > 0  # 村里起點
+        assert count_layers(page, "route") + count_layers(page, "routeHazard") > 0
+        assert count_layers(page, "origin") > 0
 
         before = page.locator("#chat-container > *").count()
         page.click("#btn-reset")
         page.wait_for_function(f"document.querySelectorAll('#chat-container > *').length > {before}", timeout=120000)
         assert "已還原" in last_message(page)
-        assert count_layers(page, "#e8f0ff") == 0
+        assert count_layers(page, "origin") == 0
     finally:
         # 不論成敗都把收容人數還原，不留下測試的模擬
         page.evaluate("fetch('/api/reset_simulation', {method: 'POST'})")
