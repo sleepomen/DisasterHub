@@ -18,10 +18,10 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 // 淹水模擬會避開落在範圍內的避難所，畫出來使用者才看得懂為什麼某間沒有人去
 // 即時土石流警戒（後端定期向農村水保署抓取）：發布警戒的範圍改成紅色或黃色，
 // 紅色警戒範圍內的道路封閉、黃色警戒範圍內的道路盡量繞行，路線規劃用的是同一份資料
-const ZONE_STYLE = { color: '#ff9f43', weight: 1, opacity: 0.7, fillColor: '#ff9f43', fillOpacity: 0.18 };
+const ZONE_STYLE = { color: THEME.zone, weight: 1, opacity: 0.8, fillColor: THEME.zone, fillOpacity: 0.16 };
 const ALERT_STYLE = {
-    red: { color: '#ff3d5c', weight: 2, opacity: 0.9, fillColor: '#ff3d5c', fillOpacity: 0.35 },
-    yellow: { color: '#ffd23d', weight: 2, opacity: 0.9, fillColor: '#ffd23d', fillOpacity: 0.3 },
+    red: { color: THEME.alertRed, weight: 2, opacity: 0.95, fillColor: THEME.alertRed, fillOpacity: 0.32 },
+    yellow: { color: THEME.alertYellow, weight: 2, opacity: 0.95, fillColor: THEME.alertYellow, fillOpacity: 0.3 },
 };
 let hazardLayer = null;
 let alertsByRef = {};

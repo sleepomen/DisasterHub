@@ -13,11 +13,8 @@ document.getElementById('btn-simulate').addEventListener('click', async () => {
     const radius = parseFloat(document.getElementById('sim-radius').value);
     const type = state.type;
 
-    let color = '#ff3d5c';
-    if (type === 'flood') color = '#4da6ff';
-    if (type === 'fire') color = '#ff7a3d';
-
-    const dotColor = '#ffe14d';
+    const color = THEME.impact[type] || THEME.impact.earthquake;
+    const dotColor = THEME.crowd;
 
     if (disasterCircle) map.removeLayer(disasterCircle);
     clearRoutes();

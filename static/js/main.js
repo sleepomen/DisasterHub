@@ -9,7 +9,7 @@ function showRadius() {
     const v = radiusInput.value;
     document.getElementById('radius-val').textContent = `${v} km`;
     const pct = ((v - radiusInput.min) / (radiusInput.max - radiusInput.min)) * 100;
-    radiusInput.style.background = `linear-gradient(to right, #ffbe2e ${pct}%, rgba(255,190,46,0.15) ${pct}%)`;
+    radiusInput.style.background = `linear-gradient(to right, ${THEME.accent} ${pct}%, ${THEME.accentTrack} ${pct}%)`;
 }
 radiusInput.addEventListener('input', showRadius);
 showRadius();
@@ -34,3 +34,14 @@ if (retryBtn) {
 checkAuth();
 loadPopulationModel();
 loadShelters();
+
+// 圖例的色塊跟地圖上畫的是同一組顏色（THEME），不在 HTML 裡另外寫一份
+document.querySelectorAll('.legend [data-theme]').forEach(el => {
+    const color = THEME[el.dataset.theme];
+    if (el.classList.contains('legend-ring') || el.classList.contains('legend-area')) {
+        el.style.borderColor = color;
+        if (el.classList.contains('legend-area')) el.style.background = `${color}40`;
+    } else {
+        el.style.background = color;
+    }
+});

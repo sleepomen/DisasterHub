@@ -51,7 +51,7 @@ map.on('click', async (e) => {
     picked = { lat, lon, land: true, township: '', village: '' };
     if (!pickedMarker) {
         pickedMarker = L.circleMarker([lat, lon], {
-            radius: 7, color: '#ffbe2e', weight: 2, fillColor: '#ffbe2e', fillOpacity: 0.35,
+            radius: 7, color: THEME.picked, weight: 2.5, fillColor: '#FFFFFF', fillOpacity: 0.9,
         }).bindTooltip('', { direction: 'top', offset: [0, -6] }).addTo(map);
     } else {
         pickedMarker.setLatLng([lat, lon]);
@@ -84,7 +84,7 @@ function drawOrigins(villages) {
     (villages || []).forEach(v => {
         L.circleMarker([v.lat, v.lon], {
             radius: Math.min(9, 2.5 + Math.sqrt(v.weight) / 15),
-            color: '#e8f0ff', weight: 1.5, opacity: 0.85, fillOpacity: 0,
+            color: THEME.origin, weight: 1.5, opacity: 0.9, fillColor: '#FFFFFF', fillOpacity: 0.5,
         }).bindTooltip(() => I18N.t('origin_tip', {
             name: I18N.lang === 'en' ? (v.name_en || v.name) : v.name,
             n: Math.round(v.weight).toLocaleString(I18N.lang === 'en' ? 'en' : 'zh-TW'),

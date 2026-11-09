@@ -125,9 +125,10 @@ function drawRoutes(flows, routes) {
         const tip = () => I18N.t(f.path ? 'route_tip' : 'route_tip_straight', vars) + (f.hazard_m ? I18N.t('route_tip_hazard', vars) : '');
         L.polyline(routes[i].points.map(p => [p.lat, p.lon]), {
             // 沒有更安全的路、仍有路段經過災害範圍的路線用橘色標出來
-            color: f.hazard_m ? '#ff9f43' : '#ffe14d',
-            weight: Math.min(7, 1.5 + Math.sqrt(f.people) / 12),
-            opacity: f.path ? 0.55 : 0.35,
+            color: f.hazard_m ? THEME.routeHazard : THEME.route,
+            // 淺色地圖上要比以前的深色底粗、不透明一點才看得到
+            weight: Math.min(7, 2.4 + Math.sqrt(f.people) / 12),
+            opacity: f.path ? 0.8 : 0.5,
             dashArray: f.path ? null : '4, 6',
         }).bindTooltip(tip, { sticky: true })
           .addTo(routeLayer);

@@ -43,24 +43,18 @@ function isLand(lat, lon) {
 const shelterOccupancy = {};
 
 function getOccupancyColor(rate) {
-    if (rate < 0.5) return '#2ee6a8';
-    if (rate < 0.8) return '#ff7a3d';
-    return '#ff3d5c';
+    if (rate < 0.5) return THEME.loadLow;
+    if (rate < 0.8) return THEME.loadMid;
+    return THEME.loadHigh;
 }
 
 function createMarkerIcon(baseColor, size, occupancyRate) {
     const color = occupancyRate > 0 ? getOccupancyColor(occupancyRate) : baseColor;
-    const s = size + 12;
+    // 白邊圓點：大小依容量，顏色依地區；有人收容之後改成收容率的顏色
+    const s = Math.round(size * 0.75 + 4);
     return L.divIcon({
         className: '',
-        html: `<svg width="${s}" height="${s}" viewBox="0 0 28 28" style="filter:drop-shadow(0 2px 5px rgba(6,10,20,0.65));overflow:visible">
-            <path d="M14 2 L24.4 8 V20 L14 26 L3.6 20 V8 Z" fill="#10141f" fill-opacity="0.55" stroke="${color}" stroke-width="1.8"/>
-            <path d="M14 7.4 L19.7 10.7 V17.3 L14 20.6 L8.3 17.3 V10.7 Z" fill="${color}"/>
-            <line x1="14" y1="2" x2="14" y2="5.2" stroke="${color}" stroke-width="1.6"/>
-            <line x1="3.6" y1="20" x2="6.4" y2="18.4" stroke="${color}" stroke-width="1.6"/>
-            <line x1="24.4" y1="20" x2="21.6" y2="18.4" stroke="${color}" stroke-width="1.6"/>
-            <circle cx="14" cy="14" r="1.6" fill="#10141f"/>
-        </svg>`,
+        html: `<div class="shelter-dot" style="width:${s}px;height:${s}px;background:${color}"></div>`,
         iconSize: [s, s],
         iconAnchor: [s/2, s/2],
     });
@@ -105,7 +99,7 @@ function renderMarkers(data) {
     markers = [];
 
     data.forEach(d => {
-        const baseColor = d.name.includes('YILAN') ? '#4da6ff' : '#2ee6a8';
+        const baseColor = d.name.includes('YILAN') ? THEME.yilan : THEME.hualienTaitung;
         // 消防署資料的容量中位數只有 70 人：用平方根才分得出大小，線性的話幾乎全部縮成最小值
         const size = Math.max(10, Math.min(26, 6 + Math.sqrt(d.z || 0)));
         const occ = shelterOccupancy[d.name] || 0;
@@ -150,7 +144,7 @@ function buildPopup(d) {
     const occ = shelterOccupancy[d.name] || 0;
     const remaining = Math.max(0, d.z - occ);
     const rate = Math.min(100, Math.round(occ / d.z * 100));
-    const barColor = rate < 50 ? '#2ee6a8' : rate < 80 ? '#ff7a3d' : '#ff3d5c';
+    const barColor = getOccupancyColor(rate / 100);
     return name + `
         <div class="popup-row"><span>${I18N.t('popup_capacity')}</span><span>${d.z} ${I18N.t('people_unit')}</span></div>
         <div class="popup-row"><span>${I18N.t('popup_current')}</span><span>${occ} ${I18N.t('people_unit')}</span></div>

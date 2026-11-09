@@ -6,7 +6,7 @@
     <title>Disaster Hub</title>
     <!-- 跟左上角的標誌同一個圖形；沒有它瀏覽器會去要 /favicon.ico，每次載入都留一個 404 -->
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap" rel="stylesheet">
     <!-- Leaflet 打包在本地：災時對外網路不穩也要能載入地圖程式；底圖圖磚仍需連線 -->
     <link rel="stylesheet" href="/static/vendor/leaflet/leaflet.css"/>
     <script src="/static/vendor/leaflet/leaflet.js"></script>
@@ -19,11 +19,10 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7V12C3 17.5 6.8 21.7 12 23C17.2 21.7 21 17.5 21 12V7L12 2Z" stroke="white" stroke-width="2" stroke-linejoin="round" fill="rgba(255,255,255,0.15)"/></svg>
     </div>
     <div class="brand">
-        <span class="brand-name">Disaster<b>_Hub</b></span>
-        <span class="brand-sub">East Taiwan Shelter Ops</span>
+        <span class="brand-name" data-i18n="brand_name">東台灣避難所決策系統</span>
+        <span class="brand-sub" data-i18n="brand_sub">宜蘭・花蓮・台東 避難收容處所與疏散模擬</span>
     </div>
     <div class="nav-stats">
-        <div class="stat-chip"><span class="live-dot"></span><span data-i18n="live">即時監測中</span></div>
         <div class="stat-chip"><span data-i18n="stat_shelters">避難所</span> <b id="stat-shelters">–</b></div>
         <div class="stat-chip"><span data-i18n="stat_capacity">總容量</span> <b id="stat-capacity">–</b></div>
     </div>
@@ -48,13 +47,14 @@
             <button type="button" id="app-error-retry" data-i18n="btn_retry">重新載入</button>
         </div>
         <div class="legend">
-            <div class="legend-item"><div class="legend-dot" style="background:#2ee6a8"></div><span data-i18n="legend_hualien_taitung">花蓮 / 台東避難所</span></div>
-            <div class="legend-item"><div class="legend-dot" style="background:#4da6ff"></div><span data-i18n="legend_yilan">宜蘭避難所</span></div>
-            <div class="legend-item"><div class="legend-dot" style="background:#ff3d5c"></div><span data-i18n="legend_impact">受災影響範圍</span></div>
-            <div class="legend-item"><div class="legend-dot" style="background:#ffe14d"></div><span data-i18n="legend_crowd">疏散中人群</span></div>
-            <div class="legend-item"><div class="legend-line"></div><span data-i18n="legend_route">疏散路線</span></div>
-            <div class="legend-item"><div class="legend-ring"></div><span data-i18n="legend_origin">疏散起點（村里）</span></div>
-            <div class="legend-item"><div class="legend-dot" style="background:#ff9f43"></div><span data-i18n="legend_debris">土石流潛勢影響範圍</span></div>
+            <!-- 色塊的顏色由 static/js/main.js 依 data-theme 從 THEME 填入，跟地圖上畫的是同一組 -->
+            <div class="legend-item"><div class="legend-dot" data-theme="hualienTaitung"></div><span data-i18n="legend_hualien_taitung">花蓮 / 台東避難所</span></div>
+            <div class="legend-item"><div class="legend-dot" data-theme="yilan"></div><span data-i18n="legend_yilan">宜蘭避難所</span></div>
+            <div class="legend-item"><div class="legend-dot" data-theme="crowd"></div><span data-i18n="legend_crowd">疏散中人群</span></div>
+            <div class="legend-item"><div class="legend-line" data-theme="route"></div><span data-i18n="legend_route">疏散路線</span></div>
+            <div class="legend-item"><div class="legend-ring" data-theme="origin"></div><span data-i18n="legend_origin">疏散起點（村里）</span></div>
+            <div class="legend-item"><div class="legend-area" data-theme="zone"></div><span data-i18n="legend_debris">土石流潛勢影響範圍</span></div>
+            <div class="legend-item"><div class="legend-area" data-theme="alertRed"></div><span data-i18n="legend_alert">紅色警戒（道路封閉）</span></div>
         </div>
     </div>
 
@@ -157,7 +157,7 @@
 
 <div id="login-overlay" class="login-overlay" hidden>
     <form id="login-form" class="login-card">
-        <div class="login-title"><span data-i18n="login_title">登入</span> Disaster<b>_Hub</b></div>
+        <div class="login-title" data-i18n="login_title">登入</div>
         <div class="login-sub" data-i18n="login_sub">執行模擬與回寫收容人數需要管理者帳號。不登入仍可瀏覽地圖與使用問答。</div>
         <input class="input-field" type="text" id="login-user" placeholder="帳號" data-i18n-placeholder="login_user" autocomplete="username" required>
         <input class="input-field" type="password" id="login-pass" placeholder="密碼" data-i18n-placeholder="login_pass" autocomplete="current-password" required>
