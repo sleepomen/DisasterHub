@@ -620,4 +620,16 @@ docker exec disaster_app python evals/run_assignment_eval.py
 - **In 6 scenarios villages are slower.** Five are in the mountain townships 大同鄉 and 金峰鄉, where the centroid happened to lie near the shelters while the villages are far up the valleys (大同鄉 10 km earthquake 65 → 145 min); the sixth is 鳳林鎮 10 km earthquake (38 → 43). That is the model becoming more realistic, not worse.
 - **The number placed does not change** (0 of 159): capacity, not origins, decides how many fit.
 
+**4. By car** (`--mode drive --label assignment_eval_drive`: one-way streets, speeds by road class). The pattern holds:
+
+| | Capacity fits demand (61) | Demand exceeds capacity (98) |
+|---|---|---|
+| Scenarios where min-cost flow is strictly better | 42 | 75 |
+| Extra total time taken by greedy | mean 2.8%, max 11.1% | mean 2.8%, max 15.3% |
+| Longest single trip (mean), greedy → min-cost | 25.6 → 23.1 min | 15.0 → 13.1 min |
+
+- **The database and Python still agree** in 159 of 159 scenarios; the slowest database solve is 0.25 s.
+- **Largest gaps:** 鹿野鄉 10 km flood (205 against 173 person-hours, 15.3%), 太麻里鄉 5 km earthquake (15.0%), 金峰鄉 10 km earthquake (14.8%).
+- **Township centroids overstate driving even more:** 12.2 against 4.7 minutes per person (2.6×), with villages slower in only 2 scenarios. The walked leg from origin to road explains little of it: township centres are a median 50 m from a road (6 of 41 over 200 m) against 19 m for village origins. Most of the gap is that one centre stands in for settlements spread kilometres apart.
+
 **Tests.** The Python solver is checked against brute force on 200 small random cases; the database call is checked for its edge layout, integer costs and the mapping back to pairs, and for falling back to Python when it fails (`tests/simulation/test_min_cost_flow.py`).
