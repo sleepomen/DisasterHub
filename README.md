@@ -21,7 +21,7 @@ Built in response to the 2025 barrier-lake disaster in Guangfu Township, Hualien
 - **Real data.** 644 shelters from the National Fire Agency's open dataset, the registered population of all 554 villages, 531 debris-flow zones, the OpenStreetMap road network of the three counties, and 34 disaster-preparedness passages rewritten from official Central Weather Administration, Fire Agency and Soil and Water Conservation pages.
 - **Answers in under a second, mostly without the LLM.** When the rules layer already knows which shelters or which passage answer a question, the reply is assembled by code. 201 of the 207 generation-eval questions never call the model. p50 latency is 0.2 s, and accuracy went up, because the model can no longer misquote a list it is copying.
 - **Refuses what it does not know.** Out-of-area counties, off-topic questions, shelters that do not exist and misspelled names are handled before the model sees anything. 53 of 53 boundary questions are answered or refused correctly.
-- **Evacuation by road, not straight line.** Simulations send evacuees to the shelters with room that they can reach fastest, on foot or by car, along the OpenStreetMap road network (pgRouting). The actual routes are drawn on the map, they bend around debris-flow zones in floods, and a red debris-flow alert from the soil and water conservation agency closes the roads inside its zone.
+- **Evacuation by road, not straight line.** Click anywhere on the map to pick the simulation centre. Evacuees start from every affected village and are assigned to shelters with room so that the total travel time, on foot or by car along the OpenStreetMap road network, is as short as possible (min-cost flow, solved in pgRouting). The actual routes are drawn on the map, they bend around debris-flow zones in floods, and a red debris-flow alert from the soil and water conservation agency closes the roads inside its zone.
 - **Measured, not claimed.** Separate evaluations for retrieval, generation, routing, boundaries, counterfactual faithfulness and knowledge answers, with bootstrap confidence intervals, plus 666 tests.
 
 | | |
@@ -154,7 +154,7 @@ The code is released under the [MIT License](LICENSE). The data keeps its own li
 - **真實資料**：消防署開放資料的 644 間避難所、554 個村里的戶籍人口、531 個土石流潛勢區域、三縣的 OpenStreetMap 路網，以及依中央氣象署、消防署、農村水保署官方頁面改寫的 34 段防災知識。
 - **不到一秒回答，大部分不經過 LLM**：只要規則層已經知道答案是哪些避難所或哪一段知識，回覆就由程式組出來。生成評測 207 題裡有 201 題完全不打模型，p50 延遲 0.2 秒；正確率也跟著提升，因為模型沒機會在重抄清單時抄錯。
 - **不知道的就不答**：範圍外縣市、離題問題、不存在的避難所、錯字名稱，都在模型看到之前處理掉。邊界題 53 題全部正確回答或拒答。
-- **依道路疏散，不是直線**：模擬時沿 OpenStreetMap 路網（pgRouting），把疏散人口送到步行或開車最快到、還有空位的避難所。實際路線畫在地圖上，淹水時會繞開土石流潛勢範圍；農村水保署發布土石流紅色警戒時，範圍內的道路直接封閉。
+- **依道路疏散，不是直線**：在地圖上任何地方點一下就能當模擬中心。疏散人口從每個受影響的村里出發，分配到還有空位的避難所，讓所有人沿 OpenStreetMap 路網步行或開車的時間加總最短（最小成本流，在 pgRouting 裡解）。實際路線畫在地圖上，淹水時會繞開土石流潛勢範圍；農村水保署發布土石流紅色警戒時，範圍內的道路直接封閉。
 - **用數字說話**：檢索、生成、路由、邊界題、反事實忠實度、防災知識各有獨立評測，附 bootstrap 信賴區間，另有 666 個測試。
 
 | | |
