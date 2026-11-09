@@ -124,7 +124,16 @@ DisasterHub/
 │   ├── index.html              # 頁面骨架
 │   ├── style.css               # 介面樣式
 │   ├── i18n.js                 # 介面的中英文字串與語言切換
-│   └── app.js                  # 地圖 / 模擬 / 聊天邏輯
+│   └── js/                     # 頁面邏輯，依序用一般的 <script> 載入、共用同一個全域範圍
+│       ├── controls.js         # 左側面板的下拉選單與目前的選項
+│       ├── auth.js             # 登入狀態、登入視窗、帶 session 的 POST
+│       ├── map.js              # Leaflet 地圖、底圖、土石流潛勢範圍與即時警戒
+│       ├── shelters.js         # 避難所標記：載入、收容率配色、彈出視窗、地區篩選
+│       ├── crowd.js            # 疏散動畫與路線圖層
+│       ├── simulation.js       # 執行模擬與清除圖層的按鈕
+│       ├── picking.js          # 在地圖上點選模擬中心、村里起點
+│       ├── chat.js             # AI 助手對話框與串流回答
+│       └── main.js             # 半徑滑桿、語言切換、頁面載入；最後載入
 │
 └── tests/
     ├── conftest.py             # 共用 fixture（連真實資料庫的 repository）

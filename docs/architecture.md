@@ -124,7 +124,16 @@ DisasterHub/
 │   ├── index.html              # Page skeleton
 │   ├── style.css               # UI styles
 │   ├── i18n.js                 # Interface strings in Chinese and English, language toggle
-│   └── app.js                  # Map / simulation / chat logic
+│   └── js/                     # Page logic, loaded in order as plain scripts sharing one global scope
+│       ├── controls.js         # Side-panel dropdowns and the current choices
+│       ├── auth.js             # Login state, login dialog, authenticated POSTs
+│       ├── map.js              # Leaflet map, base tiles, debris-flow zones and live alerts
+│       ├── shelters.js         # Shelter markers: loading, occupancy colours, popups, region filter
+│       ├── crowd.js            # Evacuation animation and route layer
+│       ├── simulation.js       # Run-simulation and clear buttons
+│       ├── picking.js          # Picking the simulation centre on the map, village origins
+│       ├── chat.js             # Assistant chat and streamed answers
+│       └── main.js             # Radius slider, language toggle, start-up; loaded last
 │
 └── tests/
     ├── conftest.py             # Shared fixtures (real-database repository)
