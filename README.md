@@ -41,7 +41,7 @@ Built in response to the 2025 barrier-lake disaster in Guangfu Township, Hualien
 <td width="50%"><img src="docs/images/alert.jpg" alt="Red debris-flow alerts west of Taitung City cutting off four villages"></td>
 </tr>
 <tr>
-<td>Each yellow line is one village → shelter allocation, drawn along the road. Hovering shows the headcount, the road distance, and the time on foot and by car.</td>
+<td>Each dark blue line is one village → shelter allocation, drawn along the road. Hovering shows the headcount, the road distance, and the time on foot and by car.</td>
 <td>Red debris-flow alerts on nine zones west of 台東市 leave four villages (大王村, 龍田村, 嘉豐村, 紅葉村) with no safe road to any shelter, and three shelters with no safe road in. Those villages' evacuees are counted as unplaced, no one is sent to those shelters, and the summary says why. The alerts were inserted for the screenshot; live alerts come from the agency's feed every 10 minutes.</td>
 </tr>
 <tr>
@@ -174,7 +174,7 @@ The code is released under the [MIT License](LICENSE). The data keeps its own li
 <td width="50%"><img src="docs/images/alert.jpg" alt="台東市西邊的土石流紅色警戒切斷四個村里"></td>
 </tr>
 <tr>
-<td>每條黃線是一筆「村里 → 避難所」的分配，沿道路畫出。滑鼠移上去會顯示人數、道路距離，以及步行和開車各要幾分鐘。</td>
+<td>每條深藍色的線是一筆「村里 → 避難所」的分配，沿道路畫出。滑鼠移上去會顯示人數、道路距離，以及步行和開車各要幾分鐘。</td>
 <td>台東市西邊九條潛勢溪流發布土石流紅色警戒，大王村、龍田村、嘉豐村、紅葉村四個村里因此沒有安全道路可到任何避難所，另有三間避難所沒有安全道路可到。這四個村里的需疏散人數計入無法安置，那三間避難所沒有分配人員前往，摘要裡也說明原因。這張的警戒是為截圖插入的測試資料；實際警戒由農村水保署的資料每 10 分鐘更新一次。</td>
 </tr>
 <tr>
