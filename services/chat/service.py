@@ -21,7 +21,7 @@ from services.chat.direct_answer import nearest_answer
 from services.chat.replies import (
     AI_UNAVAILABLE,
     GENERIC_ERROR,
-    KNOWLEDGE_UNAVAILABLE,  
+    KNOWLEDGE_UNAVAILABLE,
     NEEDS_COORDS_REPLY,
     NO_IMPACTED_REPLY,
     NO_KNOWLEDGE_REPLY,
