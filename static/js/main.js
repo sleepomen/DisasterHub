@@ -38,7 +38,11 @@ loadShelters();
 // 圖例的色塊跟地圖上畫的是同一組顏色（THEME），不在 HTML 裡另外寫一份
 document.querySelectorAll('.legend [data-theme]').forEach(el => {
     const color = THEME[el.dataset.theme];
-    if (el.classList.contains('legend-ring') || el.classList.contains('legend-area')) {
+    if (el.dataset.theme === 'crowd') {
+        // 跟地圖上的人群點一樣：白點加深色外框
+        el.style.background = '#FFFFFF';
+        el.style.boxShadow = `0 0 0 2px ${color}`;
+    } else if (el.classList.contains('legend-ring') || el.classList.contains('legend-area')) {
         el.style.borderColor = color;
         if (el.classList.contains('legend-area')) el.style.background = `${color}40`;
     } else {

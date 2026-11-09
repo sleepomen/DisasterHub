@@ -232,13 +232,14 @@ function startCrowdAnimation(plan, finalOccupancy, disasterLat, dotColor) {
 
             allDone = false;
 
-            // 畫人群點
+            // 畫人群點：白點加深色外框。路線也是深藍，實心的深藍點走在線上會融在一起看不見
             ctx.beginPath();
             ctx.arc(pos.x, pos.y, 3.5, 0, Math.PI * 2);
-            ctx.fillStyle = dotColor;
-            ctx.globalAlpha = 0.85;
+            ctx.fillStyle = '#FFFFFF';
             ctx.fill();
-            ctx.globalAlpha = 1;
+            ctx.lineWidth = 1.8;
+            ctx.strokeStyle = dotColor;
+            ctx.stroke();
         });
 
         // 更新進度條
