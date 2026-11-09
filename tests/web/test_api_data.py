@@ -355,6 +355,15 @@ def test_reset_keeps_simulation_snapshot_when_database_fails(client):
     app_module.chat_service.clear_simulation()
 
 
+def test_locate_endpoint_names_the_picked_point(client):
+    res = client.get("/api/locate", params={"lat": 24.86, "lon": 121.83})
+    assert res.status_code == 200
+    body = res.json()
+    assert body["township"] == "頭城鎮" and body["township_en"] == "Toucheng Township"
+    assert body["village_en"].endswith(", Toucheng Township")
+    assert client.get("/api/locate", params={"lat": 91, "lon": 121}).status_code == 422
+
+
 def test_population_endpoint(client):
     res = client.get("/api/population")
     assert res.status_code == 200

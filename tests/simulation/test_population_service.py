@@ -106,3 +106,16 @@ def test_custom_data_file(tmp_path):
 def test_distance_km_matches_haversine():
     assert distance_km(23.977, 121.601, 23.977, 121.601) == 0
     assert distance_km(23.977, 121.601, 22.756, 121.144) == pytest.approx(143.6, abs=1.0)
+
+
+def test_locate_names_a_picked_point_after_the_nearest_village(model):
+    """地圖選點的標籤：最近的村里起點在 5 公里內就冠它的鄉鎮與村里，海上不冠"""
+    place = model.locate(24.86, 121.83)
+    assert (place["township"], place["village"], place["land"]) == ("頭城鎮", "武營里", True)
+    sea = model.locate(23.0, 122.0)
+    assert sea["land"] is False and sea["township"] == "" and sea["distance_km"] > 5
+
+
+def test_village_origins_carry_english_names(model):
+    names = {v["name"]: v["name_en"] for v in model.villages}
+    assert names["壽豐鄉豐裡村"] == "Fengli Village, Shoufeng Township"
