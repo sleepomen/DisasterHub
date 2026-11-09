@@ -1,0 +1,5967 @@
+{
+  "summary": {
+    "mode": "drive",
+    "scenarios": 159,
+    "db_and_python_agree": "159/159",
+    "origins_per_scenario": {
+      "villages_max": 146,
+      "townships_max": 9
+    },
+    "seconds_max": {
+      "cost_matrix": 0.845,
+      "db_solver": 0.254,
+      "python_solver": 1.519
+    },
+    "capacity_fits_demand": {
+      "scenarios": 61,
+      "placed_differs": 0,
+      "min_cost_better": 42,
+      "greedy_extra_time_mean": 0.028,
+      "greedy_extra_time_max": 0.1113,
+      "minutes_per_person": [
+        5.8,
+        5.6
+      ],
+      "longest_trip_minutes": [
+        25.6,
+        23.1
+      ]
+    },
+    "demand_exceeds_capacity": {
+      "scenarios": 98,
+      "placed_differs": 0,
+      "min_cost_better": 75,
+      "greedy_extra_time_mean": 0.0284,
+      "greedy_extra_time_max": 0.1534,
+      "minutes_per_person": [
+        4.3,
+        4.1
+      ],
+      "longest_trip_minutes": [
+        15.0,
+        13.1
+      ]
+    },
+    "villages_vs_township_centroids": {
+      "minutes_per_person": [
+        12.2,
+        4.7
+      ],
+      "longest_trip_minutes": [
+        26.5,
+        17.0
+      ],
+      "per_person_difference_minutes": {
+        "mean": -7.5,
+        "min": -42.0,
+        "max": 4.0
+      },
+      "scenarios_longer_with_villages": 2
+    },
+    "largest_gaps": [
+      {
+        "scenario": "鹿野鄉 10 km flood",
+        "greedy_person_hours": 204.7,
+        "min_cost_person_hours": 173.3,
+        "gap": 0.1534
+      },
+      {
+        "scenario": "太麻里鄉 5 km earthquake",
+        "greedy_person_hours": 78.8,
+        "min_cost_person_hours": 67.0,
+        "gap": 0.1497
+      },
+      {
+        "scenario": "金峰鄉 10 km earthquake",
+        "greedy_person_hours": 149.6,
+        "min_cost_person_hours": 127.5,
+        "gap": 0.1477
+      }
+    ]
+  },
+  "rows": [
+    {
+      "scenario": "宜蘭市 5 km earthquake",
+      "villages": 71,
+      "townships": 6,
+      "shelters": 63,
+      "pairs": 4473,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.239,
+        "db_solver": 0.054,
+        "python_solver": 0.154
+      },
+      "min_cost": {
+        "placed": 9240,
+        "person_hours": 518.5,
+        "minutes_per_person": 3.37,
+        "longest_trip_minutes": 10.2
+      },
+      "python": {
+        "placed": 9240,
+        "person_hours": 518.5,
+        "minutes_per_person": 3.37,
+        "longest_trip_minutes": 10.2
+      },
+      "greedy": {
+        "placed": 9240,
+        "person_hours": 537.0,
+        "minutes_per_person": 3.49,
+        "longest_trip_minutes": 10.2
+      },
+      "township_origins": {
+        "placed": 9240,
+        "person_hours": 819.4,
+        "minutes_per_person": 5.32,
+        "longest_trip_minutes": 12.2
+      }
+    },
+    {
+      "scenario": "宜蘭市 5 km flood",
+      "villages": 71,
+      "townships": 6,
+      "shelters": 63,
+      "pairs": 4473,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.249,
+        "db_solver": 0.047,
+        "python_solver": 0.087
+      },
+      "min_cost": {
+        "placed": 9240,
+        "person_hours": 400.8,
+        "minutes_per_person": 2.6,
+        "longest_trip_minutes": 8.2
+      },
+      "python": {
+        "placed": 9240,
+        "person_hours": 400.8,
+        "minutes_per_person": 2.6,
+        "longest_trip_minutes": 8.2
+      },
+      "greedy": {
+        "placed": 9240,
+        "person_hours": 408.0,
+        "minutes_per_person": 2.65,
+        "longest_trip_minutes": 9.4
+      },
+      "township_origins": {
+        "placed": 9240,
+        "person_hours": 797.6,
+        "minutes_per_person": 5.18,
+        "longest_trip_minutes": 12.2
+      }
+    },
+    {
+      "scenario": "宜蘭市 10 km earthquake",
+      "villages": 145,
+      "townships": 9,
+      "shelters": 130,
+      "pairs": 18850,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.845,
+        "db_solver": 0.245,
+        "python_solver": 1.519
+      },
+      "min_cost": {
+        "placed": 21417,
+        "person_hours": 2187.9,
+        "minutes_per_person": 6.13,
+        "longest_trip_minutes": 28.2
+      },
+      "python": {
+        "placed": 21417,
+        "person_hours": 2187.9,
+        "minutes_per_person": 6.13,
+        "longest_trip_minutes": 28.2
+      },
+      "greedy": {
+        "placed": 21417,
+        "person_hours": 2270.3,
+        "minutes_per_person": 6.36,
+        "longest_trip_minutes": 30.1
+      },
+      "township_origins": {
+        "placed": 21417,
+        "person_hours": 2708.2,
+        "minutes_per_person": 7.59,
+        "longest_trip_minutes": 31.6
+      }
+    },
+    {
+      "scenario": "宜蘭市 10 km flood",
+      "villages": 145,
+      "townships": 9,
+      "shelters": 126,
+      "pairs": 18270,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.759,
+        "db_solver": 0.152,
+        "python_solver": 0.838
+      },
+      "min_cost": {
+        "placed": 20525,
+        "person_hours": 1238.5,
+        "minutes_per_person": 3.62,
+        "longest_trip_minutes": 25.3
+      },
+      "python": {
+        "placed": 20525,
+        "person_hours": 1238.5,
+        "minutes_per_person": 3.62,
+        "longest_trip_minutes": 25.3
+      },
+      "greedy": {
+        "placed": 20525,
+        "person_hours": 1263.4,
+        "minutes_per_person": 3.69,
+        "longest_trip_minutes": 26.8
+      },
+      "township_origins": {
+        "placed": 20525,
+        "person_hours": 1946.3,
+        "minutes_per_person": 5.69,
+        "longest_trip_minutes": 26.1
+      }
+    },
+    {
+      "scenario": "羅東鎮 5 km earthquake",
+      "villages": 58,
+      "townships": 7,
+      "shelters": 49,
+      "pairs": 2842,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.142,
+        "db_solver": 0.025,
+        "python_solver": 0.051
+      },
+      "min_cost": {
+        "placed": 8874,
+        "person_hours": 313.7,
+        "minutes_per_person": 2.12,
+        "longest_trip_minutes": 8.2
+      },
+      "python": {
+        "placed": 8874,
+        "person_hours": 313.7,
+        "minutes_per_person": 2.12,
+        "longest_trip_minutes": 8.2
+      },
+      "greedy": {
+        "placed": 8874,
+        "person_hours": 323.8,
+        "minutes_per_person": 2.19,
+        "longest_trip_minutes": 9.6
+      },
+      "township_origins": {
+        "placed": 8874,
+        "person_hours": 480.5,
+        "minutes_per_person": 3.25,
+        "longest_trip_minutes": 9.6
+      }
+    },
+    {
+      "scenario": "羅東鎮 5 km flood",
+      "villages": 58,
+      "townships": 7,
+      "shelters": 45,
+      "pairs": 2610,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.145,
+        "db_solver": 0.027,
+        "python_solver": 0.03
+      },
+      "min_cost": {
+        "placed": 8064,
+        "person_hours": 251.8,
+        "minutes_per_person": 1.87,
+        "longest_trip_minutes": 5.9
+      },
+      "python": {
+        "placed": 8064,
+        "person_hours": 251.8,
+        "minutes_per_person": 1.87,
+        "longest_trip_minutes": 5.9
+      },
+      "greedy": {
+        "placed": 8064,
+        "person_hours": 254.7,
+        "minutes_per_person": 1.89,
+        "longest_trip_minutes": 5.9
+      },
+      "township_origins": {
+        "placed": 8064,
+        "person_hours": 438.6,
+        "minutes_per_person": 3.26,
+        "longest_trip_minutes": 9.6
+      }
+    },
+    {
+      "scenario": "羅東鎮 10 km earthquake",
+      "villages": 145,
+      "townships": 8,
+      "shelters": 129,
+      "pairs": 18705,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.826,
+        "db_solver": 0.162,
+        "python_solver": 1.078
+      },
+      "min_cost": {
+        "placed": 18178,
+        "person_hours": 1112.9,
+        "minutes_per_person": 3.67,
+        "longest_trip_minutes": 28.6
+      },
+      "python": {
+        "placed": 18178,
+        "person_hours": 1112.9,
+        "minutes_per_person": 3.67,
+        "longest_trip_minutes": 28.6
+      },
+      "greedy": {
+        "placed": 18178,
+        "person_hours": 1181.6,
+        "minutes_per_person": 3.9,
+        "longest_trip_minutes": 32.1
+      },
+      "township_origins": {
+        "placed": 18178,
+        "person_hours": 1623.1,
+        "minutes_per_person": 5.36,
+        "longest_trip_minutes": 35.1
+      }
+    },
+    {
+      "scenario": "羅東鎮 10 km flood",
+      "villages": 146,
+      "townships": 8,
+      "shelters": 123,
+      "pairs": 17958,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.653,
+        "db_solver": 0.146,
+        "python_solver": 0.706
+      },
+      "min_cost": {
+        "placed": 17338,
+        "person_hours": 688.0,
+        "minutes_per_person": 2.38,
+        "longest_trip_minutes": 8.6
+      },
+      "python": {
+        "placed": 17338,
+        "person_hours": 688.0,
+        "minutes_per_person": 2.38,
+        "longest_trip_minutes": 8.6
+      },
+      "greedy": {
+        "placed": 17338,
+        "person_hours": 702.2,
+        "minutes_per_person": 2.43,
+        "longest_trip_minutes": 9.3
+      },
+      "township_origins": {
+        "placed": 17338,
+        "person_hours": 1373.9,
+        "minutes_per_person": 4.75,
+        "longest_trip_minutes": 13.7
+      }
+    },
+    {
+      "scenario": "蘇澳鎮 5 km earthquake",
+      "villages": 27,
+      "townships": 2,
+      "shelters": 32,
+      "pairs": 864,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.067,
+        "db_solver": 0.015,
+        "python_solver": 0.015
+      },
+      "min_cost": {
+        "placed": 2250,
+        "person_hours": 138.4,
+        "minutes_per_person": 3.69,
+        "longest_trip_minutes": 27.4
+      },
+      "python": {
+        "placed": 2250,
+        "person_hours": 138.4,
+        "minutes_per_person": 3.69,
+        "longest_trip_minutes": 27.4
+      },
+      "greedy": {
+        "placed": 2250,
+        "person_hours": 141.1,
+        "minutes_per_person": 3.76,
+        "longest_trip_minutes": 30.0
+      },
+      "township_origins": {
+        "placed": 2250,
+        "person_hours": 498.4,
+        "minutes_per_person": 13.29,
+        "longest_trip_minutes": 37.0
+      }
+    },
+    {
+      "scenario": "蘇澳鎮 5 km flood",
+      "villages": 27,
+      "townships": 2,
+      "shelters": 32,
+      "pairs": 864,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.041,
+        "db_solver": 0.016,
+        "python_solver": 0.01
+      },
+      "min_cost": {
+        "placed": 2189,
+        "person_hours": 70.8,
+        "minutes_per_person": 1.94,
+        "longest_trip_minutes": 5.4
+      },
+      "python": {
+        "placed": 2189,
+        "person_hours": 70.8,
+        "minutes_per_person": 1.94,
+        "longest_trip_minutes": 5.4
+      },
+      "greedy": {
+        "placed": 2189,
+        "person_hours": 71.0,
+        "minutes_per_person": 1.95,
+        "longest_trip_minutes": 6.5
+      },
+      "township_origins": {
+        "placed": 2189,
+        "person_hours": 425.3,
+        "minutes_per_person": 11.66,
+        "longest_trip_minutes": 16.3
+      }
+    },
+    {
+      "scenario": "蘇澳鎮 10 km earthquake",
+      "villages": 66,
+      "townships": 5,
+      "shelters": 51,
+      "pairs": 3366,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.271,
+        "db_solver": 0.033,
+        "python_solver": 0.061
+      },
+      "min_cost": {
+        "placed": 4295,
+        "person_hours": 262.4,
+        "minutes_per_person": 3.67,
+        "longest_trip_minutes": 27.0
+      },
+      "python": {
+        "placed": 4295,
+        "person_hours": 262.4,
+        "minutes_per_person": 3.67,
+        "longest_trip_minutes": 27.0
+      },
+      "greedy": {
+        "placed": 4295,
+        "person_hours": 269.0,
+        "minutes_per_person": 3.76,
+        "longest_trip_minutes": 27.0
+      },
+      "township_origins": {
+        "placed": 4295,
+        "person_hours": 781.4,
+        "minutes_per_person": 10.92,
+        "longest_trip_minutes": 35.1
+      }
+    },
+    {
+      "scenario": "蘇澳鎮 10 km flood",
+      "villages": 66,
+      "townships": 5,
+      "shelters": 48,
+      "pairs": 3168,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.201,
+        "db_solver": 0.032,
+        "python_solver": 0.036
+      },
+      "min_cost": {
+        "placed": 3987,
+        "person_hours": 153.5,
+        "minutes_per_person": 2.31,
+        "longest_trip_minutes": 13.9
+      },
+      "python": {
+        "placed": 3987,
+        "person_hours": 153.5,
+        "minutes_per_person": 2.31,
+        "longest_trip_minutes": 13.9
+      },
+      "greedy": {
+        "placed": 3987,
+        "person_hours": 154.2,
+        "minutes_per_person": 2.32,
+        "longest_trip_minutes": 13.9
+      },
+      "township_origins": {
+        "placed": 3987,
+        "person_hours": 648.1,
+        "minutes_per_person": 9.75,
+        "longest_trip_minutes": 21.4
+      }
+    },
+    {
+      "scenario": "頭城鎮 5 km earthquake",
+      "villages": 20,
+      "townships": 2,
+      "shelters": 17,
+      "pairs": 340,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.031,
+        "db_solver": 0.006,
+        "python_solver": 0.003
+      },
+      "min_cost": {
+        "placed": 1709,
+        "person_hours": 69.6,
+        "minutes_per_person": 2.44,
+        "longest_trip_minutes": 10.1
+      },
+      "python": {
+        "placed": 1709,
+        "person_hours": 69.6,
+        "minutes_per_person": 2.44,
+        "longest_trip_minutes": 10.1
+      },
+      "greedy": {
+        "placed": 1709,
+        "person_hours": 78.8,
+        "minutes_per_person": 2.77,
+        "longest_trip_minutes": 12.6
+      },
+      "township_origins": {
+        "placed": 1709,
+        "person_hours": 130.3,
+        "minutes_per_person": 4.57,
+        "longest_trip_minutes": 15.3
+      }
+    },
+    {
+      "scenario": "頭城鎮 5 km flood",
+      "villages": 20,
+      "townships": 2,
+      "shelters": 13,
+      "pairs": 260,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.03,
+        "db_solver": 0.011,
+        "python_solver": 0.003
+      },
+      "min_cost": {
+        "placed": 1220,
+        "person_hours": 35.4,
+        "minutes_per_person": 1.74,
+        "longest_trip_minutes": 10.1
+      },
+      "python": {
+        "placed": 1220,
+        "person_hours": 35.4,
+        "minutes_per_person": 1.74,
+        "longest_trip_minutes": 10.1
+      },
+      "greedy": {
+        "placed": 1220,
+        "person_hours": 35.4,
+        "minutes_per_person": 1.74,
+        "longest_trip_minutes": 10.1
+      },
+      "township_origins": {
+        "placed": 1220,
+        "person_hours": 84.2,
+        "minutes_per_person": 4.14,
+        "longest_trip_minutes": 15.3
+      }
+    },
+    {
+      "scenario": "頭城鎮 10 km earthquake",
+      "villages": 43,
+      "townships": 3,
+      "shelters": 29,
+      "pairs": 1247,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.13,
+        "db_solver": 0.018,
+        "python_solver": 0.021
+      },
+      "min_cost": {
+        "placed": 3730,
+        "person_hours": 225.2,
+        "minutes_per_person": 3.62,
+        "longest_trip_minutes": 14.3
+      },
+      "python": {
+        "placed": 3730,
+        "person_hours": 225.2,
+        "minutes_per_person": 3.62,
+        "longest_trip_minutes": 12.8
+      },
+      "greedy": {
+        "placed": 3730,
+        "person_hours": 238.6,
+        "minutes_per_person": 3.84,
+        "longest_trip_minutes": 18.8
+      },
+      "township_origins": {
+        "placed": 3730,
+        "person_hours": 328.9,
+        "minutes_per_person": 5.29,
+        "longest_trip_minutes": 15.3
+      }
+    },
+    {
+      "scenario": "頭城鎮 10 km flood",
+      "villages": 43,
+      "townships": 3,
+      "shelters": 24,
+      "pairs": 1032,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.125,
+        "db_solver": 0.017,
+        "python_solver": 0.008
+      },
+      "min_cost": {
+        "placed": 3015,
+        "person_hours": 122.1,
+        "minutes_per_person": 2.43,
+        "longest_trip_minutes": 12.8
+      },
+      "python": {
+        "placed": 3015,
+        "person_hours": 122.1,
+        "minutes_per_person": 2.43,
+        "longest_trip_minutes": 12.8
+      },
+      "greedy": {
+        "placed": 3015,
+        "person_hours": 122.8,
+        "minutes_per_person": 2.44,
+        "longest_trip_minutes": 12.8
+      },
+      "township_origins": {
+        "placed": 3015,
+        "person_hours": 225.9,
+        "minutes_per_person": 4.5,
+        "longest_trip_minutes": 14.5
+      }
+    },
+    {
+      "scenario": "礁溪鄉 5 km earthquake",
+      "villages": 35,
+      "townships": 4,
+      "shelters": 21,
+      "pairs": 735,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.118,
+        "db_solver": 0.018,
+        "python_solver": 0.01
+      },
+      "min_cost": {
+        "placed": 3566,
+        "person_hours": 250.3,
+        "minutes_per_person": 4.21,
+        "longest_trip_minutes": 11.4
+      },
+      "python": {
+        "placed": 3566,
+        "person_hours": 250.3,
+        "minutes_per_person": 4.21,
+        "longest_trip_minutes": 11.4
+      },
+      "greedy": {
+        "placed": 3566,
+        "person_hours": 259.6,
+        "minutes_per_person": 4.37,
+        "longest_trip_minutes": 16.1
+      },
+      "township_origins": {
+        "placed": 3566,
+        "person_hours": 277.1,
+        "minutes_per_person": 4.66,
+        "longest_trip_minutes": 13.6
+      }
+    },
+    {
+      "scenario": "礁溪鄉 5 km flood",
+      "villages": 36,
+      "townships": 4,
+      "shelters": 20,
+      "pairs": 720,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.143,
+        "db_solver": 0.013,
+        "python_solver": 0.008
+      },
+      "min_cost": {
+        "placed": 5022,
+        "person_hours": 684.0,
+        "minutes_per_person": 8.17,
+        "longest_trip_minutes": 26.8
+      },
+      "python": {
+        "placed": 5022,
+        "person_hours": 684.0,
+        "minutes_per_person": 8.17,
+        "longest_trip_minutes": 26.8
+      },
+      "greedy": {
+        "placed": 5022,
+        "person_hours": 694.2,
+        "minutes_per_person": 8.29,
+        "longest_trip_minutes": 27.3
+      },
+      "township_origins": {
+        "placed": 5022,
+        "person_hours": 765.4,
+        "minutes_per_person": 9.14,
+        "longest_trip_minutes": 26.1
+      }
+    },
+    {
+      "scenario": "礁溪鄉 10 km earthquake",
+      "villages": 106,
+      "townships": 6,
+      "shelters": 94,
+      "pairs": 9964,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.63,
+        "db_solver": 0.12,
+        "python_solver": 0.531
+      },
+      "min_cost": {
+        "placed": 12803,
+        "person_hours": 790.9,
+        "minutes_per_person": 3.71,
+        "longest_trip_minutes": 19.4
+      },
+      "python": {
+        "placed": 12803,
+        "person_hours": 790.9,
+        "minutes_per_person": 3.71,
+        "longest_trip_minutes": 19.4
+      },
+      "greedy": {
+        "placed": 12803,
+        "person_hours": 844.3,
+        "minutes_per_person": 3.96,
+        "longest_trip_minutes": 19.4
+      },
+      "township_origins": {
+        "placed": 12803,
+        "person_hours": 1046.8,
+        "minutes_per_person": 4.91,
+        "longest_trip_minutes": 10.8
+      }
+    },
+    {
+      "scenario": "礁溪鄉 10 km flood",
+      "villages": 106,
+      "townships": 6,
+      "shelters": 89,
+      "pairs": 9434,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.514,
+        "db_solver": 0.079,
+        "python_solver": 0.262
+      },
+      "min_cost": {
+        "placed": 13711,
+        "person_hours": 936.4,
+        "minutes_per_person": 4.1,
+        "longest_trip_minutes": 26.1
+      },
+      "python": {
+        "placed": 13711,
+        "person_hours": 936.4,
+        "minutes_per_person": 4.1,
+        "longest_trip_minutes": 24.4
+      },
+      "greedy": {
+        "placed": 13711,
+        "person_hours": 947.5,
+        "minutes_per_person": 4.15,
+        "longest_trip_minutes": 26.8
+      },
+      "township_origins": {
+        "placed": 13711,
+        "person_hours": 1468.5,
+        "minutes_per_person": 6.43,
+        "longest_trip_minutes": 26.1
+      }
+    },
+    {
+      "scenario": "壯圍鄉 5 km earthquake",
+      "villages": 55,
+      "townships": 4,
+      "shelters": 39,
+      "pairs": 2145,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.137,
+        "db_solver": 0.026,
+        "python_solver": 0.044
+      },
+      "min_cost": {
+        "placed": 4305,
+        "person_hours": 222.6,
+        "minutes_per_person": 3.1,
+        "longest_trip_minutes": 11.6
+      },
+      "python": {
+        "placed": 4305,
+        "person_hours": 222.6,
+        "minutes_per_person": 3.1,
+        "longest_trip_minutes": 11.6
+      },
+      "greedy": {
+        "placed": 4305,
+        "person_hours": 230.9,
+        "minutes_per_person": 3.22,
+        "longest_trip_minutes": 13.1
+      },
+      "township_origins": {
+        "placed": 4305,
+        "person_hours": 355.7,
+        "minutes_per_person": 4.96,
+        "longest_trip_minutes": 10.1
+      }
+    },
+    {
+      "scenario": "壯圍鄉 5 km flood",
+      "villages": 55,
+      "townships": 4,
+      "shelters": 37,
+      "pairs": 2035,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.134,
+        "db_solver": 0.019,
+        "python_solver": 0.034
+      },
+      "min_cost": {
+        "placed": 5081,
+        "person_hours": 222.8,
+        "minutes_per_person": 2.63,
+        "longest_trip_minutes": 5.2
+      },
+      "python": {
+        "placed": 5081,
+        "person_hours": 222.8,
+        "minutes_per_person": 2.63,
+        "longest_trip_minutes": 5.2
+      },
+      "greedy": {
+        "placed": 5081,
+        "person_hours": 232.4,
+        "minutes_per_person": 2.74,
+        "longest_trip_minutes": 8.7
+      },
+      "township_origins": {
+        "placed": 5081,
+        "person_hours": 432.6,
+        "minutes_per_person": 5.11,
+        "longest_trip_minutes": 10.1
+      }
+    },
+    {
+      "scenario": "壯圍鄉 10 km earthquake",
+      "villages": 145,
+      "townships": 9,
+      "shelters": 119,
+      "pairs": 17255,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.598,
+        "db_solver": 0.151,
+        "python_solver": 1.061
+      },
+      "min_cost": {
+        "placed": 17121,
+        "person_hours": 1086.8,
+        "minutes_per_person": 3.81,
+        "longest_trip_minutes": 19.1
+      },
+      "python": {
+        "placed": 17121,
+        "person_hours": 1086.8,
+        "minutes_per_person": 3.81,
+        "longest_trip_minutes": 19.1
+      },
+      "greedy": {
+        "placed": 17121,
+        "person_hours": 1170.5,
+        "minutes_per_person": 4.1,
+        "longest_trip_minutes": 33.0
+      },
+      "township_origins": {
+        "placed": 17121,
+        "person_hours": 1607.0,
+        "minutes_per_person": 5.63,
+        "longest_trip_minutes": 17.4
+      }
+    },
+    {
+      "scenario": "壯圍鄉 10 km flood",
+      "villages": 145,
+      "townships": 9,
+      "shelters": 111,
+      "pairs": 16095,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.608,
+        "db_solver": 0.146,
+        "python_solver": 0.563
+      },
+      "min_cost": {
+        "placed": 18072,
+        "person_hours": 785.1,
+        "minutes_per_person": 2.61,
+        "longest_trip_minutes": 8.9
+      },
+      "python": {
+        "placed": 18072,
+        "person_hours": 785.1,
+        "minutes_per_person": 2.61,
+        "longest_trip_minutes": 8.9
+      },
+      "greedy": {
+        "placed": 18072,
+        "person_hours": 803.3,
+        "minutes_per_person": 2.67,
+        "longest_trip_minutes": 10.6
+      },
+      "township_origins": {
+        "placed": 18072,
+        "person_hours": 1393.7,
+        "minutes_per_person": 4.63,
+        "longest_trip_minutes": 12.0
+      }
+    },
+    {
+      "scenario": "員山鄉 5 km earthquake",
+      "villages": 54,
+      "townships": 4,
+      "shelters": 40,
+      "pairs": 2160,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.125,
+        "db_solver": 0.028,
+        "python_solver": 0.039
+      },
+      "min_cost": {
+        "placed": 4273,
+        "person_hours": 206.6,
+        "minutes_per_person": 2.9,
+        "longest_trip_minutes": 9.0
+      },
+      "python": {
+        "placed": 4273,
+        "person_hours": 206.6,
+        "minutes_per_person": 2.9,
+        "longest_trip_minutes": 9.0
+      },
+      "greedy": {
+        "placed": 4273,
+        "person_hours": 213.6,
+        "minutes_per_person": 3.0,
+        "longest_trip_minutes": 9.6
+      },
+      "township_origins": {
+        "placed": 4273,
+        "person_hours": 326.0,
+        "minutes_per_person": 4.58,
+        "longest_trip_minutes": 11.5
+      }
+    },
+    {
+      "scenario": "員山鄉 5 km flood",
+      "villages": 54,
+      "townships": 4,
+      "shelters": 40,
+      "pairs": 2160,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.136,
+        "db_solver": 0.023,
+        "python_solver": 0.034
+      },
+      "min_cost": {
+        "placed": 4273,
+        "person_hours": 160.2,
+        "minutes_per_person": 2.25,
+        "longest_trip_minutes": 7.5
+      },
+      "python": {
+        "placed": 4273,
+        "person_hours": 160.2,
+        "minutes_per_person": 2.25,
+        "longest_trip_minutes": 7.5
+      },
+      "greedy": {
+        "placed": 4273,
+        "person_hours": 162.9,
+        "minutes_per_person": 2.29,
+        "longest_trip_minutes": 7.5
+      },
+      "township_origins": {
+        "placed": 4273,
+        "person_hours": 302.2,
+        "minutes_per_person": 4.24,
+        "longest_trip_minutes": 11.5
+      }
+    },
+    {
+      "scenario": "員山鄉 10 km earthquake",
+      "villages": 145,
+      "townships": 8,
+      "shelters": 116,
+      "pairs": 16820,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.834,
+        "db_solver": 0.161,
+        "python_solver": 1.347
+      },
+      "min_cost": {
+        "placed": 17421,
+        "person_hours": 1630.6,
+        "minutes_per_person": 5.62,
+        "longest_trip_minutes": 19.4
+      },
+      "python": {
+        "placed": 17421,
+        "person_hours": 1630.6,
+        "minutes_per_person": 5.62,
+        "longest_trip_minutes": 19.4
+      },
+      "greedy": {
+        "placed": 17421,
+        "person_hours": 1768.7,
+        "minutes_per_person": 6.09,
+        "longest_trip_minutes": 35.8
+      },
+      "township_origins": {
+        "placed": 17421,
+        "person_hours": 2049.8,
+        "minutes_per_person": 7.06,
+        "longest_trip_minutes": 19.6
+      }
+    },
+    {
+      "scenario": "員山鄉 10 km flood",
+      "villages": 145,
+      "townships": 8,
+      "shelters": 113,
+      "pairs": 16385,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.794,
+        "db_solver": 0.14,
+        "python_solver": 0.75
+      },
+      "min_cost": {
+        "placed": 17835,
+        "person_hours": 1267.8,
+        "minutes_per_person": 4.27,
+        "longest_trip_minutes": 26.8
+      },
+      "python": {
+        "placed": 17835,
+        "person_hours": 1267.8,
+        "minutes_per_person": 4.27,
+        "longest_trip_minutes": 26.7
+      },
+      "greedy": {
+        "placed": 17835,
+        "person_hours": 1305.4,
+        "minutes_per_person": 4.39,
+        "longest_trip_minutes": 26.8
+      },
+      "township_origins": {
+        "placed": 17835,
+        "person_hours": 1861.0,
+        "minutes_per_person": 6.26,
+        "longest_trip_minutes": 26.1
+      }
+    },
+    {
+      "scenario": "冬山鄉 5 km earthquake",
+      "villages": 53,
+      "townships": 3,
+      "shelters": 45,
+      "pairs": 2385,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.117,
+        "db_solver": 0.023,
+        "python_solver": 0.051
+      },
+      "min_cost": {
+        "placed": 7693,
+        "person_hours": 355.2,
+        "minutes_per_person": 2.77,
+        "longest_trip_minutes": 7.1
+      },
+      "python": {
+        "placed": 7693,
+        "person_hours": 355.2,
+        "minutes_per_person": 2.77,
+        "longest_trip_minutes": 7.1
+      },
+      "greedy": {
+        "placed": 7693,
+        "person_hours": 374.3,
+        "minutes_per_person": 2.92,
+        "longest_trip_minutes": 10.1
+      },
+      "township_origins": {
+        "placed": 7693,
+        "person_hours": 564.4,
+        "minutes_per_person": 4.4,
+        "longest_trip_minutes": 11.6
+      }
+    },
+    {
+      "scenario": "冬山鄉 5 km flood",
+      "villages": 53,
+      "townships": 3,
+      "shelters": 40,
+      "pairs": 2120,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.11,
+        "db_solver": 0.024,
+        "python_solver": 0.029
+      },
+      "min_cost": {
+        "placed": 6911,
+        "person_hours": 199.2,
+        "minutes_per_person": 1.73,
+        "longest_trip_minutes": 4.3
+      },
+      "python": {
+        "placed": 6911,
+        "person_hours": 199.2,
+        "minutes_per_person": 1.73,
+        "longest_trip_minutes": 4.3
+      },
+      "greedy": {
+        "placed": 6911,
+        "person_hours": 205.9,
+        "minutes_per_person": 1.79,
+        "longest_trip_minutes": 4.3
+      },
+      "township_origins": {
+        "placed": 6911,
+        "person_hours": 358.5,
+        "minutes_per_person": 3.11,
+        "longest_trip_minutes": 11.5
+      }
+    },
+    {
+      "scenario": "冬山鄉 10 km earthquake",
+      "villages": 117,
+      "townships": 8,
+      "shelters": 91,
+      "pairs": 10647,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.608,
+        "db_solver": 0.085,
+        "python_solver": 0.37
+      },
+      "min_cost": {
+        "placed": 12755,
+        "person_hours": 593.7,
+        "minutes_per_person": 2.79,
+        "longest_trip_minutes": 27.4
+      },
+      "python": {
+        "placed": 12755,
+        "person_hours": 593.7,
+        "minutes_per_person": 2.79,
+        "longest_trip_minutes": 27.4
+      },
+      "greedy": {
+        "placed": 12755,
+        "person_hours": 619.3,
+        "minutes_per_person": 2.91,
+        "longest_trip_minutes": 28.6
+      },
+      "township_origins": {
+        "placed": 12755,
+        "person_hours": 1144.3,
+        "minutes_per_person": 5.38,
+        "longest_trip_minutes": 35.1
+      }
+    },
+    {
+      "scenario": "冬山鄉 10 km flood",
+      "villages": 118,
+      "townships": 8,
+      "shelters": 86,
+      "pairs": 10148,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.472,
+        "db_solver": 0.083,
+        "python_solver": 0.229
+      },
+      "min_cost": {
+        "placed": 11943,
+        "person_hours": 423.3,
+        "minutes_per_person": 2.13,
+        "longest_trip_minutes": 8.1
+      },
+      "python": {
+        "placed": 11943,
+        "person_hours": 423.3,
+        "minutes_per_person": 2.13,
+        "longest_trip_minutes": 8.1
+      },
+      "greedy": {
+        "placed": 11943,
+        "person_hours": 427.8,
+        "minutes_per_person": 2.15,
+        "longest_trip_minutes": 8.1
+      },
+      "township_origins": {
+        "placed": 11943,
+        "person_hours": 1032.9,
+        "minutes_per_person": 5.19,
+        "longest_trip_minutes": 13.7
+      }
+    },
+    {
+      "scenario": "五結鄉 5 km earthquake",
+      "villages": 57,
+      "townships": 6,
+      "shelters": 45,
+      "pairs": 2565,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.152,
+        "db_solver": 0.026,
+        "python_solver": 0.061
+      },
+      "min_cost": {
+        "placed": 7996,
+        "person_hours": 438.3,
+        "minutes_per_person": 3.29,
+        "longest_trip_minutes": 12.3
+      },
+      "python": {
+        "placed": 7996,
+        "person_hours": 438.3,
+        "minutes_per_person": 3.29,
+        "longest_trip_minutes": 12.3
+      },
+      "greedy": {
+        "placed": 7996,
+        "person_hours": 493.2,
+        "minutes_per_person": 3.7,
+        "longest_trip_minutes": 18.9
+      },
+      "township_origins": {
+        "placed": 7996,
+        "person_hours": 572.4,
+        "minutes_per_person": 4.3,
+        "longest_trip_minutes": 17.8
+      }
+    },
+    {
+      "scenario": "五結鄉 5 km flood",
+      "villages": 57,
+      "townships": 6,
+      "shelters": 39,
+      "pairs": 2223,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.15,
+        "db_solver": 0.03,
+        "python_solver": 0.033
+      },
+      "min_cost": {
+        "placed": 7374,
+        "person_hours": 245.3,
+        "minutes_per_person": 2.0,
+        "longest_trip_minutes": 4.6
+      },
+      "python": {
+        "placed": 7374,
+        "person_hours": 245.3,
+        "minutes_per_person": 2.0,
+        "longest_trip_minutes": 4.6
+      },
+      "greedy": {
+        "placed": 7374,
+        "person_hours": 249.9,
+        "minutes_per_person": 2.03,
+        "longest_trip_minutes": 4.6
+      },
+      "township_origins": {
+        "placed": 7374,
+        "person_hours": 372.4,
+        "minutes_per_person": 3.03,
+        "longest_trip_minutes": 9.4
+      }
+    },
+    {
+      "scenario": "五結鄉 10 km earthquake",
+      "villages": 144,
+      "townships": 9,
+      "shelters": 131,
+      "pairs": 18864,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.645,
+        "db_solver": 0.186,
+        "python_solver": 1.178
+      },
+      "min_cost": {
+        "placed": 18728,
+        "person_hours": 1166.7,
+        "minutes_per_person": 3.74,
+        "longest_trip_minutes": 18.3
+      },
+      "python": {
+        "placed": 18728,
+        "person_hours": 1166.7,
+        "minutes_per_person": 3.74,
+        "longest_trip_minutes": 18.3
+      },
+      "greedy": {
+        "placed": 18728,
+        "person_hours": 1239.1,
+        "minutes_per_person": 3.97,
+        "longest_trip_minutes": 20.4
+      },
+      "township_origins": {
+        "placed": 18728,
+        "person_hours": 1668.5,
+        "minutes_per_person": 5.35,
+        "longest_trip_minutes": 14.1
+      }
+    },
+    {
+      "scenario": "五結鄉 10 km flood",
+      "villages": 144,
+      "townships": 9,
+      "shelters": 125,
+      "pairs": 18000,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.631,
+        "db_solver": 0.154,
+        "python_solver": 0.681
+      },
+      "min_cost": {
+        "placed": 17893,
+        "person_hours": 707.1,
+        "minutes_per_person": 2.37,
+        "longest_trip_minutes": 8.6
+      },
+      "python": {
+        "placed": 17893,
+        "person_hours": 707.1,
+        "minutes_per_person": 2.37,
+        "longest_trip_minutes": 8.6
+      },
+      "greedy": {
+        "placed": 17893,
+        "person_hours": 718.8,
+        "minutes_per_person": 2.41,
+        "longest_trip_minutes": 9.3
+      },
+      "township_origins": {
+        "placed": 17893,
+        "person_hours": 1413.4,
+        "minutes_per_person": 4.74,
+        "longest_trip_minutes": 13.1
+      }
+    },
+    {
+      "scenario": "三星鄉 5 km earthquake",
+      "villages": 20,
+      "townships": 3,
+      "shelters": 11,
+      "pairs": 220,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.079,
+        "db_solver": 0.005,
+        "python_solver": 0.002
+      },
+      "min_cost": {
+        "placed": 1074,
+        "person_hours": 89.8,
+        "minutes_per_person": 5.02,
+        "longest_trip_minutes": 13.0
+      },
+      "python": {
+        "placed": 1074,
+        "person_hours": 89.8,
+        "minutes_per_person": 5.02,
+        "longest_trip_minutes": 13.0
+      },
+      "greedy": {
+        "placed": 1074,
+        "person_hours": 90.9,
+        "minutes_per_person": 5.08,
+        "longest_trip_minutes": 20.1
+      },
+      "township_origins": {
+        "placed": 1074,
+        "person_hours": 171.4,
+        "minutes_per_person": 9.58,
+        "longest_trip_minutes": 21.4
+      }
+    },
+    {
+      "scenario": "三星鄉 5 km flood",
+      "villages": 20,
+      "townships": 3,
+      "shelters": 14,
+      "pairs": 280,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.071,
+        "db_solver": 0.008,
+        "python_solver": 0.002
+      },
+      "min_cost": {
+        "placed": 1776,
+        "person_hours": 142.3,
+        "minutes_per_person": 4.81,
+        "longest_trip_minutes": 9.2
+      },
+      "python": {
+        "placed": 1776,
+        "person_hours": 142.3,
+        "minutes_per_person": 4.81,
+        "longest_trip_minutes": 9.2
+      },
+      "greedy": {
+        "placed": 1776,
+        "person_hours": 145.8,
+        "minutes_per_person": 4.92,
+        "longest_trip_minutes": 11.5
+      },
+      "township_origins": {
+        "placed": 1776,
+        "person_hours": 282.3,
+        "minutes_per_person": 9.54,
+        "longest_trip_minutes": 12.6
+      }
+    },
+    {
+      "scenario": "三星鄉 10 km earthquake",
+      "villages": 109,
+      "townships": 8,
+      "shelters": 73,
+      "pairs": 7957,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.532,
+        "db_solver": 0.073,
+        "python_solver": 0.333
+      },
+      "min_cost": {
+        "placed": 9019,
+        "person_hours": 690.6,
+        "minutes_per_person": 4.59,
+        "longest_trip_minutes": 24.6
+      },
+      "python": {
+        "placed": 9019,
+        "person_hours": 690.6,
+        "minutes_per_person": 4.59,
+        "longest_trip_minutes": 24.6
+      },
+      "greedy": {
+        "placed": 9019,
+        "person_hours": 724.8,
+        "minutes_per_person": 4.82,
+        "longest_trip_minutes": 33.6
+      },
+      "township_origins": {
+        "placed": 9019,
+        "person_hours": 1099.2,
+        "minutes_per_person": 7.31,
+        "longest_trip_minutes": 67.6
+      }
+    },
+    {
+      "scenario": "三星鄉 10 km flood",
+      "villages": 109,
+      "townships": 8,
+      "shelters": 75,
+      "pairs": 8175,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.523,
+        "db_solver": 0.097,
+        "python_solver": 0.237
+      },
+      "min_cost": {
+        "placed": 10605,
+        "person_hours": 490.1,
+        "minutes_per_person": 2.77,
+        "longest_trip_minutes": 22.3
+      },
+      "python": {
+        "placed": 10605,
+        "person_hours": 490.1,
+        "minutes_per_person": 2.77,
+        "longest_trip_minutes": 22.3
+      },
+      "greedy": {
+        "placed": 10605,
+        "person_hours": 509.3,
+        "minutes_per_person": 2.88,
+        "longest_trip_minutes": 25.8
+      },
+      "township_origins": {
+        "placed": 10605,
+        "person_hours": 1055.8,
+        "minutes_per_person": 5.97,
+        "longest_trip_minutes": 30.1
+      }
+    },
+    {
+      "scenario": "大同鄉 5 km earthquake",
+      "villages": 2,
+      "townships": 1,
+      "shelters": 1,
+      "pairs": 2,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.005,
+        "db_solver": 0.004,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 30,
+        "person_hours": 5.0,
+        "minutes_per_person": 9.97,
+        "longest_trip_minutes": 33.2
+      },
+      "python": {
+        "placed": 30,
+        "person_hours": 5.0,
+        "minutes_per_person": 9.97,
+        "longest_trip_minutes": 33.2
+      },
+      "greedy": {
+        "placed": 30,
+        "person_hours": 5.0,
+        "minutes_per_person": 9.97,
+        "longest_trip_minutes": 33.2
+      },
+      "township_origins": {
+        "placed": 30,
+        "person_hours": 21.3,
+        "minutes_per_person": 42.66,
+        "longest_trip_minutes": 42.7
+      }
+    },
+    {
+      "scenario": "大同鄉 5 km flood",
+      "villages": 2,
+      "townships": 1,
+      "shelters": 1,
+      "pairs": 2,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.003,
+        "db_solver": 0.004,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 54,
+        "person_hours": 9.1,
+        "minutes_per_person": 10.08,
+        "longest_trip_minutes": 33.2
+      },
+      "python": {
+        "placed": 54,
+        "person_hours": 9.1,
+        "minutes_per_person": 10.08,
+        "longest_trip_minutes": 33.2
+      },
+      "greedy": {
+        "placed": 54,
+        "person_hours": 9.1,
+        "minutes_per_person": 10.08,
+        "longest_trip_minutes": 33.2
+      },
+      "township_origins": {
+        "placed": 54,
+        "person_hours": 38.4,
+        "minutes_per_person": 42.66,
+        "longest_trip_minutes": 42.7
+      }
+    },
+    {
+      "scenario": "大同鄉 10 km earthquake",
+      "villages": 6,
+      "townships": 2,
+      "shelters": 2,
+      "pairs": 12,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.027,
+        "db_solver": 0.005,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 97,
+        "person_hours": 22.2,
+        "minutes_per_person": 13.71,
+        "longest_trip_minutes": 65.2
+      },
+      "python": {
+        "placed": 97,
+        "person_hours": 22.2,
+        "minutes_per_person": 13.71,
+        "longest_trip_minutes": 65.2
+      },
+      "greedy": {
+        "placed": 97,
+        "person_hours": 22.2,
+        "minutes_per_person": 13.71,
+        "longest_trip_minutes": 65.2
+      },
+      "township_origins": {
+        "placed": 97,
+        "person_hours": 67.8,
+        "minutes_per_person": 41.93,
+        "longest_trip_minutes": 42.7
+      }
+    },
+    {
+      "scenario": "大同鄉 10 km flood",
+      "villages": 6,
+      "townships": 2,
+      "shelters": 2,
+      "pairs": 12,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.026,
+        "db_solver": 0.009,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 177,
+        "person_hours": 40.6,
+        "minutes_per_person": 13.76,
+        "longest_trip_minutes": 79.3
+      },
+      "python": {
+        "placed": 177,
+        "person_hours": 40.6,
+        "minutes_per_person": 13.76,
+        "longest_trip_minutes": 79.3
+      },
+      "greedy": {
+        "placed": 177,
+        "person_hours": 40.6,
+        "minutes_per_person": 13.76,
+        "longest_trip_minutes": 79.3
+      },
+      "township_origins": {
+        "placed": 177,
+        "person_hours": 153.4,
+        "minutes_per_person": 51.98,
+        "longest_trip_minutes": 67.6
+      }
+    },
+    {
+      "scenario": "南澳鄉 5 km earthquake",
+      "villages": 7,
+      "townships": 2,
+      "shelters": 11,
+      "pairs": 77,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.186,
+        "db_solver": 0.01,
+        "python_solver": 0.001
+      },
+      "min_cost": {
+        "placed": 393,
+        "person_hours": 65.3,
+        "minutes_per_person": 9.97,
+        "longest_trip_minutes": 49.8
+      },
+      "python": {
+        "placed": 393,
+        "person_hours": 65.3,
+        "minutes_per_person": 9.97,
+        "longest_trip_minutes": 49.8
+      },
+      "greedy": {
+        "placed": 393,
+        "person_hours": 65.4,
+        "minutes_per_person": 9.98,
+        "longest_trip_minutes": 49.8
+      },
+      "township_origins": {
+        "placed": 393,
+        "person_hours": 76.4,
+        "minutes_per_person": 11.66,
+        "longest_trip_minutes": 34.3
+      }
+    },
+    {
+      "scenario": "南澳鄉 5 km flood",
+      "villages": 7,
+      "townships": 2,
+      "shelters": 11,
+      "pairs": 77,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.197,
+        "db_solver": 0.008,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 437,
+        "person_hours": 19.6,
+        "minutes_per_person": 2.69,
+        "longest_trip_minutes": 13.6
+      },
+      "python": {
+        "placed": 437,
+        "person_hours": 19.6,
+        "minutes_per_person": 2.69,
+        "longest_trip_minutes": 13.6
+      },
+      "greedy": {
+        "placed": 437,
+        "person_hours": 19.7,
+        "minutes_per_person": 2.7,
+        "longest_trip_minutes": 13.6
+      },
+      "township_origins": {
+        "placed": 437,
+        "person_hours": 54.3,
+        "minutes_per_person": 7.46,
+        "longest_trip_minutes": 11.9
+      }
+    },
+    {
+      "scenario": "南澳鄉 10 km earthquake",
+      "villages": 9,
+      "townships": 2,
+      "shelters": 13,
+      "pairs": 117,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.202,
+        "db_solver": 0.01,
+        "python_solver": 0.001
+      },
+      "min_cost": {
+        "placed": 506,
+        "person_hours": 35.8,
+        "minutes_per_person": 4.25,
+        "longest_trip_minutes": 19.1
+      },
+      "python": {
+        "placed": 506,
+        "person_hours": 35.8,
+        "minutes_per_person": 4.25,
+        "longest_trip_minutes": 19.1
+      },
+      "greedy": {
+        "placed": 506,
+        "person_hours": 35.9,
+        "minutes_per_person": 4.26,
+        "longest_trip_minutes": 19.1
+      },
+      "township_origins": {
+        "placed": 506,
+        "person_hours": 78.4,
+        "minutes_per_person": 9.3,
+        "longest_trip_minutes": 21.4
+      }
+    },
+    {
+      "scenario": "南澳鄉 10 km flood",
+      "villages": 9,
+      "townships": 2,
+      "shelters": 13,
+      "pairs": 117,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.197,
+        "db_solver": 0.006,
+        "python_solver": 0.001
+      },
+      "min_cost": {
+        "placed": 506,
+        "person_hours": 26.3,
+        "minutes_per_person": 3.12,
+        "longest_trip_minutes": 14.5
+      },
+      "python": {
+        "placed": 506,
+        "person_hours": 26.3,
+        "minutes_per_person": 3.12,
+        "longest_trip_minutes": 14.5
+      },
+      "greedy": {
+        "placed": 506,
+        "person_hours": 26.4,
+        "minutes_per_person": 3.14,
+        "longest_trip_minutes": 15.4
+      },
+      "township_origins": {
+        "placed": 506,
+        "person_hours": 78.3,
+        "minutes_per_person": 9.28,
+        "longest_trip_minutes": 21.0
+      }
+    },
+    {
+      "scenario": "臺東市 5 km earthquake",
+      "villages": 33,
+      "townships": 2,
+      "shelters": 5,
+      "pairs": 165,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.042,
+        "db_solver": 0.006,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 269,
+        "person_hours": 14.2,
+        "minutes_per_person": 3.17,
+        "longest_trip_minutes": 4.4
+      },
+      "python": {
+        "placed": 269,
+        "person_hours": 14.2,
+        "minutes_per_person": 3.17,
+        "longest_trip_minutes": 4.4
+      },
+      "greedy": {
+        "placed": 269,
+        "person_hours": 14.2,
+        "minutes_per_person": 3.17,
+        "longest_trip_minutes": 4.4
+      },
+      "township_origins": {
+        "placed": 269,
+        "person_hours": 42.4,
+        "minutes_per_person": 9.47,
+        "longest_trip_minutes": 10.1
+      }
+    },
+    {
+      "scenario": "臺東市 5 km flood",
+      "villages": 33,
+      "townships": 2,
+      "shelters": 11,
+      "pairs": 363,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.039,
+        "db_solver": 0.011,
+        "python_solver": 0.001
+      },
+      "min_cost": {
+        "placed": 439,
+        "person_hours": 23.1,
+        "minutes_per_person": 3.15,
+        "longest_trip_minutes": 7.3
+      },
+      "python": {
+        "placed": 439,
+        "person_hours": 23.1,
+        "minutes_per_person": 3.15,
+        "longest_trip_minutes": 7.3
+      },
+      "greedy": {
+        "placed": 439,
+        "person_hours": 23.1,
+        "minutes_per_person": 3.15,
+        "longest_trip_minutes": 7.3
+      },
+      "township_origins": {
+        "placed": 439,
+        "person_hours": 73.6,
+        "minutes_per_person": 10.06,
+        "longest_trip_minutes": 15.0
+      }
+    },
+    {
+      "scenario": "臺東市 10 km earthquake",
+      "villages": 46,
+      "townships": 2,
+      "shelters": 20,
+      "pairs": 920,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.079,
+        "db_solver": 0.011,
+        "python_solver": 0.008
+      },
+      "min_cost": {
+        "placed": 1139,
+        "person_hours": 119.9,
+        "minutes_per_person": 6.31,
+        "longest_trip_minutes": 12.3
+      },
+      "python": {
+        "placed": 1139,
+        "person_hours": 119.9,
+        "minutes_per_person": 6.31,
+        "longest_trip_minutes": 12.3
+      },
+      "greedy": {
+        "placed": 1139,
+        "person_hours": 120.7,
+        "minutes_per_person": 6.36,
+        "longest_trip_minutes": 12.3
+      },
+      "township_origins": {
+        "placed": 1139,
+        "person_hours": 263.8,
+        "minutes_per_person": 13.89,
+        "longest_trip_minutes": 22.1
+      }
+    },
+    {
+      "scenario": "臺東市 10 km flood",
+      "villages": 46,
+      "townships": 2,
+      "shelters": 31,
+      "pairs": 1426,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.078,
+        "db_solver": 0.02,
+        "python_solver": 0.013
+      },
+      "min_cost": {
+        "placed": 1475,
+        "person_hours": 130.4,
+        "minutes_per_person": 5.31,
+        "longest_trip_minutes": 12.1
+      },
+      "python": {
+        "placed": 1475,
+        "person_hours": 130.4,
+        "minutes_per_person": 5.31,
+        "longest_trip_minutes": 12.1
+      },
+      "greedy": {
+        "placed": 1475,
+        "person_hours": 133.0,
+        "minutes_per_person": 5.41,
+        "longest_trip_minutes": 12.1
+      },
+      "township_origins": {
+        "placed": 1475,
+        "person_hours": 342.4,
+        "minutes_per_person": 13.93,
+        "longest_trip_minutes": 22.1
+      }
+    },
+    {
+      "scenario": "成功鎮 5 km earthquake",
+      "villages": 5,
+      "townships": 1,
+      "shelters": 5,
+      "pairs": 25,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.013,
+        "db_solver": 0.004,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 550,
+        "person_hours": 21.0,
+        "minutes_per_person": 2.29,
+        "longest_trip_minutes": 3.1
+      },
+      "python": {
+        "placed": 550,
+        "person_hours": 21.0,
+        "minutes_per_person": 2.29,
+        "longest_trip_minutes": 3.1
+      },
+      "greedy": {
+        "placed": 550,
+        "person_hours": 24.5,
+        "minutes_per_person": 2.67,
+        "longest_trip_minutes": 4.2
+      },
+      "township_origins": {
+        "placed": 550,
+        "person_hours": 32.7,
+        "minutes_per_person": 3.57,
+        "longest_trip_minutes": 5.2
+      }
+    },
+    {
+      "scenario": "成功鎮 5 km flood",
+      "villages": 5,
+      "townships": 1,
+      "shelters": 4,
+      "pairs": 20,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.009,
+        "db_solver": 0.004,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 130,
+        "person_hours": 4.0,
+        "minutes_per_person": 1.86,
+        "longest_trip_minutes": 3.7
+      },
+      "python": {
+        "placed": 130,
+        "person_hours": 4.0,
+        "minutes_per_person": 1.86,
+        "longest_trip_minutes": 3.7
+      },
+      "greedy": {
+        "placed": 130,
+        "person_hours": 4.0,
+        "minutes_per_person": 1.86,
+        "longest_trip_minutes": 3.7
+      },
+      "township_origins": {
+        "placed": 130,
+        "person_hours": 7.1,
+        "minutes_per_person": 3.27,
+        "longest_trip_minutes": 4.7
+      }
+    },
+    {
+      "scenario": "成功鎮 10 km earthquake",
+      "villages": 10,
+      "townships": 3,
+      "shelters": 6,
+      "pairs": 60,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.036,
+        "db_solver": 0.004,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 570,
+        "person_hours": 21.6,
+        "minutes_per_person": 2.27,
+        "longest_trip_minutes": 3.1
+      },
+      "python": {
+        "placed": 570,
+        "person_hours": 21.6,
+        "minutes_per_person": 2.27,
+        "longest_trip_minutes": 3.1
+      },
+      "greedy": {
+        "placed": 570,
+        "person_hours": 25.1,
+        "minutes_per_person": 2.64,
+        "longest_trip_minutes": 4.2
+      },
+      "township_origins": {
+        "placed": 570,
+        "person_hours": 37.6,
+        "minutes_per_person": 3.96,
+        "longest_trip_minutes": 14.6
+      }
+    },
+    {
+      "scenario": "成功鎮 10 km flood",
+      "villages": 10,
+      "townships": 3,
+      "shelters": 9,
+      "pairs": 90,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.03,
+        "db_solver": 0.005,
+        "python_solver": 0.001
+      },
+      "min_cost": {
+        "placed": 440,
+        "person_hours": 36.0,
+        "minutes_per_person": 4.91,
+        "longest_trip_minutes": 10.9
+      },
+      "python": {
+        "placed": 440,
+        "person_hours": 36.0,
+        "minutes_per_person": 4.91,
+        "longest_trip_minutes": 10.9
+      },
+      "greedy": {
+        "placed": 440,
+        "person_hours": 36.0,
+        "minutes_per_person": 4.91,
+        "longest_trip_minutes": 10.9
+      },
+      "township_origins": {
+        "placed": 440,
+        "person_hours": 72.0,
+        "minutes_per_person": 9.82,
+        "longest_trip_minutes": 14.6
+      }
+    },
+    {
+      "scenario": "關山鎮 5 km earthquake",
+      "villages": 9,
+      "townships": 3,
+      "shelters": 11,
+      "pairs": 99,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.02,
+        "db_solver": 0.005,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 683,
+        "person_hours": 30.7,
+        "minutes_per_person": 2.69,
+        "longest_trip_minutes": 7.7
+      },
+      "python": {
+        "placed": 683,
+        "person_hours": 30.7,
+        "minutes_per_person": 2.69,
+        "longest_trip_minutes": 7.7
+      },
+      "greedy": {
+        "placed": 683,
+        "person_hours": 30.7,
+        "minutes_per_person": 2.69,
+        "longest_trip_minutes": 7.7
+      },
+      "township_origins": {
+        "placed": 683,
+        "person_hours": 106.0,
+        "minutes_per_person": 9.32,
+        "longest_trip_minutes": 68.8
+      }
+    },
+    {
+      "scenario": "關山鎮 5 km flood",
+      "villages": 9,
+      "townships": 3,
+      "shelters": 11,
+      "pairs": 99,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.019,
+        "db_solver": 0.005,
+        "python_solver": 0.001
+      },
+      "min_cost": {
+        "placed": 1252,
+        "person_hours": 86.8,
+        "minutes_per_person": 4.16,
+        "longest_trip_minutes": 11.5
+      },
+      "python": {
+        "placed": 1252,
+        "person_hours": 86.8,
+        "minutes_per_person": 4.16,
+        "longest_trip_minutes": 11.5
+      },
+      "greedy": {
+        "placed": 1252,
+        "person_hours": 90.8,
+        "minutes_per_person": 4.35,
+        "longest_trip_minutes": 11.5
+      },
+      "township_origins": {
+        "placed": 1252,
+        "person_hours": 238.1,
+        "minutes_per_person": 11.41,
+        "longest_trip_minutes": 80.9
+      }
+    },
+    {
+      "scenario": "關山鎮 10 km earthquake",
+      "villages": 26,
+      "townships": 5,
+      "shelters": 32,
+      "pairs": 832,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.05,
+        "db_solver": 0.017,
+        "python_solver": 0.006
+      },
+      "min_cost": {
+        "placed": 1323,
+        "person_hours": 63.7,
+        "minutes_per_person": 2.89,
+        "longest_trip_minutes": 11.5
+      },
+      "python": {
+        "placed": 1323,
+        "person_hours": 63.7,
+        "minutes_per_person": 2.89,
+        "longest_trip_minutes": 11.5
+      },
+      "greedy": {
+        "placed": 1323,
+        "person_hours": 63.7,
+        "minutes_per_person": 2.89,
+        "longest_trip_minutes": 11.5
+      },
+      "township_origins": {
+        "placed": 1323,
+        "person_hours": 290.3,
+        "minutes_per_person": 13.17,
+        "longest_trip_minutes": 64.0
+      }
+    },
+    {
+      "scenario": "關山鎮 10 km flood",
+      "villages": 26,
+      "townships": 5,
+      "shelters": 33,
+      "pairs": 858,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.049,
+        "db_solver": 0.254,
+        "python_solver": 0.009
+      },
+      "min_cost": {
+        "placed": 2426,
+        "person_hours": 165.4,
+        "minutes_per_person": 4.09,
+        "longest_trip_minutes": 12.5
+      },
+      "python": {
+        "placed": 2426,
+        "person_hours": 165.4,
+        "minutes_per_person": 4.09,
+        "longest_trip_minutes": 12.5
+      },
+      "greedy": {
+        "placed": 2426,
+        "person_hours": 170.0,
+        "minutes_per_person": 4.2,
+        "longest_trip_minutes": 12.5
+      },
+      "township_origins": {
+        "placed": 2426,
+        "person_hours": 610.6,
+        "minutes_per_person": 15.1,
+        "longest_trip_minutes": 66.8
+      }
+    },
+    {
+      "scenario": "卑南鄉 5 km earthquake",
+      "villages": 14,
+      "townships": 2,
+      "shelters": 9,
+      "pairs": 126,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.034,
+        "db_solver": 0.011,
+        "python_solver": 0.001
+      },
+      "min_cost": {
+        "placed": 585,
+        "person_hours": 57.3,
+        "minutes_per_person": 5.88,
+        "longest_trip_minutes": 12.3
+      },
+      "python": {
+        "placed": 585,
+        "person_hours": 57.3,
+        "minutes_per_person": 5.88,
+        "longest_trip_minutes": 12.3
+      },
+      "greedy": {
+        "placed": 585,
+        "person_hours": 58.1,
+        "minutes_per_person": 5.95,
+        "longest_trip_minutes": 12.3
+      },
+      "township_origins": {
+        "placed": 585,
+        "person_hours": 99.1,
+        "minutes_per_person": 10.17,
+        "longest_trip_minutes": 14.4
+      }
+    },
+    {
+      "scenario": "卑南鄉 5 km flood",
+      "villages": 14,
+      "townships": 2,
+      "shelters": 11,
+      "pairs": 154,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.034,
+        "db_solver": 0.014,
+        "python_solver": 0.001
+      },
+      "min_cost": {
+        "placed": 643,
+        "person_hours": 55.3,
+        "minutes_per_person": 5.16,
+        "longest_trip_minutes": 9.0
+      },
+      "python": {
+        "placed": 643,
+        "person_hours": 55.3,
+        "minutes_per_person": 5.16,
+        "longest_trip_minutes": 9.0
+      },
+      "greedy": {
+        "placed": 643,
+        "person_hours": 57.2,
+        "minutes_per_person": 5.34,
+        "longest_trip_minutes": 12.1
+      },
+      "township_origins": {
+        "placed": 643,
+        "person_hours": 108.0,
+        "minutes_per_person": 10.08,
+        "longest_trip_minutes": 14.4
+      }
+    },
+    {
+      "scenario": "卑南鄉 10 km earthquake",
+      "villages": 52,
+      "townships": 4,
+      "shelters": 19,
+      "pairs": 988,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.089,
+        "db_solver": 0.011,
+        "python_solver": 0.006
+      },
+      "min_cost": {
+        "placed": 1094,
+        "person_hours": 99.7,
+        "minutes_per_person": 5.47,
+        "longest_trip_minutes": 10.6
+      },
+      "python": {
+        "placed": 1094,
+        "person_hours": 99.7,
+        "minutes_per_person": 5.47,
+        "longest_trip_minutes": 10.6
+      },
+      "greedy": {
+        "placed": 1094,
+        "person_hours": 102.8,
+        "minutes_per_person": 5.64,
+        "longest_trip_minutes": 12.1
+      },
+      "township_origins": {
+        "placed": 1094,
+        "person_hours": 221.4,
+        "minutes_per_person": 12.14,
+        "longest_trip_minutes": 19.5
+      }
+    },
+    {
+      "scenario": "卑南鄉 10 km flood",
+      "villages": 52,
+      "townships": 4,
+      "shelters": 27,
+      "pairs": 1404,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.094,
+        "db_solver": 0.014,
+        "python_solver": 0.009
+      },
+      "min_cost": {
+        "placed": 1333,
+        "person_hours": 101.0,
+        "minutes_per_person": 4.54,
+        "longest_trip_minutes": 10.6
+      },
+      "python": {
+        "placed": 1333,
+        "person_hours": 101.0,
+        "minutes_per_person": 4.54,
+        "longest_trip_minutes": 10.6
+      },
+      "greedy": {
+        "placed": 1333,
+        "person_hours": 103.0,
+        "minutes_per_person": 4.64,
+        "longest_trip_minutes": 12.1
+      },
+      "township_origins": {
+        "placed": 1333,
+        "person_hours": 269.8,
+        "minutes_per_person": 12.14,
+        "longest_trip_minutes": 19.5
+      }
+    },
+    {
+      "scenario": "鹿野鄉 5 km earthquake",
+      "villages": 7,
+      "townships": 2,
+      "shelters": 19,
+      "pairs": 133,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.017,
+        "db_solver": 0.005,
+        "python_solver": 0.001
+      },
+      "min_cost": {
+        "placed": 334,
+        "person_hours": 32.5,
+        "minutes_per_person": 5.85,
+        "longest_trip_minutes": 12.2
+      },
+      "python": {
+        "placed": 334,
+        "person_hours": 32.5,
+        "minutes_per_person": 5.85,
+        "longest_trip_minutes": 12.2
+      },
+      "greedy": {
+        "placed": 334,
+        "person_hours": 32.9,
+        "minutes_per_person": 5.9,
+        "longest_trip_minutes": 13.8
+      },
+      "township_origins": {
+        "placed": 334,
+        "person_hours": 74.8,
+        "minutes_per_person": 13.43,
+        "longest_trip_minutes": 36.7
+      }
+    },
+    {
+      "scenario": "鹿野鄉 5 km flood",
+      "villages": 7,
+      "townships": 2,
+      "shelters": 19,
+      "pairs": 133,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.018,
+        "db_solver": 0.006,
+        "python_solver": 0.001
+      },
+      "min_cost": {
+        "placed": 612,
+        "person_hours": 75.8,
+        "minutes_per_person": 7.43,
+        "longest_trip_minutes": 14.8
+      },
+      "python": {
+        "placed": 612,
+        "person_hours": 75.8,
+        "minutes_per_person": 7.43,
+        "longest_trip_minutes": 14.8
+      },
+      "greedy": {
+        "placed": 612,
+        "person_hours": 76.5,
+        "minutes_per_person": 7.5,
+        "longest_trip_minutes": 14.8
+      },
+      "township_origins": {
+        "placed": 612,
+        "person_hours": 151.5,
+        "minutes_per_person": 14.85,
+        "longest_trip_minutes": 39.1
+      }
+    },
+    {
+      "scenario": "鹿野鄉 10 km earthquake",
+      "villages": 21,
+      "townships": 6,
+      "shelters": 29,
+      "pairs": 609,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.065,
+        "db_solver": 0.014,
+        "python_solver": 0.006
+      },
+      "min_cost": {
+        "placed": 1040,
+        "person_hours": 124.2,
+        "minutes_per_person": 7.16,
+        "longest_trip_minutes": 50.3
+      },
+      "python": {
+        "placed": 1040,
+        "person_hours": 124.2,
+        "minutes_per_person": 7.16,
+        "longest_trip_minutes": 45.1
+      },
+      "greedy": {
+        "placed": 1040,
+        "person_hours": 126.3,
+        "minutes_per_person": 7.29,
+        "longest_trip_minutes": 50.3
+      },
+      "township_origins": {
+        "placed": 1040,
+        "person_hours": 332.1,
+        "minutes_per_person": 19.16,
+        "longest_trip_minutes": 96.5
+      }
+    },
+    {
+      "scenario": "鹿野鄉 10 km flood",
+      "villages": 21,
+      "townships": 6,
+      "shelters": 29,
+      "pairs": 609,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.062,
+        "db_solver": 0.014,
+        "python_solver": 0.007
+      },
+      "min_cost": {
+        "placed": 1430,
+        "person_hours": 173.3,
+        "minutes_per_person": 7.27,
+        "longest_trip_minutes": 18.9
+      },
+      "python": {
+        "placed": 1430,
+        "person_hours": 173.3,
+        "minutes_per_person": 7.27,
+        "longest_trip_minutes": 18.9
+      },
+      "greedy": {
+        "placed": 1430,
+        "person_hours": 204.7,
+        "minutes_per_person": 8.59,
+        "longest_trip_minutes": 37.1
+      },
+      "township_origins": {
+        "placed": 1430,
+        "person_hours": 340.5,
+        "minutes_per_person": 14.29,
+        "longest_trip_minutes": 38.8
+      }
+    },
+    {
+      "scenario": "池上鄉 5 km earthquake",
+      "villages": 13,
+      "townships": 4,
+      "shelters": 16,
+      "pairs": 208,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.021,
+        "db_solver": 0.015,
+        "python_solver": 0.001
+      },
+      "min_cost": {
+        "placed": 812,
+        "person_hours": 33.0,
+        "minutes_per_person": 2.44,
+        "longest_trip_minutes": 7.9
+      },
+      "python": {
+        "placed": 812,
+        "person_hours": 33.0,
+        "minutes_per_person": 2.44,
+        "longest_trip_minutes": 7.9
+      },
+      "greedy": {
+        "placed": 812,
+        "person_hours": 33.6,
+        "minutes_per_person": 2.48,
+        "longest_trip_minutes": 7.9
+      },
+      "township_origins": {
+        "placed": 812,
+        "person_hours": 146.8,
+        "minutes_per_person": 10.85,
+        "longest_trip_minutes": 63.5
+      }
+    },
+    {
+      "scenario": "池上鄉 5 km flood",
+      "villages": 13,
+      "townships": 4,
+      "shelters": 18,
+      "pairs": 234,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.024,
+        "db_solver": 0.005,
+        "python_solver": 0.002
+      },
+      "min_cost": {
+        "placed": 1489,
+        "person_hours": 68.3,
+        "minutes_per_person": 2.75,
+        "longest_trip_minutes": 7.9
+      },
+      "python": {
+        "placed": 1489,
+        "person_hours": 68.3,
+        "minutes_per_person": 2.75,
+        "longest_trip_minutes": 7.9
+      },
+      "greedy": {
+        "placed": 1489,
+        "person_hours": 76.0,
+        "minutes_per_person": 3.06,
+        "longest_trip_minutes": 13.5
+      },
+      "township_origins": {
+        "placed": 1489,
+        "person_hours": 273.6,
+        "minutes_per_person": 11.03,
+        "longest_trip_minutes": 63.5
+      }
+    },
+    {
+      "scenario": "池上鄉 10 km earthquake",
+      "villages": 26,
+      "townships": 5,
+      "shelters": 26,
+      "pairs": 676,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.052,
+        "db_solver": 0.014,
+        "python_solver": 0.007
+      },
+      "min_cost": {
+        "placed": 1566,
+        "person_hours": 125.4,
+        "minutes_per_person": 4.8,
+        "longest_trip_minutes": 41.2
+      },
+      "python": {
+        "placed": 1566,
+        "person_hours": 125.4,
+        "minutes_per_person": 4.8,
+        "longest_trip_minutes": 41.2
+      },
+      "greedy": {
+        "placed": 1566,
+        "person_hours": 133.4,
+        "minutes_per_person": 5.11,
+        "longest_trip_minutes": 44.4
+      },
+      "township_origins": {
+        "placed": 1566,
+        "person_hours": 430.7,
+        "minutes_per_person": 16.5,
+        "longest_trip_minutes": 92.9
+      }
+    },
+    {
+      "scenario": "池上鄉 10 km flood",
+      "villages": 26,
+      "townships": 5,
+      "shelters": 33,
+      "pairs": 858,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.056,
+        "db_solver": 0.015,
+        "python_solver": 0.013
+      },
+      "min_cost": {
+        "placed": 2871,
+        "person_hours": 239.7,
+        "minutes_per_person": 5.01,
+        "longest_trip_minutes": 38.3
+      },
+      "python": {
+        "placed": 2871,
+        "person_hours": 239.7,
+        "minutes_per_person": 5.01,
+        "longest_trip_minutes": 38.3
+      },
+      "greedy": {
+        "placed": 2871,
+        "person_hours": 267.8,
+        "minutes_per_person": 5.6,
+        "longest_trip_minutes": 51.3
+      },
+      "township_origins": {
+        "placed": 2871,
+        "person_hours": 776.3,
+        "minutes_per_person": 16.22,
+        "longest_trip_minutes": 98.3
+      }
+    },
+    {
+      "scenario": "東河鄉 5 km earthquake",
+      "villages": 4,
+      "townships": 1,
+      "shelters": 1,
+      "pairs": 4,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.012,
+        "db_solver": 0.004,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 50,
+        "person_hours": 9.3,
+        "minutes_per_person": 11.1,
+        "longest_trip_minutes": 25.2
+      },
+      "python": {
+        "placed": 50,
+        "person_hours": 9.3,
+        "minutes_per_person": 11.1,
+        "longest_trip_minutes": 25.2
+      },
+      "greedy": {
+        "placed": 50,
+        "person_hours": 9.3,
+        "minutes_per_person": 11.1,
+        "longest_trip_minutes": 25.2
+      },
+      "township_origins": {
+        "placed": 50,
+        "person_hours": 38.8,
+        "minutes_per_person": 46.57,
+        "longest_trip_minutes": 46.6
+      }
+    },
+    {
+      "scenario": "東河鄉 5 km flood",
+      "villages": 4,
+      "townships": 1,
+      "shelters": 1,
+      "pairs": 4,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.011,
+        "db_solver": 0.003,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 50,
+        "person_hours": 7.8,
+        "minutes_per_person": 9.34,
+        "longest_trip_minutes": 9.3
+      },
+      "python": {
+        "placed": 50,
+        "person_hours": 7.8,
+        "minutes_per_person": 9.34,
+        "longest_trip_minutes": 9.3
+      },
+      "greedy": {
+        "placed": 50,
+        "person_hours": 7.8,
+        "minutes_per_person": 9.34,
+        "longest_trip_minutes": 9.3
+      },
+      "township_origins": {
+        "placed": 50,
+        "person_hours": 38.4,
+        "minutes_per_person": 46.03,
+        "longest_trip_minutes": 46.0
+      }
+    },
+    {
+      "scenario": "東河鄉 10 km earthquake",
+      "villages": 12,
+      "townships": 5,
+      "shelters": 2,
+      "pairs": 24,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.042,
+        "db_solver": 0.003,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 70,
+        "person_hours": 3.1,
+        "minutes_per_person": 2.66,
+        "longest_trip_minutes": 6.0
+      },
+      "python": {
+        "placed": 70,
+        "person_hours": 3.1,
+        "minutes_per_person": 2.66,
+        "longest_trip_minutes": 6.0
+      },
+      "greedy": {
+        "placed": 70,
+        "person_hours": 3.1,
+        "minutes_per_person": 2.66,
+        "longest_trip_minutes": 6.0
+      },
+      "township_origins": {
+        "placed": 70,
+        "person_hours": 44.4,
+        "minutes_per_person": 38.07,
+        "longest_trip_minutes": 46.6
+      }
+    },
+    {
+      "scenario": "東河鄉 10 km flood",
+      "villages": 12,
+      "townships": 5,
+      "shelters": 5,
+      "pairs": 60,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.048,
+        "db_solver": 0.009,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 361,
+        "person_hours": 76.8,
+        "minutes_per_person": 12.76,
+        "longest_trip_minutes": 19.8
+      },
+      "python": {
+        "placed": 361,
+        "person_hours": 76.8,
+        "minutes_per_person": 12.76,
+        "longest_trip_minutes": 19.8
+      },
+      "greedy": {
+        "placed": 361,
+        "person_hours": 79.0,
+        "minutes_per_person": 13.13,
+        "longest_trip_minutes": 19.8
+      },
+      "township_origins": {
+        "placed": 361,
+        "person_hours": 329.6,
+        "minutes_per_person": 54.79,
+        "longest_trip_minutes": 65.4
+      }
+    },
+    {
+      "scenario": "長濱鄉 5 km earthquake",
+      "villages": 3,
+      "townships": 1,
+      "shelters": 8,
+      "pairs": 24,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.008,
+        "db_solver": 0.005,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 337,
+        "person_hours": 22.2,
+        "minutes_per_person": 3.95,
+        "longest_trip_minutes": 9.9
+      },
+      "python": {
+        "placed": 337,
+        "person_hours": 22.2,
+        "minutes_per_person": 3.95,
+        "longest_trip_minutes": 9.9
+      },
+      "greedy": {
+        "placed": 337,
+        "person_hours": 22.2,
+        "minutes_per_person": 3.95,
+        "longest_trip_minutes": 9.9
+      },
+      "township_origins": {
+        "placed": 337,
+        "person_hours": 36.6,
+        "minutes_per_person": 6.51,
+        "longest_trip_minutes": 7.5
+      }
+    },
+    {
+      "scenario": "長濱鄉 5 km flood",
+      "villages": 3,
+      "townships": 1,
+      "shelters": 9,
+      "pairs": 27,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.008,
+        "db_solver": 0.004,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 617,
+        "person_hours": 45.7,
+        "minutes_per_person": 4.45,
+        "longest_trip_minutes": 9.9
+      },
+      "python": {
+        "placed": 617,
+        "person_hours": 45.7,
+        "minutes_per_person": 4.45,
+        "longest_trip_minutes": 9.9
+      },
+      "greedy": {
+        "placed": 617,
+        "person_hours": 46.4,
+        "minutes_per_person": 4.51,
+        "longest_trip_minutes": 12.7
+      },
+      "township_origins": {
+        "placed": 617,
+        "person_hours": 78.5,
+        "minutes_per_person": 7.64,
+        "longest_trip_minutes": 10.4
+      }
+    },
+    {
+      "scenario": "長濱鄉 10 km earthquake",
+      "villages": 9,
+      "townships": 2,
+      "shelters": 17,
+      "pairs": 153,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.035,
+        "db_solver": 0.007,
+        "python_solver": 0.001
+      },
+      "min_cost": {
+        "placed": 503,
+        "person_hours": 38.7,
+        "minutes_per_person": 4.62,
+        "longest_trip_minutes": 35.7
+      },
+      "python": {
+        "placed": 503,
+        "person_hours": 38.7,
+        "minutes_per_person": 4.62,
+        "longest_trip_minutes": 35.7
+      },
+      "greedy": {
+        "placed": 503,
+        "person_hours": 38.7,
+        "minutes_per_person": 4.62,
+        "longest_trip_minutes": 35.7
+      },
+      "township_origins": {
+        "placed": 503,
+        "person_hours": 64.6,
+        "minutes_per_person": 7.7,
+        "longest_trip_minutes": 35.0
+      }
+    },
+    {
+      "scenario": "長濱鄉 10 km flood",
+      "villages": 9,
+      "townships": 2,
+      "shelters": 17,
+      "pairs": 153,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.043,
+        "db_solver": 0.007,
+        "python_solver": 0.001
+      },
+      "min_cost": {
+        "placed": 922,
+        "person_hours": 78.7,
+        "minutes_per_person": 5.12,
+        "longest_trip_minutes": 35.7
+      },
+      "python": {
+        "placed": 922,
+        "person_hours": 78.7,
+        "minutes_per_person": 5.12,
+        "longest_trip_minutes": 35.7
+      },
+      "greedy": {
+        "placed": 922,
+        "person_hours": 80.2,
+        "minutes_per_person": 5.22,
+        "longest_trip_minutes": 35.7
+      },
+      "township_origins": {
+        "placed": 922,
+        "person_hours": 146.2,
+        "minutes_per_person": 9.52,
+        "longest_trip_minutes": 35.0
+      }
+    },
+    {
+      "scenario": "太麻里鄉 5 km earthquake",
+      "villages": 8,
+      "townships": 2,
+      "shelters": 7,
+      "pairs": 56,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.011,
+        "db_solver": 0.003,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 560,
+        "person_hours": 67.0,
+        "minutes_per_person": 7.18,
+        "longest_trip_minutes": 22.9
+      },
+      "python": {
+        "placed": 560,
+        "person_hours": 67.0,
+        "minutes_per_person": 7.18,
+        "longest_trip_minutes": 22.9
+      },
+      "greedy": {
+        "placed": 560,
+        "person_hours": 78.8,
+        "minutes_per_person": 8.44,
+        "longest_trip_minutes": 36.1
+      },
+      "township_origins": {
+        "placed": 560,
+        "person_hours": 78.9,
+        "minutes_per_person": 8.45,
+        "longest_trip_minutes": 20.8
+      }
+    },
+    {
+      "scenario": "太麻里鄉 5 km flood",
+      "villages": 8,
+      "townships": 2,
+      "shelters": 10,
+      "pairs": 80,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.01,
+        "db_solver": 0.005,
+        "python_solver": 0.002
+      },
+      "min_cost": {
+        "placed": 860,
+        "person_hours": 99.7,
+        "minutes_per_person": 6.96,
+        "longest_trip_minutes": 18.1
+      },
+      "python": {
+        "placed": 860,
+        "person_hours": 99.7,
+        "minutes_per_person": 6.96,
+        "longest_trip_minutes": 18.1
+      },
+      "greedy": {
+        "placed": 860,
+        "person_hours": 115.4,
+        "minutes_per_person": 8.05,
+        "longest_trip_minutes": 18.1
+      },
+      "township_origins": {
+        "placed": 860,
+        "person_hours": 116.7,
+        "minutes_per_person": 8.14,
+        "longest_trip_minutes": 15.1
+      }
+    },
+    {
+      "scenario": "太麻里鄉 10 km earthquake",
+      "villages": 14,
+      "townships": 2,
+      "shelters": 10,
+      "pairs": 140,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.031,
+        "db_solver": 0.005,
+        "python_solver": 0.001
+      },
+      "min_cost": {
+        "placed": 830,
+        "person_hours": 108.5,
+        "minutes_per_person": 7.84,
+        "longest_trip_minutes": 22.8
+      },
+      "python": {
+        "placed": 830,
+        "person_hours": 108.5,
+        "minutes_per_person": 7.84,
+        "longest_trip_minutes": 22.8
+      },
+      "greedy": {
+        "placed": 830,
+        "person_hours": 119.6,
+        "minutes_per_person": 8.64,
+        "longest_trip_minutes": 44.3
+      },
+      "township_origins": {
+        "placed": 830,
+        "person_hours": 152.8,
+        "minutes_per_person": 11.05,
+        "longest_trip_minutes": 24.7
+      }
+    },
+    {
+      "scenario": "太麻里鄉 10 km flood",
+      "villages": 14,
+      "townships": 2,
+      "shelters": 16,
+      "pairs": 224,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.028,
+        "db_solver": 0.006,
+        "python_solver": 0.002
+      },
+      "min_cost": {
+        "placed": 1300,
+        "person_hours": 152.2,
+        "minutes_per_person": 7.02,
+        "longest_trip_minutes": 15.8
+      },
+      "python": {
+        "placed": 1300,
+        "person_hours": 152.2,
+        "minutes_per_person": 7.02,
+        "longest_trip_minutes": 15.8
+      },
+      "greedy": {
+        "placed": 1300,
+        "person_hours": 167.6,
+        "minutes_per_person": 7.73,
+        "longest_trip_minutes": 16.5
+      },
+      "township_origins": {
+        "placed": 1300,
+        "person_hours": 238.8,
+        "minutes_per_person": 11.02,
+        "longest_trip_minutes": 23.5
+      }
+    },
+    {
+      "scenario": "大武鄉 5 km earthquake",
+      "villages": 3,
+      "townships": 1,
+      "shelters": 6,
+      "pairs": 18,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.005,
+        "db_solver": 0.003,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 353,
+        "person_hours": 19.8,
+        "minutes_per_person": 3.36,
+        "longest_trip_minutes": 5.2
+      },
+      "python": {
+        "placed": 353,
+        "person_hours": 19.8,
+        "minutes_per_person": 3.36,
+        "longest_trip_minutes": 5.2
+      },
+      "greedy": {
+        "placed": 353,
+        "person_hours": 19.8,
+        "minutes_per_person": 3.36,
+        "longest_trip_minutes": 5.2
+      },
+      "township_origins": {
+        "placed": 353,
+        "person_hours": 116.1,
+        "minutes_per_person": 19.74,
+        "longest_trip_minutes": 20.2
+      }
+    },
+    {
+      "scenario": "大武鄉 5 km flood",
+      "villages": 3,
+      "townships": 1,
+      "shelters": 7,
+      "pairs": 21,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.005,
+        "db_solver": 0.004,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 647,
+        "person_hours": 36.2,
+        "minutes_per_person": 3.36,
+        "longest_trip_minutes": 5.2
+      },
+      "python": {
+        "placed": 647,
+        "person_hours": 36.2,
+        "minutes_per_person": 3.36,
+        "longest_trip_minutes": 5.2
+      },
+      "greedy": {
+        "placed": 647,
+        "person_hours": 36.2,
+        "minutes_per_person": 3.36,
+        "longest_trip_minutes": 5.2
+      },
+      "township_origins": {
+        "placed": 647,
+        "person_hours": 215.0,
+        "minutes_per_person": 19.94,
+        "longest_trip_minutes": 20.2
+      }
+    },
+    {
+      "scenario": "大武鄉 10 km earthquake",
+      "villages": 10,
+      "townships": 2,
+      "shelters": 15,
+      "pairs": 150,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.009,
+        "db_solver": 0.005,
+        "python_solver": 0.001
+      },
+      "min_cost": {
+        "placed": 586,
+        "person_hours": 94.4,
+        "minutes_per_person": 9.66,
+        "longest_trip_minutes": 70.4
+      },
+      "python": {
+        "placed": 586,
+        "person_hours": 94.4,
+        "minutes_per_person": 9.66,
+        "longest_trip_minutes": 70.4
+      },
+      "greedy": {
+        "placed": 586,
+        "person_hours": 94.4,
+        "minutes_per_person": 9.66,
+        "longest_trip_minutes": 70.4
+      },
+      "township_origins": {
+        "placed": 586,
+        "person_hours": 182.1,
+        "minutes_per_person": 18.64,
+        "longest_trip_minutes": 20.2
+      }
+    },
+    {
+      "scenario": "大武鄉 10 km flood",
+      "villages": 10,
+      "townships": 2,
+      "shelters": 18,
+      "pairs": 180,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.011,
+        "db_solver": 0.005,
+        "python_solver": 0.001
+      },
+      "min_cost": {
+        "placed": 1074,
+        "person_hours": 158.7,
+        "minutes_per_person": 8.86,
+        "longest_trip_minutes": 60.7
+      },
+      "python": {
+        "placed": 1074,
+        "person_hours": 158.7,
+        "minutes_per_person": 8.86,
+        "longest_trip_minutes": 60.7
+      },
+      "greedy": {
+        "placed": 1074,
+        "person_hours": 159.0,
+        "minutes_per_person": 8.89,
+        "longest_trip_minutes": 60.7
+      },
+      "township_origins": {
+        "placed": 1074,
+        "person_hours": 337.6,
+        "minutes_per_person": 18.86,
+        "longest_trip_minutes": 21.4
+      }
+    },
+    {
+      "scenario": "綠島鄉 5 km earthquake",
+      "villages": 3,
+      "townships": 1,
+      "shelters": 8,
+      "pairs": 24,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.004,
+        "db_solver": 0.004,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 439,
+        "person_hours": 25.9,
+        "minutes_per_person": 3.54,
+        "longest_trip_minutes": 13.1
+      },
+      "python": {
+        "placed": 439,
+        "person_hours": 25.9,
+        "minutes_per_person": 3.54,
+        "longest_trip_minutes": 13.1
+      },
+      "greedy": {
+        "placed": 439,
+        "person_hours": 26.1,
+        "minutes_per_person": 3.56,
+        "longest_trip_minutes": 13.9
+      },
+      "township_origins": {
+        "placed": 439,
+        "person_hours": 77.1,
+        "minutes_per_person": 10.54,
+        "longest_trip_minutes": 10.9
+      }
+    },
+    {
+      "scenario": "綠島鄉 5 km flood",
+      "villages": 3,
+      "townships": 1,
+      "shelters": 8,
+      "pairs": 24,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.004,
+        "db_solver": 0.004,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 805,
+        "person_hours": 54.0,
+        "minutes_per_person": 4.03,
+        "longest_trip_minutes": 14.9
+      },
+      "python": {
+        "placed": 805,
+        "person_hours": 54.0,
+        "minutes_per_person": 4.03,
+        "longest_trip_minutes": 14.9
+      },
+      "greedy": {
+        "placed": 805,
+        "person_hours": 55.8,
+        "minutes_per_person": 4.16,
+        "longest_trip_minutes": 15.8
+      },
+      "township_origins": {
+        "placed": 805,
+        "person_hours": 147.0,
+        "minutes_per_person": 10.96,
+        "longest_trip_minutes": 13.8
+      }
+    },
+    {
+      "scenario": "綠島鄉 10 km earthquake",
+      "villages": 3,
+      "townships": 1,
+      "shelters": 8,
+      "pairs": 24,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.003,
+        "db_solver": 0.004,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 502,
+        "person_hours": 34.6,
+        "minutes_per_person": 4.14,
+        "longest_trip_minutes": 13.1
+      },
+      "python": {
+        "placed": 502,
+        "person_hours": 34.6,
+        "minutes_per_person": 4.14,
+        "longest_trip_minutes": 13.1
+      },
+      "greedy": {
+        "placed": 502,
+        "person_hours": 35.4,
+        "minutes_per_person": 4.23,
+        "longest_trip_minutes": 14.9
+      },
+      "township_origins": {
+        "placed": 502,
+        "person_hours": 88.8,
+        "minutes_per_person": 10.61,
+        "longest_trip_minutes": 11.3
+      }
+    },
+    {
+      "scenario": "綠島鄉 10 km flood",
+      "villages": 3,
+      "townships": 1,
+      "shelters": 8,
+      "pairs": 24,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.003,
+        "db_solver": 0.003,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 921,
+        "person_hours": 75.3,
+        "minutes_per_person": 4.91,
+        "longest_trip_minutes": 16.8
+      },
+      "python": {
+        "placed": 921,
+        "person_hours": 75.3,
+        "minutes_per_person": 4.91,
+        "longest_trip_minutes": 16.8
+      },
+      "greedy": {
+        "placed": 921,
+        "person_hours": 76.9,
+        "minutes_per_person": 5.01,
+        "longest_trip_minutes": 16.8
+      },
+      "township_origins": {
+        "placed": 921,
+        "person_hours": 175.3,
+        "minutes_per_person": 11.42,
+        "longest_trip_minutes": 15.0
+      }
+    },
+    {
+      "scenario": "海端鄉 5 km earthquake",
+      "villages": 2,
+      "townships": 2,
+      "shelters": 3,
+      "pairs": 6,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.009,
+        "db_solver": 0.004,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 134,
+        "person_hours": 11.5,
+        "minutes_per_person": 5.15,
+        "longest_trip_minutes": 9.1
+      },
+      "python": {
+        "placed": 134,
+        "person_hours": 11.5,
+        "minutes_per_person": 5.15,
+        "longest_trip_minutes": 9.1
+      },
+      "greedy": {
+        "placed": 134,
+        "person_hours": 11.5,
+        "minutes_per_person": 5.15,
+        "longest_trip_minutes": 9.1
+      },
+      "township_origins": {
+        "placed": 134,
+        "person_hours": 89.0,
+        "minutes_per_person": 39.86,
+        "longest_trip_minutes": 64.7
+      }
+    },
+    {
+      "scenario": "海端鄉 5 km flood",
+      "villages": 2,
+      "townships": 2,
+      "shelters": 3,
+      "pairs": 6,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.009,
+        "db_solver": 0.004,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 230,
+        "person_hours": 20.3,
+        "minutes_per_person": 5.28,
+        "longest_trip_minutes": 9.1
+      },
+      "python": {
+        "placed": 230,
+        "person_hours": 20.3,
+        "minutes_per_person": 5.28,
+        "longest_trip_minutes": 9.1
+      },
+      "greedy": {
+        "placed": 230,
+        "person_hours": 20.3,
+        "minutes_per_person": 5.29,
+        "longest_trip_minutes": 9.1
+      },
+      "township_origins": {
+        "placed": 230,
+        "person_hours": 147.5,
+        "minutes_per_person": 38.47,
+        "longest_trip_minutes": 64.7
+      }
+    },
+    {
+      "scenario": "海端鄉 10 km earthquake",
+      "villages": 21,
+      "townships": 4,
+      "shelters": 24,
+      "pairs": 504,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.035,
+        "db_solver": 0.009,
+        "python_solver": 0.004
+      },
+      "min_cost": {
+        "placed": 902,
+        "person_hours": 50.2,
+        "minutes_per_person": 3.34,
+        "longest_trip_minutes": 11.1
+      },
+      "python": {
+        "placed": 902,
+        "person_hours": 50.2,
+        "minutes_per_person": 3.34,
+        "longest_trip_minutes": 11.1
+      },
+      "greedy": {
+        "placed": 902,
+        "person_hours": 50.3,
+        "minutes_per_person": 3.35,
+        "longest_trip_minutes": 12.3
+      },
+      "township_origins": {
+        "placed": 902,
+        "person_hours": 295.7,
+        "minutes_per_person": 19.67,
+        "longest_trip_minutes": 64.7
+      }
+    },
+    {
+      "scenario": "海端鄉 10 km flood",
+      "villages": 21,
+      "townships": 4,
+      "shelters": 25,
+      "pairs": 525,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.035,
+        "db_solver": 0.008,
+        "python_solver": 0.004
+      },
+      "min_cost": {
+        "placed": 1654,
+        "person_hours": 110.4,
+        "minutes_per_person": 4.0,
+        "longest_trip_minutes": 12.7
+      },
+      "python": {
+        "placed": 1654,
+        "person_hours": 110.4,
+        "minutes_per_person": 4.0,
+        "longest_trip_minutes": 12.7
+      },
+      "greedy": {
+        "placed": 1654,
+        "person_hours": 110.7,
+        "minutes_per_person": 4.01,
+        "longest_trip_minutes": 12.7
+      },
+      "township_origins": {
+        "placed": 1654,
+        "person_hours": 552.1,
+        "minutes_per_person": 20.03,
+        "longest_trip_minutes": 66.8
+      }
+    },
+    {
+      "scenario": "延平鄉 5 km earthquake",
+      "villages": 6,
+      "townships": 2,
+      "shelters": 13,
+      "pairs": 78,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.014,
+        "db_solver": 0.008,
+        "python_solver": 0.001
+      },
+      "min_cost": {
+        "placed": 476,
+        "person_hours": 71.3,
+        "minutes_per_person": 8.98,
+        "longest_trip_minutes": 14.7
+      },
+      "python": {
+        "placed": 476,
+        "person_hours": 71.3,
+        "minutes_per_person": 8.98,
+        "longest_trip_minutes": 14.7
+      },
+      "greedy": {
+        "placed": 476,
+        "person_hours": 73.4,
+        "minutes_per_person": 9.25,
+        "longest_trip_minutes": 19.1
+      },
+      "township_origins": {
+        "placed": 476,
+        "person_hours": 117.6,
+        "minutes_per_person": 14.82,
+        "longest_trip_minutes": 36.7
+      }
+    },
+    {
+      "scenario": "延平鄉 5 km flood",
+      "villages": 6,
+      "townships": 2,
+      "shelters": 13,
+      "pairs": 78,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.013,
+        "db_solver": 0.004,
+        "python_solver": 0.001
+      },
+      "min_cost": {
+        "placed": 590,
+        "person_hours": 87.6,
+        "minutes_per_person": 8.91,
+        "longest_trip_minutes": 18.8
+      },
+      "python": {
+        "placed": 590,
+        "person_hours": 87.6,
+        "minutes_per_person": 8.91,
+        "longest_trip_minutes": 18.8
+      },
+      "greedy": {
+        "placed": 590,
+        "person_hours": 88.0,
+        "minutes_per_person": 8.95,
+        "longest_trip_minutes": 20.0
+      },
+      "township_origins": {
+        "placed": 590,
+        "person_hours": 105.2,
+        "minutes_per_person": 10.7,
+        "longest_trip_minutes": 18.2
+      }
+    },
+    {
+      "scenario": "延平鄉 10 km earthquake",
+      "villages": 20,
+      "townships": 5,
+      "shelters": 27,
+      "pairs": 540,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.063,
+        "db_solver": 0.012,
+        "python_solver": 0.007
+      },
+      "min_cost": {
+        "placed": 1113,
+        "person_hours": 152.0,
+        "minutes_per_person": 8.19,
+        "longest_trip_minutes": 20.9
+      },
+      "python": {
+        "placed": 1113,
+        "person_hours": 152.0,
+        "minutes_per_person": 8.19,
+        "longest_trip_minutes": 20.9
+      },
+      "greedy": {
+        "placed": 1113,
+        "person_hours": 157.9,
+        "minutes_per_person": 8.51,
+        "longest_trip_minutes": 30.9
+      },
+      "township_origins": {
+        "placed": 1113,
+        "person_hours": 345.6,
+        "minutes_per_person": 18.63,
+        "longest_trip_minutes": 81.5
+      }
+    },
+    {
+      "scenario": "延平鄉 10 km flood",
+      "villages": 20,
+      "townships": 5,
+      "shelters": 27,
+      "pairs": 540,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.06,
+        "db_solver": 0.01,
+        "python_solver": 0.006
+      },
+      "min_cost": {
+        "placed": 1170,
+        "person_hours": 110.5,
+        "minutes_per_person": 5.67,
+        "longest_trip_minutes": 11.5
+      },
+      "python": {
+        "placed": 1170,
+        "person_hours": 110.5,
+        "minutes_per_person": 5.67,
+        "longest_trip_minutes": 11.5
+      },
+      "greedy": {
+        "placed": 1170,
+        "person_hours": 114.8,
+        "minutes_per_person": 5.89,
+        "longest_trip_minutes": 17.9
+      },
+      "township_origins": {
+        "placed": 1170,
+        "person_hours": 228.1,
+        "minutes_per_person": 11.69,
+        "longest_trip_minutes": 23.9
+      }
+    },
+    {
+      "scenario": "金峰鄉 5 km earthquake",
+      "villages": 6,
+      "townships": 2,
+      "shelters": 7,
+      "pairs": 42,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.009,
+        "db_solver": 0.004,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 410,
+        "person_hours": 70.4,
+        "minutes_per_person": 10.3,
+        "longest_trip_minutes": 22.9
+      },
+      "python": {
+        "placed": 410,
+        "person_hours": 70.4,
+        "minutes_per_person": 10.3,
+        "longest_trip_minutes": 22.9
+      },
+      "greedy": {
+        "placed": 410,
+        "person_hours": 71.2,
+        "minutes_per_person": 10.43,
+        "longest_trip_minutes": 29.8
+      },
+      "township_origins": {
+        "placed": 410,
+        "person_hours": 59.1,
+        "minutes_per_person": 8.66,
+        "longest_trip_minutes": 14.2
+      }
+    },
+    {
+      "scenario": "金峰鄉 5 km flood",
+      "villages": 6,
+      "townships": 2,
+      "shelters": 9,
+      "pairs": 54,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.01,
+        "db_solver": 0.005,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 751,
+        "person_hours": 156.2,
+        "minutes_per_person": 12.48,
+        "longest_trip_minutes": 29.6
+      },
+      "python": {
+        "placed": 751,
+        "person_hours": 156.2,
+        "minutes_per_person": 12.48,
+        "longest_trip_minutes": 29.6
+      },
+      "greedy": {
+        "placed": 751,
+        "person_hours": 166.9,
+        "minutes_per_person": 13.33,
+        "longest_trip_minutes": 36.1
+      },
+      "township_origins": {
+        "placed": 751,
+        "person_hours": 105.6,
+        "minutes_per_person": 8.44,
+        "longest_trip_minutes": 20.8
+      }
+    },
+    {
+      "scenario": "金峰鄉 10 km earthquake",
+      "villages": 14,
+      "townships": 2,
+      "shelters": 10,
+      "pairs": 140,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.026,
+        "db_solver": 0.006,
+        "python_solver": 0.001
+      },
+      "min_cost": {
+        "placed": 830,
+        "person_hours": 127.5,
+        "minutes_per_person": 9.22,
+        "longest_trip_minutes": 22.9
+      },
+      "python": {
+        "placed": 830,
+        "person_hours": 127.5,
+        "minutes_per_person": 9.22,
+        "longest_trip_minutes": 22.9
+      },
+      "greedy": {
+        "placed": 830,
+        "person_hours": 149.6,
+        "minutes_per_person": 10.81,
+        "longest_trip_minutes": 44.3
+      },
+      "township_origins": {
+        "placed": 830,
+        "person_hours": 163.9,
+        "minutes_per_person": 11.85,
+        "longest_trip_minutes": 25.3
+      }
+    },
+    {
+      "scenario": "金峰鄉 10 km flood",
+      "villages": 14,
+      "townships": 2,
+      "shelters": 17,
+      "pairs": 238,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.027,
+        "db_solver": 0.006,
+        "python_solver": 0.002
+      },
+      "min_cost": {
+        "placed": 1400,
+        "person_hours": 212.7,
+        "minutes_per_person": 9.12,
+        "longest_trip_minutes": 29.6
+      },
+      "python": {
+        "placed": 1400,
+        "person_hours": 212.7,
+        "minutes_per_person": 9.12,
+        "longest_trip_minutes": 29.6
+      },
+      "greedy": {
+        "placed": 1400,
+        "person_hours": 234.9,
+        "minutes_per_person": 10.07,
+        "longest_trip_minutes": 50.2
+      },
+      "township_origins": {
+        "placed": 1400,
+        "person_hours": 288.1,
+        "minutes_per_person": 12.35,
+        "longest_trip_minutes": 24.2
+      }
+    },
+    {
+      "scenario": "達仁鄉 5 km earthquake",
+      "villages": 3,
+      "townships": 1,
+      "shelters": 6,
+      "pairs": 18,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.006,
+        "db_solver": 0.004,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 285,
+        "person_hours": 16.3,
+        "minutes_per_person": 3.43,
+        "longest_trip_minutes": 5.2
+      },
+      "python": {
+        "placed": 285,
+        "person_hours": 16.3,
+        "minutes_per_person": 3.43,
+        "longest_trip_minutes": 5.2
+      },
+      "greedy": {
+        "placed": 285,
+        "person_hours": 16.3,
+        "minutes_per_person": 3.43,
+        "longest_trip_minutes": 5.2
+      },
+      "township_origins": {
+        "placed": 285,
+        "person_hours": 93.4,
+        "minutes_per_person": 19.66,
+        "longest_trip_minutes": 19.7
+      }
+    },
+    {
+      "scenario": "達仁鄉 5 km flood",
+      "villages": 3,
+      "townships": 1,
+      "shelters": 7,
+      "pairs": 21,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.005,
+        "db_solver": 0.006,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 523,
+        "person_hours": 29.9,
+        "minutes_per_person": 3.43,
+        "longest_trip_minutes": 5.2
+      },
+      "python": {
+        "placed": 523,
+        "person_hours": 29.9,
+        "minutes_per_person": 3.43,
+        "longest_trip_minutes": 5.2
+      },
+      "greedy": {
+        "placed": 523,
+        "person_hours": 29.9,
+        "minutes_per_person": 3.43,
+        "longest_trip_minutes": 5.2
+      },
+      "township_origins": {
+        "placed": 523,
+        "person_hours": 173.3,
+        "minutes_per_person": 19.88,
+        "longest_trip_minutes": 20.2
+      }
+    },
+    {
+      "scenario": "達仁鄉 10 km earthquake",
+      "villages": 10,
+      "townships": 2,
+      "shelters": 15,
+      "pairs": 150,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.01,
+        "db_solver": 0.005,
+        "python_solver": 0.001
+      },
+      "min_cost": {
+        "placed": 563,
+        "person_hours": 99.8,
+        "minutes_per_person": 10.64,
+        "longest_trip_minutes": 70.4
+      },
+      "python": {
+        "placed": 563,
+        "person_hours": 99.8,
+        "minutes_per_person": 10.64,
+        "longest_trip_minutes": 70.4
+      },
+      "greedy": {
+        "placed": 563,
+        "person_hours": 99.8,
+        "minutes_per_person": 10.64,
+        "longest_trip_minutes": 70.4
+      },
+      "township_origins": {
+        "placed": 563,
+        "person_hours": 174.2,
+        "minutes_per_person": 18.57,
+        "longest_trip_minutes": 20.2
+      }
+    },
+    {
+      "scenario": "達仁鄉 10 km flood",
+      "villages": 10,
+      "townships": 2,
+      "shelters": 18,
+      "pairs": 180,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.01,
+        "db_solver": 0.005,
+        "python_solver": 0.001
+      },
+      "min_cost": {
+        "placed": 1032,
+        "person_hours": 165.8,
+        "minutes_per_person": 9.64,
+        "longest_trip_minutes": 60.7
+      },
+      "python": {
+        "placed": 1032,
+        "person_hours": 165.8,
+        "minutes_per_person": 9.64,
+        "longest_trip_minutes": 60.7
+      },
+      "greedy": {
+        "placed": 1032,
+        "person_hours": 166.0,
+        "minutes_per_person": 9.65,
+        "longest_trip_minutes": 60.7
+      },
+      "township_origins": {
+        "placed": 1032,
+        "person_hours": 322.3,
+        "minutes_per_person": 18.74,
+        "longest_trip_minutes": 21.4
+      }
+    },
+    {
+      "scenario": "蘭嶼鄉 5 km earthquake",
+      "villages": 4,
+      "townships": 1,
+      "shelters": 5,
+      "pairs": 20,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.004,
+        "db_solver": 0.006,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 349,
+        "person_hours": 26.0,
+        "minutes_per_person": 4.47,
+        "longest_trip_minutes": 11.6
+      },
+      "python": {
+        "placed": 349,
+        "person_hours": 26.0,
+        "minutes_per_person": 4.47,
+        "longest_trip_minutes": 11.6
+      },
+      "greedy": {
+        "placed": 349,
+        "person_hours": 26.0,
+        "minutes_per_person": 4.47,
+        "longest_trip_minutes": 11.6
+      },
+      "township_origins": {
+        "placed": 349,
+        "person_hours": 173.9,
+        "minutes_per_person": 29.9,
+        "longest_trip_minutes": 30.2
+      }
+    },
+    {
+      "scenario": "蘭嶼鄉 5 km flood",
+      "villages": 4,
+      "townships": 1,
+      "shelters": 6,
+      "pairs": 24,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.003,
+        "db_solver": 0.004,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 640,
+        "person_hours": 47.6,
+        "minutes_per_person": 4.46,
+        "longest_trip_minutes": 11.6
+      },
+      "python": {
+        "placed": 640,
+        "person_hours": 47.6,
+        "minutes_per_person": 4.46,
+        "longest_trip_minutes": 11.6
+      },
+      "greedy": {
+        "placed": 640,
+        "person_hours": 47.6,
+        "minutes_per_person": 4.46,
+        "longest_trip_minutes": 11.6
+      },
+      "township_origins": {
+        "placed": 640,
+        "person_hours": 320.7,
+        "minutes_per_person": 30.06,
+        "longest_trip_minutes": 30.8
+      }
+    },
+    {
+      "scenario": "蘭嶼鄉 10 km earthquake",
+      "villages": 4,
+      "townships": 1,
+      "shelters": 5,
+      "pairs": 20,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.003,
+        "db_solver": 0.004,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 532,
+        "person_hours": 40.6,
+        "minutes_per_person": 4.58,
+        "longest_trip_minutes": 11.6
+      },
+      "python": {
+        "placed": 532,
+        "person_hours": 40.6,
+        "minutes_per_person": 4.58,
+        "longest_trip_minutes": 11.6
+      },
+      "greedy": {
+        "placed": 532,
+        "person_hours": 40.6,
+        "minutes_per_person": 4.58,
+        "longest_trip_minutes": 11.6
+      },
+      "township_origins": {
+        "placed": 532,
+        "person_hours": 266.0,
+        "minutes_per_person": 30.0,
+        "longest_trip_minutes": 30.2
+      }
+    },
+    {
+      "scenario": "蘭嶼鄉 10 km flood",
+      "villages": 4,
+      "townships": 1,
+      "shelters": 6,
+      "pairs": 24,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.003,
+        "db_solver": 0.004,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 975,
+        "person_hours": 92.5,
+        "minutes_per_person": 5.69,
+        "longest_trip_minutes": 14.5
+      },
+      "python": {
+        "placed": 975,
+        "person_hours": 92.5,
+        "minutes_per_person": 5.69,
+        "longest_trip_minutes": 14.5
+      },
+      "greedy": {
+        "placed": 975,
+        "person_hours": 92.5,
+        "minutes_per_person": 5.69,
+        "longest_trip_minutes": 17.5
+      },
+      "township_origins": {
+        "placed": 975,
+        "person_hours": 492.4,
+        "minutes_per_person": 30.3,
+        "longest_trip_minutes": 30.8
+      }
+    },
+    {
+      "scenario": "花蓮市 5 km earthquake",
+      "villages": 64,
+      "townships": 3,
+      "shelters": 35,
+      "pairs": 2240,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.087,
+        "db_solver": 0.024,
+        "python_solver": 0.027
+      },
+      "min_cost": {
+        "placed": 6915,
+        "person_hours": 296.6,
+        "minutes_per_person": 2.57,
+        "longest_trip_minutes": 6.2
+      },
+      "python": {
+        "placed": 6915,
+        "person_hours": 296.6,
+        "minutes_per_person": 2.57,
+        "longest_trip_minutes": 6.2
+      },
+      "greedy": {
+        "placed": 6915,
+        "person_hours": 299.7,
+        "minutes_per_person": 2.6,
+        "longest_trip_minutes": 7.2
+      },
+      "township_origins": {
+        "placed": 6915,
+        "person_hours": 602.6,
+        "minutes_per_person": 5.23,
+        "longest_trip_minutes": 9.6
+      }
+    },
+    {
+      "scenario": "花蓮市 5 km flood",
+      "villages": 64,
+      "townships": 3,
+      "shelters": 44,
+      "pairs": 2816,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.093,
+        "db_solver": 0.03,
+        "python_solver": 0.036
+      },
+      "min_cost": {
+        "placed": 9205,
+        "person_hours": 371.0,
+        "minutes_per_person": 2.42,
+        "longest_trip_minutes": 7.2
+      },
+      "python": {
+        "placed": 9205,
+        "person_hours": 371.0,
+        "minutes_per_person": 2.42,
+        "longest_trip_minutes": 7.2
+      },
+      "greedy": {
+        "placed": 9205,
+        "person_hours": 373.8,
+        "minutes_per_person": 2.44,
+        "longest_trip_minutes": 7.5
+      },
+      "township_origins": {
+        "placed": 9205,
+        "person_hours": 853.1,
+        "minutes_per_person": 5.56,
+        "longest_trip_minutes": 9.6
+      }
+    },
+    {
+      "scenario": "花蓮市 10 km earthquake",
+      "villages": 75,
+      "townships": 5,
+      "shelters": 47,
+      "pairs": 3525,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.142,
+        "db_solver": 0.032,
+        "python_solver": 0.041
+      },
+      "min_cost": {
+        "placed": 7605,
+        "person_hours": 289.7,
+        "minutes_per_person": 2.29,
+        "longest_trip_minutes": 5.4
+      },
+      "python": {
+        "placed": 7605,
+        "person_hours": 289.7,
+        "minutes_per_person": 2.29,
+        "longest_trip_minutes": 5.4
+      },
+      "greedy": {
+        "placed": 7605,
+        "person_hours": 292.2,
+        "minutes_per_person": 2.31,
+        "longest_trip_minutes": 5.4
+      },
+      "township_origins": {
+        "placed": 7605,
+        "person_hours": 657.0,
+        "minutes_per_person": 5.18,
+        "longest_trip_minutes": 10.4
+      }
+    },
+    {
+      "scenario": "花蓮市 10 km flood",
+      "villages": 75,
+      "townships": 5,
+      "shelters": 58,
+      "pairs": 4350,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.147,
+        "db_solver": 0.046,
+        "python_solver": 0.058
+      },
+      "min_cost": {
+        "placed": 9982,
+        "person_hours": 382.6,
+        "minutes_per_person": 2.3,
+        "longest_trip_minutes": 7.2
+      },
+      "python": {
+        "placed": 9982,
+        "person_hours": 382.6,
+        "minutes_per_person": 2.3,
+        "longest_trip_minutes": 7.2
+      },
+      "greedy": {
+        "placed": 9982,
+        "person_hours": 386.4,
+        "minutes_per_person": 2.32,
+        "longest_trip_minutes": 7.2
+      },
+      "township_origins": {
+        "placed": 9982,
+        "person_hours": 921.3,
+        "minutes_per_person": 5.54,
+        "longest_trip_minutes": 10.4
+      }
+    },
+    {
+      "scenario": "鳳林鎮 5 km earthquake",
+      "villages": 10,
+      "townships": 2,
+      "shelters": 5,
+      "pairs": 50,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.018,
+        "db_solver": 0.006,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 873,
+        "person_hours": 33.1,
+        "minutes_per_person": 2.27,
+        "longest_trip_minutes": 10.4
+      },
+      "python": {
+        "placed": 873,
+        "person_hours": 33.1,
+        "minutes_per_person": 2.27,
+        "longest_trip_minutes": 10.4
+      },
+      "greedy": {
+        "placed": 873,
+        "person_hours": 36.3,
+        "minutes_per_person": 2.5,
+        "longest_trip_minutes": 11.2
+      },
+      "township_origins": {
+        "placed": 873,
+        "person_hours": 60.9,
+        "minutes_per_person": 4.18,
+        "longest_trip_minutes": 56.0
+      }
+    },
+    {
+      "scenario": "鳳林鎮 5 km flood",
+      "villages": 10,
+      "townships": 2,
+      "shelters": 12,
+      "pairs": 120,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.017,
+        "db_solver": 0.006,
+        "python_solver": 0.001
+      },
+      "min_cost": {
+        "placed": 1600,
+        "person_hours": 52.6,
+        "minutes_per_person": 1.97,
+        "longest_trip_minutes": 9.2
+      },
+      "python": {
+        "placed": 1600,
+        "person_hours": 52.6,
+        "minutes_per_person": 1.97,
+        "longest_trip_minutes": 9.2
+      },
+      "greedy": {
+        "placed": 1600,
+        "person_hours": 55.1,
+        "minutes_per_person": 2.07,
+        "longest_trip_minutes": 18.0
+      },
+      "township_origins": {
+        "placed": 1600,
+        "person_hours": 129.5,
+        "minutes_per_person": 4.86,
+        "longest_trip_minutes": 54.2
+      }
+    },
+    {
+      "scenario": "鳳林鎮 10 km earthquake",
+      "villages": 31,
+      "townships": 5,
+      "shelters": 14,
+      "pairs": 434,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.065,
+        "db_solver": 0.015,
+        "python_solver": 0.004
+      },
+      "min_cost": {
+        "placed": 1593,
+        "person_hours": 136.0,
+        "minutes_per_person": 5.12,
+        "longest_trip_minutes": 36.8
+      },
+      "python": {
+        "placed": 1593,
+        "person_hours": 136.0,
+        "minutes_per_person": 5.12,
+        "longest_trip_minutes": 36.8
+      },
+      "greedy": {
+        "placed": 1593,
+        "person_hours": 152.2,
+        "minutes_per_person": 5.73,
+        "longest_trip_minutes": 36.8
+      },
+      "township_origins": {
+        "placed": 1593,
+        "person_hours": 183.3,
+        "minutes_per_person": 6.9,
+        "longest_trip_minutes": 29.1
+      }
+    },
+    {
+      "scenario": "鳳林鎮 10 km flood",
+      "villages": 31,
+      "townships": 5,
+      "shelters": 28,
+      "pairs": 868,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.073,
+        "db_solver": 0.014,
+        "python_solver": 0.011
+      },
+      "min_cost": {
+        "placed": 2714,
+        "person_hours": 176.5,
+        "minutes_per_person": 3.9,
+        "longest_trip_minutes": 20.7
+      },
+      "python": {
+        "placed": 2714,
+        "person_hours": 176.5,
+        "minutes_per_person": 3.9,
+        "longest_trip_minutes": 20.7
+      },
+      "greedy": {
+        "placed": 2714,
+        "person_hours": 187.1,
+        "minutes_per_person": 4.14,
+        "longest_trip_minutes": 29.3
+      },
+      "township_origins": {
+        "placed": 2714,
+        "person_hours": 368.9,
+        "minutes_per_person": 8.16,
+        "longest_trip_minutes": 33.0
+      }
+    },
+    {
+      "scenario": "玉里鎮 5 km flood",
+      "villages": 11,
+      "townships": 2,
+      "shelters": 7,
+      "pairs": 77,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.022,
+        "db_solver": 0.01,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 325,
+        "person_hours": 12.7,
+        "minutes_per_person": 2.35,
+        "longest_trip_minutes": 5.3
+      },
+      "python": {
+        "placed": 325,
+        "person_hours": 12.7,
+        "minutes_per_person": 2.35,
+        "longest_trip_minutes": 5.3
+      },
+      "greedy": {
+        "placed": 325,
+        "person_hours": 12.7,
+        "minutes_per_person": 2.35,
+        "longest_trip_minutes": 5.3
+      },
+      "township_origins": {
+        "placed": 325,
+        "person_hours": 55.6,
+        "minutes_per_person": 10.27,
+        "longest_trip_minutes": 15.3
+      }
+    },
+    {
+      "scenario": "玉里鎮 10 km flood",
+      "villages": 20,
+      "townships": 4,
+      "shelters": 19,
+      "pairs": 380,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.041,
+        "db_solver": 0.007,
+        "python_solver": 0.002
+      },
+      "min_cost": {
+        "placed": 890,
+        "person_hours": 69.6,
+        "minutes_per_person": 4.69,
+        "longest_trip_minutes": 12.4
+      },
+      "python": {
+        "placed": 890,
+        "person_hours": 69.6,
+        "minutes_per_person": 4.69,
+        "longest_trip_minutes": 12.4
+      },
+      "greedy": {
+        "placed": 890,
+        "person_hours": 70.3,
+        "minutes_per_person": 4.74,
+        "longest_trip_minutes": 12.4
+      },
+      "township_origins": {
+        "placed": 890,
+        "person_hours": 222.7,
+        "minutes_per_person": 15.02,
+        "longest_trip_minutes": 20.8
+      }
+    },
+    {
+      "scenario": "新城鄉 5 km earthquake",
+      "villages": 21,
+      "townships": 3,
+      "shelters": 20,
+      "pairs": 420,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.043,
+        "db_solver": 0.012,
+        "python_solver": 0.004
+      },
+      "min_cost": {
+        "placed": 2533,
+        "person_hours": 214.8,
+        "minutes_per_person": 5.09,
+        "longest_trip_minutes": 11.7
+      },
+      "python": {
+        "placed": 2533,
+        "person_hours": 214.8,
+        "minutes_per_person": 5.09,
+        "longest_trip_minutes": 11.7
+      },
+      "greedy": {
+        "placed": 2533,
+        "person_hours": 223.1,
+        "minutes_per_person": 5.28,
+        "longest_trip_minutes": 11.7
+      },
+      "township_origins": {
+        "placed": 2533,
+        "person_hours": 305.2,
+        "minutes_per_person": 7.23,
+        "longest_trip_minutes": 12.6
+      }
+    },
+    {
+      "scenario": "新城鄉 5 km flood",
+      "villages": 21,
+      "townships": 3,
+      "shelters": 24,
+      "pairs": 504,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.041,
+        "db_solver": 0.012,
+        "python_solver": 0.005
+      },
+      "min_cost": {
+        "placed": 3186,
+        "person_hours": 261.2,
+        "minutes_per_person": 4.92,
+        "longest_trip_minutes": 11.5
+      },
+      "python": {
+        "placed": 3186,
+        "person_hours": 261.2,
+        "minutes_per_person": 4.92,
+        "longest_trip_minutes": 11.5
+      },
+      "greedy": {
+        "placed": 3186,
+        "person_hours": 264.9,
+        "minutes_per_person": 4.99,
+        "longest_trip_minutes": 11.5
+      },
+      "township_origins": {
+        "placed": 3186,
+        "person_hours": 400.7,
+        "minutes_per_person": 7.55,
+        "longest_trip_minutes": 12.5
+      }
+    },
+    {
+      "scenario": "新城鄉 10 km earthquake",
+      "villages": 74,
+      "townships": 4,
+      "shelters": 45,
+      "pairs": 3330,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.137,
+        "db_solver": 0.032,
+        "python_solver": 0.052
+      },
+      "min_cost": {
+        "placed": 7612,
+        "person_hours": 355.9,
+        "minutes_per_person": 2.81,
+        "longest_trip_minutes": 8.6
+      },
+      "python": {
+        "placed": 7612,
+        "person_hours": 355.9,
+        "minutes_per_person": 2.81,
+        "longest_trip_minutes": 8.6
+      },
+      "greedy": {
+        "placed": 7612,
+        "person_hours": 361.0,
+        "minutes_per_person": 2.85,
+        "longest_trip_minutes": 8.8
+      },
+      "township_origins": {
+        "placed": 7612,
+        "person_hours": 669.9,
+        "minutes_per_person": 5.28,
+        "longest_trip_minutes": 9.6
+      }
+    },
+    {
+      "scenario": "新城鄉 10 km flood",
+      "villages": 74,
+      "townships": 4,
+      "shelters": 57,
+      "pairs": 4218,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.138,
+        "db_solver": 0.035,
+        "python_solver": 0.067
+      },
+      "min_cost": {
+        "placed": 10012,
+        "person_hours": 423.6,
+        "minutes_per_person": 2.54,
+        "longest_trip_minutes": 7.2
+      },
+      "python": {
+        "placed": 10012,
+        "person_hours": 423.6,
+        "minutes_per_person": 2.54,
+        "longest_trip_minutes": 7.2
+      },
+      "greedy": {
+        "placed": 10012,
+        "person_hours": 427.0,
+        "minutes_per_person": 2.56,
+        "longest_trip_minutes": 7.5
+      },
+      "township_origins": {
+        "placed": 10012,
+        "person_hours": 916.2,
+        "minutes_per_person": 5.49,
+        "longest_trip_minutes": 10.4
+      }
+    },
+    {
+      "scenario": "吉安鄉 5 km earthquake",
+      "villages": 61,
+      "townships": 4,
+      "shelters": 30,
+      "pairs": 1830,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.087,
+        "db_solver": 0.022,
+        "python_solver": 0.021
+      },
+      "min_cost": {
+        "placed": 5851,
+        "person_hours": 246.1,
+        "minutes_per_person": 2.52,
+        "longest_trip_minutes": 6.3
+      },
+      "python": {
+        "placed": 5851,
+        "person_hours": 246.1,
+        "minutes_per_person": 2.52,
+        "longest_trip_minutes": 6.3
+      },
+      "greedy": {
+        "placed": 5851,
+        "person_hours": 247.8,
+        "minutes_per_person": 2.54,
+        "longest_trip_minutes": 6.3
+      },
+      "township_origins": {
+        "placed": 5851,
+        "person_hours": 473.3,
+        "minutes_per_person": 4.85,
+        "longest_trip_minutes": 10.4
+      }
+    },
+    {
+      "scenario": "吉安鄉 5 km flood",
+      "villages": 61,
+      "townships": 4,
+      "shelters": 38,
+      "pairs": 2318,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.092,
+        "db_solver": 0.029,
+        "python_solver": 0.026
+      },
+      "min_cost": {
+        "placed": 8102,
+        "person_hours": 346.3,
+        "minutes_per_person": 2.56,
+        "longest_trip_minutes": 7.5
+      },
+      "python": {
+        "placed": 8102,
+        "person_hours": 346.3,
+        "minutes_per_person": 2.56,
+        "longest_trip_minutes": 7.5
+      },
+      "greedy": {
+        "placed": 8102,
+        "person_hours": 348.4,
+        "minutes_per_person": 2.58,
+        "longest_trip_minutes": 7.5
+      },
+      "township_origins": {
+        "placed": 8102,
+        "person_hours": 722.0,
+        "minutes_per_person": 5.35,
+        "longest_trip_minutes": 10.4
+      }
+    },
+    {
+      "scenario": "吉安鄉 10 km earthquake",
+      "villages": 79,
+      "townships": 5,
+      "shelters": 51,
+      "pairs": 4029,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.167,
+        "db_solver": 0.033,
+        "python_solver": 0.06
+      },
+      "min_cost": {
+        "placed": 7851,
+        "person_hours": 315.6,
+        "minutes_per_person": 2.41,
+        "longest_trip_minutes": 8.6
+      },
+      "python": {
+        "placed": 7851,
+        "person_hours": 315.6,
+        "minutes_per_person": 2.41,
+        "longest_trip_minutes": 8.6
+      },
+      "greedy": {
+        "placed": 7851,
+        "person_hours": 318.6,
+        "minutes_per_person": 2.44,
+        "longest_trip_minutes": 11.5
+      },
+      "township_origins": {
+        "placed": 7851,
+        "person_hours": 711.5,
+        "minutes_per_person": 5.44,
+        "longest_trip_minutes": 15.6
+      }
+    },
+    {
+      "scenario": "吉安鄉 10 km flood",
+      "villages": 79,
+      "townships": 5,
+      "shelters": 63,
+      "pairs": 4977,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.149,
+        "db_solver": 0.044,
+        "python_solver": 0.09
+      },
+      "min_cost": {
+        "placed": 10298,
+        "person_hours": 405.5,
+        "minutes_per_person": 2.36,
+        "longest_trip_minutes": 7.8
+      },
+      "python": {
+        "placed": 10298,
+        "person_hours": 405.5,
+        "minutes_per_person": 2.36,
+        "longest_trip_minutes": 7.8
+      },
+      "greedy": {
+        "placed": 10298,
+        "person_hours": 408.6,
+        "minutes_per_person": 2.38,
+        "longest_trip_minutes": 7.8
+      },
+      "township_origins": {
+        "placed": 10298,
+        "person_hours": 996.3,
+        "minutes_per_person": 5.8,
+        "longest_trip_minutes": 17.6
+      }
+    },
+    {
+      "scenario": "壽豐鄉 5 km earthquake",
+      "villages": 11,
+      "townships": 1,
+      "shelters": 12,
+      "pairs": 132,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.033,
+        "db_solver": 0.009,
+        "python_solver": 0.001
+      },
+      "min_cost": {
+        "placed": 496,
+        "person_hours": 21.2,
+        "minutes_per_person": 2.57,
+        "longest_trip_minutes": 9.0
+      },
+      "python": {
+        "placed": 496,
+        "person_hours": 21.2,
+        "minutes_per_person": 2.57,
+        "longest_trip_minutes": 9.0
+      },
+      "greedy": {
+        "placed": 496,
+        "person_hours": 21.2,
+        "minutes_per_person": 2.57,
+        "longest_trip_minutes": 9.0
+      },
+      "township_origins": {
+        "placed": 496,
+        "person_hours": 71.4,
+        "minutes_per_person": 8.63,
+        "longest_trip_minutes": 12.1
+      }
+    },
+    {
+      "scenario": "壽豐鄉 5 km flood",
+      "villages": 11,
+      "townships": 1,
+      "shelters": 12,
+      "pairs": 132,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.033,
+        "db_solver": 0.007,
+        "python_solver": 0.001
+      },
+      "min_cost": {
+        "placed": 496,
+        "person_hours": 17.6,
+        "minutes_per_person": 2.13,
+        "longest_trip_minutes": 9.0
+      },
+      "python": {
+        "placed": 496,
+        "person_hours": 17.6,
+        "minutes_per_person": 2.13,
+        "longest_trip_minutes": 9.0
+      },
+      "greedy": {
+        "placed": 496,
+        "person_hours": 17.6,
+        "minutes_per_person": 2.13,
+        "longest_trip_minutes": 9.0
+      },
+      "township_origins": {
+        "placed": 496,
+        "person_hours": 71.4,
+        "minutes_per_person": 8.63,
+        "longest_trip_minutes": 12.1
+      }
+    },
+    {
+      "scenario": "壽豐鄉 10 km earthquake",
+      "villages": 25,
+      "townships": 5,
+      "shelters": 22,
+      "pairs": 550,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.096,
+        "db_solver": 0.009,
+        "python_solver": 0.005
+      },
+      "min_cost": {
+        "placed": 952,
+        "person_hours": 82.1,
+        "minutes_per_person": 5.17,
+        "longest_trip_minutes": 46.6
+      },
+      "python": {
+        "placed": 952,
+        "person_hours": 82.1,
+        "minutes_per_person": 5.17,
+        "longest_trip_minutes": 45.8
+      },
+      "greedy": {
+        "placed": 952,
+        "person_hours": 83.0,
+        "minutes_per_person": 5.23,
+        "longest_trip_minutes": 50.5
+      },
+      "township_origins": {
+        "placed": 952,
+        "person_hours": 201.0,
+        "minutes_per_person": 12.67,
+        "longest_trip_minutes": 47.6
+      }
+    },
+    {
+      "scenario": "壽豐鄉 10 km flood",
+      "villages": 25,
+      "townships": 5,
+      "shelters": 23,
+      "pairs": 575,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.093,
+        "db_solver": 0.008,
+        "python_solver": 0.004
+      },
+      "min_cost": {
+        "placed": 1002,
+        "person_hours": 70.5,
+        "minutes_per_person": 4.22,
+        "longest_trip_minutes": 43.8
+      },
+      "python": {
+        "placed": 1002,
+        "person_hours": 70.5,
+        "minutes_per_person": 4.22,
+        "longest_trip_minutes": 43.8
+      },
+      "greedy": {
+        "placed": 1002,
+        "person_hours": 70.5,
+        "minutes_per_person": 4.22,
+        "longest_trip_minutes": 43.8
+      },
+      "township_origins": {
+        "placed": 1002,
+        "person_hours": 209.5,
+        "minutes_per_person": 12.55,
+        "longest_trip_minutes": 47.6
+      }
+    },
+    {
+      "scenario": "光復鄉 5 km earthquake",
+      "villages": 11,
+      "townships": 2,
+      "shelters": 10,
+      "pairs": 110,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.016,
+        "db_solver": 0.006,
+        "python_solver": 0.001
+      },
+      "min_cost": {
+        "placed": 860,
+        "person_hours": 47.9,
+        "minutes_per_person": 3.34,
+        "longest_trip_minutes": 13.7
+      },
+      "python": {
+        "placed": 860,
+        "person_hours": 47.9,
+        "minutes_per_person": 3.34,
+        "longest_trip_minutes": 13.7
+      },
+      "greedy": {
+        "placed": 860,
+        "person_hours": 52.9,
+        "minutes_per_person": 3.69,
+        "longest_trip_minutes": 20.7
+      },
+      "township_origins": {
+        "placed": 860,
+        "person_hours": 117.2,
+        "minutes_per_person": 8.18,
+        "longest_trip_minutes": 15.9
+      }
+    },
+    {
+      "scenario": "光復鄉 5 km flood",
+      "villages": 11,
+      "townships": 2,
+      "shelters": 10,
+      "pairs": 110,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.016,
+        "db_solver": 0.004,
+        "python_solver": 0.001
+      },
+      "min_cost": {
+        "placed": 1200,
+        "person_hours": 81.3,
+        "minutes_per_person": 4.07,
+        "longest_trip_minutes": 8.7
+      },
+      "python": {
+        "placed": 1200,
+        "person_hours": 81.3,
+        "minutes_per_person": 4.07,
+        "longest_trip_minutes": 8.7
+      },
+      "greedy": {
+        "placed": 1200,
+        "person_hours": 85.0,
+        "minutes_per_person": 4.25,
+        "longest_trip_minutes": 9.8
+      },
+      "township_origins": {
+        "placed": 1200,
+        "person_hours": 186.2,
+        "minutes_per_person": 9.31,
+        "longest_trip_minutes": 12.8
+      }
+    },
+    {
+      "scenario": "光復鄉 10 km earthquake",
+      "villages": 31,
+      "townships": 5,
+      "shelters": 18,
+      "pairs": 558,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.048,
+        "db_solver": 0.01,
+        "python_solver": 0.006
+      },
+      "min_cost": {
+        "placed": 1518,
+        "person_hours": 123.1,
+        "minutes_per_person": 4.86,
+        "longest_trip_minutes": 26.6
+      },
+      "python": {
+        "placed": 1518,
+        "person_hours": 123.1,
+        "minutes_per_person": 4.86,
+        "longest_trip_minutes": 26.6
+      },
+      "greedy": {
+        "placed": 1518,
+        "person_hours": 132.0,
+        "minutes_per_person": 5.22,
+        "longest_trip_minutes": 33.7
+      },
+      "township_origins": {
+        "placed": 1518,
+        "person_hours": 253.4,
+        "minutes_per_person": 10.02,
+        "longest_trip_minutes": 36.2
+      }
+    },
+    {
+      "scenario": "光復鄉 10 km flood",
+      "villages": 31,
+      "townships": 5,
+      "shelters": 26,
+      "pairs": 806,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.058,
+        "db_solver": 0.011,
+        "python_solver": 0.012
+      },
+      "min_cost": {
+        "placed": 2783,
+        "person_hours": 465.7,
+        "minutes_per_person": 10.04,
+        "longest_trip_minutes": 48.6
+      },
+      "python": {
+        "placed": 2783,
+        "person_hours": 465.7,
+        "minutes_per_person": 10.04,
+        "longest_trip_minutes": 48.6
+      },
+      "greedy": {
+        "placed": 2783,
+        "person_hours": 486.6,
+        "minutes_per_person": 10.49,
+        "longest_trip_minutes": 52.5
+      },
+      "township_origins": {
+        "placed": 2783,
+        "person_hours": 805.0,
+        "minutes_per_person": 17.35,
+        "longest_trip_minutes": 54.8
+      }
+    },
+    {
+      "scenario": "豐濱鄉 5 km earthquake",
+      "villages": 1,
+      "townships": 1,
+      "shelters": 2,
+      "pairs": 2,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.007,
+        "db_solver": 0.0,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 0,
+        "person_hours": 0.0,
+        "minutes_per_person": 0.0,
+        "longest_trip_minutes": 0.0
+      },
+      "python": {
+        "placed": 0,
+        "person_hours": 0.0,
+        "minutes_per_person": 0.0,
+        "longest_trip_minutes": 0.0
+      },
+      "greedy": {
+        "placed": 0,
+        "person_hours": 0.0,
+        "minutes_per_person": 0.0,
+        "longest_trip_minutes": 0.0
+      },
+      "township_origins": {
+        "placed": 0,
+        "person_hours": 0.0,
+        "minutes_per_person": 0.0,
+        "longest_trip_minutes": 0.0
+      }
+    },
+    {
+      "scenario": "豐濱鄉 5 km flood",
+      "villages": 1,
+      "townships": 1,
+      "shelters": 2,
+      "pairs": 2,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.004,
+        "db_solver": 0.0,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 0,
+        "person_hours": 0.0,
+        "minutes_per_person": 0.0,
+        "longest_trip_minutes": 0.0
+      },
+      "python": {
+        "placed": 0,
+        "person_hours": 0.0,
+        "minutes_per_person": 0.0,
+        "longest_trip_minutes": 0.0
+      },
+      "greedy": {
+        "placed": 0,
+        "person_hours": 0.0,
+        "minutes_per_person": 0.0,
+        "longest_trip_minutes": 0.0
+      },
+      "township_origins": {
+        "placed": 0,
+        "person_hours": 0.0,
+        "minutes_per_person": 0.0,
+        "longest_trip_minutes": 0.0
+      }
+    },
+    {
+      "scenario": "豐濱鄉 10 km earthquake",
+      "villages": 7,
+      "townships": 3,
+      "shelters": 3,
+      "pairs": 21,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.027,
+        "db_solver": 0.005,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 200,
+        "person_hours": 36.3,
+        "minutes_per_person": 10.89,
+        "longest_trip_minutes": 39.1
+      },
+      "python": {
+        "placed": 200,
+        "person_hours": 36.3,
+        "minutes_per_person": 10.89,
+        "longest_trip_minutes": 39.1
+      },
+      "greedy": {
+        "placed": 200,
+        "person_hours": 36.3,
+        "minutes_per_person": 10.89,
+        "longest_trip_minutes": 39.1
+      },
+      "township_origins": {
+        "placed": 200,
+        "person_hours": 60.6,
+        "minutes_per_person": 18.17,
+        "longest_trip_minutes": 34.1
+      }
+    },
+    {
+      "scenario": "豐濱鄉 10 km flood",
+      "villages": 7,
+      "townships": 3,
+      "shelters": 3,
+      "pairs": 21,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.03,
+        "db_solver": 0.005,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 200,
+        "person_hours": 29.1,
+        "minutes_per_person": 8.73,
+        "longest_trip_minutes": 10.4
+      },
+      "python": {
+        "placed": 200,
+        "person_hours": 29.1,
+        "minutes_per_person": 8.73,
+        "longest_trip_minutes": 10.4
+      },
+      "greedy": {
+        "placed": 200,
+        "person_hours": 29.1,
+        "minutes_per_person": 8.73,
+        "longest_trip_minutes": 10.4
+      },
+      "township_origins": {
+        "placed": 200,
+        "person_hours": 58.3,
+        "minutes_per_person": 17.5,
+        "longest_trip_minutes": 17.5
+      }
+    },
+    {
+      "scenario": "瑞穗鄉 5 km earthquake",
+      "villages": 9,
+      "townships": 3,
+      "shelters": 1,
+      "pairs": 9,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.012,
+        "db_solver": 0.005,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 100,
+        "person_hours": 2.3,
+        "minutes_per_person": 1.39,
+        "longest_trip_minutes": 1.4
+      },
+      "python": {
+        "placed": 100,
+        "person_hours": 2.3,
+        "minutes_per_person": 1.39,
+        "longest_trip_minutes": 1.4
+      },
+      "greedy": {
+        "placed": 100,
+        "person_hours": 2.3,
+        "minutes_per_person": 1.39,
+        "longest_trip_minutes": 1.4
+      },
+      "township_origins": {
+        "placed": 100,
+        "person_hours": 15.7,
+        "minutes_per_person": 9.41,
+        "longest_trip_minutes": 9.4
+      }
+    },
+    {
+      "scenario": "瑞穗鄉 5 km flood",
+      "villages": 9,
+      "townships": 3,
+      "shelters": 11,
+      "pairs": 99,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.012,
+        "db_solver": 0.005,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 680,
+        "person_hours": 23.2,
+        "minutes_per_person": 2.04,
+        "longest_trip_minutes": 3.7
+      },
+      "python": {
+        "placed": 680,
+        "person_hours": 23.2,
+        "minutes_per_person": 2.04,
+        "longest_trip_minutes": 3.7
+      },
+      "greedy": {
+        "placed": 680,
+        "person_hours": 23.2,
+        "minutes_per_person": 2.05,
+        "longest_trip_minutes": 3.8
+      },
+      "township_origins": {
+        "placed": 680,
+        "person_hours": 92.8,
+        "minutes_per_person": 8.19,
+        "longest_trip_minutes": 10.0
+      }
+    },
+    {
+      "scenario": "瑞穗鄉 10 km earthquake",
+      "villages": 21,
+      "townships": 5,
+      "shelters": 2,
+      "pairs": 42,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.034,
+        "db_solver": 0.005,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 400,
+        "person_hours": 68.4,
+        "minutes_per_person": 10.26,
+        "longest_trip_minutes": 16.2
+      },
+      "python": {
+        "placed": 400,
+        "person_hours": 68.4,
+        "minutes_per_person": 10.26,
+        "longest_trip_minutes": 16.2
+      },
+      "greedy": {
+        "placed": 400,
+        "person_hours": 68.4,
+        "minutes_per_person": 10.26,
+        "longest_trip_minutes": 16.2
+      },
+      "township_origins": {
+        "placed": 400,
+        "person_hours": 114.9,
+        "minutes_per_person": 17.24,
+        "longest_trip_minutes": 19.9
+      }
+    },
+    {
+      "scenario": "瑞穗鄉 10 km flood",
+      "villages": 21,
+      "townships": 5,
+      "shelters": 27,
+      "pairs": 567,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.042,
+        "db_solver": 0.01,
+        "python_solver": 0.01
+      },
+      "min_cost": {
+        "placed": 1895,
+        "person_hours": 241.5,
+        "minutes_per_person": 7.65,
+        "longest_trip_minutes": 22.2
+      },
+      "python": {
+        "placed": 1895,
+        "person_hours": 241.5,
+        "minutes_per_person": 7.65,
+        "longest_trip_minutes": 22.2
+      },
+      "greedy": {
+        "placed": 1895,
+        "person_hours": 252.8,
+        "minutes_per_person": 8.0,
+        "longest_trip_minutes": 23.0
+      },
+      "township_origins": {
+        "placed": 1895,
+        "person_hours": 443.4,
+        "minutes_per_person": 14.04,
+        "longest_trip_minutes": 26.2
+      }
+    },
+    {
+      "scenario": "富里鄉 5 km flood",
+      "villages": 8,
+      "townships": 2,
+      "shelters": 10,
+      "pairs": 80,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.019,
+        "db_solver": 0.005,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 660,
+        "person_hours": 34.3,
+        "minutes_per_person": 3.12,
+        "longest_trip_minutes": 10.2
+      },
+      "python": {
+        "placed": 660,
+        "person_hours": 34.3,
+        "minutes_per_person": 3.12,
+        "longest_trip_minutes": 10.2
+      },
+      "greedy": {
+        "placed": 660,
+        "person_hours": 37.0,
+        "minutes_per_person": 3.36,
+        "longest_trip_minutes": 11.3
+      },
+      "township_origins": {
+        "placed": 660,
+        "person_hours": 103.0,
+        "minutes_per_person": 9.37,
+        "longest_trip_minutes": 12.5
+      }
+    },
+    {
+      "scenario": "富里鄉 10 km earthquake",
+      "villages": 20,
+      "townships": 4,
+      "shelters": 3,
+      "pairs": 60,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.039,
+        "db_solver": 0.006,
+        "python_solver": 0.001
+      },
+      "min_cost": {
+        "placed": 250,
+        "person_hours": 26.2,
+        "minutes_per_person": 6.3,
+        "longest_trip_minutes": 9.6
+      },
+      "python": {
+        "placed": 250,
+        "person_hours": 26.2,
+        "minutes_per_person": 6.3,
+        "longest_trip_minutes": 9.6
+      },
+      "greedy": {
+        "placed": 250,
+        "person_hours": 26.8,
+        "minutes_per_person": 6.43,
+        "longest_trip_minutes": 10.6
+      },
+      "township_origins": {
+        "placed": 250,
+        "person_hours": 57.1,
+        "minutes_per_person": 13.71,
+        "longest_trip_minutes": 16.3
+      }
+    },
+    {
+      "scenario": "富里鄉 10 km flood",
+      "villages": 20,
+      "townships": 4,
+      "shelters": 20,
+      "pairs": 400,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.05,
+        "db_solver": 0.008,
+        "python_solver": 0.003
+      },
+      "min_cost": {
+        "placed": 1220,
+        "person_hours": 70.9,
+        "minutes_per_person": 3.48,
+        "longest_trip_minutes": 11.1
+      },
+      "python": {
+        "placed": 1220,
+        "person_hours": 70.9,
+        "minutes_per_person": 3.48,
+        "longest_trip_minutes": 11.1
+      },
+      "greedy": {
+        "placed": 1220,
+        "person_hours": 72.3,
+        "minutes_per_person": 3.56,
+        "longest_trip_minutes": 12.3
+      },
+      "township_origins": {
+        "placed": 1220,
+        "person_hours": 233.4,
+        "minutes_per_person": 11.48,
+        "longest_trip_minutes": 22.3
+      }
+    },
+    {
+      "scenario": "秀林鄉 5 km earthquake",
+      "villages": 6,
+      "townships": 2,
+      "shelters": 7,
+      "pairs": 42,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.02,
+        "db_solver": 0.004,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 429,
+        "person_hours": 26.8,
+        "minutes_per_person": 3.75,
+        "longest_trip_minutes": 16.1
+      },
+      "python": {
+        "placed": 429,
+        "person_hours": 26.8,
+        "minutes_per_person": 3.75,
+        "longest_trip_minutes": 11.3
+      },
+      "greedy": {
+        "placed": 429,
+        "person_hours": 27.0,
+        "minutes_per_person": 3.78,
+        "longest_trip_minutes": 16.4
+      },
+      "township_origins": {
+        "placed": 429,
+        "person_hours": 54.4,
+        "minutes_per_person": 7.61,
+        "longest_trip_minutes": 9.2
+      }
+    },
+    {
+      "scenario": "秀林鄉 5 km flood",
+      "villages": 6,
+      "townships": 2,
+      "shelters": 8,
+      "pairs": 48,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.021,
+        "db_solver": 0.004,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 484,
+        "person_hours": 21.4,
+        "minutes_per_person": 2.66,
+        "longest_trip_minutes": 5.1
+      },
+      "python": {
+        "placed": 484,
+        "person_hours": 21.4,
+        "minutes_per_person": 2.66,
+        "longest_trip_minutes": 5.1
+      },
+      "greedy": {
+        "placed": 484,
+        "person_hours": 22.1,
+        "minutes_per_person": 2.74,
+        "longest_trip_minutes": 5.8
+      },
+      "township_origins": {
+        "placed": 484,
+        "person_hours": 57.3,
+        "minutes_per_person": 7.11,
+        "longest_trip_minutes": 8.9
+      }
+    },
+    {
+      "scenario": "秀林鄉 10 km earthquake",
+      "villages": 21,
+      "townships": 3,
+      "shelters": 19,
+      "pairs": 399,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.049,
+        "db_solver": 0.008,
+        "python_solver": 0.003
+      },
+      "min_cost": {
+        "placed": 1304,
+        "person_hours": 49.0,
+        "minutes_per_person": 2.25,
+        "longest_trip_minutes": 7.3
+      },
+      "python": {
+        "placed": 1304,
+        "person_hours": 49.0,
+        "minutes_per_person": 2.25,
+        "longest_trip_minutes": 7.3
+      },
+      "greedy": {
+        "placed": 1304,
+        "person_hours": 51.5,
+        "minutes_per_person": 2.37,
+        "longest_trip_minutes": 7.3
+      },
+      "township_origins": {
+        "placed": 1304,
+        "person_hours": 137.9,
+        "minutes_per_person": 6.35,
+        "longest_trip_minutes": 13.6
+      }
+    },
+    {
+      "scenario": "秀林鄉 10 km flood",
+      "villages": 21,
+      "townships": 3,
+      "shelters": 22,
+      "pairs": 462,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.049,
+        "db_solver": 0.015,
+        "python_solver": 0.003
+      },
+      "min_cost": {
+        "placed": 1390,
+        "person_hours": 48.9,
+        "minutes_per_person": 2.11,
+        "longest_trip_minutes": 6.5
+      },
+      "python": {
+        "placed": 1390,
+        "person_hours": 48.9,
+        "minutes_per_person": 2.11,
+        "longest_trip_minutes": 6.5
+      },
+      "greedy": {
+        "placed": 1390,
+        "person_hours": 48.9,
+        "minutes_per_person": 2.11,
+        "longest_trip_minutes": 6.5
+      },
+      "township_origins": {
+        "placed": 1390,
+        "person_hours": 147.6,
+        "minutes_per_person": 6.37,
+        "longest_trip_minutes": 13.6
+      }
+    },
+    {
+      "scenario": "萬榮鄉 5 km earthquake",
+      "villages": 10,
+      "townships": 3,
+      "shelters": 6,
+      "pairs": 60,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.015,
+        "db_solver": 0.007,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 374,
+        "person_hours": 22.6,
+        "minutes_per_person": 3.62,
+        "longest_trip_minutes": 14.5
+      },
+      "python": {
+        "placed": 374,
+        "person_hours": 22.6,
+        "minutes_per_person": 3.62,
+        "longest_trip_minutes": 14.5
+      },
+      "greedy": {
+        "placed": 374,
+        "person_hours": 23.1,
+        "minutes_per_person": 3.71,
+        "longest_trip_minutes": 17.4
+      },
+      "township_origins": {
+        "placed": 374,
+        "person_hours": 57.9,
+        "minutes_per_person": 9.29,
+        "longest_trip_minutes": 23.8
+      }
+    },
+    {
+      "scenario": "萬榮鄉 5 km flood",
+      "villages": 10,
+      "townships": 3,
+      "shelters": 12,
+      "pairs": 120,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.018,
+        "db_solver": 0.005,
+        "python_solver": 0.001
+      },
+      "min_cost": {
+        "placed": 686,
+        "person_hours": 44.6,
+        "minutes_per_person": 3.9,
+        "longest_trip_minutes": 8.0
+      },
+      "python": {
+        "placed": 686,
+        "person_hours": 44.6,
+        "minutes_per_person": 3.9,
+        "longest_trip_minutes": 8.0
+      },
+      "greedy": {
+        "placed": 686,
+        "person_hours": 47.3,
+        "minutes_per_person": 4.13,
+        "longest_trip_minutes": 11.7
+      },
+      "township_origins": {
+        "placed": 686,
+        "person_hours": 128.0,
+        "minutes_per_person": 11.19,
+        "longest_trip_minutes": 23.8
+      }
+    },
+    {
+      "scenario": "萬榮鄉 10 km earthquake",
+      "villages": 27,
+      "townships": 4,
+      "shelters": 18,
+      "pairs": 486,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.046,
+        "db_solver": 0.013,
+        "python_solver": 0.004
+      },
+      "min_cost": {
+        "placed": 1212,
+        "person_hours": 85.9,
+        "minutes_per_person": 4.25,
+        "longest_trip_minutes": 13.5
+      },
+      "python": {
+        "placed": 1212,
+        "person_hours": 85.9,
+        "minutes_per_person": 4.25,
+        "longest_trip_minutes": 13.5
+      },
+      "greedy": {
+        "placed": 1212,
+        "person_hours": 88.1,
+        "minutes_per_person": 4.36,
+        "longest_trip_minutes": 13.5
+      },
+      "township_origins": {
+        "placed": 1212,
+        "person_hours": 194.2,
+        "minutes_per_person": 9.62,
+        "longest_trip_minutes": 24.2
+      }
+    },
+    {
+      "scenario": "萬榮鄉 10 km flood",
+      "villages": 27,
+      "townships": 4,
+      "shelters": 26,
+      "pairs": 702,
+      "demand_fits": true,
+      "seconds": {
+        "cost_matrix": 0.049,
+        "db_solver": 0.015,
+        "python_solver": 0.01
+      },
+      "min_cost": {
+        "placed": 2222,
+        "person_hours": 195.5,
+        "minutes_per_person": 5.28,
+        "longest_trip_minutes": 16.1
+      },
+      "python": {
+        "placed": 2222,
+        "person_hours": 195.5,
+        "minutes_per_person": 5.28,
+        "longest_trip_minutes": 16.1
+      },
+      "greedy": {
+        "placed": 2222,
+        "person_hours": 205.5,
+        "minutes_per_person": 5.55,
+        "longest_trip_minutes": 18.3
+      },
+      "township_origins": {
+        "placed": 2222,
+        "person_hours": 501.2,
+        "minutes_per_person": 13.53,
+        "longest_trip_minutes": 34.7
+      }
+    },
+    {
+      "scenario": "卓溪鄉 5 km flood",
+      "villages": 10,
+      "townships": 2,
+      "shelters": 6,
+      "pairs": 60,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.018,
+        "db_solver": 0.011,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 290,
+        "person_hours": 10.7,
+        "minutes_per_person": 2.21,
+        "longest_trip_minutes": 7.5
+      },
+      "python": {
+        "placed": 290,
+        "person_hours": 10.7,
+        "minutes_per_person": 2.21,
+        "longest_trip_minutes": 7.5
+      },
+      "greedy": {
+        "placed": 290,
+        "person_hours": 10.7,
+        "minutes_per_person": 2.21,
+        "longest_trip_minutes": 7.5
+      },
+      "township_origins": {
+        "placed": 290,
+        "person_hours": 43.9,
+        "minutes_per_person": 9.07,
+        "longest_trip_minutes": 15.0
+      }
+    },
+    {
+      "scenario": "卓溪鄉 10 km flood",
+      "villages": 20,
+      "townships": 3,
+      "shelters": 15,
+      "pairs": 300,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.042,
+        "db_solver": 0.01,
+        "python_solver": 0.001
+      },
+      "min_cost": {
+        "placed": 715,
+        "person_hours": 40.0,
+        "minutes_per_person": 3.36,
+        "longest_trip_minutes": 10.6
+      },
+      "python": {
+        "placed": 715,
+        "person_hours": 40.0,
+        "minutes_per_person": 3.36,
+        "longest_trip_minutes": 10.6
+      },
+      "greedy": {
+        "placed": 715,
+        "person_hours": 40.0,
+        "minutes_per_person": 3.36,
+        "longest_trip_minutes": 10.6
+      },
+      "township_origins": {
+        "placed": 715,
+        "person_hours": 164.1,
+        "minutes_per_person": 13.77,
+        "longest_trip_minutes": 22.3
+      }
+    }
+  ]
+}
