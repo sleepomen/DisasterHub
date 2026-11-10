@@ -34,7 +34,7 @@ Built in response to the 2025 barrier-lake disaster in Guangfu Township, Hualien
 | Knowledge questions, right passage returned | 40 / 40 |
 | Small place names (知本, 七星潭…), first shelter in the right township | 39 / 42 (semantic retrieval: 28 / 42) |
 | Simulation follow-ups, complete and correct | 20 / 20 in 0.1 s (the model: lists cut off, 4 of 5 "excluded" answers wrong) |
-| Evacuation assignment against nearest-first greedy (159 scenarios) | greedy up to 18% slower in total, never fewer placed; solved in pgRouting in ≤ 0.32 s |
+| Coordinated evacuation against everyone heading for the nearest shelter (159 scenarios) | without coordination up to 18% more total travel time, same number placed; solved in pgRouting in under 0.35 s |
 | Route length inside debris-flow zones (太麻里 flood, 26 routes by car) | 6.38 km → 4.79 km, for 1.8 km more driving |
 
 <table>
@@ -169,7 +169,7 @@ The code is released under the [MIT License](LICENSE). The data keeps its own li
 | 防災知識題回到正確段落 | 40 / 40 |
 | 小地名（知本、七星潭…），第一間在對的鄉鎮 | 39 / 42（語意檢索：28 / 42） |
 | 模擬追問完整且正確 | 20 / 20，0.1 秒（交給模型時：長清單被截斷，「排除」5 題錯 4 題） |
-| 疏散分配對上「最近優先」的貪婪法（159 個情境） | 貪婪法總時間最多多 18%，安置人數從沒比較多；在 pgRouting 裡 0.32 秒內解完 |
+| 統一調度對上「各自就近前往」（159 個情境） | 沒有統一調度時總通行時間最多多 18%，安置人數相同；在 pgRouting 裡 0.35 秒內解完 |
 | 路線落在土石流潛勢範圍內的長度（太麻里淹水、開車，26 條路線） | 6.38 公里 → 4.79 公里，多開 1.8 公里 |
 
 <table>
