@@ -85,6 +85,7 @@ DisasterHub/
 │   │   └── shelter_names.py    # Display names, aliases, typo notes, "no such shelter" replies
 │   ├── retrieval/              # Retrieval
 │   │   ├── vector_store.py     # ChromaDB vector index (supports partial updates)
+│   │   ├── chroma.py           # The one place ChromaDB clients are made; turns its usage telemetry off
 │   │   ├── embeddings.py       # Ollama / MiniLM embeddings
 │   │   ├── knowledge.py        # Disaster-preparedness passages: parsing, index, retrieval, answer text, source lines
 │   │   └── shelter_profile.py  # Name/address → township, facilities, aliases

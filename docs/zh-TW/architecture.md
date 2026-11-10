@@ -85,6 +85,7 @@ DisasterHub/
 │   │   └── shelter_names.py    # 顯示名稱、別名、錯字說明、查無此間的回覆
 │   ├── retrieval/              # 檢索
 │   │   ├── vector_store.py     # ChromaDB 向量索引（支援局部更新）
+│   │   ├── chroma.py           # 建立 ChromaDB client 的唯一入口，關掉它的使用統計
 │   │   ├── embeddings.py       # Ollama / MiniLM embedding
 │   │   ├── knowledge.py        # 防災知識文件：解析、索引、檢索、回答組字、出處
 │   │   └── shelter_profile.py  # 名稱/地址 → 鄉鎮、設施、別名
