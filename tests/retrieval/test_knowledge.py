@@ -1,12 +1,12 @@
 """防災知識文件：格式解析、實際語料的完整性、索引與檢索、聊天路由"""
 from unittest.mock import MagicMock, patch
 
-import chromadb
 import pytest
 
 from services.chat import query_rules
 from services.chat.replies import KNOWLEDGE_UNAVAILABLE, NO_KNOWLEDGE_REPLY, NO_RELEVANT_REPLY
 from services.chat.service import ChatService
+from services.retrieval.chroma import make_client
 from services.retrieval.knowledge import (
     HAZARDS,
     KNOWLEDGE_HEADER,
@@ -109,7 +109,7 @@ class KeywordEmbedding:
 def store(tmp_path):
     (tmp_path / "typhoon.md").write_text(SAMPLE, encoding="utf-8")
     (tmp_path / "README.md").write_text("# 說明，不是語料", encoding="utf-8")
-    s = KnowledgeStore(embedding_function=KeywordEmbedding(), client=chromadb.Client(), directory=tmp_path)
+    s = KnowledgeStore(embedding_function=KeywordEmbedding(), client=make_client(), directory=tmp_path)
     s.build()
     yield s
     s.client.delete_collection("knowledge")
@@ -344,7 +344,7 @@ def test_failed_build_is_retried_but_not_on_every_question(tmp_path):
     """實測：啟動時 embedding 逾時，之後知識題一直回「目前無法使用」，要重啟服務才會好"""
     (tmp_path / "typhoon.md").write_text(SAMPLE, encoding="utf-8")
     ef = FlakyEmbedding(failures=1)
-    s = KnowledgeStore(embedding_function=ef, client=chromadb.Client(), directory=tmp_path)
+    s = KnowledgeStore(embedding_function=ef, client=make_client(), directory=tmp_path)
     try:
         with pytest.raises(TimeoutError):
             s.build()
