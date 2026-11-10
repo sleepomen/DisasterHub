@@ -198,6 +198,7 @@ The shelters come from the National Fire Agency's open dataset 避難收容處�
   - Coordinates more than 40 km from the median of the same township's other shelters are also dropped. 賓朗村活動中心 was placed in Hualien, 0.7° of latitude off.
   - Four of these (澳花國小, 礁溪鄉公所二樓, 介達國小, 大南國民小學) match an OpenStreetMap object on both name and address. They are kept at the OSM position, recorded with the OSM id in `data_reference/shelter_coordinate_fixes.json`.
   - The other six are dropped. A one-digit house-number mismatch (474巷3號 vs 474巷3-1號) is not treated as a match.
+  - A later check of where the kept shelters sit on the road network (see [Coordinate check](evaluation.md#coordinate-check)) found four more placed kilometres away from their own address: 南澳高中, 西林社區活動中心, 樟原國民小學 and 大義社區臨時收容站. Each matches an OpenStreetMap object at the same address and was moved there the same way.
   - Names that repeat within a county get their township appended, e.g. 南興社區活動中心（冬山鄉）, since the name is the database key.
   - English tails such as 介達國小 Jieda Elementary School are removed, and addresses are completed with county and township.
 - **Known quirks of the source.**

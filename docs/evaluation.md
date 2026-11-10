@@ -100,7 +100,8 @@ DisasterHub/
 │   ├── run_faithfulness_eval.py # Does the model follow a changed / incomplete context?
 │   ├── run_simulation_eval.py  # Simulation follow-ups through the real API (allocation, unplaced, affected, excluded)
 │   ├── run_place_eval.py       # Small place names: are the shelters in the right township?
-│   ├── run_assignment_eval.py  # Evacuation assignment: min-cost flow against the old greedy rule
+│   ├── run_assignment_eval.py  # Evacuation assignment: coordinated (min-cost flow) against everyone heading for the nearest shelter
+│   ├── run_coordinate_check.py # Shelter coordinates: distance to the road network and to their own village
 │   ├── datasets/               # Question sets
 │   │   ├── rag_eval.jsonl      # The evaluation set
 │   │   ├── route_eval.jsonl    # Routing test set (59 questions, all twelve routes)
@@ -579,12 +580,31 @@ The script scores what `build_context` returns, without generation: the answer w
 | | Semantic retrieval (`place_baseline`) | Place names to coordinates (`place_code`) |
 |---|---|---|
 | First shelter in the right township (hit@1) | 0.667 | **0.929** |
-| Share of the first five in the right township | 0.314 | **0.733** |
+| Share of the first five in the right township | 0.314 | **0.738** |
 | Landmarks only, hit@1 | 0.522 | **0.913** |
 | Questions sent to the model | 88% | **0%** |
 
 - **The township is a proxy.** 金崙, 加路蘭 and 安通 sit near a township border, and their nearest shelters by road are across it (金峰鄉, 卑南鄉, 富里鄉), which the metric counts as wrong. The same proxy keeps the share of the first five below 1: the fourth and fifth nearest shelters are often in the next township.
 - **Two names added by hand.** The first run (hit@1 0.905, 4.8% sent to the model) missed 赤柯山 and 梅花湖. OSM spells the Yuli one 「赤科山」 (its other 「赤柯山」 is in Hsinchu), so 赤柯山 is now a spelling variant of it; 梅花湖's water area has no name in OSM, only the car park, park and treatment plant around it, so it is placed at the average of those three. Both are in `SPELLING_VARIANTS` / `MANUAL_PLACES` in `services/geo/places.py`, with the OSM ids.
+
+## Coordinate check
+
+Routes start where a shelter snaps onto the road network, so a wrong coordinate gives a wrong route. Building the data already drops coordinates outside the county or more than 40 km from the same township's other shelters (10 of 650 rows; 4 corrected from OpenStreetMap, 6 dropped). `evals/run_coordinate_check.py` checks the 644 that remain:
+
+```bash
+docker exec disaster_app python evals/run_coordinate_check.py
+```
+
+| | Before the fixes | After |
+|---|---|---|
+| Distance to the nearest road, median / 90th percentile | 19 m / 55 m | 19 m / 55 m |
+| More than 200 m from a road | 11 | 10 |
+| More than 1 km from a road (cannot snap; costed by straight line) | 2 | 1 |
+| More than 5 km from the origin of their own village (582 with a matching village) | 34 | 30 |
+
+- **Four were wrong and are fixed.** 南澳高中 was placed near 澳花, about 15 km south of its address in 南澳; 西林社區活動中心 sat 4.4 km from any road in the mountains, 11 km from 西林; 樟原國民小學 carried the same coordinate as 長濱聯合村辦公處, in another village; 大義社區臨時收容站 was 10 km off. Each matches an OpenStreetMap object at the same address (for 大義 the OSM object is named 大義社區活動中心), so it was moved there and recorded with the OSM id in `data_reference/shelter_coordinate_fixes.json`, which now holds 8 corrections.
+- **Four more look wrong but are left as published.** 西林天主堂 (4.6 km from a road), 長濱聯合村辦公處 (the shared coordinate above), 古楓社區活動中心 (25 km from the origin of 古風村) and 金洋國小 (10 km from its village) have no OpenStreetMap object matching both name and address, and the rule from the data build stands: no match, no guess.
+- **Most of the rest are real.** The other shelters more than 200 m from a road are on 蘭嶼 and 綠島 or in mountain villages where OpenStreetMap has few roads. Among the 30 far from their village origin, some are labels rather than coordinates: 南山活動中心 sits next to 南山國小 but is filed under 復興村, 33 km away. Large mountain villages also put a correct shelter several kilometres from the village's largest settlement.
 
 ## Assignment Evaluation
 
@@ -594,27 +614,27 @@ The script scores what `build_context` returns, without generation: the answer w
 docker exec disaster_app python evals/run_assignment_eval.py
 ```
 
-**1. The database and Python solvers agree.** `pgr_maxFlowMinCost` and the pure-Python `min_cost_flow` give the same number placed and the same total time in 159 of 159 scenarios. The largest (宜蘭市 10 km: 145 villages × 130 shelters) takes 0.22 s in the database and 1.49 s in Python; over all scenarios the slowest database solve is 0.32 s.
+**1. The database and Python solvers agree.** `pgr_maxFlowMinCost` and the pure-Python `min_cost_flow` give the same number placed and the same total time in 159 of 159 scenarios, on foot and by car. The largest scenarios (about 145 villages × 130 shelters) take about 0.2 s in the database and 1.2–1.5 s in Python; the slowest database solve stays under 0.35 s on every run.
 
-**2. Min-cost flow against nearest-first greedy** (the rule used until 2026-11-02):
+**2. Coordinated assignment against everyone heading for the nearest shelter.** The comparison is the nearest-first rule the plan used until 2026-11-02: every village–shelter pair sorted by travel time and filled in that order, so each group goes to the closest shelter that still has room. It stands in for what happens without coordination, and the gap is what coordinating is worth.
 
-| | Capacity fits demand (61) | Demand exceeds capacity (98) |
+| | Capacity fits demand (62) | Demand exceeds capacity (97) |
 |---|---|---|
 | Scenarios where the number placed differs | 0 | 0 |
-| Scenarios where min-cost flow is strictly better | 39 | 73 |
-| Extra total time taken by greedy | mean 3.5%, max 17.8% | mean 2.9%, max 17.5% |
-| Minutes per person, greedy → min-cost | 40.8 → 39.4 | 30.8 → 29.8 |
-| Longest single trip (mean), greedy → min-cost | 215.2 → 183.0 min | 124.8 → 107.0 min |
+| Scenarios where coordination is strictly better | 39 | 72 |
+| Extra total time without coordination | mean 3.4%, max 17.8% | mean 2.9%, max 17.5% |
+| Minutes per person, nearest-first → coordinated | 40.4 → 39.1 | 30.9 → 29.8 |
+| Longest single trip (mean), nearest-first → coordinated | 214.0 → 181.3 min | 124.0 → 106.0 min |
 
-- **The gap grew with village origins.** In the earlier evaluation (before 2026-11-07: 29 township centroids with rounded population as both origins and simulation centres, 114 scenarios) greedy was 0.4% slower on average and 6.4% at worst, and found the optimum in 88 of 114 scenarios. With hundreds of origins competing for the same shelters, greedy now loses in 112 of 159 and costs up to 17.8% more (池上鄉 5 km flood: 440 against 362 person-hours; 金峰鄉 10 km flood 17.5%; 池上鄉 10 km flood 16.0%).
-- **The longest trip drops by about 15%** (215 → 183 min, 125 → 107 min), although only the total is minimised: greedy fills nearby shelters with whoever comes first and leaves the last villages the far ones.
+- **The gap grew with village origins.** In the earlier evaluation (before 2026-11-07: 29 township centroids with rounded population as both origins and simulation centres, 114 scenarios) nearest-first was 0.4% slower on average and 6.4% at worst, and matched the optimum in 88 of 114 scenarios. With hundreds of origins competing for the same shelters, it now falls short in 111 of 159 and costs up to 17.8% more (池上鄉 5 km flood: 440 against 362 person-hours; 金峰鄉 10 km flood 17.5%; 池上鄉 10 km flood 16.0%).
+- **The longest trip drops by about 15%** (214 → 181 min, 124 → 106 min), although only the total is minimised: without coordination the nearby shelters fill with whoever is closest and the last villages are left the far ones.
 
 **3. Villages against township centroids.** The same evacuees, assigned the same way, once from village origins and once all from their township's population-weighted centre:
 
 | | Township centroids | Villages |
 |---|---|---|
-| Minutes per person (mean over scenarios) | 66.7 | 33.5 |
-| Longest single trip (mean) | 168.4 min | 136.2 min |
+| Minutes per person (mean over scenarios) | 67.1 | 33.5 |
+| Longest single trip (mean) | 170.9 min | 135.4 min |
 
 - **A centroid makes trips about twice as long on average.** In a spread-out township the population-weighted centre falls between settlements, often in fields or on a slope, and everyone walks from there: 東河鄉 10 km flood 289 → 132 min per person, 卓溪鄉 10 km flood 115 → 22.
 - **In 6 scenarios villages are slower.** Five are in the mountain townships 大同鄉 and 金峰鄉, where the centroid happened to lie near the shelters while the villages are far up the valleys (大同鄉 10 km earthquake 65 → 145 min); the sixth is 鳳林鎮 10 km earthquake (38 → 43). That is the model becoming more realistic, not worse.
@@ -622,16 +642,16 @@ docker exec disaster_app python evals/run_assignment_eval.py
 
 **4. By car** (`--mode drive --label assignment_eval_drive`: one-way streets, speeds by road class). The pattern holds:
 
-| | Capacity fits demand (61) | Demand exceeds capacity (98) |
+| | Capacity fits demand (62) | Demand exceeds capacity (97) |
 |---|---|---|
 | Scenarios where the number placed differs | 0 | 0 |
-| Scenarios where min-cost flow is strictly better | 42 | 75 |
-| Extra total time taken by greedy | mean 2.8%, max 11.1% | mean 2.8%, max 15.3% |
-| Minutes per person, greedy → min-cost | 5.8 → 5.6 | 4.3 → 4.1 |
-| Longest single trip (mean), greedy → min-cost | 25.6 → 23.1 min | 15.0 → 13.1 min |
+| Scenarios where coordination is strictly better | 42 | 74 |
+| Extra total time without coordination | mean 2.8%, max 11.1% | mean 2.8%, max 15.3% |
+| Minutes per person, nearest-first → coordinated | 5.8 → 5.6 | 4.4 → 4.2 |
+| Longest single trip (mean), nearest-first → coordinated | 25.9 → 23.5 min | 15.4 → 13.5 min |
 
-- **The database and Python still agree** in 159 of 159 scenarios; the slowest database solve is 0.25 s.
+- **The database and Python still agree** in 159 of 159 scenarios.
 - **Largest gaps:** 鹿野鄉 10 km flood (205 against 173 person-hours, 15.3%), 太麻里鄉 5 km earthquake (15.0%), 金峰鄉 10 km earthquake (14.8%).
-- **Township centroids overstate driving even more:** 12.2 against 4.7 minutes per person (2.6×), with villages slower in only 2 scenarios. The leg from an origin to the nearest road is charged at walking speed even when driving, but it explains little of the gap: township centres are a median 50 m from a road (6 of 41 over 200 m) against 19 m for village origins (`summary.origin_to_road` in both result files). Most of the gap is that one centre stands in for settlements spread kilometres apart.
+- **Township centroids overstate driving even more:** 12.2 against 4.8 minutes per person (2.5×), with villages slower in only 2 scenarios. The leg from an origin to the nearest road is charged at walking speed even when driving, but it explains little of the gap: township centres are a median 50 m from a road (6 of 41 over 200 m) against 19 m for village origins (`summary.origin_to_road` in both result files). Most of the gap is that one centre stands in for settlements spread kilometres apart.
 
 **Tests.** The Python solver is checked against brute force on 200 small random cases; the database call is checked for its edge layout, integer costs and the mapping back to pairs, and for falling back to Python when it fails (`tests/simulation/test_min_cost_flow.py`).
