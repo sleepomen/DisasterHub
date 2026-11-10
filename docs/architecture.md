@@ -43,7 +43,15 @@ DisasterHub/
 ├── README.md                   # Front page, English then 繁體中文
 ├── LICENSE                     # MIT (code only; data keeps its own licences)
 ├── docs/                       # Detailed documentation; zh-TW/ holds the Chinese versions, images/ the screenshots
-├── app.py                      # FastAPI application
+├── app.py                      # FastAPI app: logging, start-up sync, middleware, health checks, the page
+├── api/                        # The HTTP endpoints, one file per area, mounted by app.py
+│   ├── deps.py                 # Shared objects (database, indexes, chat service, limits) and access checks
+│   ├── models.py               # Request formats and ranges
+│   ├── session.py              # /api/login, /api/logout, /api/me
+│   ├── map_data.py             # Shelters, hazard zones, alerts, population, picked-point names, nearest shelters
+│   ├── simulation.py           # /api/simulate_disaster, /api/occupancy, /api/reset_simulation
+│   ├── chat.py                 # /api/chat (SSE stream, rate limit, generation slots)
+│   └── admin.py                # /api/sync, /api/stats
 ├── config.py                   # Single place for all environment variables
 ├── Dockerfile                  # INSTALL_DEV build arg controls dev dependencies
 ├── docker-compose.yml          # Production setup

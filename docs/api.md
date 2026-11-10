@@ -32,6 +32,10 @@ Manual sync example:
 curl -X POST http://localhost:8501/api/sync -H "X-API-Key: $SYNC_API_KEY"
 ```
 
+The page (`/`) and everything under `/static/` are sent with `Cache-Control: no-cache`: browsers still cache them, but check with the ETag on every load and get `304 Not Modified` when nothing changed. Without the header a browser guesses how long to reuse a file, and after a frontend change it can keep showing the old stylesheet until a hard refresh.
+
+The endpoints live in `api/`, one file per area (`session.py`, `map_data.py`, `simulation.py`, `chat.py`, `admin.py`), with the shared objects and access checks in `api/deps.py`; `app.py` mounts them.
+
 ## Streaming the Chat Answer
 
 `/api/chat` replies with `text/event-stream` rather than one JSON body. A county-wide listing takes the model about a minute (`region` p50 is roughly 60 s on llama3.2:3b and 80 s on qwen2.5:7b), and a spinner that long is indistinguishable from a hang. Each event is one JSON object on a `data:` line:

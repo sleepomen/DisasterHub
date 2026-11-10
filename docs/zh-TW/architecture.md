@@ -43,7 +43,15 @@ DisasterHub/
 ├── README.md                   # 首頁，英文在前、繁體中文在後
 ├── LICENSE                     # MIT（只涵蓋程式碼，資料沿用各自的授權）
 ├── docs/                       # 詳細文件；中文版在 zh-TW/，截圖在 images/
-├── app.py                      # FastAPI 主程式
+├── app.py                      # FastAPI 主程式：日誌、啟動同步、中介層、健康檢查、首頁
+├── api/                        # HTTP 端點，依功能分檔，由 app.py 掛上
+│   ├── deps.py                 # 共用物件（資料庫、索引、聊天服務、限流）與權限檢查
+│   ├── models.py               # 請求內容的格式與範圍
+│   ├── session.py              # /api/login、/api/logout、/api/me
+│   ├── map_data.py             # 避難所、潛勢範圍、警戒、人口、選點名稱、最近避難所
+│   ├── simulation.py           # /api/simulate_disaster、/api/occupancy、/api/reset_simulation
+│   ├── chat.py                 # /api/chat（SSE 串流、限流、生成名額）
+│   └── admin.py                # /api/sync、/api/stats
 ├── config.py                   # 所有環境變數集中處
 ├── Dockerfile                  # INSTALL_DEV build arg 控制 dev 依賴
 ├── docker-compose.yml          # 正式設定

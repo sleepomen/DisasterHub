@@ -32,6 +32,10 @@
 curl -X POST http://localhost:8501/api/sync -H "X-API-Key: $SYNC_API_KEY"
 ```
 
+首頁（`/`）與 `/static/` 底下的檔案都帶 `Cache-Control: no-cache`：瀏覽器照樣快取，但每次載入都先用 ETag 問伺服器，沒有變動就回 `304 Not Modified`。沒有這個標頭時瀏覽器會自己猜檔案能用多久，前端改完之後可能一直顯示舊的樣式，直到強制重新整理。
+
+端點在 `api/`，依功能一個檔案（`session.py`、`map_data.py`、`simulation.py`、`chat.py`、`admin.py`），共用的物件與權限檢查在 `api/deps.py`，由 `app.py` 掛上。
+
 ## 聊天回答的串流
 
 `/api/chat` 回的是 `text/event-stream`，不是一包 JSON。列舉一個縣的避難所，模型要吐將近一分鐘（`region` 類別 p50 在 llama3.2:3b 約 60 秒、qwen2.5:7b 約 80 秒），讓使用者對著轉圈等這麼久跟當掉沒有區別。每個事件是一行 `data:` 加一個 JSON 物件：
