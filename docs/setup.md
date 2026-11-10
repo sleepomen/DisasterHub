@@ -114,8 +114,9 @@ every frontend script, since the Python tests never load them.
 ### Browser smoke test
 
 `e2e/test_browser.py` drives the running site in a real browser: the region filter, a shelter popup, picking the
-simulation centre on the map, the language toggle and a chat question; with an admin login it also runs a simulation
-and resets it. It is the only test of `static/js/`. It needs the stack running and Playwright on the host, so CI does
+simulation centre on the map, the language toggle and a chat question; the dropdowns driven by keyboard alone and the
+names screen readers read for icon-only controls; the phone layout at 390×844, where the two panels open one at a time
+from tabs at the bottom; and, with an admin login, a simulation that is reset afterwards. It is the only test of `static/js/`. It needs the stack running and Playwright on the host, so CI does
 not run it:
 
 ```bash
