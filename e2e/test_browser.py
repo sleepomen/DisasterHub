@@ -182,3 +182,58 @@ def test_simulation_round_trip(page):
         page.evaluate("fetch('/api/reset_simulation', {method: 'POST'})")
         page.wait_for_timeout(2000)
     assert page.errors == []
+
+
+def test_dropdowns_and_labels_work_without_a_mouse(page):
+    """選單用鍵盤就能操作；只有圖示的按鈕、沒有可見標籤的輸入框都有螢幕閱讀器念得出來的名稱"""
+    skip_login(page)
+    trigger = page.locator("#city-trigger")
+    trigger.focus()
+    page.keyboard.press("Enter")
+    assert trigger.get_attribute("aria-expanded") == "true"
+    focused = lambda: page.evaluate("document.activeElement.dataset.label || document.activeElement.id")  # noqa: E731
+    assert focused() == "city_all"  # 打開時跳到目前選中的那一項
+    page.keyboard.press("ArrowDown")
+    assert focused() == "city_yilan"
+    page.keyboard.press("Enter")
+    assert page.locator("#city-display").inner_text() == "宜蘭"
+    assert trigger.get_attribute("aria-expanded") == "false"
+    assert focused() == "city-trigger"  # 選完回到按鈕
+    assert page.locator("#city-dropdown [data-label='city_yilan']").get_attribute("aria-selected") == "true"
+
+    page.keyboard.press("ArrowDown")  # ↓ 也能打開
+    page.keyboard.press("Escape")
+    assert trigger.get_attribute("aria-expanded") == "false"
+    assert focused() == "city-trigger"
+
+    for selector in (".send-btn", "#user-input", "#map"):
+        assert page.locator(selector).get_attribute("aria-label")
+    assert page.locator("#sim-radius").get_attribute("aria-valuetext") == "10 km"
+    assert page.title() == "東台灣避難所決策系統"
+    assert page.errors == []
+
+
+def test_phone_layout_opens_one_panel_at_a_time(browser):
+    """手機寬度：兩個面板預設收起，地圖佔滿；底部分頁一次打開一個，再按一次收起"""
+    context = browser.new_context(viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True)
+    context.add_init_script(MAP_HOOK)
+    page = context.new_page()
+    page.errors = []
+    page.on("pageerror", lambda e: page.errors.append(str(e)))
+    page.goto(BASE_URL, wait_until="networkidle")
+    skip_login(page)
+    sidebar, chat = page.locator("#sim-panel"), page.locator("#chat-panel")
+    assert not sidebar.is_visible() and not chat.is_visible()
+    assert page.locator(".mobile-tabs").is_visible()
+
+    page.click("#tab-chat")
+    assert chat.is_visible() and not sidebar.is_visible()
+    assert "花蓮市" in ask(page, "花蓮市的國小")
+
+    page.click("#tab-sim")
+    assert sidebar.is_visible() and not chat.is_visible()
+    assert page.locator("#btn-simulate").is_visible()
+    page.click("#tab-sim")
+    assert not sidebar.is_visible()
+    assert page.errors == []
+    context.close()
