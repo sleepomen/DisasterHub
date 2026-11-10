@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Disaster Hub</title>
+    <title>東台灣避難所決策系統</title>
     <!-- 跟左上角的標誌同一個圖形；沒有它瀏覽器會去要 /favicon.ico，每次載入都留一個 404 -->
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap" rel="stylesheet">
@@ -14,9 +14,9 @@
 </head>
 <body>
 
-<nav class="navbar">
+<header class="navbar">
     <div class="logo-mark">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7V12C3 17.5 6.8 21.7 12 23C17.2 21.7 21 17.5 21 12V7L12 2Z" stroke="white" stroke-width="2" stroke-linejoin="round" fill="rgba(255,255,255,0.15)"/></svg>
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7V12C3 17.5 6.8 21.7 12 23C17.2 21.7 21 17.5 21 12V7L12 2Z" stroke="white" stroke-width="2" stroke-linejoin="round" fill="rgba(255,255,255,0.15)"/></svg>
     </div>
     <div class="brand">
         <span class="brand-name" data-i18n="brand_name">東台灣避難所決策系統</span>
@@ -34,81 +34,99 @@
         </div>
         <button type="button" class="auth-btn" id="btn-login-open" data-i18n="btn_login" hidden>登入</button>
     </div>
-</nav>
+</header>
 
-<div class="workspace">
+<main class="workspace">
 
     <div id="map-panel">
-        <div id="map"></div>
-        <canvas id="crowd-canvas"></canvas>
-        <div id="app-error" class="app-error" hidden>
-            <span class="app-error-icon">!</span>
+        <div id="map" role="region" aria-label="地圖" data-i18n-aria-label="map_label"></div>
+        <canvas id="crowd-canvas" aria-hidden="true"></canvas>
+        <div id="app-error" class="app-error" role="alert" hidden>
+            <span class="app-error-icon" aria-hidden="true">!</span>
             <span id="app-error-text"></span>
             <button type="button" id="app-error-retry" data-i18n="btn_retry">重新載入</button>
         </div>
-        <div class="legend">
+        <!-- 桌機一直展開；手機預設收合，點「圖例」才打開（static/js/main.js） -->
+        <details class="legend" id="legend" open>
+            <summary data-i18n="legend_label">圖例</summary>
             <!-- 色塊的顏色由 static/js/main.js 依 data-theme 從 THEME 填入，跟地圖上畫的是同一組 -->
-            <div class="legend-item"><div class="legend-dot" data-theme="hualienTaitung"></div><span data-i18n="legend_hualien_taitung">花蓮 / 台東避難所</span></div>
-            <div class="legend-item"><div class="legend-dot" data-theme="yilan"></div><span data-i18n="legend_yilan">宜蘭避難所</span></div>
-            <div class="legend-item"><div class="legend-dot" data-theme="crowd"></div><span data-i18n="legend_crowd">疏散中人群</span></div>
-            <div class="legend-item"><div class="legend-line" data-theme="route"></div><span data-i18n="legend_route">疏散路線</span></div>
-            <div class="legend-item"><div class="legend-ring" data-theme="origin"></div><span data-i18n="legend_origin">疏散起點（村里）</span></div>
-            <div class="legend-item"><div class="legend-area" data-theme="zone"></div><span data-i18n="legend_debris">土石流潛勢影響範圍</span></div>
-            <div class="legend-item"><div class="legend-area" data-theme="alertRed"></div><span data-i18n="legend_alert">紅色警戒（道路封閉）</span></div>
-        </div>
+            <div class="legend-item"><div class="legend-dot" aria-hidden="true" data-theme="hualienTaitung"></div><span data-i18n="legend_hualien_taitung">花蓮 / 台東避難所</span></div>
+            <div class="legend-item"><div class="legend-dot" aria-hidden="true" data-theme="yilan"></div><span data-i18n="legend_yilan">宜蘭避難所</span></div>
+            <div class="legend-item"><div class="legend-dot" aria-hidden="true" data-theme="crowd"></div><span data-i18n="legend_crowd">疏散中人群</span></div>
+            <div class="legend-item"><div class="legend-line" aria-hidden="true" data-theme="route"></div><span data-i18n="legend_route">疏散路線</span></div>
+            <div class="legend-item"><div class="legend-ring" aria-hidden="true" data-theme="origin"></div><span data-i18n="legend_origin">疏散起點（村里）</span></div>
+            <div class="legend-item"><div class="legend-area" aria-hidden="true" data-theme="zone"></div><span data-i18n="legend_debris">土石流潛勢影響範圍</span></div>
+            <div class="legend-item"><div class="legend-area" aria-hidden="true" data-theme="alertRed"></div><span data-i18n="legend_alert">紅色警戒（道路封閉）</span></div>
+        </details>
     </div>
 
-    <aside class="sidebar overlay-panel">
+    <aside class="sidebar overlay-panel" id="sim-panel" aria-label="模擬設定" data-i18n-aria-label="tab_sim">
         <div class="panel-section">
             <div class="section-header" data-i18n="section_area">觀測區域</div>
-            <div class="list-row" onclick="toggleDropdown(event,'city-dropdown')">
-                <span class="row-label" data-i18n="label_area">地區</span>
-                <span class="row-value" id="city-display" data-i18n="city_all">全東部區域</span>
-                <span class="chevron">›</span>
+            <div class="field">
+                <button type="button" class="list-row dropdown-trigger" id="city-trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="city-dropdown" aria-labelledby="city-label city-display">
+                    <span class="row-label" id="city-label" data-i18n="label_area">地區</span>
+                    <span class="row-value" id="city-display" data-i18n="city_all">全東部區域</span>
+                    <span class="chevron" aria-hidden="true">›</span>
+                </button>
                 <div class="dropdown-menu" id="city-dropdown">
-                    <div class="dropdown-option selected" onclick="selectOption(event,'city','all','city_all')"><span data-i18n="city_all">全東部區域</span><span class="checkmark">✓</span></div>
-                    <div class="dropdown-option" onclick="selectOption(event,'city','YILAN','city_yilan')"><span data-i18n="city_yilan">宜蘭</span></div>
-                    <div class="dropdown-option" onclick="selectOption(event,'city','HUALIEN','city_hualien')"><span data-i18n="city_hualien">花蓮</span></div>
-                    <div class="dropdown-option" onclick="selectOption(event,'city','TAITUNG','city_taitung')"><span data-i18n="city_taitung">台東</span></div>
+                    <ul role="listbox" aria-labelledby="city-label">
+                        <li class="dropdown-option selected" role="option" tabindex="-1" aria-selected="true" data-key="city" data-value="all" data-label="city_all"><span data-i18n="city_all">全東部區域</span><span class="checkmark" aria-hidden="true">✓</span></li>
+                        <li class="dropdown-option" role="option" tabindex="-1" aria-selected="false" data-key="city" data-value="YILAN" data-label="city_yilan"><span data-i18n="city_yilan">宜蘭</span></li>
+                        <li class="dropdown-option" role="option" tabindex="-1" aria-selected="false" data-key="city" data-value="HUALIEN" data-label="city_hualien"><span data-i18n="city_hualien">花蓮</span></li>
+                        <li class="dropdown-option" role="option" tabindex="-1" aria-selected="false" data-key="city" data-value="TAITUNG" data-label="city_taitung"><span data-i18n="city_taitung">台東</span></li>
+                    </ul>
                 </div>
             </div>
         </div>
 
         <div class="panel-section">
             <div class="section-header" data-i18n="section_sim">災害模擬</div>
-            <div class="list-row" onclick="toggleDropdown(event,'loc-dropdown')">
-                <span class="row-label" data-i18n="label_center">模擬中心</span>
-                <span class="row-value" id="loc-display" data-i18n="loc_hualien">花蓮市中心</span>
-                <span class="chevron">›</span>
+            <div class="field">
+                <button type="button" class="list-row dropdown-trigger" id="loc-trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="loc-dropdown" aria-labelledby="loc-label loc-display">
+                    <span class="row-label" id="loc-label" data-i18n="label_center">模擬中心</span>
+                    <span class="row-value" id="loc-display" data-i18n="loc_hualien">花蓮市中心</span>
+                    <span class="chevron" aria-hidden="true">›</span>
+                </button>
                 <div class="dropdown-menu" id="loc-dropdown">
-                    <div class="dropdown-option selected" onclick="selectOption(event,'loc','121.60,23.98','loc_hualien')"><span data-i18n="loc_hualien">花蓮市中心</span><span class="checkmark">✓</span></div>
-                    <div class="dropdown-option" onclick="selectOption(event,'loc','121.75,24.75','loc_yilan')"><span data-i18n="loc_yilan">宜蘭市中心</span></div>
-                    <div class="dropdown-option" onclick="selectOption(event,'loc','121.13,22.75','loc_taitung')"><span data-i18n="loc_taitung">台東市中心</span></div>
-                    <div class="dropdown-hint" data-i18n="loc_pick_hint">也可以直接在地圖上點一下</div>
+                    <ul role="listbox" aria-labelledby="loc-label">
+                        <li class="dropdown-option selected" role="option" tabindex="-1" aria-selected="true" data-key="loc" data-value="121.60,23.98" data-label="loc_hualien"><span data-i18n="loc_hualien">花蓮市中心</span><span class="checkmark" aria-hidden="true">✓</span></li>
+                        <li class="dropdown-option" role="option" tabindex="-1" aria-selected="false" data-key="loc" data-value="121.75,24.75" data-label="loc_yilan"><span data-i18n="loc_yilan">宜蘭市中心</span></li>
+                        <li class="dropdown-option" role="option" tabindex="-1" aria-selected="false" data-key="loc" data-value="121.13,22.75" data-label="loc_taitung"><span data-i18n="loc_taitung">台東市中心</span></li>
+                    </ul>
+                    <p class="dropdown-hint" data-i18n="loc_pick_hint">也可以直接在地圖上點一下</p>
                 </div>
             </div>
-            <div class="list-row" onclick="toggleDropdown(event,'type-dropdown')">
-                <span class="row-label" data-i18n="label_type">災害類型</span>
-                <span class="row-value" id="type-display" data-i18n="type_earthquake">強震模擬</span>
-                <span class="chevron">›</span>
+            <div class="field">
+                <button type="button" class="list-row dropdown-trigger" id="type-trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="type-dropdown" aria-labelledby="type-label type-display">
+                    <span class="row-label" id="type-label" data-i18n="label_type">災害類型</span>
+                    <span class="row-value" id="type-display" data-i18n="type_earthquake">強震模擬</span>
+                    <span class="chevron" aria-hidden="true">›</span>
+                </button>
                 <div class="dropdown-menu" id="type-dropdown">
-                    <div class="dropdown-option selected" onclick="selectOption(event,'type','earthquake','type_earthquake')"><span data-i18n="type_earthquake">強震模擬</span><span class="checkmark">✓</span></div>
-                    <div class="dropdown-option" onclick="selectOption(event,'type','flood','type_flood')"><span data-i18n="type_flood">淹水模擬</span></div>
-                    <div class="dropdown-option" onclick="selectOption(event,'type','fire','type_fire')"><span data-i18n="type_fire">火災模擬</span></div>
+                    <ul role="listbox" aria-labelledby="type-label">
+                        <li class="dropdown-option selected" role="option" tabindex="-1" aria-selected="true" data-key="type" data-value="earthquake" data-label="type_earthquake"><span data-i18n="type_earthquake">強震模擬</span><span class="checkmark" aria-hidden="true">✓</span></li>
+                        <li class="dropdown-option" role="option" tabindex="-1" aria-selected="false" data-key="type" data-value="flood" data-label="type_flood"><span data-i18n="type_flood">淹水模擬</span></li>
+                        <li class="dropdown-option" role="option" tabindex="-1" aria-selected="false" data-key="type" data-value="fire" data-label="type_fire"><span data-i18n="type_fire">火災模擬</span></li>
+                    </ul>
                 </div>
             </div>
-            <div class="list-row" onclick="toggleDropdown(event,'mode-dropdown')">
-                <span class="row-label" data-i18n="label_mode">交通方式</span>
-                <span class="row-value" id="mode-display" data-i18n="mode_walk">步行</span>
-                <span class="chevron">›</span>
+            <div class="field">
+                <button type="button" class="list-row dropdown-trigger" id="mode-trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="mode-dropdown" aria-labelledby="mode-label mode-display">
+                    <span class="row-label" id="mode-label" data-i18n="label_mode">交通方式</span>
+                    <span class="row-value" id="mode-display" data-i18n="mode_walk">步行</span>
+                    <span class="chevron" aria-hidden="true">›</span>
+                </button>
                 <div class="dropdown-menu" id="mode-dropdown">
-                    <div class="dropdown-option selected" onclick="selectOption(event,'mode','walk','mode_walk')"><span data-i18n="mode_walk">步行</span><span class="checkmark">✓</span></div>
-                    <div class="dropdown-option" onclick="selectOption(event,'mode','drive','mode_drive')"><span data-i18n="mode_drive">開車</span></div>
+                    <ul role="listbox" aria-labelledby="mode-label">
+                        <li class="dropdown-option selected" role="option" tabindex="-1" aria-selected="true" data-key="mode" data-value="walk" data-label="mode_walk"><span data-i18n="mode_walk">步行</span><span class="checkmark" aria-hidden="true">✓</span></li>
+                        <li class="dropdown-option" role="option" tabindex="-1" aria-selected="false" data-key="mode" data-value="drive" data-label="mode_drive"><span data-i18n="mode_drive">開車</span></li>
+                    </ul>
                 </div>
             </div>
             <div class="slider-row">
                 <div class="slider-header">
-                    <span class="slider-label" data-i18n="label_radius">受災半徑</span>
+                    <label class="slider-label" for="sim-radius" data-i18n="label_radius">受災半徑</label>
                     <span class="slider-value" id="radius-val">10 km</span>
                 </div>
                 <input type="range" id="sim-radius" min="1" max="60" value="10">
@@ -118,23 +136,23 @@
         <!-- 模擬進度條 -->
         <div id="sim-progress-wrap">
             <div class="progress-label">
-                <span data-i18n="sim_progress">人群疏散模擬中</span>
+                <span id="sim-progress-label" data-i18n="sim_progress">人群疏散模擬中</span>
                 <span id="progress-pct">0%</span>
             </div>
-            <div id="sim-progress-bar-bg">
+            <div id="sim-progress-bar-bg" role="progressbar" aria-labelledby="sim-progress-label" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
                 <div id="sim-progress-bar"></div>
             </div>
         </div>
 
         <div class="panel-actions">
-            <button class="btn-primary" id="btn-simulate" data-i18n="btn_simulate">執行空間模擬</button>
-            <button class="btn-danger" id="btn-reset" data-i18n="btn_reset">清除所有圖層</button>
+            <button type="button" class="btn-primary" id="btn-simulate" data-i18n="btn_simulate">執行空間模擬</button>
+            <button type="button" class="btn-danger" id="btn-reset" data-i18n="btn_reset">清除所有圖層</button>
         </div>
     </aside>
 
-    <aside id="chat-panel" class="overlay-panel">
+    <aside id="chat-panel" class="overlay-panel" aria-label="決策助手" data-i18n-aria-label="tab_chat">
         <div class="chat-header">
-            <div class="chat-avatar">
+            <div class="chat-avatar" aria-hidden="true">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 3L13.9 8.6L19.5 9.2L15.4 13L16.6 18.5L12 15.6L7.4 18.5L8.6 13L4.5 9.2L10.1 8.6L12 3Z" stroke="#a5b4fc" stroke-width="1.6" stroke-linejoin="round"/></svg>
             </div>
             <div>
@@ -142,26 +160,33 @@
                 <div class="chat-subtitle" data-i18n="chat_subtitle">RAG · PostGIS 空間查詢 · 本地 LLM</div>
             </div>
         </div>
-        <div id="chat-container">
+        <div id="chat-container" role="log" aria-live="polite">
             <div class="msg msg-ai" data-i18n="chat_ready">系統就緒。請設定模擬參數以分析潛在風險。</div>
         </div>
         <div class="input-bar">
-            <input class="input-field" type="text" id="user-input" placeholder="詢問避難所資訊…" data-i18n-placeholder="chat_placeholder" onkeydown="if(event.key==='Enter') sendChat(this.value)">
-            <button class="send-btn" onclick="sendChat(document.getElementById('user-input').value)">
-                <svg width="13" height="13" viewBox="0 0 12 12" fill="none"><path d="M6 1L11 6L6 11M1 6H11" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <input class="input-field" type="text" id="user-input" placeholder="詢問避難所資訊…" data-i18n-placeholder="chat_placeholder"
+                   aria-label="詢問避難所資訊" data-i18n-aria-label="chat_input_label" onkeydown="if(event.key==='Enter') sendChat(this.value)">
+            <button type="button" class="send-btn" aria-label="送出" data-i18n-aria-label="chat_send" onclick="sendChat(document.getElementById('user-input').value)">
+                <svg aria-hidden="true" width="13" height="13" viewBox="0 0 12 12" fill="none"><path d="M6 1L11 6L6 11M1 6H11" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
         </div>
     </aside>
 
-</div>
+    <!-- 手機上兩個面板預設收起，從這排分頁打開（static/js/main.js）；桌機上不顯示 -->
+    <nav class="mobile-tabs" aria-label="面板" data-i18n-aria-label="tabs_label">
+        <button type="button" id="tab-sim" aria-controls="sim-panel" aria-expanded="false" data-i18n="tab_sim">模擬設定</button>
+        <button type="button" id="tab-chat" aria-controls="chat-panel" aria-expanded="false" data-i18n="tab_chat">決策助手</button>
+    </nav>
+
+</main>
 
 <div id="login-overlay" class="login-overlay" hidden>
-    <form id="login-form" class="login-card">
-        <div class="login-title" data-i18n="login_title">登入</div>
+    <form id="login-form" class="login-card" role="dialog" aria-modal="true" aria-labelledby="login-title">
+        <div class="login-title" id="login-title" data-i18n="login_title">登入</div>
         <div class="login-sub" data-i18n="login_sub">執行模擬與回寫收容人數需要管理者帳號。不登入仍可瀏覽地圖與使用問答。</div>
-        <input class="input-field" type="text" id="login-user" placeholder="帳號" data-i18n-placeholder="login_user" autocomplete="username" required>
-        <input class="input-field" type="password" id="login-pass" placeholder="密碼" data-i18n-placeholder="login_pass" autocomplete="current-password" required>
-        <div id="login-error" class="login-error" hidden></div>
+        <input class="input-field" type="text" id="login-user" placeholder="帳號" data-i18n-placeholder="login_user" aria-label="帳號" data-i18n-aria-label="login_user" autocomplete="username" required>
+        <input class="input-field" type="password" id="login-pass" placeholder="密碼" data-i18n-placeholder="login_pass" aria-label="密碼" data-i18n-aria-label="login_pass" autocomplete="current-password" required>
+        <div id="login-error" class="login-error" role="alert" hidden></div>
         <button class="btn-primary" type="submit" id="btn-login" data-i18n="btn_login">登入</button>
         <button class="btn-ghost" type="button" id="btn-login-skip" data-i18n="login_skip">先瀏覽地圖</button>
     </form>

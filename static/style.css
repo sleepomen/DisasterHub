@@ -18,7 +18,8 @@
             --hairline: #E6DECF;
             --text: #2A2620;
             --text-dim: #5E574C;
-            --text-faint: #8C8475;
+            /* 最淡的字也要在面板上達到 4.5:1（WCAG AA）：原本的 #8C8475 只有 3.5 */
+            --text-faint: #736B5D;
             --accent: #1F3A5F;
             --accent-hover: #2B4C78;
             --accent-dim: rgba(31, 58, 95, 0.10);
@@ -135,12 +136,17 @@
         }
         .section-header::after { content: ''; flex: 1; height: 1px; background: var(--hairline); }
 
+        /* 一個欄位＝觸發按鈕＋下拉選單，選單相對這一格定位 */
+        .field { position: relative; margin-bottom: 6px; }
         .list-row {
             display: flex;
             align-items: center;
+            width: 100%;
             padding: 0 11px;
             min-height: 36px;
-            margin-bottom: 6px;
+            font: inherit;
+            color: inherit;
+            text-align: left;
             background: var(--surface);
             border: 1px solid var(--line);
             border-radius: var(--radius-sm);
@@ -183,8 +189,10 @@
         .dropdown-option:first-child { border-top: none; }
         .dropdown-option:hover { background: var(--accent-dim); color: var(--text); }
         .dropdown-option.selected { color: var(--accent); font-weight: 700; border-left: 2px solid var(--accent); padding-left: 11px; }
+        .dropdown-menu ul { list-style: none; }
+        .dropdown-option:focus { outline: none; background: var(--accent-dim); color: var(--text); box-shadow: inset 2px 0 0 var(--accent); }
         .checkmark { font-size: 12px; color: var(--accent); }
-        .dropdown-hint { padding: 8px 13px; font-size: 12px; color: var(--text-faint); border-top: 1px solid var(--hairline); cursor: default; }
+        .dropdown-hint { margin: 0; padding: 8px 13px; font-size: 12px; color: var(--text-faint); border-top: 1px solid var(--hairline); cursor: default; }
 
         .slider-row { padding: 2px 2px 8px; }
         .slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 2px; }
@@ -258,7 +266,8 @@
             transition: background 0.15s, color 0.15s, border-color 0.15s;
         }
         .btn-danger:hover { background: var(--danger-dim); color: var(--danger); border-color: var(--danger); }
-        button:focus-visible, .list-row:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+        button:focus-visible, .list-row:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+        #map:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
 
         /* 進度條（模擬進行中） */
         #sim-progress-wrap {
@@ -377,6 +386,7 @@
             font-size: 11.5px;
             box-shadow: var(--shadow);
         }
+        .legend summary { display: none; }
         .legend-item { display: flex; align-items: center; gap: 9px; margin-bottom: 6px; color: var(--text-dim); }
         .legend-item:last-child { margin-bottom: 0; }
         .legend-dot { width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid var(--surface); box-shadow: 0 0 0 1px rgba(42, 38, 32, 0.25); flex-shrink: 0; }
@@ -542,8 +552,70 @@
         }
         .btn-ghost:hover { color: var(--accent); }
 
+        /* 手機底部的面板分頁：桌機不顯示 */
+        .mobile-tabs { display: none; }
+
         @media (max-width: 1100px) {
             :root { --sidebar-w: 240px; }
             #chat-panel { width: 264px; }
             .nav-stats { display: none; }
+        }
+
+        /* ── 手機（760px 以下） ──────────────────────────────
+           兩個浮動面板在手機上會把地圖擠沒：預設收起，從底部的分頁打開成下方的抽屜，
+           一次只開一個（body 的 data-sheet，static/js/main.js） */
+        @media (max-width: 760px) {
+            :root { --tabs-h: 56px; }
+            .navbar { height: 52px; padding: 0 12px; gap: 10px; }
+            .brand-name { font-size: 15px; }
+            .brand-sub { display: none; }
+            .auth-btn { padding: 5px 9px; }
+            .auth-user { display: none; }
+
+            .sidebar, #chat-panel {
+                display: none;
+                top: auto; left: 0; right: 0;
+                bottom: var(--tabs-h);
+                width: auto;
+                max-height: none;
+                border-radius: 10px 10px 0 0;
+                border-bottom: none;
+                box-shadow: 0 -4px 20px rgba(60, 48, 30, 0.12);
+            }
+            .sidebar { height: auto; max-height: 72%; }
+            #chat-panel { height: 72%; }
+            body[data-sheet="sim"] .sidebar { display: flex; }
+            body[data-sheet="chat"] #chat-panel { display: flex; }
+
+            .mobile-tabs {
+                display: flex;
+                position: absolute;
+                left: 0; right: 0; bottom: 0;
+                height: var(--tabs-h);
+                padding-bottom: env(safe-area-inset-bottom, 0px);
+                background: var(--panel-solid);
+                border-top: 1px solid var(--line);
+                z-index: 1100;
+            }
+            .mobile-tabs button {
+                flex: 1;
+                background: transparent;
+                border: none;
+                font: inherit;
+                font-size: 14px;
+                font-weight: 700;
+                color: var(--text-dim);
+                cursor: pointer;
+            }
+            .mobile-tabs button[aria-expanded="true"] { color: var(--accent); box-shadow: inset 0 3px 0 var(--accent); }
+
+            /* 縮放按鈕回到左上角；版權列與圖例放在分頁上面 */
+            .leaflet-top.leaflet-left { left: 0; }
+            .leaflet-bottom { bottom: var(--tabs-h); }
+            .legend { bottom: calc(var(--tabs-h) + 10px); left: 10px; padding: 6px 10px; font-size: 10.5px; }
+            .legend summary { display: list-item; cursor: pointer; font-size: 12px; font-weight: 700; color: var(--text); }
+            .legend[open] summary { margin-bottom: 6px; }
+            .legend-item { margin-bottom: 4px; }
+            body[data-sheet="sim"] .legend, body[data-sheet="chat"] .legend { display: none; }
+            .app-error { top: 10px; }
         }

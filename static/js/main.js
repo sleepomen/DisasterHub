@@ -8,6 +8,7 @@ const radiusInput = document.getElementById('sim-radius');
 function showRadius() {
     const v = radiusInput.value;
     document.getElementById('radius-val').textContent = `${v} km`;
+    radiusInput.setAttribute('aria-valuetext', `${v} km`);
     const pct = ((v - radiusInput.min) / (radiusInput.max - radiusInput.min)) * 100;
     radiusInput.style.background = `linear-gradient(to right, ${THEME.accent} ${pct}%, ${THEME.accentTrack} ${pct}%)`;
 }
@@ -49,3 +50,32 @@ document.querySelectorAll('.legend [data-theme]').forEach(el => {
         el.style.background = color;
     }
 });
+
+// ── 手機：兩個面板預設收起，從底部的分頁打開 ─────────────────
+// body 的 data-sheet 決定現在打開哪一個（'sim'、'chat' 或空的），樣式在 style.css 的 @media (max-width: 760px)。
+// 桌機上分頁不顯示、面板一直開著，這些狀態不影響
+const MOBILE = window.matchMedia('(max-width: 760px)');
+const SHEET_TABS = { sim: document.getElementById('tab-sim'), chat: document.getElementById('tab-chat') };
+
+function setSheet(name) {
+    document.body.dataset.sheet = name || '';
+    for (const [key, tab] of Object.entries(SHEET_TABS)) {
+        if (tab) tab.setAttribute('aria-expanded', String(key === name));
+    }
+}
+
+for (const [key, tab] of Object.entries(SHEET_TABS)) {
+    if (tab) tab.addEventListener('click', () => setSheet(document.body.dataset.sheet === key ? '' : key));
+}
+// 按下執行模擬後收起面板，動畫才看得到
+document.getElementById('btn-simulate').addEventListener('click', () => {
+    if (MOBILE.matches) setSheet('');
+});
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && MOBILE.matches && document.body.dataset.sheet && !document.querySelector('.dropdown-menu.open')) {
+        setSheet('');
+    }
+});
+setSheet('');
+// 手機上圖例預設收合，不然左下角一大塊地圖被蓋住
+if (MOBILE.matches) document.getElementById('legend').open = false;

@@ -246,6 +246,7 @@ function startCrowdAnimation(plan, finalOccupancy, disasterLat, dotColor) {
         const progress = Math.round((totalArrived / total) * 100);
         document.getElementById('sim-progress-bar').style.width = `${progress}%`;
         document.getElementById('progress-pct').textContent = `${progress}%`;
+        document.getElementById('sim-progress-bar-bg').setAttribute('aria-valuenow', String(progress));
 
         if (!allDone) {
             animationId = requestAnimationFrame(animate);

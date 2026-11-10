@@ -27,6 +27,7 @@ function showPickedCentre() {
     display.title = pickedLabel();
     document.querySelectorAll('#loc-dropdown .dropdown-option').forEach(opt => {
         opt.classList.remove('selected');
+        opt.setAttribute('aria-selected', 'false');
         const check = opt.querySelector('.checkmark');
         if (check) check.remove();
     });

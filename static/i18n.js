@@ -12,7 +12,9 @@
             btn_logout: '登出', btn_login: '登入', btn_retry: '重新載入', lang_toggle: 'EN',
             legend_hualien_taitung: '花蓮 / 台東避難所', legend_yilan: '宜蘭避難所', legend_impact: '受災影響範圍',
             legend_crowd: '疏散中人群', legend_route: '疏散路線', legend_debris: '土石流潛勢影響範圍',
-            legend_alert: '紅色警戒（道路封閉）',
+            legend_alert: '紅色警戒（道路封閉）', legend_label: '圖例', map_label: '地圖',
+            tab_sim: '模擬設定', tab_chat: '決策助手', tabs_label: '面板',
+            chat_input_label: '詢問避難所資訊', chat_send: '送出',
             section_area: '查詢範圍', label_area: '地區',
             city_all: '全東部區域', city_yilan: '宜蘭', city_hualien: '花蓮', city_taitung: '台東',
             section_sim: '災害模擬', label_center: '模擬中心',
@@ -76,7 +78,9 @@
             btn_logout: 'Sign out', btn_login: 'Sign in', btn_retry: 'Reload', lang_toggle: '中文',
             legend_hualien_taitung: 'Hualien / Taitung shelters', legend_yilan: 'Yilan shelters', legend_impact: 'Impact area',
             legend_crowd: 'Evacuees on the move', legend_route: 'Evacuation routes', legend_debris: 'Debris-flow impact zones',
-            legend_alert: 'Red alert (roads closed)',
+            legend_alert: 'Red alert (roads closed)', legend_label: 'Legend', map_label: 'Map',
+            tab_sim: 'Simulation', tab_chat: 'Assistant', tabs_label: 'Panels',
+            chat_input_label: 'Ask about shelters', chat_send: 'Send',
             section_area: 'Search area', label_area: 'Region',
             city_all: 'All of eastern Taiwan', city_yilan: 'Yilan', city_hualien: 'Hualien', city_taitung: 'Taitung',
             section_sim: 'Disaster simulation', label_center: 'Centre',
@@ -166,6 +170,11 @@
             document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
                 el.placeholder = this.t(el.dataset.i18nPlaceholder);
             });
+            // 只有圖示的按鈕、沒有可見標籤的輸入框，螢幕閱讀器念的是 aria-label
+            document.querySelectorAll('[data-i18n-aria-label]').forEach(el => {
+                el.setAttribute('aria-label', this.t(el.dataset.i18nAriaLabel));
+            });
+            document.title = this.t('brand_name');
         },
         set(lang) {
             this.lang = lang === 'en' ? 'en' : 'zh';

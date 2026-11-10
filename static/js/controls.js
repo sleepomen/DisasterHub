@@ -25,12 +25,42 @@ const THEME = {
 
 const state = { city: 'all', loc: '121.60,23.98', type: 'earthquake', mode: 'walk' };
 
+// ── 下拉選單 ─────────────────────────────────────────────
+// 觸發按鈕（aria-haspopup="listbox"）＋選項清單（role="listbox"），滑鼠與鍵盤都能操作：
+// 按鈕上按 Enter／空白鍵／↓ 打開並跳到目前選中的那一項，↑↓ 移動、Enter 或空白鍵選取、Esc 關閉回到按鈕。
+// 以前是 div 加 onclick，鍵盤選不到，螢幕閱讀器也不知道它是選單
+function triggerOf(id) {
+    return document.querySelector(`[aria-controls="${id}"]`);
+}
+
+function closeDropdowns(except) {
+    document.querySelectorAll('.dropdown-menu.open').forEach(menu => {
+        if (menu.id === except) return;
+        menu.classList.remove('open');
+        const trigger = triggerOf(menu.id);
+        if (trigger) trigger.setAttribute('aria-expanded', 'false');
+    });
+}
+
+function openDropdown(id, focusOption) {
+    closeDropdowns(id);
+    const menu = document.getElementById(id);
+    menu.classList.add('open');
+    triggerOf(id).setAttribute('aria-expanded', 'true');
+    if (focusOption) {
+        const options = [...menu.querySelectorAll('[role="option"]')];
+        (options.find(o => o.getAttribute('aria-selected') === 'true') || options[0]).focus();
+    }
+}
+
 function toggleDropdown(e, id) {
     e.stopPropagation();
-    document.querySelectorAll('.dropdown-menu').forEach(m => {
-        if (m.id !== id) m.classList.remove('open');
-    });
-    document.getElementById(id).classList.toggle('open');
+    if (document.getElementById(id).classList.contains('open')) {
+        closeDropdowns();
+    } else {
+        // 用鍵盤按下按鈕時 click 事件的 detail 是 0：這時直接跳到選項，不用再按一次
+        openDropdown(id, e.detail === 0);
+    }
 }
 
 // labelKey 是 i18n.js 的翻譯鍵；顯示欄也記住這個鍵，切換語言時才會跟著換
@@ -45,19 +75,55 @@ function selectOption(e, key, value, labelKey) {
         const label = opt.querySelector('[data-i18n]');
         const isSelected = !!label && label.dataset.i18n === labelKey;
         opt.classList.toggle('selected', isSelected);
+        opt.setAttribute('aria-selected', String(isSelected));
         let check = opt.querySelector('.checkmark');
         if (isSelected && !check) {
             check = document.createElement('span');
             check.className = 'checkmark';
+            check.setAttribute('aria-hidden', 'true');
             check.textContent = '✓';
             opt.appendChild(check);
         } else if (!isSelected && check) { check.remove(); }
     });
-    menu.classList.remove('open');
+    closeDropdowns();
+    triggerOf(`${key}-dropdown`).focus();
     if (key === 'city') filterMarkers();
     if (key === 'loc') clearPickedCentre();
 }
 
-document.addEventListener('click', () => {
-    document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('open'));
+document.querySelectorAll('.dropdown-trigger').forEach(trigger => {
+    const id = trigger.getAttribute('aria-controls');
+    trigger.addEventListener('click', e => toggleDropdown(e, id));
+    trigger.addEventListener('keydown', e => {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            openDropdown(id, true);
+        }
+    });
 });
+
+document.querySelectorAll('.dropdown-menu [role="option"]').forEach(option => {
+    option.addEventListener('click', e => selectOption(e, option.dataset.key, option.dataset.value, option.dataset.label));
+    option.addEventListener('keydown', e => {
+        const options = [...option.parentElement.querySelectorAll('[role="option"]')];
+        const i = options.indexOf(option);
+        const moves = { ArrowDown: i + 1, ArrowUp: i - 1, Home: 0, End: options.length - 1 };
+        if (e.key in moves) {
+            e.preventDefault();
+            options[(moves[e.key] + options.length) % options.length].focus();
+        } else if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            option.click();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            closeDropdowns();
+            triggerOf(option.closest('.dropdown-menu').id).focus();
+        } else if (e.key === 'Tab') {
+            closeDropdowns();
+        }
+    });
+    // 選項清單裡的點擊不要傳到 document（那裡會把選單關掉）
+    option.addEventListener('mousedown', e => e.preventDefault());
+});
+
+document.addEventListener('click', () => closeDropdowns());

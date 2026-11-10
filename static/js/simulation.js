@@ -87,6 +87,7 @@ document.getElementById('btn-reset').addEventListener('click', async () => {
     document.getElementById('btn-simulate').disabled = false;
     document.getElementById('sim-progress-bar').style.width = '0%';
     document.getElementById('progress-pct').textContent = '0%';
+    document.getElementById('sim-progress-bar-bg').setAttribute('aria-valuenow', '0');
     try {
         const data = await postAuthed('/api/reset_simulation');
         applyOccupancy(data.occupancy);
