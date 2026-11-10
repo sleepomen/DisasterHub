@@ -1,46 +1,22 @@
+"""
+FastAPI 應用程式：日誌、啟動同步、中介層、健康檢查、首頁與靜態檔。
+各功能的 API 在 api/（見 api/__init__.py），這裡只把它們掛上去
+"""
 import asyncio
 import contextvars
-import functools
-import json
 import logging
 import re
-import secrets
-import threading
 import uuid
 from contextlib import asynccontextmanager, suppress
 from pathlib import Path
-from typing import Literal
 
 import uvicorn
-from fastapi import FastAPI, Header, HTTPException, Query, Request, Response
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi import FastAPI, HTTPException, Response
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field, field_validator
 from starlette.datastructures import MutableHeaders
 
 import config
-from repositories.shelter_repository import ShelterRepository
-from services.chat.service import ChatService
-from services.geo.hazard_alerts import poll_alerts
-from services.geo.routing import attach_evacuation_paths, evacuation_road_distances, nearest_by_road, solve_assignment
-from services.ingest.sync import HAZARD_FILES, DataSyncService
-from services.retrieval.knowledge import KnowledgeStore
-from services.retrieval.vector_store import VectorStore
-from services.simulation.evacuation import (
-    DESIGNATED_HAZARD,
-    EXCLUDED_HAZARDS,
-    HAZARD_WARN_M,
-    origins_from,
-    plan_evacuation,
-    split_hazard_hits,
-    undesignated,
-)
-from services.simulation.population import PopulationModel
-from services.web import auth, health
-from services.web.i18n import place_en
-from services.web.map_service import MapService
-from services.web.metrics import metrics
-from services.web.rate_limit import RateLimiter
 
 # 每一行 log 都帶 request id：一個請求在 docker logs 裡的幾行才能串起來，
 # 使用者回報「剛才那題壞了」時也能直接用回應標頭上的 id 去撈
@@ -58,6 +34,7 @@ class RequestIdFilter(logging.Filter):
         return True
 
 
+# 日誌與設定檢查要在建立資料庫、索引等物件（api.deps）之前，它們初始化時的訊息才有同樣的格式
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(name)s [%(request_id)s]: %(message)s",
@@ -73,90 +50,24 @@ except config.ConfigError as e:
     logger.error("設定檢查失敗：%s", e)
     raise
 
+from api import admin, chat, deps, map_data, session, simulation  # noqa: E402
+
+# 測試與操作時常用的物件，從 app 也拿得到（實際都在 api.deps，同一個物件）
+from api.deps import (  # noqa: E402, F401
+    chat_limiter,
+    chat_service,
+    chat_slots,
+    client_key,
+    login_throttle,
+    session_manager,
+)
+from services.geo.hazard_alerts import poll_alerts  # noqa: E402
+from services.web import health  # noqa: E402
+from services.web.metrics import metrics  # noqa: E402, F401
+
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
 INDEX_FILE = STATIC_DIR / "index.html"
-
-# 1. 初始化 server / repo / services
-repo = ShelterRepository()
-map_service = MapService()
-vector_store = VectorStore()
-# 防災知識文件跟避難所索引共用同一個 ChromaDB client 與 embedding 模型，各自一個 collection
-knowledge_store = KnowledgeStore(embedding_function=vector_store.ef, client=vector_store.client)
-chat_service = ChatService(vector_store=vector_store, repo=repo, knowledge=knowledge_store)
-population_model = PopulationModel()
-session_manager = auth.SessionManager()
-login_throttle = auth.LoginThrottle()
-# LLM 生成的併發名額：一次生成最長 OLLAMA_TIMEOUT 秒，超出名額的問題立刻回 429，
-# 不排隊、不佔執行緒，地圖與 readiness 才不會跟著 Ollama 一起卡住
-chat_slots = threading.BoundedSemaphore(config.CHAT_MAX_CONCURRENT)
-AI_BUSY = "AI 助手正在回答其他問題，請稍後再試。"
-AI_BUSY_EN = "The AI assistant is answering other questions. Please try again shortly."
-# 單一來源的用量上限。/api/chat 不需要登入（災時任何人都要問得到），
-# 但也因此沒有任何東西擋住有人拿它當免費 LLM 用，所以按來源限流
-chat_limiter = RateLimiter(config.CHAT_RATE_LIMIT, config.CHAT_RATE_WINDOW)
-# 被擋掉的請求也要留下數字：rate_limit 偏高代表有人在刷，busy 偏高代表生成名額不夠用，
-# 兩者的處理方式完全不同，混在一個 429 裡看不出來
-metrics.register("chat.rejected.rate_limit", "chat.rejected.busy")
-
-# 列舉題（一個縣 20 至 30 筆）生成要 1 分鐘以上，一次給完的話使用者只能看著轉圈等，
-# 所以改用 SSE 邊生成邊送。no-cache / X-Accel-Buffering 是給前面的反向代理看的：
-# nginx 預設會把整個回應緩衝起來再轉出，串流會整段失效
-SSE_HEADERS = {
-    "Cache-Control": "no-cache",
-    "X-Accel-Buffering": "no",
-}
-
-
-def sse_event(payload: dict) -> str:
-    return f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
-
-
-def sync_and_reindex(force: bool = False) -> int:
-    repo.ensure_schema()
-    DataSyncService().sync()
-    shelters = repo.get_all_shelters()
-    vector_store.build_index(shelters, force=force)
-    build_knowledge()
-    return len(shelters)
-
-
-def build_knowledge() -> None:
-    """
-    知識文件跟資料庫無關，壞了（格式錯、embedding 失敗）也不該讓避難所同步一起失敗：
-    記下錯誤就好，知識題會回「目前無法使用」，下次同步再試
-    """
-    try:
-        knowledge_store.build()
-    except Exception:
-        logger.exception("防災知識索引建立失敗，知識題暫時無法回答")
-
-
-@functools.cache
-def hazard_zones_geojson() -> dict:
-    path = HAZARD_FILES["debris_flow"]
-    if not path.exists():
-        return {"type": "FeatureCollection", "features": []}
-    return json.loads(path.read_text(encoding="utf-8"))
-
-
-def apply_occupancy(occupancy: dict[str, int]) -> dict:
-    """
-    把收容人數寫進資料庫，只對真的有變動的避難所重算向量，
-    再同步聊天服務裡的模擬快照。回傳更新統計與最新佔用表給前端對齊畫面。
-    """
-    before = {s.name: s.current_people for s in repo.get_all_shelters()}
-    updated = repo.set_occupancy(occupancy)
-    after = repo.get_all_shelters()
-    changed = [s for s in after if before.get(s.name) != s.current_people]
-    reindexed = vector_store.upsert_shelters(changed)
-    chat_service.refresh_occupancy(after)
-    return {
-        "updated": updated,
-        "reindexed": reindexed,
-        "occupancy": {s.name: s.current_people for s in after},
-    }
-
 
 # 啟動同步失敗後的重試間隔（秒）。資料庫還沒起來、Ollama 還在載 embedding 模型都是
 # 幾十秒就會好的暫時狀況，但索引空著 readiness 就一直回 503，容器也一直 unhealthy。
@@ -168,7 +79,7 @@ async def retry_startup_sync() -> None:
     for delay in STARTUP_RETRY_DELAYS:
         await asyncio.sleep(delay)
         try:
-            count = await asyncio.to_thread(sync_and_reindex)
+            count = await asyncio.to_thread(deps.sync_and_reindex)
         except Exception as e:
             logger.warning("啟動同步重試失敗（間隔 %d 秒的那次）：%s", delay, e)
             continue
@@ -185,13 +96,13 @@ async def lifespan(_: FastAPI):
     logger.info("啟動時執行資料同步與向量索引建立...")
     retry_task = None
     try:
-        count = await asyncio.to_thread(sync_and_reindex)
+        count = await asyncio.to_thread(deps.sync_and_reindex)
         logger.info("啟動完成，共載入 %d 筆避難所", count)
     except Exception:
         logger.exception("啟動同步失敗，服務仍會啟動，接下來會在背景自動重試")
         retry_task = asyncio.create_task(retry_startup_sync())
     # 即時土石流警戒：路線封閉或繞開警戒範圍內的道路
-    alert_task = asyncio.create_task(poll_alerts(repo)) if config.ALERT_POLL_SECONDS > 0 else None
+    alert_task = asyncio.create_task(poll_alerts(deps.repo)) if config.ALERT_POLL_SECONDS > 0 else None
     yield
     for task in (retry_task, alert_task):
         if task is not None:
@@ -240,9 +151,38 @@ class RequestIdMiddleware:
         return ""
 
 
+class RevalidateStaticMiddleware:
+    """
+    首頁與 /static/ 底下的檔案加上 Cache-Control: no-cache：瀏覽器照樣快取，但每次都先用
+    ETag 問伺服器有沒有更新，沒變就回 304、沿用快取。沒有這個標頭時瀏覽器會自己猜能用多久，
+    2026-11-09 改版後重新整理仍看到舊的 style.css，就是這個原因
+    """
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        path = scope.get("path", "") if scope["type"] == "http" else ""
+        if path != "/" and not path.startswith("/static/"):
+            await self.app(scope, receive, send)
+            return
+
+        async def send_with_cache_control(message):
+            if message["type"] == "http.response.start":
+                headers = MutableHeaders(scope=message)
+                if "cache-control" not in headers:
+                    headers.append("Cache-Control", "no-cache")
+            await send(message)
+
+        await self.app(scope, receive, send_with_cache_control)
+
+
 app = FastAPI(lifespan=lifespan)
+app.add_middleware(RevalidateStaticMiddleware)
 app.add_middleware(RequestIdMiddleware)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+for module in (session, map_data, simulation, chat, admin):
+    app.include_router(module.router)
 
 
 # liveness：只表示 process 還活著
@@ -256,10 +196,10 @@ async def health_check():
 # Ollama 跑在宿主機，重啟容器救不了它，只回報狀態不影響判定。
 @app.get("/health/ready")
 async def readiness_check(response: Response):
-    db_ok, db_detail = await asyncio.to_thread(health.check_database, repo)
-    index_ok, index_detail = await asyncio.to_thread(health.check_index, vector_store)
+    db_ok, db_detail = await asyncio.to_thread(health.check_database, deps.repo)
+    index_ok, index_detail = await asyncio.to_thread(health.check_index, deps.vector_store)
     ollama_ok, ollama_detail = await asyncio.to_thread(health.check_ollama)
-    knowledge_ok, knowledge_detail = knowledge_store.status()
+    knowledge_ok, knowledge_detail = deps.knowledge_store.status()
 
     ready = db_ok and index_ok
     if not ready:
@@ -276,389 +216,14 @@ async def readiness_check(response: Response):
         },
     }
 
-# Pydantic Models
-#規範輸入範圍
-class SimulateRequest(BaseModel):
-    lat: float = Field(..., ge=-90, le=90, description="緯度")
-    lon: float = Field(..., ge=-180, le=180, description="經度")
-    radius: float = Field(..., gt=0, le=100, description="半徑（公里），最大100km")
-    type: str = Field(default="earthquake")
-    # 疏散的「近」用哪一種交通方式的時間算：步行（等於道路距離最短）或開車（依道路等級的速度）
-    mode: Literal["walk", "drive"] = "walk"
 
-    @field_validator("type")
-    @classmethod
-    def validate_type(cls, v):
-        allowed = {"earthquake", "flood", "fire"}
-        if v not in allowed:
-            raise ValueError(f"災害類型必須是 {allowed} 其中之一")
-        return v
-
-class ChatRequest(BaseModel):
-    message: str = Field(..., min_length=1, max_length=500, description="使用者問題")
-    # 回答語言。英文模式第一階段只翻回答：問題仍以中文最準（services/web/i18n.py）
-    lang: Literal["zh", "en"] = "zh"
-
-class OccupancyItem(BaseModel):
-    name: str = Field(..., min_length=1, max_length=200)
-    current_ppl: int = Field(..., ge=0, le=1_000_000, description="目前收容人數")
-
-
-class OccupancyRequest(BaseModel):
-    occupancy: list[OccupancyItem] = Field(..., min_length=1, max_length=1000)
-
-
-class NearestRequest(BaseModel):
-    lat: float = Field(..., ge=-90, le=90, description="緯度")
-    lon: float = Field(..., ge=-180, le=180, description="經度")
-    limit: int = Field(default=5, ge=1, le=20, description="回傳筆數")
-    mode: Literal["walk", "drive"] = "walk"
-
-
-class LoginRequest(BaseModel):
-    username: str = Field(..., min_length=1, max_length=100)
-    password: str = Field(..., min_length=1, max_length=200)
-
-
-def require_sync_access(http_request: Request, x_api_key: str) -> None:
-    """
-    /api/sync 的三種通行方式：SYNC_API_KEY、登入的 session、或寫入金鑰 WRITE_API_KEY。
-    只認 SYNC_API_KEY 的話，沒設這個變數的部署在啟動同步失敗後就只剩重啟容器一條路
-    （索引空的時候 readiness 一直是 503），操作員要能自己把資料同步回來。
-    """
-    for expected in (config.SYNC_API_KEY, config.WRITE_API_KEY):
-        if expected and x_api_key and secrets.compare_digest(x_api_key, expected):
-            return
-    if current_user(http_request):
-        return
-    if not (config.SYNC_API_KEY or config.WRITE_API_KEY or auth.credentials_configured()):
-        raise HTTPException(
-            status_code=503,
-            detail="伺服器未設定 SYNC_API_KEY / WRITE_API_KEY / ADMIN_USERNAME，手動同步已停用",
-        )
-    raise HTTPException(status_code=401, detail="請先登入或提供有效的 API key")
-
-
-def current_user(http_request: Request) -> str | None:
-    return session_manager.verify(http_request.cookies.get(auth.COOKIE_NAME))
-
-
-def require_write_access(http_request: Request, x_api_key: str) -> None:
-    """
-    模擬 / 收容人數回寫 / 重置：登入的 session cookie 或 X-API-Key 擇一。
-    兩種都沒設定時停用（503），而不是放行。
-    """
-    if not auth.credentials_configured() and not config.WRITE_API_KEY:
-        raise HTTPException(
-            status_code=503,
-            detail="伺服器未設定 ADMIN_USERNAME / ADMIN_PASSWORD，模擬與收容人數寫入已停用",
-        )
-    if current_user(http_request):
-        return
-    if x_api_key and config.WRITE_API_KEY and secrets.compare_digest(x_api_key, config.WRITE_API_KEY):
-        return
-    raise HTTPException(status_code=401, detail="請先登入")
-
-
-def client_key(http_request: Request) -> str:
-    """
-    登入節流用的來源識別。反向代理後面看到的是代理的位址，要改用它轉送的第一個 IP；
-    但這個 header 誰都能自己帶，直接對外時信任它等於讓人隨便換 key 繞過節流，
-    所以只有 TRUST_PROXY_HEADERS 開啟時才讀。
-    """
-    if config.TRUST_PROXY_HEADERS:
-        forwarded = http_request.headers.get("x-forwarded-for", "")
-        if forwarded:
-            return forwarded.split(",")[0].strip()
-    return http_request.client.host if http_request.client else "unknown"
-
-
-def request_is_https(http_request: Request) -> bool:
-    if http_request.url.scheme == "https":
-        return True
-    return config.TRUST_PROXY_HEADERS and http_request.headers.get("x-forwarded-proto", "").lower() == "https"
-
-
-@app.post("/api/login")
-async def login(request: LoginRequest, http_request: Request, response: Response):
-    if not auth.credentials_configured():
-        raise HTTPException(status_code=503, detail="伺服器未設定 ADMIN_USERNAME / ADMIN_PASSWORD，登入已停用")
-    key = client_key(http_request)
-    wait = login_throttle.retry_after(key)
-    if wait > 0:
-        raise HTTPException(status_code=429, detail=f"登入失敗次數過多，請 {wait} 秒後再試")
-    if not auth.check_credentials(request.username, request.password):
-        login_throttle.record_failure(key)
-        # 不記輸入的帳號：操作員把密碼打進帳號欄時，密碼就會留在 log 裡
-        logger.warning("登入失敗：來源 %s", key)
-        raise HTTPException(status_code=401, detail="帳號或密碼錯誤")
-    login_throttle.reset(key)
-    response.set_cookie(
-        key=auth.COOKIE_NAME,
-        value=session_manager.issue(request.username),
-        max_age=session_manager.max_age,
-        httponly=True,
-        samesite="lax",
-        secure=request_is_https(http_request),
-        path="/",
-    )
-    logger.info("登入成功：%s，來源 %s", request.username, key)
-    return {"status": "success", "user": request.username, "expires_in": session_manager.max_age}
-
-
-@app.post("/api/logout")
-async def logout(response: Response):
-    response.delete_cookie(key=auth.COOKIE_NAME, path="/")
-    return {"status": "success"}
-
-
-# 前端載入時問一次：要不要顯示登入面板、目前是誰
-@app.get("/api/me")
-async def me(http_request: Request):
-    user = current_user(http_request)
-    return {
-        "authenticated": user is not None,
-        "user": user,
-        "login_enabled": auth.credentials_configured(),
-    }
-
-
-#sync_service.sync() 讀取json檔案寫入pgSQL
-#vector_store.build_index()重建chromadb向量索引
-@app.post("/api/sync")
-async def manual_sync(http_request: Request, x_api_key: str = Header(default="")):
-    require_sync_access(http_request, x_api_key)
-    count = await asyncio.to_thread(sync_and_reindex, True)
-    return {"status": "success", "message": "資料同步與索引重建完成", "count": count}
-
-# 地圖載入時呼叫
-#去pgSQL拿所有避難所資料
-#shelter 物件轉成前端需要的 json 格式
-@app.get("/api/shelters")
-async def get_shelters():
-    shelters = await asyncio.to_thread(repo.get_all_shelters)
-    data = map_service.to_map_points(shelters)
-    return data
-
-#執行空間模擬時呼叫
-#repository 對 postGIS 執行 ST_DWithin 空間查詢
-#回傳影響範圍清單給前端
-#同時將模擬結果交給 chat_service 供 AI 聊天使用
-#模擬會覆蓋全域的聊天快照，所以跟寫入端點一樣要先登入
-@app.post("/api/simulate_disaster")
-async def simulate(request: SimulateRequest, http_request: Request, x_api_key: str = Header(default="")):
-    require_write_access(http_request, x_api_key)
-    impacted = await asyncio.to_thread(
-        repo.get_shelters_in_radius, request.lat, request.lon, request.radius
-    )
-    # 位在對應災害潛勢區域內的避難所不當疏散目的地（淹水模擬避開土石流影響範圍）。
-    # 範圍外 HAZARD_WARN_M 公尺內的照常分配，只附上警告。
-    # 查不到潛勢資料時退回「不排除」，跟沒有這個功能時一樣，模擬本身不能因此失敗
-    excluded: dict[str, list[str]] = {}
-    near: dict[str, dict] = {}
-    hazard = EXCLUDED_HAZARDS.get(request.type)
-    if hazard:
-        try:
-            hits = await asyncio.to_thread(repo.shelter_hazard_distances, hazard, HAZARD_WARN_M)
-            inside, nearby = split_hazard_hits(hits)
-            excluded = {s.name: inside[s.name] for s in impacted if s.name in inside}
-            near = {s.name: nearby[s.name] for s in impacted if s.name in nearby}
-        except Exception:
-            logger.exception("查詢災害潛勢區域失敗，本次模擬不排除任何避難所")
-    # 消防署資料沒把這間列為這類災害的避難收容處所（例如只列水災的，地震時不去）
-    not_designated = undesignated(impacted, request.type)
-    destinations = [s for s in impacted if s.name not in excluded and s.name not in not_designated]
-
-    # 人口估算與前端動畫、AI 回答共用同一份模型，三邊數字才會一致；
-    # 可安置空間只算真的能去的避難所，否則「可安置」會跟分配結果對不上
-    total_remaining = sum(s.remaining for s in destinations)
-    population = population_model.estimate(
-        request.lat, request.lon, request.radius, request.type, total_remaining
-    )
-    # 誰去哪一間由後端決定，結果確定、可重現；前端只把這份分配畫成動畫。
-    # 以前是瀏覽器用亂數分配、動畫跑完才回寫，AI 要等回寫成功才看得到同樣的數字。
-    # 每個受影響的村里一個起點；分配讓所有人的通行時間加總最短（最小成本流，在資料庫裡解），
-    # 時間依路網計算，路網查不到時退回直線距離。路線繞開警戒範圍（紅色封閉、黃色繞行），淹水模擬另外繞開土石流潛勢範圍
-    origins = origins_from(population, request.lat, request.lon)
-    road_m = await asyncio.to_thread(evacuation_road_distances, repo, origins, destinations, hazard, request.mode)
-    plan = await asyncio.to_thread(
-        plan_evacuation, origins, destinations, road_m, request.mode, functools.partial(solve_assignment, repo),
-    )
-    # 實際路線用來畫圖、回報實際距離；分配已經決定好了，查不到就畫直線，不影響人數
-    await asyncio.to_thread(attach_evacuation_paths, repo, origins, destinations, plan["flows"], hazard, request.mode)
-    plan["route_hazard"] = hazard
-    plan["alerts"] = await asyncio.to_thread(alert_summary)
-    plan["excluded"] = excluded
-    plan["near_hazard"] = near
-    plan["hazard"] = hazard if excluded or near else None
-    plan["undesignated"] = not_designated
-    plan["designation"] = DESIGNATED_HAZARD.get(request.type)
-
-    chat_service.set_simulation({
-        "type": request.type,
-        "lat": request.lat,
-        "lon": request.lon,
-        "radius_km": request.radius,
-        "impacted_count": len(impacted),
-        # 快照存 Shelter 物件：收容人數回寫後 refresh_occupancy 直接換成新的物件就好
-        "impacted_shelters": impacted,
-        "population": population,
-        "evacuation": plan,
-    })
-
-    occupancy = {s.name: s.current_people + plan["assigned"][s.name] for s in impacted if s.name in plan["assigned"]}
-    try:
-        written = await asyncio.to_thread(apply_occupancy, occupancy) if occupancy else None
-    except Exception:
-        # 資料庫沒寫進去就不能留著快照，否則 AI 會講一份資料庫裡不存在的分配
-        chat_service.clear_simulation()
-        logger.exception("寫入疏散分配失敗")
-        raise HTTPException(status_code=500, detail="寫入疏散分配失敗") from None
-
-    return {
-        "status": "success",
-        "impacted_count": len(impacted),
-        "impacted_shelters": map_service.to_impacted(impacted),
-        "population": population,
-        "evacuation": plan,
-        "occupancy": written["occupancy"] if written else None,
-    }
-
-
-# 災害潛勢區域（GeoJSON），地圖疊圖用。檔案在啟動時讀一次就好，內容只有重建資料時才會變
-@app.get("/api/hazard_zones")
-async def get_hazard_zones():
-    return hazard_zones_geojson()
-
-
-def alert_summary() -> list[dict]:
-    """目前生效的土石流警戒，給地圖疊圖與模擬結果用；查不到就當成沒有，不影響其他功能"""
-    try:
-        alerts = repo.active_alerts()
-    except Exception:
-        logger.exception("查詢土石流警戒失敗")
-        return []
-    return [
-        {
-            "ref_no": a["ref_no"], "level": a["level"],
-            "place": f"{a['county'] or ''}{a['town'] or ''}{a['village'] or ''}",
-            "issued_at": a["issued_at"].isoformat() if a["issued_at"] else None,
-            "fetched_at": a["fetched_at"].isoformat(),
-            "road_km": round(a["road_m"] / 1000, 2),
-        }
-        for a in alerts
-    ]
-
-
-# 即時土石流警戒：哪些潛勢溪流發布了黃色或紅色警戒，以及範圍內有多少道路被封閉或要繞行
-@app.get("/api/alerts")
-async def get_alerts():
-    alerts = await asyncio.to_thread(alert_summary)
-    return {"alerts": alerts, "poll_seconds": config.ALERT_POLL_SECONDS}
-
-
-# 人口模型（海岸線 + 鄉鎮人口）：前端人群動畫用它決定人從哪裡出發
-@app.get("/api/population")
-async def get_population():
-    return population_model.to_dict()
-
-
-# 地圖上點選的模擬中心是哪裡：最近的村里與鄉鎮（只是標籤），以及在不在陸地上
-@app.get("/api/locate")
-async def locate(lat: float = Query(..., ge=-90, le=90), lon: float = Query(..., ge=-180, le=180)):
-    place = population_model.locate(lat, lon)
-    return {**place, "township_en": place_en(place["township"]) if place["township"] else "",
-            "village_en": place_en(f"{place['township']}{place['village']}") if place["village"] else ""}
-
-# 疏散動畫結束後由前端回寫各避難所的收容人數。
-# 沒有這一步，地圖上滿載變紅的避難所在資料庫裡仍是 0 人，AI 會回答跟畫面相反的結論。
-@app.post("/api/occupancy")
-async def update_occupancy(request: OccupancyRequest, http_request: Request, x_api_key: str = Header(default="")):
-    require_write_access(http_request, x_api_key)
-    occupancy = {item.name: item.current_ppl for item in request.occupancy}
-    try:
-        result = await asyncio.to_thread(apply_occupancy, occupancy)
-    except Exception:
-        logger.exception("收容人數回寫失敗")
-        raise HTTPException(status_code=500, detail="收容人數回寫失敗") from None
-    return {"status": "success", **result}
-
-
-# 清除模擬：把收容人數還原成來源資料的初始值，資料庫、向量索引、聊天快照一起歸零
-@app.post("/api/reset_simulation")
-async def reset_simulation(http_request: Request, x_api_key: str = Header(default="")):
-    require_write_access(http_request, x_api_key)
-    try:
-        baseline = await asyncio.to_thread(DataSyncService().baseline_occupancy)
-        result = await asyncio.to_thread(apply_occupancy, baseline)
-    except Exception:
-        logger.exception("重置收容人數失敗")
-        raise HTTPException(status_code=500, detail="重置收容人數失敗") from None
-    # 資料庫真的還原了才清快照；先清再寫失敗會變成聊天說沒模擬、地圖與資料庫卻還是滿載
-    chat_service.clear_simulation()
-    return {"status": "success", **result}
-
-# 最近避難所查詢
-# 先用 PostGIS 直線距離挑候選，再依 pgRouting 的道路距離排序；路網算不出來時退回直線距離
-# 解決 RAG 語意搜尋無法處理「最近/附近」等地理問題
-@app.post("/api/nearest_shelter")
-async def nearest_shelter(request: NearestRequest):
-    results = await asyncio.to_thread(nearest_by_road, repo, request.lat, request.lon, request.limit, request.mode)
-    return {
-        "status": "success",
-        "count": len(results),
-        "shelters": map_service.to_nearest(results),
-    }
-
-#呼叫 chat_service.chat_stream() 傳入問題
-#chatservice依問題類型查 DB / chromadb，組合 prompt 後透過 http 呼叫 ollama
-#llm 的回答以 SSE 逐段送回前端，每個事件是一個 {"type": "delta"|"error"|"done", "text": ...}
-@app.post("/api/chat")
-async def chat(request: ChatRequest, http_request: Request):
-    # 來源用量先看：被限流的請求不該佔用生成名額
-    wait = chat_limiter.hit(client_key(http_request))
-    if wait > 0:
-        metrics.incr("chat.rejected.rate_limit")
-        raise HTTPException(
-            status_code=429,
-            detail=(
-                f"Too many questions. Please try again in {wait} seconds." if request.lang == "en"
-                else f"提問太頻繁，請 {wait} 秒後再試。"
-            ),
-            headers={"Retry-After": str(wait)},
-        )
-    # 名額要在開始串流前就拿到，拿不到才有機會回 429；
-    # 串流一開始送出，狀態碼就定了，之後的錯誤只能以 error 事件表達
-    if not chat_slots.acquire(blocking=False):
-        metrics.incr("chat.rejected.busy")
-        raise HTTPException(status_code=429, detail=AI_BUSY_EN if request.lang == "en" else AI_BUSY)
-
-    def stream():
-        # 同步產生器由 Starlette 丟到執行緒池逐段取，阻塞的 requests 呼叫不會卡住事件迴圈。
-        # 名額撐到整段結束（含使用者中途關掉頁面）才還，否則併發上限等於沒設
-        try:
-            for event in chat_service.chat_stream(request.message, request.lang):
-                yield sse_event(event)
-            yield sse_event({"type": "done"})
-        finally:
-            chat_slots.release()
-
-    return StreamingResponse(stream(), media_type="text/event-stream", headers=SSE_HEADERS)
-
-# 線上計數器。權限跟寫入端點一樣：它會揭露流量模式與節流狀態，不該對外公開
-# （對外的存活/就緒檢查用 /health 與 /health/ready）
-@app.get("/api/stats")
-async def stats(http_request: Request, x_api_key: str = Header(default="")):
-    require_write_access(http_request, x_api_key)
-    return metrics.snapshot()
-
-
-# 渲染首頁
+# 首頁
 @app.get("/", response_class=FileResponse)
 async def read_index():
     if not INDEX_FILE.is_file():
         raise HTTPException(status_code=404, detail="找不到 static/index.html")
     return FileResponse(INDEX_FILE, media_type="text/html")
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8501)
