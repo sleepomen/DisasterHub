@@ -6,11 +6,10 @@ import threading
 from dataclasses import dataclass
 from pathlib import Path
 
-import chromadb
-
 import config
 from services.chat.direct_answer import compose
 from services.chat.query_rules import MAX_FILTERED_RESULTS, MAX_RANKED_RESULTS, QueryPlan
+from services.retrieval.chroma import make_client
 from services.retrieval.embeddings import build_embedding_function
 from services.retrieval.shelter_profile import HAZARD_KEYS, details_text, profile, strip_region_tag
 from services.web.metrics import metrics
@@ -98,9 +97,7 @@ class VectorStore:
         self.ef = embedding_function or build_embedding_function()
         if self.persist_path:
             Path(self.persist_path).mkdir(parents=True, exist_ok=True)
-            self.client = chromadb.PersistentClient(path=self.persist_path)
-        else:
-            self.client = chromadb.Client()
+        self.client = make_client(self.persist_path)
         # 讀寫 self.collection 都要拿這把鎖（RLock：search → plan_retrieve → retrieve 會巢狀進來）。
         # 重建索引時 embedding 在鎖外面跑，只有最後「換 collection」那一瞬間持鎖，查詢不會被擋幾十秒。
         self._lock = threading.RLock()

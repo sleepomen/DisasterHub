@@ -13,9 +13,8 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
-import chromadb
-
 import config
+from services.retrieval.chroma import make_client
 from services.retrieval.embeddings import build_embedding_function
 from services.web.metrics import metrics
 
@@ -200,7 +199,7 @@ class KnowledgeStore:
     def __init__(self, embedding_function=None, client=None, directory: Path = KNOWLEDGE_DIR):
         self.ef = embedding_function or build_embedding_function()
         if client is None:
-            client = chromadb.PersistentClient(path=config.CHROMA_PATH) if config.CHROMA_PATH else chromadb.Client()
+            client = make_client(config.CHROMA_PATH)
         self.client = client
         self.directory = directory
         self._lock = threading.RLock()
