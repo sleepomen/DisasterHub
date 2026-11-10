@@ -1,0 +1,222 @@
+{
+  "summary": {
+    "shelters": 644,
+    "fixed_at_build": 8,
+    "road": {
+      "median_m": 19,
+      "p90_m": 55,
+      "max_m": 4560,
+      "over_200_m": 10,
+      "over_snap_limit_1000_m": 1
+    },
+    "village": {
+      "checked": 582,
+      "unmatched_label": 62,
+      "over_5_km": 30
+    }
+  },
+  "far_from_road": [
+    {
+      "name": "[HUALIEN] 西林天主堂",
+      "township": "萬榮鄉",
+      "road_m": 4560
+    },
+    {
+      "name": "[YILAN] 南山活動中心",
+      "township": "大同鄉",
+      "road_m": 676
+    },
+    {
+      "name": "[TAITUNG] 豐泉活動中心",
+      "township": "關山鎮",
+      "road_m": 449
+    },
+    {
+      "name": "[TAITUNG] 關山鎮德高國民小學",
+      "township": "關山鎮",
+      "road_m": 449
+    },
+    {
+      "name": "[TAITUNG] 蘭嶼國民小學",
+      "township": "蘭嶼鄉",
+      "road_m": 413
+    },
+    {
+      "name": "[TAITUNG] 舊蘭嶼國小",
+      "township": "蘭嶼鄉",
+      "road_m": 381
+    },
+    {
+      "name": "[YILAN] 四季活動中心",
+      "township": "大同鄉",
+      "road_m": 334
+    },
+    {
+      "name": "[TAITUNG] 公館社區活動中心",
+      "township": "綠島鄉",
+      "road_m": 256
+    },
+    {
+      "name": "[TAITUNG] 電光活動中心",
+      "township": "關山鎮",
+      "road_m": 233
+    },
+    {
+      "name": "[YILAN] 金岳國小",
+      "township": "南澳鄉",
+      "road_m": 206
+    }
+  ],
+  "far_from_own_village": [
+    {
+      "name": "[YILAN] 南山活動中心",
+      "village": "大同鄉復興村",
+      "km": 33.0
+    },
+    {
+      "name": "[HUALIEN] 古楓社區活動中心",
+      "village": "卓溪鄉古風村",
+      "km": 25.2
+    },
+    {
+      "name": "[YILAN] 金洋國小",
+      "village": "南澳鄉金洋村",
+      "km": 10.3
+    },
+    {
+      "name": "[HUALIEN] 西林天主堂",
+      "village": "萬榮鄉西林村",
+      "km": 9.5
+    },
+    {
+      "name": "[TAITUNG] 長濱聯合村辦公處",
+      "village": "長濱鄉長濱村",
+      "km": 8.9
+    },
+    {
+      "name": "[YILAN] 大洲多功能館臨時收容站",
+      "village": "三星鄉大洲村",
+      "km": 8.9
+    },
+    {
+      "name": "[YILAN] 萬德社區二次收容",
+      "village": "三星鄉萬德村",
+      "km": 7.5
+    },
+    {
+      "name": "[TAITUNG] 太麻里鄉多良村辦公處",
+      "village": "太麻里鄉多良村",
+      "km": 7.1
+    },
+    {
+      "name": "[YILAN] 金洋社區活動中心",
+      "village": "南澳鄉金洋村",
+      "km": 7.0
+    },
+    {
+      "name": "[YILAN] 大福補天宮",
+      "village": "壯圍鄉大福村",
+      "km": 6.9
+    },
+    {
+      "name": "[TAITUNG] 真柄社區活動中心",
+      "village": "長濱鄉三間村",
+      "km": 6.8
+    },
+    {
+      "name": "[YILAN] 雙義社區社區二次收容",
+      "village": "三星鄉雙賢村",
+      "km": 6.8
+    },
+    {
+      "name": "[TAITUNG] 臺東縣立安朔國小新化分校",
+      "village": "達仁鄉新化村",
+      "km": 6.7
+    },
+    {
+      "name": "[HUALIEN] 崙山國小",
+      "village": "卓溪鄉崙山村",
+      "km": 6.2
+    },
+    {
+      "name": "[HUALIEN] 崙山社區活動中心",
+      "village": "卓溪鄉崙山村",
+      "km": 6.2
+    },
+    {
+      "name": "[HUALIEN] 月眉國小-米棧分校",
+      "village": "壽豐鄉米棧村",
+      "km": 6.2
+    },
+    {
+      "name": "[TAITUNG] 國立臺東大學",
+      "village": "卑南鄉太平村",
+      "km": 6.1
+    },
+    {
+      "name": "[TAITUNG] 竹湖國民小學",
+      "village": "長濱鄉竹湖村",
+      "km": 6.0
+    },
+    {
+      "name": "[YILAN] 大洲社區二次收容",
+      "village": "三星鄉大洲村",
+      "km": 6.0
+    },
+    {
+      "name": "[HUALIEN] 北昌活動中心",
+      "village": "吉安鄉南華村",
+      "km": 5.9
+    },
+    {
+      "name": "[YILAN] 古結活動中心",
+      "village": "壯圍鄉古結村",
+      "km": 5.9
+    },
+    {
+      "name": "[TAITUNG] 關山鎮德高國民小學",
+      "village": "關山鎮德高里",
+      "km": 5.8
+    },
+    {
+      "name": "[YILAN] 萬富社區臨時收容站",
+      "village": "三星鄉萬富村",
+      "km": 5.7
+    },
+    {
+      "name": "[YILAN] ?後活動中心",
+      "village": "壯圍鄉東港村",
+      "km": 5.5
+    },
+    {
+      "name": "[YILAN] 雙湖社區活動中心",
+      "village": "員山鄉湖西村",
+      "km": 5.4
+    },
+    {
+      "name": "[HUALIEN] 光復鄉立托兒所",
+      "village": "光復鄉大全村",
+      "km": 5.3
+    },
+    {
+      "name": "[HUALIEN] 石平社區活動中心",
+      "village": "卓溪鄉古風村",
+      "km": 5.3
+    },
+    {
+      "name": "[TAITUNG] 利吉村活動中心",
+      "village": "卑南鄉利吉村",
+      "km": 5.3
+    },
+    {
+      "name": "[TAITUNG] 北源活動中心村辦公處",
+      "village": "東河鄉北源村",
+      "km": 5.3
+    },
+    {
+      "name": "[YILAN] 龍德社區活動中心",
+      "village": "蘇澳鎮龍德里",
+      "km": 5.2
+    }
+  ]
+}

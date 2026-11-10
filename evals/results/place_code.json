@@ -3,13 +3,13 @@
     "all": {
       "n": 42,
       "hit1": 0.929,
-      "precision": 0.733,
+      "precision": 0.738,
       "llm": 0.0
     },
     "landmark": {
       "n": 23,
       "hit1": 0.913,
-      "precision": 0.791,
+      "precision": 0.8,
       "llm": 0.0
     },
     "village": {
@@ -66,8 +66,8 @@
       "shown": [
         "[TAITUNG] 臺東市老人文康活動中心",
         "[TAITUNG] 富豐社區活動中心",
-        "[TAITUNG] 富山村活動中心",
         "[TAITUNG] 富山國民小學",
+        "[TAITUNG] 富山村活動中心",
         "[TAITUNG] 中華社區活動中心"
       ],
       "hit1": true,
@@ -172,7 +172,7 @@
         "[YILAN] 武塔國小",
         "[YILAN] 南澳村辦公處",
         "[YILAN] 鄉立武塔村幼兒園",
-        "[YILAN] 南澳國小"
+        "[YILAN] 南澳高中"
       ],
       "hit1": true,
       "precision": 1.0
@@ -293,16 +293,16 @@
       "shown_townships": [
         "豐濱鄉",
         "豐濱鄉",
-        "瑞穗鄉",
+        "長濱鄉",
         "瑞穗鄉",
         "瑞穗鄉"
       ],
       "shown": [
         "[HUALIEN] 靜浦國小大禮堂",
         "[HUALIEN] 港口活動中心",
+        "[TAITUNG] 樟原國民小學",
         "[HUALIEN] 奇美社區活動中心",
-        "[HUALIEN] 花蓮縣瑞穗鄉瑞美國民小學",
-        "[HUALIEN] 瑞美社區活動中心"
+        "[HUALIEN] 花蓮縣瑞穗鄉瑞美國民小學"
       ],
       "hit1": true,
       "precision": 0.4
@@ -379,8 +379,8 @@
         "[YILAN] 碧候國小",
         "[YILAN] 南澳村辦公處",
         "[YILAN] 武塔國小",
-        "[YILAN] 南澳國小",
-        "[YILAN] 金洋社區活動中心"
+        "[YILAN] 南澳高中",
+        "[YILAN] 南澳國小"
       ],
       "hit1": true,
       "precision": 1.0
@@ -398,15 +398,15 @@
         "南澳鄉",
         "南澳鄉",
         "南澳鄉",
-        "蘇澳鎮",
-        "南澳鄉"
+        "南澳鄉",
+        "蘇澳鎮"
       ],
       "shown": [
         "[YILAN] 碧候國小",
         "[YILAN] 金洋社區活動中心",
         "[YILAN] 南澳國小",
-        "[YILAN] 蓬萊國小",
-        "[YILAN] 南澳鄉公所二樓"
+        "[YILAN] 南澳高中",
+        "[YILAN] 蓬萊國小"
       ],
       "hit1": true,
       "precision": 0.8
@@ -657,16 +657,16 @@
       "shown_townships": [
         "豐濱鄉",
         "豐濱鄉",
+        "長濱鄉",
         "瑞穗鄉",
-        "豐濱鄉",
-        "成功鎮"
+        "豐濱鄉"
       ],
       "shown": [
         "[HUALIEN] 港口活動中心",
         "[HUALIEN] 靜浦國小大禮堂",
+        "[TAITUNG] 樟原國民小學",
         "[HUALIEN] 奇美社區活動中心",
-        "[HUALIEN] 八里灣基督長老教會",
-        "[TAITUNG] 基督長老教會"
+        "[HUALIEN] 八里灣基督長老教會"
       ],
       "hit1": true,
       "precision": 0.6
@@ -1049,20 +1049,20 @@
       "llm": false,
       "shown_townships": [
         "大同鄉",
-        "三星鄉",
         "大同鄉",
         "三星鄉",
-        "三星鄉"
+        "三星鄉",
+        "大同鄉"
       ],
       "shown": [
         "[YILAN] 松羅活動中心",
-        "[YILAN] 大義社區臨時收容站",
         "[YILAN] 崙埤活動中心",
         "[YILAN] 員山社區臨時收容站",
-        "[YILAN] 憲明國小臨時收容站"
+        "[YILAN] 憲明國小臨時收容站",
+        "[YILAN] 復興活動中心"
       ],
       "hit1": true,
-      "precision": 0.4
+      "precision": 0.6
     },
     {
       "place": "馬太鞍",

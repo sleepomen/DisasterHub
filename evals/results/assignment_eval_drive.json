@@ -8,48 +8,48 @@
       "townships_max": 9
     },
     "seconds_max": {
-      "cost_matrix": 0.819,
-      "db_solver": 0.229,
-      "python_solver": 1.514
+      "cost_matrix": 1.19,
+      "db_solver": 0.303,
+      "python_solver": 1.789
     },
     "capacity_fits_demand": {
-      "scenarios": 61,
+      "scenarios": 62,
       "placed_differs": 0,
       "min_cost_better": 42,
-      "greedy_extra_time_mean": 0.028,
+      "greedy_extra_time_mean": 0.0277,
       "greedy_extra_time_max": 0.1113,
       "minutes_per_person": [
         5.8,
         5.6
       ],
       "longest_trip_minutes": [
-        25.6,
-        23.1
+        25.9,
+        23.5
       ]
     },
     "demand_exceeds_capacity": {
-      "scenarios": 98,
+      "scenarios": 97,
       "placed_differs": 0,
-      "min_cost_better": 75,
+      "min_cost_better": 74,
       "greedy_extra_time_mean": 0.0284,
       "greedy_extra_time_max": 0.1534,
       "minutes_per_person": [
-        4.3,
-        4.1
+        4.4,
+        4.2
       ],
       "longest_trip_minutes": [
-        15.0,
-        13.1
+        15.4,
+        13.5
       ]
     },
     "villages_vs_township_centroids": {
       "minutes_per_person": [
         12.2,
-        4.7
+        4.8
       ],
       "longest_trip_minutes": [
-        26.5,
-        17.0
+        26.8,
+        17.4
       ],
       "per_person_difference_minutes": {
         "mean": -7.5,
@@ -102,9 +102,9 @@
       "pairs": 4473,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.211,
-        "db_solver": 0.042,
-        "python_solver": 0.149
+        "cost_matrix": 0.224,
+        "db_solver": 0.049,
+        "python_solver": 0.139
       },
       "min_cost": {
         "placed": 9240,
@@ -139,9 +139,9 @@
       "pairs": 4473,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.199,
-        "db_solver": 0.044,
-        "python_solver": 0.086
+        "cost_matrix": 0.209,
+        "db_solver": 0.039,
+        "python_solver": 0.083
       },
       "min_cost": {
         "placed": 9240,
@@ -176,9 +176,9 @@
       "pairs": 18850,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.819,
-        "db_solver": 0.229,
-        "python_solver": 1.514
+        "cost_matrix": 1.19,
+        "db_solver": 0.303,
+        "python_solver": 1.707
       },
       "min_cost": {
         "placed": 21417,
@@ -209,36 +209,36 @@
       "scenario": "宜蘭市 10 km flood",
       "villages": 145,
       "townships": 9,
-      "shelters": 126,
-      "pairs": 18270,
+      "shelters": 127,
+      "pairs": 18415,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.732,
-        "db_solver": 0.165,
-        "python_solver": 0.744
+        "cost_matrix": 0.865,
+        "db_solver": 0.227,
+        "python_solver": 0.818
       },
       "min_cost": {
-        "placed": 20525,
-        "person_hours": 1238.5,
-        "minutes_per_person": 3.62,
+        "placed": 20631,
+        "person_hours": 1253.2,
+        "minutes_per_person": 3.64,
         "longest_trip_minutes": 25.3
       },
       "python": {
-        "placed": 20525,
-        "person_hours": 1238.5,
-        "minutes_per_person": 3.62,
+        "placed": 20631,
+        "person_hours": 1253.2,
+        "minutes_per_person": 3.64,
         "longest_trip_minutes": 25.3
       },
       "greedy": {
-        "placed": 20525,
-        "person_hours": 1263.4,
-        "minutes_per_person": 3.69,
+        "placed": 20631,
+        "person_hours": 1278.2,
+        "minutes_per_person": 3.72,
         "longest_trip_minutes": 26.8
       },
       "township_origins": {
-        "placed": 20525,
-        "person_hours": 1946.3,
-        "minutes_per_person": 5.69,
+        "placed": 20631,
+        "person_hours": 1960.1,
+        "minutes_per_person": 5.7,
         "longest_trip_minutes": 26.1
       }
     },
@@ -250,9 +250,9 @@
       "pairs": 2842,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.143,
-        "db_solver": 0.028,
-        "python_solver": 0.052
+        "cost_matrix": 0.138,
+        "db_solver": 0.025,
+        "python_solver": 0.05
       },
       "min_cost": {
         "placed": 8874,
@@ -287,8 +287,8 @@
       "pairs": 2610,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.141,
-        "db_solver": 0.025,
+        "cost_matrix": 0.14,
+        "db_solver": 0.023,
         "python_solver": 0.034
       },
       "min_cost": {
@@ -324,9 +324,9 @@
       "pairs": 18705,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.785,
-        "db_solver": 0.161,
-        "python_solver": 1.172
+        "cost_matrix": 1.041,
+        "db_solver": 0.285,
+        "python_solver": 1.789
       },
       "min_cost": {
         "placed": 18178,
@@ -357,36 +357,36 @@
       "scenario": "羅東鎮 10 km flood",
       "villages": 146,
       "townships": 8,
-      "shelters": 123,
-      "pairs": 17958,
+      "shelters": 124,
+      "pairs": 18104,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.779,
-        "db_solver": 0.146,
-        "python_solver": 0.731
+        "cost_matrix": 0.859,
+        "db_solver": 0.155,
+        "python_solver": 1.028
       },
       "min_cost": {
-        "placed": 17338,
-        "person_hours": 688.0,
-        "minutes_per_person": 2.38,
+        "placed": 17444,
+        "person_hours": 696.8,
+        "minutes_per_person": 2.4,
         "longest_trip_minutes": 8.6
       },
       "python": {
-        "placed": 17338,
-        "person_hours": 688.0,
-        "minutes_per_person": 2.38,
+        "placed": 17444,
+        "person_hours": 696.8,
+        "minutes_per_person": 2.4,
         "longest_trip_minutes": 8.6
       },
       "greedy": {
-        "placed": 17338,
-        "person_hours": 702.2,
-        "minutes_per_person": 2.43,
+        "placed": 17444,
+        "person_hours": 711.2,
+        "minutes_per_person": 2.45,
         "longest_trip_minutes": 9.3
       },
       "township_origins": {
-        "placed": 17338,
-        "person_hours": 1373.9,
-        "minutes_per_person": 4.75,
+        "placed": 17444,
+        "person_hours": 1387.8,
+        "minutes_per_person": 4.77,
         "longest_trip_minutes": 13.7
       }
     },
@@ -398,9 +398,9 @@
       "pairs": 864,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.063,
-        "db_solver": 0.016,
-        "python_solver": 0.011
+        "cost_matrix": 0.072,
+        "db_solver": 0.012,
+        "python_solver": 0.012
       },
       "min_cost": {
         "placed": 2250,
@@ -435,9 +435,9 @@
       "pairs": 864,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.047,
-        "db_solver": 0.015,
-        "python_solver": 0.008
+        "cost_matrix": 0.049,
+        "db_solver": 0.014,
+        "python_solver": 0.011
       },
       "min_cost": {
         "placed": 2189,
@@ -472,9 +472,9 @@
       "pairs": 3366,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.284,
-        "db_solver": 0.027,
-        "python_solver": 0.064
+        "cost_matrix": 0.36,
+        "db_solver": 0.031,
+        "python_solver": 0.072
       },
       "min_cost": {
         "placed": 4295,
@@ -509,9 +509,9 @@
       "pairs": 3168,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.212,
+        "cost_matrix": 0.228,
         "db_solver": 0.028,
-        "python_solver": 0.036
+        "python_solver": 0.037
       },
       "min_cost": {
         "placed": 3987,
@@ -546,8 +546,8 @@
       "pairs": 340,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.031,
-        "db_solver": 0.007,
+        "cost_matrix": 0.034,
+        "db_solver": 0.006,
         "python_solver": 0.003
       },
       "min_cost": {
@@ -583,8 +583,8 @@
       "pairs": 260,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.031,
-        "db_solver": 0.013,
+        "cost_matrix": 0.043,
+        "db_solver": 0.005,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -620,9 +620,9 @@
       "pairs": 1247,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.125,
-        "db_solver": 0.014,
-        "python_solver": 0.024
+        "cost_matrix": 0.156,
+        "db_solver": 0.015,
+        "python_solver": 0.023
       },
       "min_cost": {
         "placed": 3730,
@@ -657,8 +657,8 @@
       "pairs": 1032,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.13,
-        "db_solver": 0.016,
+        "cost_matrix": 0.139,
+        "db_solver": 0.012,
         "python_solver": 0.008
       },
       "min_cost": {
@@ -694,9 +694,9 @@
       "pairs": 735,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.148,
-        "db_solver": 0.016,
-        "python_solver": 0.009
+        "cost_matrix": 0.137,
+        "db_solver": 0.012,
+        "python_solver": 0.011
       },
       "min_cost": {
         "placed": 3566,
@@ -731,8 +731,8 @@
       "pairs": 720,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.149,
-        "db_solver": 0.011,
+        "cost_matrix": 0.186,
+        "db_solver": 0.013,
         "python_solver": 0.009
       },
       "min_cost": {
@@ -768,9 +768,9 @@
       "pairs": 9964,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.584,
-        "db_solver": 0.091,
-        "python_solver": 0.505
+        "cost_matrix": 0.678,
+        "db_solver": 0.094,
+        "python_solver": 0.575
       },
       "min_cost": {
         "placed": 12803,
@@ -805,9 +805,9 @@
       "pairs": 9434,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.513,
-        "db_solver": 0.074,
-        "python_solver": 0.258
+        "cost_matrix": 0.986,
+        "db_solver": 0.117,
+        "python_solver": 0.345
       },
       "min_cost": {
         "placed": 13711,
@@ -842,9 +842,9 @@
       "pairs": 2145,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.136,
-        "db_solver": 0.024,
-        "python_solver": 0.039
+        "cost_matrix": 0.183,
+        "db_solver": 0.023,
+        "python_solver": 0.045
       },
       "min_cost": {
         "placed": 4305,
@@ -879,8 +879,8 @@
       "pairs": 2035,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.149,
-        "db_solver": 0.023,
+        "cost_matrix": 0.142,
+        "db_solver": 0.02,
         "python_solver": 0.034
       },
       "min_cost": {
@@ -916,9 +916,9 @@
       "pairs": 17255,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.626,
-        "db_solver": 0.154,
-        "python_solver": 1.092
+        "cost_matrix": 0.652,
+        "db_solver": 0.164,
+        "python_solver": 1.107
       },
       "min_cost": {
         "placed": 17121,
@@ -953,9 +953,9 @@
       "pairs": 16095,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.68,
-        "db_solver": 0.128,
-        "python_solver": 0.641
+        "cost_matrix": 0.691,
+        "db_solver": 0.14,
+        "python_solver": 0.942
       },
       "min_cost": {
         "placed": 18072,
@@ -990,9 +990,9 @@
       "pairs": 2160,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.151,
-        "db_solver": 0.021,
-        "python_solver": 0.048
+        "cost_matrix": 0.144,
+        "db_solver": 0.02,
+        "python_solver": 0.044
       },
       "min_cost": {
         "placed": 4273,
@@ -1027,9 +1027,9 @@
       "pairs": 2160,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.145,
-        "db_solver": 0.019,
-        "python_solver": 0.032
+        "cost_matrix": 0.138,
+        "db_solver": 0.022,
+        "python_solver": 0.037
       },
       "min_cost": {
         "placed": 4273,
@@ -1064,9 +1064,9 @@
       "pairs": 16820,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.738,
-        "db_solver": 0.164,
-        "python_solver": 1.362
+        "cost_matrix": 0.873,
+        "db_solver": 0.161,
+        "python_solver": 1.624
       },
       "min_cost": {
         "placed": 17421,
@@ -1097,36 +1097,36 @@
       "scenario": "員山鄉 10 km flood",
       "villages": 145,
       "townships": 8,
-      "shelters": 113,
-      "pairs": 16385,
+      "shelters": 114,
+      "pairs": 16530,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.772,
-        "db_solver": 0.135,
-        "python_solver": 0.768
+        "cost_matrix": 0.79,
+        "db_solver": 0.132,
+        "python_solver": 0.829
       },
       "min_cost": {
-        "placed": 17835,
-        "person_hours": 1267.8,
+        "placed": 17941,
+        "person_hours": 1277.5,
         "minutes_per_person": 4.27,
         "longest_trip_minutes": 26.8
       },
       "python": {
-        "placed": 17835,
-        "person_hours": 1267.8,
+        "placed": 17941,
+        "person_hours": 1277.5,
         "minutes_per_person": 4.27,
-        "longest_trip_minutes": 26.7
+        "longest_trip_minutes": 26.1
       },
       "greedy": {
-        "placed": 17835,
-        "person_hours": 1305.4,
-        "minutes_per_person": 4.39,
+        "placed": 17941,
+        "person_hours": 1315.1,
+        "minutes_per_person": 4.4,
         "longest_trip_minutes": 26.8
       },
       "township_origins": {
-        "placed": 17835,
-        "person_hours": 1861.0,
-        "minutes_per_person": 6.26,
+        "placed": 17941,
+        "person_hours": 1874.9,
+        "minutes_per_person": 6.27,
         "longest_trip_minutes": 26.1
       }
     },
@@ -1138,9 +1138,9 @@
       "pairs": 2385,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.114,
+        "cost_matrix": 0.117,
         "db_solver": 0.021,
-        "python_solver": 0.049
+        "python_solver": 0.054
       },
       "min_cost": {
         "placed": 7693,
@@ -1175,7 +1175,7 @@
       "pairs": 2120,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.114,
+        "cost_matrix": 0.115,
         "db_solver": 0.023,
         "python_solver": 0.027
       },
@@ -1212,9 +1212,9 @@
       "pairs": 10647,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.629,
-        "db_solver": 0.085,
-        "python_solver": 0.36
+        "cost_matrix": 0.589,
+        "db_solver": 0.086,
+        "python_solver": 0.361
       },
       "min_cost": {
         "placed": 12755,
@@ -1245,36 +1245,36 @@
       "scenario": "冬山鄉 10 km flood",
       "villages": 118,
       "townships": 8,
-      "shelters": 86,
-      "pairs": 10148,
+      "shelters": 87,
+      "pairs": 10266,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.525,
-        "db_solver": 0.078,
-        "python_solver": 0.222
+        "cost_matrix": 0.447,
+        "db_solver": 0.075,
+        "python_solver": 0.233
       },
       "min_cost": {
-        "placed": 11943,
-        "person_hours": 423.3,
-        "minutes_per_person": 2.13,
+        "placed": 12049,
+        "person_hours": 434.0,
+        "minutes_per_person": 2.16,
         "longest_trip_minutes": 8.1
       },
       "python": {
-        "placed": 11943,
-        "person_hours": 423.3,
-        "minutes_per_person": 2.13,
+        "placed": 12049,
+        "person_hours": 434.0,
+        "minutes_per_person": 2.16,
         "longest_trip_minutes": 8.1
       },
       "greedy": {
-        "placed": 11943,
-        "person_hours": 427.8,
-        "minutes_per_person": 2.15,
+        "placed": 12049,
+        "person_hours": 438.6,
+        "minutes_per_person": 2.18,
         "longest_trip_minutes": 8.1
       },
       "township_origins": {
-        "placed": 11943,
-        "person_hours": 1032.9,
-        "minutes_per_person": 5.19,
+        "placed": 12049,
+        "person_hours": 1046.7,
+        "minutes_per_person": 5.21,
         "longest_trip_minutes": 13.7
       }
     },
@@ -1286,9 +1286,9 @@
       "pairs": 2565,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.138,
-        "db_solver": 0.028,
-        "python_solver": 0.06
+        "cost_matrix": 0.151,
+        "db_solver": 0.025,
+        "python_solver": 0.064
       },
       "min_cost": {
         "placed": 7996,
@@ -1323,9 +1323,9 @@
       "pairs": 2223,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.16,
-        "db_solver": 0.024,
-        "python_solver": 0.029
+        "cost_matrix": 0.148,
+        "db_solver": 0.02,
+        "python_solver": 0.026
       },
       "min_cost": {
         "placed": 7374,
@@ -1360,9 +1360,9 @@
       "pairs": 18864,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.71,
-        "db_solver": 0.183,
-        "python_solver": 1.228
+        "cost_matrix": 0.647,
+        "db_solver": 0.181,
+        "python_solver": 1.191
       },
       "min_cost": {
         "placed": 18728,
@@ -1393,36 +1393,36 @@
       "scenario": "五結鄉 10 km flood",
       "villages": 144,
       "townships": 9,
-      "shelters": 125,
-      "pairs": 18000,
+      "shelters": 126,
+      "pairs": 18144,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.648,
-        "db_solver": 0.153,
-        "python_solver": 0.74
+        "cost_matrix": 0.698,
+        "db_solver": 0.159,
+        "python_solver": 0.778
       },
       "min_cost": {
-        "placed": 17893,
-        "person_hours": 707.1,
-        "minutes_per_person": 2.37,
+        "placed": 17999,
+        "person_hours": 720.8,
+        "minutes_per_person": 2.4,
         "longest_trip_minutes": 8.6
       },
       "python": {
-        "placed": 17893,
-        "person_hours": 707.1,
-        "minutes_per_person": 2.37,
+        "placed": 17999,
+        "person_hours": 720.8,
+        "minutes_per_person": 2.4,
         "longest_trip_minutes": 8.6
       },
       "greedy": {
-        "placed": 17893,
-        "person_hours": 718.8,
-        "minutes_per_person": 2.41,
+        "placed": 17999,
+        "person_hours": 732.5,
+        "minutes_per_person": 2.44,
         "longest_trip_minutes": 9.3
       },
       "township_origins": {
-        "placed": 17893,
-        "person_hours": 1413.4,
-        "minutes_per_person": 4.74,
+        "placed": 17999,
+        "person_hours": 1427.3,
+        "minutes_per_person": 4.76,
         "longest_trip_minutes": 13.1
       }
     },
@@ -1434,8 +1434,8 @@
       "pairs": 220,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.078,
-        "db_solver": 0.009,
+        "cost_matrix": 0.104,
+        "db_solver": 0.006,
         "python_solver": 0.002
       },
       "min_cost": {
@@ -1448,7 +1448,7 @@
         "placed": 1074,
         "person_hours": 89.8,
         "minutes_per_person": 5.02,
-        "longest_trip_minutes": 13.0
+        "longest_trip_minutes": 11.5
       },
       "greedy": {
         "placed": 1074,
@@ -1467,36 +1467,36 @@
       "scenario": "三星鄉 5 km flood",
       "villages": 20,
       "townships": 3,
-      "shelters": 14,
-      "pairs": 280,
+      "shelters": 15,
+      "pairs": 300,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.079,
-        "db_solver": 0.011,
-        "python_solver": 0.002
+        "cost_matrix": 0.085,
+        "db_solver": 0.008,
+        "python_solver": 0.003
       },
       "min_cost": {
-        "placed": 1776,
-        "person_hours": 142.3,
-        "minutes_per_person": 4.81,
-        "longest_trip_minutes": 9.2
+        "placed": 1882,
+        "person_hours": 154.6,
+        "minutes_per_person": 4.93,
+        "longest_trip_minutes": 10.0
       },
       "python": {
-        "placed": 1776,
-        "person_hours": 142.3,
-        "minutes_per_person": 4.81,
-        "longest_trip_minutes": 9.2
+        "placed": 1882,
+        "person_hours": 154.6,
+        "minutes_per_person": 4.93,
+        "longest_trip_minutes": 10.0
       },
       "greedy": {
-        "placed": 1776,
-        "person_hours": 145.8,
-        "minutes_per_person": 4.92,
+        "placed": 1882,
+        "person_hours": 155.5,
+        "minutes_per_person": 4.96,
         "longest_trip_minutes": 11.5
       },
       "township_origins": {
-        "placed": 1776,
-        "person_hours": 282.3,
-        "minutes_per_person": 9.54,
+        "placed": 1882,
+        "person_hours": 296.1,
+        "minutes_per_person": 9.44,
         "longest_trip_minutes": 12.6
       }
     },
@@ -1508,9 +1508,9 @@
       "pairs": 7957,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.566,
-        "db_solver": 0.069,
-        "python_solver": 0.343
+        "cost_matrix": 0.683,
+        "db_solver": 0.074,
+        "python_solver": 0.372
       },
       "min_cost": {
         "placed": 9019,
@@ -1545,32 +1545,32 @@
       "pairs": 8175,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.593,
-        "db_solver": 0.064,
-        "python_solver": 0.224
+        "cost_matrix": 0.633,
+        "db_solver": 0.071,
+        "python_solver": 0.305
       },
       "min_cost": {
         "placed": 10605,
-        "person_hours": 490.1,
-        "minutes_per_person": 2.77,
+        "person_hours": 477.8,
+        "minutes_per_person": 2.7,
         "longest_trip_minutes": 22.3
       },
       "python": {
         "placed": 10605,
-        "person_hours": 490.1,
-        "minutes_per_person": 2.77,
+        "person_hours": 477.8,
+        "minutes_per_person": 2.7,
         "longest_trip_minutes": 22.3
       },
       "greedy": {
         "placed": 10605,
-        "person_hours": 509.3,
-        "minutes_per_person": 2.88,
+        "person_hours": 496.4,
+        "minutes_per_person": 2.81,
         "longest_trip_minutes": 25.8
       },
       "township_origins": {
         "placed": 10605,
-        "person_hours": 1055.8,
-        "minutes_per_person": 5.97,
+        "person_hours": 1040.9,
+        "minutes_per_person": 5.89,
         "longest_trip_minutes": 30.1
       }
     },
@@ -1582,8 +1582,8 @@
       "pairs": 2,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.004,
-        "db_solver": 0.01,
+        "cost_matrix": 0.005,
+        "db_solver": 0.005,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -1619,7 +1619,7 @@
       "pairs": 2,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.003,
+        "cost_matrix": 0.005,
         "db_solver": 0.004,
         "python_solver": 0.0
       },
@@ -1656,7 +1656,7 @@
       "pairs": 12,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.026,
+        "cost_matrix": 0.031,
         "db_solver": 0.005,
         "python_solver": 0.0
       },
@@ -1693,8 +1693,8 @@
       "pairs": 12,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.026,
-        "db_solver": 0.009,
+        "cost_matrix": 0.037,
+        "db_solver": 0.004,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -1726,147 +1726,147 @@
       "scenario": "南澳鄉 5 km earthquake",
       "villages": 7,
       "townships": 2,
-      "shelters": 11,
-      "pairs": 77,
+      "shelters": 12,
+      "pairs": 84,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.193,
-        "db_solver": 0.006,
+        "cost_matrix": 0.24,
+        "db_solver": 0.004,
         "python_solver": 0.001
       },
       "min_cost": {
         "placed": 393,
-        "person_hours": 65.3,
-        "minutes_per_person": 9.97,
-        "longest_trip_minutes": 49.8
+        "person_hours": 63.4,
+        "minutes_per_person": 9.67,
+        "longest_trip_minutes": 47.1
       },
       "python": {
         "placed": 393,
-        "person_hours": 65.3,
-        "minutes_per_person": 9.97,
-        "longest_trip_minutes": 49.8
+        "person_hours": 63.4,
+        "minutes_per_person": 9.67,
+        "longest_trip_minutes": 47.1
       },
       "greedy": {
         "placed": 393,
-        "person_hours": 65.4,
-        "minutes_per_person": 9.98,
-        "longest_trip_minutes": 49.8
+        "person_hours": 63.4,
+        "minutes_per_person": 9.67,
+        "longest_trip_minutes": 47.1
       },
       "township_origins": {
         "placed": 393,
-        "person_hours": 76.4,
-        "minutes_per_person": 11.66,
-        "longest_trip_minutes": 34.3
+        "person_hours": 71.6,
+        "minutes_per_person": 10.93,
+        "longest_trip_minutes": 32.6
       }
     },
     {
       "scenario": "南澳鄉 5 km flood",
       "villages": 7,
       "townships": 2,
-      "shelters": 11,
-      "pairs": 77,
+      "shelters": 12,
+      "pairs": 84,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.207,
-        "db_solver": 0.01,
-        "python_solver": 0.0
+        "cost_matrix": 0.225,
+        "db_solver": 0.009,
+        "python_solver": 0.001
       },
       "min_cost": {
-        "placed": 437,
-        "person_hours": 19.6,
-        "minutes_per_person": 2.69,
-        "longest_trip_minutes": 13.6
+        "placed": 682,
+        "person_hours": 94.9,
+        "minutes_per_person": 8.35,
+        "longest_trip_minutes": 47.1
       },
       "python": {
-        "placed": 437,
-        "person_hours": 19.6,
-        "minutes_per_person": 2.69,
-        "longest_trip_minutes": 13.6
+        "placed": 682,
+        "person_hours": 94.9,
+        "minutes_per_person": 8.35,
+        "longest_trip_minutes": 47.1
       },
       "greedy": {
-        "placed": 437,
-        "person_hours": 19.7,
-        "minutes_per_person": 2.7,
-        "longest_trip_minutes": 13.6
+        "placed": 682,
+        "person_hours": 95.3,
+        "minutes_per_person": 8.39,
+        "longest_trip_minutes": 55.4
       },
       "township_origins": {
-        "placed": 437,
-        "person_hours": 54.3,
-        "minutes_per_person": 7.46,
-        "longest_trip_minutes": 11.9
+        "placed": 682,
+        "person_hours": 120.8,
+        "minutes_per_person": 10.63,
+        "longest_trip_minutes": 34.3
       }
     },
     {
       "scenario": "南澳鄉 10 km earthquake",
       "villages": 9,
       "townships": 2,
-      "shelters": 13,
-      "pairs": 117,
-      "demand_fits": false,
+      "shelters": 14,
+      "pairs": 126,
+      "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.193,
-        "db_solver": 0.01,
+        "cost_matrix": 0.232,
+        "db_solver": 0.007,
         "python_solver": 0.001
       },
       "min_cost": {
-        "placed": 506,
-        "person_hours": 35.8,
-        "minutes_per_person": 4.25,
-        "longest_trip_minutes": 19.1
+        "placed": 614,
+        "person_hours": 78.9,
+        "minutes_per_person": 7.71,
+        "longest_trip_minutes": 47.1
       },
       "python": {
-        "placed": 506,
-        "person_hours": 35.8,
-        "minutes_per_person": 4.25,
-        "longest_trip_minutes": 19.1
+        "placed": 614,
+        "person_hours": 78.9,
+        "minutes_per_person": 7.71,
+        "longest_trip_minutes": 47.1
       },
       "greedy": {
-        "placed": 506,
-        "person_hours": 35.9,
-        "minutes_per_person": 4.26,
-        "longest_trip_minutes": 19.1
+        "placed": 614,
+        "person_hours": 79.8,
+        "minutes_per_person": 7.8,
+        "longest_trip_minutes": 47.1
       },
       "township_origins": {
-        "placed": 506,
-        "person_hours": 78.4,
-        "minutes_per_person": 9.3,
-        "longest_trip_minutes": 21.4
+        "placed": 614,
+        "person_hours": 109.2,
+        "minutes_per_person": 10.67,
+        "longest_trip_minutes": 32.6
       }
     },
     {
       "scenario": "南澳鄉 10 km flood",
       "villages": 9,
       "townships": 2,
-      "shelters": 13,
-      "pairs": 117,
+      "shelters": 14,
+      "pairs": 126,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.202,
-        "db_solver": 0.01,
+        "cost_matrix": 0.231,
+        "db_solver": 0.006,
         "python_solver": 0.001
       },
       "min_cost": {
-        "placed": 506,
-        "person_hours": 26.3,
-        "minutes_per_person": 3.12,
-        "longest_trip_minutes": 14.5
+        "placed": 751,
+        "person_hours": 36.3,
+        "minutes_per_person": 2.9,
+        "longest_trip_minutes": 16.4
       },
       "python": {
-        "placed": 506,
-        "person_hours": 26.3,
-        "minutes_per_person": 3.12,
-        "longest_trip_minutes": 14.5
+        "placed": 751,
+        "person_hours": 36.3,
+        "minutes_per_person": 2.9,
+        "longest_trip_minutes": 16.4
       },
       "greedy": {
-        "placed": 506,
-        "person_hours": 26.4,
-        "minutes_per_person": 3.14,
-        "longest_trip_minutes": 15.4
+        "placed": 751,
+        "person_hours": 36.4,
+        "minutes_per_person": 2.91,
+        "longest_trip_minutes": 18.8
       },
       "township_origins": {
-        "placed": 506,
-        "person_hours": 78.3,
-        "minutes_per_person": 9.28,
+        "placed": 751,
+        "person_hours": 105.6,
+        "minutes_per_person": 8.43,
         "longest_trip_minutes": 21.0
       }
     },
@@ -1878,9 +1878,9 @@
       "pairs": 165,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.037,
-        "db_solver": 0.006,
-        "python_solver": 0.0
+        "cost_matrix": 0.044,
+        "db_solver": 0.005,
+        "python_solver": 0.001
       },
       "min_cost": {
         "placed": 269,
@@ -1915,8 +1915,8 @@
       "pairs": 363,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.042,
-        "db_solver": 0.006,
+        "cost_matrix": 0.048,
+        "db_solver": 0.008,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -1952,9 +1952,9 @@
       "pairs": 920,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.072,
-        "db_solver": 0.011,
-        "python_solver": 0.006
+        "cost_matrix": 0.081,
+        "db_solver": 0.017,
+        "python_solver": 0.008
       },
       "min_cost": {
         "placed": 1139,
@@ -1989,8 +1989,8 @@
       "pairs": 1426,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.079,
-        "db_solver": 0.02,
+        "cost_matrix": 0.093,
+        "db_solver": 0.015,
         "python_solver": 0.013
       },
       "min_cost": {
@@ -2100,7 +2100,7 @@
       "pairs": 60,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.032,
+        "cost_matrix": 0.03,
         "db_solver": 0.004,
         "python_solver": 0.0
       },
@@ -2137,9 +2137,9 @@
       "pairs": 90,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.029,
-        "db_solver": 0.009,
-        "python_solver": 0.001
+        "cost_matrix": 0.031,
+        "db_solver": 0.005,
+        "python_solver": 0.0
       },
       "min_cost": {
         "placed": 440,
@@ -2174,8 +2174,8 @@
       "pairs": 99,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.021,
-        "db_solver": 0.007,
+        "cost_matrix": 0.019,
+        "db_solver": 0.004,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -2211,7 +2211,7 @@
       "pairs": 99,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.02,
+        "cost_matrix": 0.021,
         "db_solver": 0.004,
         "python_solver": 0.001
       },
@@ -2248,8 +2248,8 @@
       "pairs": 832,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.046,
-        "db_solver": 0.015,
+        "cost_matrix": 0.05,
+        "db_solver": 0.014,
         "python_solver": 0.006
       },
       "min_cost": {
@@ -2285,9 +2285,9 @@
       "pairs": 858,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.049,
+        "cost_matrix": 0.05,
         "db_solver": 0.014,
-        "python_solver": 0.008
+        "python_solver": 0.009
       },
       "min_cost": {
         "placed": 2426,
@@ -2322,8 +2322,8 @@
       "pairs": 126,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.031,
-        "db_solver": 0.012,
+        "cost_matrix": 0.033,
+        "db_solver": 0.005,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -2359,8 +2359,8 @@
       "pairs": 154,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.033,
-        "db_solver": 0.005,
+        "cost_matrix": 0.03,
+        "db_solver": 0.01,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -2396,9 +2396,9 @@
       "pairs": 988,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.093,
-        "db_solver": 0.019,
-        "python_solver": 0.005
+        "cost_matrix": 0.091,
+        "db_solver": 0.011,
+        "python_solver": 0.006
       },
       "min_cost": {
         "placed": 1094,
@@ -2433,9 +2433,9 @@
       "pairs": 1404,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.099,
-        "db_solver": 0.013,
-        "python_solver": 0.009
+        "cost_matrix": 0.092,
+        "db_solver": 0.014,
+        "python_solver": 0.011
       },
       "min_cost": {
         "placed": 1333,
@@ -2471,7 +2471,7 @@
       "demand_fits": true,
       "seconds": {
         "cost_matrix": 0.017,
-        "db_solver": 0.009,
+        "db_solver": 0.006,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -2507,8 +2507,8 @@
       "pairs": 133,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.019,
-        "db_solver": 0.004,
+        "cost_matrix": 0.018,
+        "db_solver": 0.006,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -2544,9 +2544,9 @@
       "pairs": 609,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.061,
-        "db_solver": 0.012,
-        "python_solver": 0.006
+        "cost_matrix": 0.064,
+        "db_solver": 0.013,
+        "python_solver": 0.007
       },
       "min_cost": {
         "placed": 1040,
@@ -2581,7 +2581,7 @@
       "pairs": 609,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.065,
+        "cost_matrix": 0.066,
         "db_solver": 0.013,
         "python_solver": 0.007
       },
@@ -2618,8 +2618,8 @@
       "pairs": 208,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.022,
-        "db_solver": 0.011,
+        "cost_matrix": 0.021,
+        "db_solver": 0.007,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -2655,7 +2655,7 @@
       "pairs": 234,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.032,
+        "cost_matrix": 0.021,
         "db_solver": 0.012,
         "python_solver": 0.002
       },
@@ -2693,7 +2693,7 @@
       "demand_fits": true,
       "seconds": {
         "cost_matrix": 0.054,
-        "db_solver": 0.013,
+        "db_solver": 0.014,
         "python_solver": 0.007
       },
       "min_cost": {
@@ -2729,9 +2729,9 @@
       "pairs": 858,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.054,
+        "cost_matrix": 0.052,
         "db_solver": 0.012,
-        "python_solver": 0.014
+        "python_solver": 0.015
       },
       "min_cost": {
         "placed": 2871,
@@ -2766,8 +2766,8 @@
       "pairs": 4,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.012,
-        "db_solver": 0.008,
+        "cost_matrix": 0.014,
+        "db_solver": 0.01,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -2803,7 +2803,7 @@
       "pairs": 4,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.011,
+        "cost_matrix": 0.015,
         "db_solver": 0.004,
         "python_solver": 0.0
       },
@@ -2841,7 +2841,7 @@
       "demand_fits": false,
       "seconds": {
         "cost_matrix": 0.05,
-        "db_solver": 0.01,
+        "db_solver": 0.003,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -2877,8 +2877,8 @@
       "pairs": 60,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.05,
-        "db_solver": 0.005,
+        "cost_matrix": 0.048,
+        "db_solver": 0.01,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -2914,7 +2914,7 @@
       "pairs": 24,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.008,
+        "cost_matrix": 0.009,
         "db_solver": 0.005,
         "python_solver": 0.0
       },
@@ -2951,8 +2951,8 @@
       "pairs": 27,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.008,
-        "db_solver": 0.003,
+        "cost_matrix": 0.009,
+        "db_solver": 0.004,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -2984,11 +2984,11 @@
       "scenario": "長濱鄉 10 km earthquake",
       "villages": 9,
       "townships": 2,
-      "shelters": 17,
-      "pairs": 153,
+      "shelters": 16,
+      "pairs": 144,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.034,
+        "cost_matrix": 0.035,
         "db_solver": 0.005,
         "python_solver": 0.001
       },
@@ -3021,12 +3021,12 @@
       "scenario": "長濱鄉 10 km flood",
       "villages": 9,
       "townships": 2,
-      "shelters": 17,
-      "pairs": 153,
+      "shelters": 16,
+      "pairs": 144,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.038,
-        "db_solver": 0.005,
+        "cost_matrix": 0.037,
+        "db_solver": 0.007,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -3062,8 +3062,8 @@
       "pairs": 56,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.01,
-        "db_solver": 0.005,
+        "cost_matrix": 0.011,
+        "db_solver": 0.004,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -3099,7 +3099,7 @@
       "pairs": 80,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.012,
+        "cost_matrix": 0.01,
         "db_solver": 0.004,
         "python_solver": 0.001
       },
@@ -3136,7 +3136,7 @@
       "pairs": 140,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.025,
+        "cost_matrix": 0.024,
         "db_solver": 0.005,
         "python_solver": 0.001
       },
@@ -3173,8 +3173,8 @@
       "pairs": 224,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.026,
-        "db_solver": 0.005,
+        "cost_matrix": 0.025,
+        "db_solver": 0.007,
         "python_solver": 0.002
       },
       "min_cost": {
@@ -3210,7 +3210,7 @@
       "pairs": 18,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.007,
+        "cost_matrix": 0.005,
         "db_solver": 0.004,
         "python_solver": 0.0
       },
@@ -3284,7 +3284,7 @@
       "pairs": 150,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.01,
+        "cost_matrix": 0.009,
         "db_solver": 0.005,
         "python_solver": 0.001
       },
@@ -3358,8 +3358,8 @@
       "pairs": 24,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.004,
-        "db_solver": 0.004,
+        "cost_matrix": 0.003,
+        "db_solver": 0.003,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -3395,7 +3395,7 @@
       "pairs": 24,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.003,
+        "cost_matrix": 0.004,
         "db_solver": 0.003,
         "python_solver": 0.0
       },
@@ -3433,7 +3433,7 @@
       "demand_fits": true,
       "seconds": {
         "cost_matrix": 0.003,
-        "db_solver": 0.003,
+        "db_solver": 0.004,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -3506,8 +3506,8 @@
       "pairs": 6,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.009,
-        "db_solver": 0.004,
+        "cost_matrix": 0.008,
+        "db_solver": 0.002,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -3580,9 +3580,9 @@
       "pairs": 504,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.038,
-        "db_solver": 0.009,
-        "python_solver": 0.003
+        "cost_matrix": 0.04,
+        "db_solver": 0.014,
+        "python_solver": 0.004
       },
       "min_cost": {
         "placed": 902,
@@ -3617,8 +3617,8 @@
       "pairs": 525,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.037,
-        "db_solver": 0.008,
+        "cost_matrix": 0.035,
+        "db_solver": 0.015,
         "python_solver": 0.004
       },
       "min_cost": {
@@ -3654,8 +3654,8 @@
       "pairs": 78,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.013,
-        "db_solver": 0.014,
+        "cost_matrix": 0.015,
+        "db_solver": 0.011,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -3691,9 +3691,9 @@
       "pairs": 78,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.014,
-        "db_solver": 0.004,
-        "python_solver": 0.0
+        "cost_matrix": 0.013,
+        "db_solver": 0.006,
+        "python_solver": 0.001
       },
       "min_cost": {
         "placed": 590,
@@ -3728,8 +3728,8 @@
       "pairs": 540,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.054,
-        "db_solver": 0.013,
+        "cost_matrix": 0.058,
+        "db_solver": 0.012,
         "python_solver": 0.007
       },
       "min_cost": {
@@ -3765,7 +3765,7 @@
       "pairs": 540,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.053,
+        "cost_matrix": 0.057,
         "db_solver": 0.012,
         "python_solver": 0.005
       },
@@ -3802,8 +3802,8 @@
       "pairs": 42,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.009,
-        "db_solver": 0.008,
+        "cost_matrix": 0.008,
+        "db_solver": 0.009,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -3839,9 +3839,9 @@
       "pairs": 54,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.009,
+        "cost_matrix": 0.01,
         "db_solver": 0.004,
-        "python_solver": 0.001
+        "python_solver": 0.0
       },
       "min_cost": {
         "placed": 751,
@@ -3876,8 +3876,8 @@
       "pairs": 140,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.026,
-        "db_solver": 0.005,
+        "cost_matrix": 0.025,
+        "db_solver": 0.006,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -3950,8 +3950,8 @@
       "pairs": 18,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.005,
-        "db_solver": 0.003,
+        "cost_matrix": 0.006,
+        "db_solver": 0.004,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -3988,7 +3988,7 @@
       "demand_fits": true,
       "seconds": {
         "cost_matrix": 0.005,
-        "db_solver": 0.003,
+        "db_solver": 0.004,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -4024,9 +4024,9 @@
       "pairs": 150,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.009,
-        "db_solver": 0.004,
-        "python_solver": 0.0
+        "cost_matrix": 0.01,
+        "db_solver": 0.006,
+        "python_solver": 0.001
       },
       "min_cost": {
         "placed": 563,
@@ -4061,7 +4061,7 @@
       "pairs": 180,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.01,
+        "cost_matrix": 0.011,
         "db_solver": 0.005,
         "python_solver": 0.001
       },
@@ -4098,8 +4098,8 @@
       "pairs": 20,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.004,
-        "db_solver": 0.003,
+        "cost_matrix": 0.003,
+        "db_solver": 0.008,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -4172,8 +4172,8 @@
       "pairs": 20,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.003,
-        "db_solver": 0.003,
+        "cost_matrix": 0.004,
+        "db_solver": 0.004,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -4246,9 +4246,9 @@
       "pairs": 2240,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.091,
-        "db_solver": 0.025,
-        "python_solver": 0.025
+        "cost_matrix": 0.094,
+        "db_solver": 0.02,
+        "python_solver": 0.028
       },
       "min_cost": {
         "placed": 6915,
@@ -4283,9 +4283,9 @@
       "pairs": 2816,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.102,
-        "db_solver": 0.033,
-        "python_solver": 0.035
+        "cost_matrix": 0.099,
+        "db_solver": 0.029,
+        "python_solver": 0.037
       },
       "min_cost": {
         "placed": 9205,
@@ -4320,9 +4320,9 @@
       "pairs": 3525,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.134,
-        "db_solver": 0.031,
-        "python_solver": 0.042
+        "cost_matrix": 0.131,
+        "db_solver": 0.029,
+        "python_solver": 0.041
       },
       "min_cost": {
         "placed": 7605,
@@ -4357,8 +4357,8 @@
       "pairs": 4350,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.137,
-        "db_solver": 0.034,
+        "cost_matrix": 0.133,
+        "db_solver": 0.04,
         "python_solver": 0.059
       },
       "min_cost": {
@@ -4394,8 +4394,8 @@
       "pairs": 50,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.016,
-        "db_solver": 0.008,
+        "cost_matrix": 0.017,
+        "db_solver": 0.01,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -4431,7 +4431,7 @@
       "pairs": 120,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.018,
+        "cost_matrix": 0.017,
         "db_solver": 0.005,
         "python_solver": 0.001
       },
@@ -4468,8 +4468,8 @@
       "pairs": 434,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.067,
-        "db_solver": 0.009,
+        "cost_matrix": 0.066,
+        "db_solver": 0.008,
         "python_solver": 0.004
       },
       "min_cost": {
@@ -4501,37 +4501,37 @@
       "scenario": "鳳林鎮 10 km flood",
       "villages": 31,
       "townships": 5,
-      "shelters": 28,
-      "pairs": 868,
+      "shelters": 29,
+      "pairs": 899,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.074,
-        "db_solver": 0.118,
+        "cost_matrix": 0.069,
+        "db_solver": 0.01,
         "python_solver": 0.011
       },
       "min_cost": {
-        "placed": 2714,
-        "person_hours": 176.5,
-        "minutes_per_person": 3.9,
-        "longest_trip_minutes": 20.7
+        "placed": 2814,
+        "person_hours": 179.6,
+        "minutes_per_person": 3.83,
+        "longest_trip_minutes": 28.2
       },
       "python": {
-        "placed": 2714,
-        "person_hours": 176.5,
-        "minutes_per_person": 3.9,
-        "longest_trip_minutes": 20.7
+        "placed": 2814,
+        "person_hours": 179.6,
+        "minutes_per_person": 3.83,
+        "longest_trip_minutes": 28.2
       },
       "greedy": {
-        "placed": 2714,
-        "person_hours": 187.1,
-        "minutes_per_person": 4.14,
+        "placed": 2814,
+        "person_hours": 190.1,
+        "minutes_per_person": 4.05,
         "longest_trip_minutes": 29.3
       },
       "township_origins": {
-        "placed": 2714,
-        "person_hours": 368.9,
-        "minutes_per_person": 8.16,
-        "longest_trip_minutes": 33.0
+        "placed": 2814,
+        "person_hours": 471.2,
+        "minutes_per_person": 10.05,
+        "longest_trip_minutes": 57.3
       }
     },
     {
@@ -4542,8 +4542,8 @@
       "pairs": 77,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.019,
-        "db_solver": 0.01,
+        "cost_matrix": 0.018,
+        "db_solver": 0.005,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -4579,8 +4579,8 @@
       "pairs": 380,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.042,
-        "db_solver": 0.006,
+        "cost_matrix": 0.044,
+        "db_solver": 0.01,
         "python_solver": 0.002
       },
       "min_cost": {
@@ -4616,8 +4616,8 @@
       "pairs": 420,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.043,
-        "db_solver": 0.007,
+        "cost_matrix": 0.04,
+        "db_solver": 0.012,
         "python_solver": 0.004
       },
       "min_cost": {
@@ -4653,8 +4653,8 @@
       "pairs": 504,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.039,
-        "db_solver": 0.012,
+        "cost_matrix": 0.044,
+        "db_solver": 0.013,
         "python_solver": 0.005
       },
       "min_cost": {
@@ -4690,8 +4690,8 @@
       "pairs": 3330,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.131,
-        "db_solver": 0.033,
+        "cost_matrix": 0.136,
+        "db_solver": 0.031,
         "python_solver": 0.057
       },
       "min_cost": {
@@ -4727,9 +4727,9 @@
       "pairs": 4218,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.133,
-        "db_solver": 0.044,
-        "python_solver": 0.071
+        "cost_matrix": 0.144,
+        "db_solver": 0.04,
+        "python_solver": 0.07
       },
       "min_cost": {
         "placed": 10012,
@@ -4764,9 +4764,9 @@
       "pairs": 1830,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.085,
+        "cost_matrix": 0.098,
         "db_solver": 0.021,
-        "python_solver": 0.017
+        "python_solver": 0.019
       },
       "min_cost": {
         "placed": 5851,
@@ -4801,8 +4801,8 @@
       "pairs": 2318,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.09,
-        "db_solver": 0.026,
+        "cost_matrix": 0.091,
+        "db_solver": 0.027,
         "python_solver": 0.027
       },
       "min_cost": {
@@ -4838,9 +4838,9 @@
       "pairs": 4029,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.15,
-        "db_solver": 0.038,
-        "python_solver": 0.056
+        "cost_matrix": 0.159,
+        "db_solver": 0.042,
+        "python_solver": 0.079
       },
       "min_cost": {
         "placed": 7851,
@@ -4875,9 +4875,9 @@
       "pairs": 4977,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.165,
-        "db_solver": 0.044,
-        "python_solver": 0.079
+        "cost_matrix": 0.174,
+        "db_solver": 0.04,
+        "python_solver": 0.078
       },
       "min_cost": {
         "placed": 10298,
@@ -4912,8 +4912,8 @@
       "pairs": 132,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.034,
-        "db_solver": 0.009,
+        "cost_matrix": 0.037,
+        "db_solver": 0.012,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -4949,8 +4949,8 @@
       "pairs": 132,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.033,
-        "db_solver": 0.006,
+        "cost_matrix": 0.035,
+        "db_solver": 0.004,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -4986,8 +4986,8 @@
       "pairs": 550,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.09,
-        "db_solver": 0.013,
+        "cost_matrix": 0.1,
+        "db_solver": 0.008,
         "python_solver": 0.004
       },
       "min_cost": {
@@ -5019,36 +5019,36 @@
       "scenario": "壽豐鄉 10 km flood",
       "villages": 25,
       "townships": 5,
-      "shelters": 23,
-      "pairs": 575,
+      "shelters": 24,
+      "pairs": 600,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.096,
-        "db_solver": 0.009,
-        "python_solver": 0.004
+        "cost_matrix": 0.157,
+        "db_solver": 0.008,
+        "python_solver": 0.005
       },
       "min_cost": {
-        "placed": 1002,
-        "person_hours": 70.5,
-        "minutes_per_person": 4.22,
+        "placed": 1102,
+        "person_hours": 79.9,
+        "minutes_per_person": 4.35,
         "longest_trip_minutes": 43.8
       },
       "python": {
-        "placed": 1002,
-        "person_hours": 70.5,
-        "minutes_per_person": 4.22,
+        "placed": 1102,
+        "person_hours": 79.9,
+        "minutes_per_person": 4.35,
         "longest_trip_minutes": 43.8
       },
       "greedy": {
-        "placed": 1002,
-        "person_hours": 70.5,
-        "minutes_per_person": 4.22,
+        "placed": 1102,
+        "person_hours": 79.9,
+        "minutes_per_person": 4.35,
         "longest_trip_minutes": 43.8
       },
       "township_origins": {
-        "placed": 1002,
-        "person_hours": 209.5,
-        "minutes_per_person": 12.55,
+        "placed": 1102,
+        "person_hours": 242.7,
+        "minutes_per_person": 13.21,
         "longest_trip_minutes": 47.6
       }
     },
@@ -5060,8 +5060,8 @@
       "pairs": 110,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.016,
-        "db_solver": 0.009,
+        "cost_matrix": 0.017,
+        "db_solver": 0.015,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -5097,7 +5097,7 @@
       "pairs": 110,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.019,
+        "cost_matrix": 0.014,
         "db_solver": 0.005,
         "python_solver": 0.001
       },
@@ -5134,8 +5134,8 @@
       "pairs": 558,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.05,
-        "db_solver": 0.013,
+        "cost_matrix": 0.049,
+        "db_solver": 0.014,
         "python_solver": 0.006
       },
       "min_cost": {
@@ -5172,8 +5172,8 @@
       "demand_fits": true,
       "seconds": {
         "cost_matrix": 0.055,
-        "db_solver": 0.017,
-        "python_solver": 0.012
+        "db_solver": 0.009,
+        "python_solver": 0.013
       },
       "min_cost": {
         "placed": 2783,
@@ -5208,7 +5208,7 @@
       "pairs": 2,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.006,
+        "cost_matrix": 0.005,
         "db_solver": 0.0,
         "python_solver": 0.0
       },
@@ -5245,7 +5245,7 @@
       "pairs": 2,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.004,
+        "cost_matrix": 0.006,
         "db_solver": 0.0,
         "python_solver": 0.0
       },
@@ -5282,8 +5282,8 @@
       "pairs": 21,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.027,
-        "db_solver": 0.009,
+        "cost_matrix": 0.029,
+        "db_solver": 0.01,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -5319,8 +5319,8 @@
       "pairs": 21,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.029,
-        "db_solver": 0.005,
+        "cost_matrix": 0.027,
+        "db_solver": 0.007,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -5430,7 +5430,7 @@
       "pairs": 42,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.04,
+        "cost_matrix": 0.036,
         "db_solver": 0.008,
         "python_solver": 0.0
       },
@@ -5467,8 +5467,8 @@
       "pairs": 567,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.047,
-        "db_solver": 0.008,
+        "cost_matrix": 0.04,
+        "db_solver": 0.023,
         "python_solver": 0.005
       },
       "min_cost": {
@@ -5505,8 +5505,8 @@
       "demand_fits": false,
       "seconds": {
         "cost_matrix": 0.018,
-        "db_solver": 0.004,
-        "python_solver": 0.0
+        "db_solver": 0.005,
+        "python_solver": 0.001
       },
       "min_cost": {
         "placed": 660,
@@ -5541,8 +5541,8 @@
       "pairs": 60,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.039,
-        "db_solver": 0.009,
+        "cost_matrix": 0.037,
+        "db_solver": 0.005,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -5578,9 +5578,9 @@
       "pairs": 400,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.048,
-        "db_solver": 0.008,
-        "python_solver": 0.003
+        "cost_matrix": 0.051,
+        "db_solver": 0.019,
+        "python_solver": 0.004
       },
       "min_cost": {
         "placed": 1220,
@@ -5616,7 +5616,7 @@
       "demand_fits": true,
       "seconds": {
         "cost_matrix": 0.02,
-        "db_solver": 0.01,
+        "db_solver": 0.005,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -5652,7 +5652,7 @@
       "pairs": 48,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.02,
+        "cost_matrix": 0.021,
         "db_solver": 0.005,
         "python_solver": 0.0
       },
@@ -5689,9 +5689,9 @@
       "pairs": 399,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.048,
-        "db_solver": 0.097,
-        "python_solver": 0.005
+        "cost_matrix": 0.045,
+        "db_solver": 0.008,
+        "python_solver": 0.003
       },
       "min_cost": {
         "placed": 1304,
@@ -5726,8 +5726,8 @@
       "pairs": 462,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.047,
-        "db_solver": 0.011,
+        "cost_matrix": 0.05,
+        "db_solver": 0.009,
         "python_solver": 0.003
       },
       "min_cost": {
@@ -5763,8 +5763,8 @@
       "pairs": 60,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.014,
-        "db_solver": 0.004,
+        "cost_matrix": 0.015,
+        "db_solver": 0.006,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -5837,8 +5837,8 @@
       "pairs": 486,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.043,
-        "db_solver": 0.009,
+        "cost_matrix": 0.045,
+        "db_solver": 0.008,
         "python_solver": 0.004
       },
       "min_cost": {
@@ -5874,9 +5874,9 @@
       "pairs": 702,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.052,
-        "db_solver": 0.009,
-        "python_solver": 0.008
+        "cost_matrix": 0.049,
+        "db_solver": 0.01,
+        "python_solver": 0.009
       },
       "min_cost": {
         "placed": 2222,
@@ -5911,7 +5911,7 @@
       "pairs": 60,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.019,
+        "cost_matrix": 0.02,
         "db_solver": 0.004,
         "python_solver": 0.0
       },
@@ -5949,7 +5949,7 @@
       "demand_fits": false,
       "seconds": {
         "cost_matrix": 0.042,
-        "db_solver": 0.008,
+        "db_solver": 0.006,
         "python_solver": 0.001
       },
       "min_cost": {
