@@ -225,7 +225,7 @@ def test_sync_requires_api_key(client):
 def test_sync_accepts_write_credentials_as_recovery_path(client):
     # 啟動同步失敗時索引是空的、readiness 一直 503；沒設 SYNC_API_KEY 的部署
     # 也要能讓操作員自己把資料同步回來，而不是只剩重啟容器
-    with patch("config.SYNC_API_KEY", ""), patch("app.sync_and_reindex", return_value=2) as sync:
+    with patch("config.SYNC_API_KEY", ""), patch("api.deps.sync_and_reindex", return_value=2) as sync:
         assert client.post("/api/sync", headers={"X-API-Key": "x"}).status_code == 401
         assert client.post("/api/sync", headers=WRITE_HEADERS).status_code == 200
         login(client)
@@ -483,7 +483,7 @@ def test_startup_sync_retries_in_the_background_until_it_succeeds():
             raise RuntimeError("db not ready")
         return 7
 
-    with patch("app.STARTUP_RETRY_DELAYS", (0, 0, 0, 0)), patch("app.sync_and_reindex", flaky):
+    with patch("app.STARTUP_RETRY_DELAYS", (0, 0, 0, 0)), patch("api.deps.sync_and_reindex", flaky):
         asyncio.run(app_module.retry_startup_sync())
     # 重試不帶 force：只有手動同步才強制重建整個索引
     assert calls == [False, False, False]
@@ -494,7 +494,7 @@ def test_startup_sync_retry_gives_up_after_the_last_delay(caplog):
 
     import app as app_module
     with patch("app.STARTUP_RETRY_DELAYS", (0, 0)), \
-         patch("app.sync_and_reindex", side_effect=RuntimeError("down")) as sync:
+         patch("api.deps.sync_and_reindex", side_effect=RuntimeError("down")) as sync:
         with caplog.at_level(logging.ERROR, logger="app"):
             asyncio.run(app_module.retry_startup_sync())
     assert sync.call_count == 2
@@ -791,3 +791,19 @@ def test_flood_simulation_skips_shelters_not_designated_for_floods(client):
     assert plan["undesignated"] == ["[HUALIEN] 只收震災"] and plan["designation"] == "水災"
     assert list(plan["assigned"]) == ["[HUALIEN] 收水災"]
     assert pop["placeable"] == plan["placed"]
+
+
+def test_page_and_static_files_are_revalidated_not_reused_blindly(client):
+    """
+    首頁與 /static/ 加 Cache-Control: no-cache：瀏覽器照樣快取，但每次先用 ETag 問有沒有更新。
+    沒有這個標頭時瀏覽器會自己猜能用多久，2026-11-09 改版後重新整理仍看到舊的 style.css
+    """
+    css = client.get("/static/style.css")
+    assert css.status_code == 200
+    assert css.headers["cache-control"] == "no-cache"
+    again = client.get("/static/style.css", headers={"If-None-Match": css.headers["etag"]})
+    assert again.status_code == 304
+    assert client.get("/static/js/main.js").headers["cache-control"] == "no-cache"
+    assert client.get("/").headers["cache-control"] == "no-cache"
+    # API 的回應不歸這個中介層管
+    assert "cache-control" not in client.get("/api/population").headers
