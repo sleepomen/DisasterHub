@@ -124,14 +124,13 @@ def score_reply(reply: str, context: str, facts: list[str]) -> dict:
 
 
 def build_service(embedder_spec: str):
-    import chromadb
-
     from evals.run_rag_eval import make_embedder
     from evals.run_route_eval import StubRepo
     from services.chat.service import ChatService
+    from services.retrieval.chroma import make_client
     from services.retrieval.knowledge import KnowledgeStore
 
-    knowledge = KnowledgeStore(embedding_function=make_embedder(embedder_spec), client=chromadb.Client())
+    knowledge = KnowledgeStore(embedding_function=make_embedder(embedder_spec), client=make_client())
     t0 = time.perf_counter()
     knowledge.build()
     return ChatService(ShelterTextStore(), StubRepo(), knowledge=knowledge), time.perf_counter() - t0
