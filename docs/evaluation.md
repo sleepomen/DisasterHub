@@ -103,8 +103,8 @@ DisasterHub/
 │   ├── run_assignment_eval.py  # Evacuation assignment: min-cost flow against the old greedy rule
 │   ├── datasets/               # Question sets
 │   │   ├── rag_eval.jsonl      # The evaluation set
-│   │   ├── route_eval.jsonl    # Routing test set (56 questions, all ten routes)
-│   │   ├── boundary_eval.jsonl # Boundary / abstention set (43 questions, five defences)
+│   │   ├── route_eval.jsonl    # Routing test set (59 questions, all twelve routes)
+│   │   ├── boundary_eval.jsonl # Boundary / abstention set (54 questions, five defences)
 │   │   ├── knowledge_eval.jsonl # Knowledge questions (positive / not covered / mixed / shelter look-alikes)
 │   │   └── place_eval.jsonl    # Small place names with the township each lies in
 │   ├── lib/                    # Scoring, statistics and tools shared by the runners
@@ -195,7 +195,7 @@ ten negatives were eight out-of-area county names — caught by the rules layer 
 name at all. So the entire empirical basis for `RAG_MAX_DISTANCE = 0.56` was **two questions**, and the
 most likely real-world irrelevant question (one that mentions a local place) was not represented.
 
-`evals/datasets/boundary_eval.jsonl` (43 questions) probes exactly those gaps, and `run_boundary_eval.py` reports
+`evals/datasets/boundary_eval.jsonl` (54 questions) probes exactly those gaps, and `run_boundary_eval.py` reports
 **which of the five defences decided**, with `--generate` running the real LLM for whatever reaches it:
 
 ```bash
@@ -452,7 +452,7 @@ coverage at all**, including both of the non-RAG paths that make the routing "hy
 `evals/datasets/route_eval.jsonl` is a separate 42-question set labelled with the route each question *should*
 take, including the state-dependent case ("請給我疏散建議" must go to `no_simulation_advice` with no
 simulation and to `simulation` while one is running). Two routes were added later: `off_topic` and
-`unknown_name` (see [Nonexistent shelters](#nonexistent-shelters)), and with the disaster-preparedness passages `knowledge` and `knowledge_mixed` (10 more questions, 56 in total; the runner stubs the knowledge store as well, returning the first passage of the hazard so a mixed question has knowledge hits). The runner stubs the vector store and
+`unknown_name` (see [Nonexistent shelters](#nonexistent-shelters)), and with the disaster-preparedness passages `knowledge` and `knowledge_mixed` (10 more questions, 56 in total; small place names later added `place` and three more, 59 in total; the runner stubs the knowledge store as well, returning the first passage of the hazard so a mixed question has knowledge hits). The runner stubs the vector store and
 the repository, because `metrics.route()` is recorded in `build_context` *before* retrieval or the
 database is touched. The stub returns the real shelter list read from the JSON files in
 `data_for_refuge/`, since `unknown_name` must be decided against real names. So it needs no Ollama, no

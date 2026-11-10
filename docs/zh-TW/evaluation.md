@@ -99,8 +99,8 @@ DisasterHub/
 │   ├── run_assignment_eval.py  # 疏散分配：最小成本流跟以前的貪婪法比
 │   ├── datasets/               # 題庫
 │   │   ├── rag_eval.jsonl      # 評測集
-│   │   ├── route_eval.jsonl    # 路由測試集（56 題，涵蓋全部十條路由）
-│   │   ├── boundary_eval.jsonl # 邊界題／拒答題庫（43 題，涵蓋五層防線）
+│   │   ├── route_eval.jsonl    # 路由測試集（59 題，涵蓋全部十二條路由）
+│   │   ├── boundary_eval.jsonl # 邊界題／拒答題庫（54 題，涵蓋五層防線）
 │   │   ├── knowledge_eval.jsonl # 知識題（正例 / 語料沒有 / 混合 / 其實在問避難所）
 │   │   └── place_eval.jsonl    # 小地名與它所在的鄉鎮
 │   ├── lib/                    # 評分、統計與共用工具
@@ -190,7 +190,7 @@ baseline 那一列的 `capacity_stated` 不能跟下面兩列比：這個欄位�
 8 道範圍外縣市名（規則層擋下）加 2 道完全沒有地名的問題。也就是說 `RAG_MAX_DISTANCE = 0.56`
 的全部經驗基礎是**兩題**，而現實中最可能出現的無關問題——帶著本地地名的那種——一題都沒有。
 
-`evals/datasets/boundary_eval.jsonl`（43 題）就是針對這些缺口，`run_boundary_eval.py` 會報出
+`evals/datasets/boundary_eval.jsonl`（54 題）就是針對這些缺口，`run_boundary_eval.py` 會報出
 **是五層防線裡的哪一層決定的**，`--generate` 會對落到模型的題目真的跑一次生成：
 
 ```bash
@@ -418,7 +418,7 @@ docker exec -it disaster_app python evals/lib/compare_runs.py   evals/results/ge
 
 `evals/datasets/route_eval.jsonl` 是另一份 42 題的測試集，每題標上它*應該*走的路由，包含狀態相依的案例
 （「請給我疏散建議」在沒有模擬時該走 `no_simulation_advice`，模擬進行中該走 `simulation`）。
-後來又加了兩條路由：`off_topic` 與 `unknown_name`（見[不存在的場所](#不存在的場所)）；加入防災知識文件時再加 `knowledge` 與 `knowledge_mixed`（多 10 題，共 56 題；執行器也把知識庫換成替身，回傳該災害的第一段，混合題才會有知識結果）。
+後來又加了兩條路由：`off_topic` 與 `unknown_name`（見[不存在的場所](#不存在的場所)）；加入防災知識文件時再加 `knowledge` 與 `knowledge_mixed`（多 10 題，共 56 題；後來小地名再加 `place` 與 3 題，共 59 題；執行器也把知識庫換成替身，回傳該災害的第一段，混合題才會有知識結果）。
 執行器把向量庫與 repository 換成替身，因為 `metrics.route()` 是在 `build_context` 裡
 「碰到檢索或資料庫之前」就記下的。替身回傳的是從 `data_for_refuge/` JSON 讀出來的真實避難所名單，
 因為 `unknown_name` 必須拿真實名稱來判斷。所以它不需要 Ollama、ChromaDB 或 PostgreSQL，

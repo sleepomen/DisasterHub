@@ -47,7 +47,7 @@ cp .env.example .env
 
 數值設定啟動時會檢查範圍（例如 `SESSION_HOURS` 必須大於 0、`DB_POOL_MAX` 不能小於 `DB_POOL_MIN`）；超出範圍會以清楚的訊息停止服務，解析不了的值會退回預設並在 log 提醒。
 
-Leaflet 已打包在 `static/vendor/leaflet/`，沒有對外網路時地圖介面仍能載入；CARTO 底圖圖磚與 Google Fonts 仍需連線，離線時會退化成灰底與系統字型，不影響操作。
+Leaflet 已打包在 `static/vendor/leaflet/`，沒有對外網路時地圖介面仍能載入；OpenStreetMap 底圖圖磚與 Google Fonts 仍需連線，離線時會退化成灰底與系統字型，不影響操作。
 
 ### 3. 下載模型（第一次需要，在宿主機執行）
 
@@ -62,7 +62,7 @@ ollama pull bge-m3        # 多語 embedding 模型，RAG 檢索用
 docker compose up --build
 ```
 
-首次啟動會自動執行 `init.sql` 建表、同步 `data_for_refuge/` 的 JSON 到 PostGIS，並建立向量索引。開啟 <http://localhost:8501>。
+首次啟動會自動執行 `init.sql` 建表，把避難所（`data_for_refuge/`）、土石流潛勢範圍與路網（`data_reference/`）匯入 PostGIS，並建立向量索引與知識索引，需要幾分鐘。開啟 <http://localhost:8501>。
 
 向量索引會落在 `chroma_data` volume，之後重啟若資料沒變就直接沿用，不再重跑 embedding。要強制重建索引請呼叫 `/api/sync`。
 

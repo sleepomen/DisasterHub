@@ -34,7 +34,7 @@ Most of what this project does differently came from measuring something and not
 
 **Result.** A dedicated boundary set of 53 questions is answered or refused correctly in all 53 cases. All 34 should-refuse questions are stopped before the model, and the distance threshold decides none of them.
 
-**Cost.** The checks are word lists, and word lists need maintenance; the list of generic words used to decide whether a question names a place is a blacklist, and every missed word is a misroute. The routing evaluation (56 questions) is the guard rail. → [Abstention and boundary questions](evaluation.md#abstention-and-boundary-questions)
+**Cost.** The checks are word lists, and word lists need maintenance; the list of generic words used to decide whether a question names a place is a blacklist, and every missed word is a misroute. The routing evaluation (59 questions) is the guard rail. → [Abstention and boundary questions](evaluation.md#abstention-and-boundary-questions)
 
 ## 4. Be suspicious of your own best number
 
@@ -62,7 +62,7 @@ Most of what this project does differently came from measuring something and not
 
 **Decision.** Distances and routes come from the OpenStreetMap road network (pgRouting), and hazards change the cost of the roads they touch. A red debris-flow alert closes the roads inside its zone. A yellow alert, or a flood simulation, makes the part of a road inside a zone more expensive but never closes it, because the zones cover 564 km of road including the coastal highways, and closing them all would cut the east coast apart. When no safe road exists, the shelter is reported as unreachable instead of falling back to a straight line, because the straight line would cross the closed zone.
 
-**Result.** In a 太麻里 flood simulation, route length inside zones went from 6.18 km to 2.21 km for 3.3 km more driving. A red alert on the four zones north of 南澳 closes the Su-Hua Highway: with township centroids the 東澳 shelters became unreachable and 437 people were placed instead of 544. With village origins the 東澳 villages lie north of the closure and use their own shelters; with every zone around 頭城鎮 on red, three coastal villages and two shelters are cut off (2,855 placed instead of 3,015), and the answer says why.
+**Result.** In a 太麻里 flood simulation, route length inside zones went from 6.18 km to 2.21 km for 3.3 km more driving with township centroids; with village origins the 26 driving routes go from 6.38 km to 4.79 km for 1.8 km more. A red alert on the four zones north of 南澳 closes the Su-Hua Highway: with township centroids the 東澳 shelters became unreachable and 437 people were placed instead of 544. With village origins the 東澳 villages lie north of the closure and use their own shelters; with every zone around 頭城鎮 on red, three coastal villages and two shelters are cut off (2,855 placed instead of 3,015), and the answer says why.
 
 **What measuring caught.** The first version weighted a whole road segment if any part of it touched a zone. Mountain segments run for kilometres, so one route was reported as 12.87 km inside zones against 0.95 km measured. Only the part inside a zone is weighted now. → [Avoiding hazard zones and live alerts](simulation-and-routing.md#avoiding-hazard-zones-and-live-alerts)
 

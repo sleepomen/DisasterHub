@@ -7,7 +7,7 @@
 ## Features
 
 - **Real map visualization** — Leaflet.js + OpenStreetMap. 644 official shelters (National Fire Agency open data) across Yilan, Hualien and Taitung are plotted at their real coordinates; marker size scales with capacity, and clicking one shows live information.
-- **PostGIS spatial simulation** — Set a disaster epicenter and impact radius; the backend computes the list of affected shelters via `ST_DWithin`. Earthquake, flood and fire scenarios are supported.
+- **PostGIS spatial simulation** — Pick a disaster centre (a preset city or any point clicked on the map) and an impact radius; the backend computes the list of affected shelters via `ST_DWithin`. Earthquake, flood and fire scenarios are supported.
 - **Road routing** — Nearest-shelter answers and evacuation plans follow the OpenStreetMap road network (pgRouting), not straight lines. The shelter reached fastest on foot or by car comes first, the actual routes are drawn on the map, and the evacuees in the animation move along them.
 - **Crowd evacuation animation** — The backend estimates the population inside the impact radius and the resulting evacuation demand from village-level registered population (554 villages, one evacuation origin each), then computes a deterministic, capacity-bounded evacuation plan (shortest total travel time, by min-cost flow in pgRouting) and writes it to the database and the vector index straight away. The frontend only replays that plan as an animation, so the loads the AI assistant reports match the map as soon as the simulation returns.
 - **Debris-flow hazard zones** — 531 debris-flow impact zones in Yilan, Hualien and Taitung from the Ministry of Agriculture are imported into PostGIS and drawn on the map. Flood simulations keep evacuees out of shelters inside a zone, and nearest-shelter answers warn when a shelter lies inside one.
@@ -22,7 +22,7 @@
 Data          PostgreSQL + PostGIS + pgRouting (spatial data, road network)
               ChromaDB (semantic vector index)
 
-Backend       FastAPI + Uvicorn
+Backend       FastAPI + Uvicorn (endpoints in api/, one module per area)
               ShelterRepository (database access, connection pool)
               ChatService (intent detection + RAG + LLM)
               VectorStore (ChromaDB management)
@@ -30,7 +30,7 @@ Backend       FastAPI + Uvicorn
 
 Frontend      Leaflet.js + OpenStreetMap
               Canvas API (crowd evacuation animation)
-              iOS-style UI
+              Beige and deep blue theme, keyboard-accessible controls, phone layout with panel tabs
 
 Containers    Docker + Docker Compose
 LLM           Ollama + llama3.2:3b (running locally on the host)

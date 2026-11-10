@@ -47,7 +47,7 @@ Optional variables: `OLLAMA_MODEL` (default `llama3.2:3b`), `OLLAMA_TEMPERATURE`
 
 Numeric settings are range-checked at startup (for example `SESSION_HOURS` must be positive and `DB_POOL_MAX` may not be smaller than `DB_POOL_MIN`); an out-of-range value stops the service with a clear message, and a value that cannot be parsed falls back to the default with a warning in the log.
 
-Leaflet is bundled under `static/vendor/leaflet/`, so the map UI loads without internet access; the CARTO basemap tiles and Google Fonts are still fetched online and degrade gracefully (grey tiles, system fonts) when offline.
+Leaflet is bundled under `static/vendor/leaflet/`, so the map UI loads without internet access; the OpenStreetMap basemap tiles and Google Fonts are still fetched online and degrade gracefully (grey tiles, system fonts) when offline.
 
 ### 3. Pull the models (first time only, on the host)
 
@@ -62,7 +62,7 @@ ollama pull bge-m3        # multilingual embedding model used for RAG retrieval
 docker compose up --build
 ```
 
-The first start runs `init.sql` to create the tables, syncs the JSON files in `data_for_refuge/` into PostGIS, and builds the vector index. Then open <http://localhost:8501>.
+The first start runs `init.sql` to create the tables, loads the shelters (`data_for_refuge/`), the debris-flow zones and the road network (`data_reference/`) into PostGIS, and builds the vector and knowledge indexes; this takes a few minutes. Then open <http://localhost:8501>.
 
 The vector index is stored in the `chroma_data` volume. Later restarts reuse it as long as the data has not changed, so embeddings are not recomputed. To force a rebuild, call `/api/sync`.
 

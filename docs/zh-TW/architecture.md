@@ -7,7 +7,7 @@
 ## 功能特色
 
 - **真實地圖視覺化** — Leaflet.js + OpenStreetMap，宜花東 644 處官方避難所（消防署開放資料）標記於真實座標，marker 大小依容量縮放，點擊顯示即時資訊
-- **PostGIS 空間模擬** — 設定災害中心點與影響半徑，後端透過 `ST_DWithin` 計算受影響避難所清單，支援強震、淹水、火災三種類型
+- **PostGIS 空間模擬** — 選一個災害中心（預設城市，或在地圖上點任何一處）與影響半徑，後端透過 `ST_DWithin` 計算受影響避難所清單，支援強震、淹水、火災三種類型
 - **道路路線規劃** — 最近避難所與疏散分配都沿 OpenStreetMap 路網（pgRouting）計算，不是直線：步行或開車最快到的排前面，實際路線畫在地圖上，動畫裡的人群也沿著路線移動
 - **人群疏散動畫** — 後端以村里戶籍人口（554 個村里，各是一個疏散起點）估算圈內人口與疏散需求，算出確定、不超過容量的疏散分配（在 pgRouting 裡解最小成本流，總通行時間最短），並立即寫入資料庫與向量索引；前端只負責把這份分配畫成動畫，模擬一回傳，AI 助手回答的負載就跟地圖一致
 - **土石流潛勢區域** — 匯入農業部宜花東 531 個土石流潛勢溪流影響範圍到 PostGIS 並顯示在地圖上；淹水模擬不把人送進範圍內的避難所，查最近避難所時若落在範圍內會加註警告
@@ -22,7 +22,7 @@
 資料層        PostgreSQL + PostGIS + pgRouting（空間資料、路網）
               ChromaDB（語意向量索引）
 
-後端層        FastAPI + Uvicorn
+後端層        FastAPI + Uvicorn（端點在 api/，依功能分檔）
               ShelterRepository（資料庫操作，連線池）
               ChatService（意圖判斷 + RAG + LLM）
               VectorStore（ChromaDB 管理）
@@ -30,7 +30,7 @@
 
 前端層        Leaflet.js + OpenStreetMap
               Canvas API（人群疏散動畫）
-              iOS 風格 UI
+              米色＋深藍的介面、可用鍵盤操作、手機版面（面板收進分頁）
 
 容器化        Docker + Docker Compose
 LLM           Ollama + llama3.2:3b（宿主機本地部署）
