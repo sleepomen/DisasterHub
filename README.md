@@ -14,7 +14,7 @@
 Built in response to the 2025 barrier-lake disaster in Guangfu Township, Hualien, this simulation and decision system targets the three main pain points of existing shelter management: opaque information, no way to simulate, and slow decisions.
 
 <p align="center"><img src="docs/images/evacuation.gif" alt="Evacuees moving along the road routes to shelters during a simulation in Hualien City" width="100%"></p>
-<p align="center"><em>A 10 km earthquake simulation in Hualien City with driving selected. Evacuees follow the road routes to the nearest shelters with room, and each shelter turns red as it fills. Played at about twice real speed.</em></p>
+<p align="center"><em>A 10 km earthquake simulation in Hualien City with driving selected. Each village's evacuees follow the road to the shelter they were assigned, and each shelter turns red as it fills. Played at real speed.</em></p>
 
 ## At a glance
 
@@ -23,18 +23,19 @@ Built in response to the 2025 barrier-lake disaster in Guangfu Township, Hualien
 - **Refuses what it does not know.** Out-of-area counties, off-topic questions, shelters that do not exist and misspelled names are handled before the model sees anything. 53 of 53 boundary questions are answered or refused correctly.
 - **Evacuation by road, not straight line.** Click anywhere on the map to pick the simulation centre. Evacuees start from every affected village and are assigned to shelters with room so that the total travel time, on foot or by car along the OpenStreetMap road network, is as short as possible (min-cost flow, solved in pgRouting). The actual routes are drawn on the map, they bend around debris-flow zones in floods, and a red debris-flow alert from the soil and water conservation agency closes the roads inside its zone.
 - **Works on a phone and without a mouse.** Below 760 px the two panels fold into tabs at the bottom so the map keeps the screen; the dropdowns work with the keyboard and every control has a name a screen reader can read.
-- **Measured, not claimed.** Separate evaluations for retrieval, generation, routing, boundaries, counterfactual faithfulness and knowledge answers, with bootstrap confidence intervals, plus 666 tests.
+- **Measured, not claimed.** Separate evaluations for retrieval, generation, routing, boundaries, counterfactual faithfulness, knowledge answers, small place names, simulation follow-ups and the evacuation assignment, with bootstrap confidence intervals, plus 726 tests and a browser test of the page.
 
 | | |
 |---|---|
 | Shelters / debris-flow zones / road edges | 644 / 531 / 118,584 |
 | Answered by code, no LLM | 201 of 207 eval questions, p50 0.2 s |
 | Boundary and refusal questions | 53 / 53 |
-| Routing decisions | 56 / 56 |
+| Routing decisions | 59 / 59 |
 | Knowledge questions, right passage returned | 40 / 40 |
-| Small place names (知本, 七星潭…), first shelter in the right township | 38 / 42 (semantic retrieval: 28 / 42) |
+| Small place names (知本, 七星潭…), first shelter in the right township | 39 / 42 (semantic retrieval: 28 / 42) |
 | Simulation follow-ups, complete and correct | 20 / 20 in 0.1 s (the model: lists cut off, 4 of 5 "excluded" answers wrong) |
-| Route length inside debris-flow zones (太麻里 flood example) | 6.18 km → 2.21 km, for 3.3 km more driving |
+| Evacuation assignment against nearest-first greedy (159 scenarios) | greedy up to 18% slower in total, never fewer placed; solved in pgRouting in ≤ 0.32 s |
+| Route length inside debris-flow zones (太麻里 flood, 26 routes by car) | 6.38 km → 4.79 km, for 1.8 km more driving |
 
 <table>
 <tr>
@@ -148,7 +149,7 @@ The code is released under the [MIT License](LICENSE). The data keeps its own li
 以 2025 年花蓮光復鄉堰塞湖災害為出發點，針對現有避難所管理系統資訊不透明、無法模擬、決策緩慢三大痛點所開發的災害模擬決策系統。
 
 <p align="center"><img src="docs/images/evacuation.gif" alt="花蓮市模擬時，人群沿著道路路線移動到避難所" width="100%"></p>
-<p align="center"><em>花蓮市 10 公里強震模擬，交通方式選開車。人群沿道路路線移到最近、還有空位的避難所，避難所滿了就變紅。播放速度約為實際的兩倍。</em></p>
+<p align="center"><em>花蓮市 10 公里強震模擬，交通方式選開車。每個村里的人沿道路走到分配到的避難所，避難所滿了就變紅。以實際速度播放。</em></p>
 
 ## 重點一覽
 
@@ -157,18 +158,19 @@ The code is released under the [MIT License](LICENSE). The data keeps its own li
 - **不知道的就不答**：範圍外縣市、離題問題、不存在的避難所、錯字名稱，都在模型看到之前處理掉。邊界題 53 題全部正確回答或拒答。
 - **依道路疏散，不是直線**：在地圖上任何地方點一下就能當模擬中心。疏散人口從每個受影響的村里出發，分配到還有空位的避難所，讓所有人沿 OpenStreetMap 路網步行或開車的時間加總最短（最小成本流，在 pgRouting 裡解）。實際路線畫在地圖上，淹水時會繞開土石流潛勢範圍；農村水保署發布土石流紅色警戒時，範圍內的道路直接封閉。
 - **手機和鍵盤都能用**：寬度 760px 以下，兩個面板收進底部分頁，地圖佔滿畫面；下拉選單可以只用鍵盤操作，每個控制項都有螢幕閱讀器念得出來的名稱。
-- **用數字說話**：檢索、生成、路由、邊界題、反事實忠實度、防災知識各有獨立評測，附 bootstrap 信賴區間，另有 666 個測試。
+- **用數字說話**：檢索、生成、路由、邊界題、反事實忠實度、防災知識、小地名、模擬追問、疏散分配各有獨立評測，附 bootstrap 信賴區間，另有 726 個測試與網頁的瀏覽器測試。
 
 | | |
 |---|---|
 | 避難所 / 土石流潛勢區 / 路網路段 | 644 / 531 / 118,584 |
 | 由程式回答、不經 LLM | 評測 207 題中 201 題，p50 0.2 秒 |
 | 邊界與拒答題 | 53 / 53 |
-| 路由判斷 | 56 / 56 |
+| 路由判斷 | 59 / 59 |
 | 防災知識題回到正確段落 | 40 / 40 |
-| 小地名（知本、七星潭…），第一間在對的鄉鎮 | 38 / 42（語意檢索：28 / 42） |
+| 小地名（知本、七星潭…），第一間在對的鄉鎮 | 39 / 42（語意檢索：28 / 42） |
 | 模擬追問完整且正確 | 20 / 20，0.1 秒（交給模型時：長清單被截斷，「排除」5 題錯 4 題） |
-| 路線落在土石流潛勢範圍內的長度（太麻里淹水模擬） | 6.18 公里 → 2.21 公里，多開 3.3 公里 |
+| 疏散分配對上「最近優先」的貪婪法（159 個情境） | 貪婪法總時間最多多 18%，安置人數從沒比較多；在 pgRouting 裡 0.32 秒內解完 |
+| 路線落在土石流潛勢範圍內的長度（太麻里淹水、開車，26 條路線） | 6.38 公里 → 4.79 公里，多開 1.8 公里 |
 
 <table>
 <tr>
