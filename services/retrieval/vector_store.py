@@ -9,14 +9,16 @@ from pathlib import Path
 import config
 from services.chat.direct_answer import compose
 from services.chat.query_rules import MAX_FILTERED_RESULTS, MAX_RANKED_RESULTS, QueryPlan
-from services.retrieval.chroma import make_client
+from services.retrieval.chroma import COLLECTION_METADATA, make_client, settings_tag
 from services.retrieval.embeddings import build_embedding_function
 from services.retrieval.shelter_profile import HAZARD_KEYS, details_text, profile, strip_region_tag
 from services.web.metrics import metrics
 
 logger = logging.getLogger(__name__)
 
-FINGERPRINT_FILE = "index_fingerprint.json"
+# 每個 collection 一個指紋檔。以前所有 collection 共用一個檔，評測建的 eval_* 索引會蓋掉別人的指紋，
+# 另一個 collection 看到「指紋相符」就沿用舊內容、不重建
+FINGERPRINT_FILE = "index_fingerprint_{name}.json"
 # 重建索引時先建到這個暫存 collection，embedding 跑完才整個換過去
 REBUILD_SUFFIX = "__rebuild"
 
@@ -113,7 +115,7 @@ class VectorStore:
         return self.client.get_or_create_collection(
             name=name,
             embedding_function=self.ef,
-            metadata={"hnsw:space": "cosine"},
+            metadata=dict(COLLECTION_METADATA),
         )
 
     def _drop_collection(self, name: str) -> None:
@@ -127,7 +129,9 @@ class VectorStore:
         return self.ef.name() if hasattr(self.ef, "name") else type(self.ef).__name__
 
     def _fingerprint_path(self) -> Path | None:
-        return Path(self.persist_path) / FINGERPRINT_FILE if self.persist_path else None
+        if not self.persist_path:
+            return None
+        return Path(self.persist_path) / FINGERPRINT_FILE.format(name=self.collection_name)
 
     @staticmethod
     def doc_id(name: str) -> str:
@@ -140,6 +144,7 @@ class VectorStore:
         digest = hashlib.sha256(self._ef_name().encode("utf-8"))
         # metadata 欄位改了（例如新增 road）文件內容不會變，靠版本號讓落地的索引重建
         digest.update(f"metadata-v{METADATA_VERSION}".encode())
+        digest.update(settings_tag())
         for doc in sorted(documents):
             digest.update(SEPARATOR)
             digest.update(doc.encode("utf-8"))

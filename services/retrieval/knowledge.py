@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import config
-from services.retrieval.chroma import make_client
+from services.retrieval.chroma import COLLECTION_METADATA, make_client, settings_tag
 from services.retrieval.embeddings import build_embedding_function
 from services.web.metrics import metrics
 
@@ -211,6 +211,7 @@ class KnowledgeStore:
     def _fingerprint(self, chunks: list[KnowledgeChunk]) -> str:
         name = self.ef.name() if hasattr(self.ef, "name") else type(self.ef).__name__
         digest = hashlib.sha256(name.encode("utf-8"))
+        digest.update(settings_tag())
         for chunk in chunks:
             digest.update(f"|{chunk.id}|{chunk.hazard}|{chunk.kind}|{chunk.document}".encode())
         return digest.hexdigest()
@@ -225,7 +226,7 @@ class KnowledgeStore:
         fingerprint = self._fingerprint(chunks)
         with self._lock:
             existing = self.client.get_or_create_collection(
-                name=COLLECTION_NAME, embedding_function=self.ef, metadata={"hnsw:space": "cosine"},
+                name=COLLECTION_NAME, embedding_function=self.ef, metadata=dict(COLLECTION_METADATA),
             )
             if (existing.metadata or {}).get("fingerprint") == fingerprint and existing.count() == len(chunks):
                 self.collection = existing
@@ -236,7 +237,7 @@ class KnowledgeStore:
             collection = self.client.create_collection(
                 name=COLLECTION_NAME,
                 embedding_function=self.ef,
-                metadata={"hnsw:space": "cosine", "fingerprint": fingerprint},
+                metadata={**COLLECTION_METADATA, "fingerprint": fingerprint},
             )
             collection.add(
                 ids=[c.id for c in chunks],

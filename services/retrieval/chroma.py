@@ -24,6 +24,19 @@ class NoTelemetry(ProductTelemetryClient):
         return None
 
 
+# 每個 collection 的設定。ChromaDB 用近似最近鄰（HNSW），預設搜尋寬度 search_ef=10：
+# 要前 10 筆時候選也只看 10 個，真正最近的那筆可能不在裡面。實測「外役監」最近的是光復自強外役監獄
+# （距離 0.50，第二名 0.58），前 10 名裡卻沒有它，要 50 筆才排第一。
+# 避難所 644 筆、知識 34 段，搜尋寬度開到比文件數大就等於精確搜尋，多花的時間量不出來。
+# 改這裡會讓兩個索引的指紋變動、自動重建（設定只在建立 collection 時生效）
+COLLECTION_METADATA = {"hnsw:space": "cosine", "hnsw:search_ef": 1000, "hnsw:construction_ef": 200}
+
+
+def settings_tag() -> bytes:
+    """算進索引指紋的設定字串：設定改了，落地的舊索引就重建"""
+    return repr(sorted(COLLECTION_METADATA.items())).encode()
+
+
 _IMPL = f"{__name__}.NoTelemetry"
 SETTINGS = Settings(anonymized_telemetry=False, chroma_product_telemetry_impl=_IMPL, chroma_telemetry_impl=_IMPL)
 
