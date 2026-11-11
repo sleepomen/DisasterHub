@@ -356,3 +356,8 @@ def test_failed_build_is_retried_but_not_on_every_question(tmp_path):
         assert s.status() == (True, "2 passages")
     finally:
         s.client.delete_collection("knowledge")
+
+
+def test_store_searches_wide_enough_to_be_exact(store):
+    assert store.collection.metadata["hnsw:search_ef"] >= 1000
+    assert "fingerprint" in store.collection.metadata

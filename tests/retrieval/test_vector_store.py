@@ -636,3 +636,32 @@ def test_full_shelter_name_in_the_question_is_fetched_directly(store):
     result = store.plan_retrieve("羅東鎮立體育館還有空位嗎", analyze("羅東鎮立體育館還有空位嗎"))
     assert result.named and [h.name for h in result.hits] == ["[YILAN] 羅東鎮立體育館"]
     assert store.exact_named("宜蘭有哪些避難所") == []
+
+
+def test_the_index_searches_wide_enough_to_be_exact(tmp_path):
+    # 預設的 HNSW 搜尋寬度只看 10 個候選，真正最近的那筆可能被漏掉（實測「外役監」）
+    store = make_store(tmp_path)
+    store.build_index(SHELTERS)
+    assert store.collection.metadata["hnsw:search_ef"] >= 1000
+    assert store.collection.metadata["hnsw:space"] == "cosine"
+
+
+def test_changing_the_index_settings_rebuilds_a_saved_index(tmp_path):
+    make_store(tmp_path).build_index(SHELTERS)
+    reopened = make_store(tmp_path)
+    with patch("services.retrieval.vector_store.settings_tag", return_value=b"other"):
+        with patch.object(reopened.client, "delete_collection", wraps=reopened.client.delete_collection) as dropped:
+            reopened.build_index(SHELTERS)
+    dropped.assert_called()
+
+
+def test_each_collection_keeps_its_own_fingerprint(tmp_path):
+    # 同樣的資料、舊的索引設定建了 first；接著 second 用新設定建好。first 重開時仍要重建，
+    # 不能因為 second 寫下的指紋跟自己算出來的一樣就沿用舊索引（共用一個指紋檔時就會這樣）
+    with patch("services.retrieval.vector_store.settings_tag", return_value=b"old"):
+        make_store(tmp_path, name="first").build_index(SHELTERS)
+    make_store(tmp_path, name="second").build_index(SHELTERS)
+    first = make_store(tmp_path, name="first")
+    with patch.object(first.client, "delete_collection", wraps=first.client.delete_collection) as dropped:
+        first.build_index(SHELTERS)
+    assert "first" in [call.args[0] for call in dropped.call_args_list]
