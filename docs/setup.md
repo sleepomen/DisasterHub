@@ -43,7 +43,7 @@ Edit `.env`:
 | `ALERT_POLL_SECONDS` / `ALERT_TTL_MINUTES` | How often live debris-flow alerts are fetched (default 600 s) and how long a fetched alert stays in effect if later fetches fail (default 180 min). `ALERT_POLL_SECONDS=0` disables fetching, for offline machines; the tests set it to 0 |
 | `DB_CONNECT_TIMEOUT` / `DB_STATEMENT_TIMEOUT_MS` | Database connect timeout (seconds, default 5) and per-statement timeout (milliseconds, default 15000), so a hung database fails requests within seconds instead of blocking every worker thread |
 
-Optional variables: `OLLAMA_MODEL` (default `llama3.2:3b`), `OLLAMA_TEMPERATURE`, `OLLAMA_NUM_CTX` (default 8192 — must hold the 20–30 shelter documents a list-style query retrieves), `OLLAMA_NUM_PREDICT` (default 800), `OLLAMA_TIMEOUT`, `EMBEDDING_PROVIDER` (`ollama` or `minilm`), `EMBEDDING_MODEL` (default `bge-m3`), `EMBEDDING_TIMEOUT`, `RAG_TOP_K`, `RAG_MAX_DISTANCE` (default 0.70 — cosine distance above which a plain semantic search is treated as "no relevant data"; a last-resort backstop, since off-topic questions are already refused by the earlier layers), `KNOWLEDGE_MAX_DISTANCE` (default 0.45 — the same cutoff for knowledge passages), `DB_POOL_MIN` / `DB_POOL_MAX` (default 1 / 10).
+Optional variables: `OLLAMA_MODEL` (default `llama3.2:3b`), `OLLAMA_TEMPERATURE`, `OLLAMA_NUM_CTX` (default 8192 — must hold the 20–30 shelter documents a list-style query retrieves), `OLLAMA_NUM_PREDICT` (default 800), `OLLAMA_TIMEOUT`, `OLLAMA_KEEP_ALIVE` (default `30m` — how long Ollama keeps a model loaded after each request; seconds, `-1` for never, or a duration such as `2h`. Without it Ollama unloads after 5 minutes idle and the next question waits for the model to load again), `EMBEDDING_PROVIDER` (`ollama` or `minilm`), `EMBEDDING_MODEL` (default `bge-m3`), `EMBEDDING_TIMEOUT`, `RAG_TOP_K`, `RAG_MAX_DISTANCE` (default 0.70 — cosine distance above which a plain semantic search is treated as "no relevant data"; a last-resort backstop, since off-topic questions are already refused by the earlier layers), `KNOWLEDGE_MAX_DISTANCE` (default 0.45 — the same cutoff for knowledge passages), `DB_POOL_MIN` / `DB_POOL_MAX` (default 1 / 10).
 
 Numeric settings are range-checked at startup (for example `SESSION_HOURS` must be positive and `DB_POOL_MAX` may not be smaller than `DB_POOL_MIN`); an out-of-range value stops the service with a clear message, and a value that cannot be parsed falls back to the default with a warning in the log.
 
@@ -127,6 +127,43 @@ E2E_BASE_URL=http://localhost:8501 pytest e2e/ -v
 
 Set `ADMIN_USERNAME` and `ADMIN_PASSWORD` to include the simulation test, which writes occupancy and resets it at the
 end; without them it is skipped.
+
+## Before a live demo
+
+Ollama runs on the CPU on a laptop without a supported GPU: answers built by code (lists, nearest shelters, knowledge
+passages, simulation follow-ups) take 2–3 seconds, a question that goes to the model about 25–30 seconds. The usual
+failures on the day are a model that has been unloaded, a venue network that blocks the map tiles, and a projector
+that will not play a browser recording. Each has a fallback:
+
+1. **Warm up.** On the machine that runs the stack, shortly before the talk:
+
+   ```bash
+   python tools/demo_warmup.py               # --keep-alive 4h for a longer session
+   ```
+
+   It checks `/health/ready`, loads the chat and embedding models into Ollama and keeps them there, then asks one
+   question per answer path (list, knowledge passage, place name, model). Set `OLLAMA_KEEP_ALIVE=3h` (or `-1`) in `.env`
+   for the day as well: every request the site sends resets the timer to that value.
+2. **Browse the demo areas once.** Map tiles come from OpenStreetMap and the browser keeps them about a day. With no
+   network the map turns plain beige, but the shelters, villages, routes, simulation and chat all still work: they
+   come from the local stack.
+3. **Keep a recording.** `tools/record_demo.py` drives the site in one take with captions (picking a centre, the
+   simulation along the roads, a route tooltip, a follow-up question, list and place-name answers, and with
+   `--alerts` a red alert cutting off villages), then clears the simulation. It needs the admin login in the
+   environment and Playwright with its video encoder:
+
+   ```bash
+   pip install playwright && playwright install chromium ffmpeg
+   ADMIN_USERNAME=... ADMIN_PASSWORD=... python tools/record_demo.py --lang en --out ../DisasterHub-demo
+   ```
+
+   Presentation software prefers MP4. Without ffmpeg on the host, convert in a throwaway container:
+
+   ```bash
+   docker run --rm -v "$PWD/../DisasterHub-demo:/v" python:3.12-slim sh -c      "apt-get update -qq && apt-get install -y -qq ffmpeg >/dev/null &&       ffmpeg -y -i /v/demo-en.webm -c:v libx264 -crf 23 -pix_fmt yuv420p -movflags +faststart /v/demo-en.mp4"
+   ```
+
+   The recording runs about three and a half minutes; the model answer is the slowest part.
 
 ## Deployment notes
 

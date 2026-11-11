@@ -128,7 +128,9 @@ DisasterHub/
 │   ├── build_shelters.py       # National Fire Agency CSV → data_for_refuge/*.json
 │   ├── build_road_network.py   # OpenStreetMap PBF → east_roads.json.gz (pgRouting edge table)
 │   ├── build_place_names.py    # OpenStreetMap PBF → east_places.json (villages, landmarks)
-│   └── build_villages.py       # Ministry of the Interior population + OSM village boundaries and buildings → east_villages.json
+│   ├── build_villages.py       # Ministry of the Interior population + OSM village boundaries and buildings → east_villages.json
+│   ├── demo_warmup.py          # Before a demo: load the models and ask one question per answer path
+│   └── record_demo.py          # Record a captioned demo video as a fallback for the live demo
 │
 ├── static/
 │   ├── index.html              # Page skeleton

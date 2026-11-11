@@ -128,7 +128,9 @@ DisasterHub/
 │   ├── build_shelters.py       # 消防署 CSV → data_for_refuge/*.json
 │   ├── build_road_network.py   # OpenStreetMap PBF → east_roads.json.gz（pgRouting 邊表）
 │   ├── build_place_names.py    # OpenStreetMap PBF → east_places.json（村落、地標）
-│   └── build_villages.py       # 內政部村里人口 + OSM 村里界與建物 → east_villages.json
+│   ├── build_villages.py       # 內政部村里人口 + OSM 村里界與建物 → east_villages.json
+│   ├── demo_warmup.py          # 展示前：把模型載進記憶體、每條回答路徑各問一題
+│   └── record_demo.py          # 錄一支附字幕的展示影片，現場出狀況時的備援
 │
 ├── static/
 │   ├── index.html              # 頁面骨架

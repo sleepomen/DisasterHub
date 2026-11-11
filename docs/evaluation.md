@@ -102,6 +102,7 @@ DisasterHub/
 │   ├── run_place_eval.py       # Small place names: are the shelters in the right township?
 │   ├── run_assignment_eval.py  # Evacuation assignment: coordinated (min-cost flow) against everyone heading for the nearest shelter
 │   ├── run_coordinate_check.py # Shelter coordinates: distance to the road network and to their own village
+│   ├── run_sensitivity_eval.py # Evacuation assignment when demand, capacity or origins change
 │   ├── datasets/               # Question sets
 │   │   ├── rag_eval.jsonl      # The evaluation set
 │   │   ├── route_eval.jsonl    # Routing test set (59 questions, all twelve routes)
@@ -655,3 +656,27 @@ docker exec disaster_app python evals/run_assignment_eval.py
 - **Township centroids overstate driving even more:** 12.2 against 4.8 minutes per person (2.5×), with villages slower in only 2 scenarios. The leg from an origin to the nearest road is charged at walking speed even when driving, but it explains little of the gap: township centres are a median 50 m from a road (6 of 41 over 200 m) against 19 m for village origins (`summary.origin_to_road` in both result files). Most of the gap is that one centre stands in for settlements spread kilometres apart.
 
 **Tests.** The Python solver is checked against brute force on 200 small random cases; the database call is checked for its edge layout, integer costs and the mapping back to pairs, and for falling back to Python when it fails (`tests/simulation/test_min_cost_flow.py`).
+
+## Sensitivity Analysis
+
+The evacuation is a model: the population is the registered one, each village starts from one point, and shelter capacity is taken as listed. `evals/run_sensitivity_eval.py` changes one assumption at a time on the 159 assignment scenarios (on foot) and compares the result with the unchanged run:
+
+```bash
+docker exec disaster_app python evals/run_sensitivity_eval.py
+```
+
+| Change | Unplaced | Shelters used, overlap with the unchanged run (Jaccard, mean) | Minutes per person | Saved by coordination (mean) |
+|---|---|---|---|---|
+| None | 46.0% | — | — | 3.1% (helps in 114 scenarios) |
+| Evacuees × 0.8 | 36.4% | 0.97 | +4.3% | 3.2% |
+| Evacuees × 1.2 | 53.6% | 0.98 | −3.0% | 2.6% |
+| Capacity 75% | 58.0% | 0.97 | −4.9% | 2.3% |
+| Capacity 50% | 71.3% | 0.94 | −11.9% | 2.0% (up to 22.5%) |
+| Origins moved 0.5–1 km, two random seeds | 46.0% | 0.96 | +26% to +35% | 3.0% |
+
+Evacuees × 0.8 and × 1.2 stand for people present who are not registered there, or registered but away; capacity 50% and 75% for damaged or partly unusable shelters; moved origins for people not being at the village's largest settlement. Speed is not varied: on foot every cost scales by the same factor, so the optimal plan cannot change. The shares are over all scenarios together (about 1.0 million evacuees, counted once per scenario). Coordination helps in 114 scenarios here against 111 in the assignment evaluation, which compares totals rounded to 0.1 person-hour.
+
+- **Which shelters are used, and that coordination helps, hold up.** The set of shelters used overlaps the unchanged run by 0.94 or more on average under every change, and coordination still saves 2–3% of total time in 105 to 121 of the 159 scenarios.
+- **How many are placed is set by capacity and demand, almost one to one.** Extra evacuees or lost capacity turn into unplaced people; the routing does not absorb them.
+- **Travel times depend most on where people start.** Moving every origin 0.5–1 km in a random direction adds 26–35% to the mean time per person, part of it the walk to the nearest road. The minutes in the other sections are best read as orders of magnitude, which matches the township-centroid result above.
+- **Tighter capacity shortens the mean trip, but only because the people nearest the shelters take the places.** It is not a faster evacuation: more than half are left unplaced.

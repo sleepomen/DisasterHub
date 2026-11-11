@@ -43,7 +43,7 @@ cp .env.example .env
 | `ALERT_POLL_SECONDS` / `ALERT_TTL_MINUTES` | 多久抓一次即時土石流警戒（預設 600 秒），以及之後抓取一直失敗時，已抓到的警戒維持多久（預設 180 分鐘）。`ALERT_POLL_SECONDS=0` 停用抓取，給沒有網路的環境用；測試一律設為 0 |
 | `DB_CONNECT_TIMEOUT` / `DB_STATEMENT_TIMEOUT_MS` | 資料庫連線逾時（秒，預設 5）與單一 SQL 逾時（毫秒，預設 15000），資料庫卡住時請求會在幾秒內失敗，不會把所有工作執行緒一起卡死 |
 
-可選變數：`OLLAMA_MODEL`（預設 `llama3.2:3b`）、`OLLAMA_TEMPERATURE`、`OLLAMA_NUM_CTX`（預設 8192，要放得下列舉題一次撈出的 20 至 30 筆避難所文件）、`OLLAMA_NUM_PREDICT`（預設 800）、`OLLAMA_TIMEOUT`、`EMBEDDING_PROVIDER`（`ollama` 或 `minilm`）、`EMBEDDING_MODEL`（預設 `bge-m3`）、`EMBEDDING_TIMEOUT`、`RAG_TOP_K`、`RAG_MAX_DISTANCE`（預設 0.70，純語意檢索的 cosine 距離超過此值就視為沒有相關資料；離題問題已經由前面幾層擋掉，這裡只是最後一道保險）、`KNOWLEDGE_MAX_DISTANCE`（預設 0.45，知識文件的同一種門檻）、`DB_POOL_MIN` / `DB_POOL_MAX`（預設 1 / 10）。
+可選變數：`OLLAMA_MODEL`（預設 `llama3.2:3b`）、`OLLAMA_TEMPERATURE`、`OLLAMA_NUM_CTX`（預設 8192，要放得下列舉題一次撈出的 20 至 30 筆避難所文件）、`OLLAMA_NUM_PREDICT`（預設 800）、`OLLAMA_TIMEOUT`、`OLLAMA_KEEP_ALIVE`（預設 `30m`，每次請求之後 Ollama 把模型留在記憶體裡多久；秒數、`-1` 表示不卸下，或 `2h` 這種時間格式。沒設的話閒置 5 分鐘就卸下，下一題要等模型重新載入）、`EMBEDDING_PROVIDER`（`ollama` 或 `minilm`）、`EMBEDDING_MODEL`（預設 `bge-m3`）、`EMBEDDING_TIMEOUT`、`RAG_TOP_K`、`RAG_MAX_DISTANCE`（預設 0.70，純語意檢索的 cosine 距離超過此值就視為沒有相關資料；離題問題已經由前面幾層擋掉，這裡只是最後一道保險）、`KNOWLEDGE_MAX_DISTANCE`（預設 0.45，知識文件的同一種門檻）、`DB_POOL_MIN` / `DB_POOL_MAX`（預設 1 / 10）。
 
 數值設定啟動時會檢查範圍（例如 `SESSION_HOURS` 必須大於 0、`DB_POOL_MAX` 不能小於 `DB_POOL_MIN`）；超出範圍會以清楚的訊息停止服務，解析不了的值會退回預設並在 log 提醒。
 
@@ -123,6 +123,37 @@ E2E_BASE_URL=http://localhost:8501 pytest e2e/ -v
 ```
 
 設定 `ADMIN_USERNAME`、`ADMIN_PASSWORD` 才會跑模擬的那個測試，它會寫入收容人數、結束時重置；沒設定就跳過。
+
+## 展示前檢查
+
+筆電沒有可用的 GPU 時 Ollama 跑在 CPU 上：程式組出來的回答（清單、最近的避難所、防災知識原文、模擬追問）約 2～3 秒，
+交給模型的問題約 25～30 秒。現場常見的狀況是模型被卸下、場地網路擋掉地圖圖磚、投影電腦播不了瀏覽器錄的影片，各有備援：
+
+1. **預熱**：在跑服務的電腦上，開場前執行：
+
+   ```bash
+   python tools/demo_warmup.py               # 時間比較長用 --keep-alive 4h
+   ```
+
+   它會檢查 `/health/ready`、把對話與 embedding 模型載進 Ollama 並留著，再對每一條回答路徑各問一題（清單、防災知識原文、
+   小地名、模型）。當天也把 `.env` 的 `OLLAMA_KEEP_ALIVE` 設成 `3h`（或 `-1`）：網站每次請求都會把時間重設成這個值。
+2. **先把要展示的區域瀏覽一遍**：地圖圖磚來自 OpenStreetMap，瀏覽器會留大約一天。沒有網路時底圖變成一片米色，
+   但避難所、村里、路線、模擬與問答都照常運作，它們都來自本機的服務。
+3. **留一支錄影**：`tools/record_demo.py` 一鏡到底操作網站並加字幕（選中心、沿道路的模擬、路線提示、追問、清單與小地名的回答，
+   加 `--alerts` 再錄紅色警戒切斷村里），最後清除模擬。需要在環境變數提供管理員帳號，以及 Playwright 和它的影片編碼器：
+
+   ```bash
+   pip install playwright && playwright install chromium ffmpeg
+   ADMIN_USERNAME=... ADMIN_PASSWORD=... python tools/record_demo.py --lang zh --out ../DisasterHub-demo
+   ```
+
+   簡報軟體比較吃 MP4。主機沒有 ffmpeg 的話用一次性容器轉：
+
+   ```bash
+   docker run --rm -v "$PWD/../DisasterHub-demo:/v" python:3.12-slim sh -c      "apt-get update -qq && apt-get install -y -qq ffmpeg >/dev/null &&       ffmpeg -y -i /v/demo-zh.webm -c:v libx264 -crf 23 -pix_fmt yuv420p -movflags +faststart /v/demo-zh.mp4"
+   ```
+
+   錄出來約三分半，最慢的是交給模型的那一題。
 
 ## 部署建議
 
