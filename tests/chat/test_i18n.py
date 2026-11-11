@@ -186,3 +186,30 @@ def test_village_origins_have_english_names():
     assert place_en("壽豐鄉") == "Shoufeng Township"
     assert place_en("不存在村") == "不存在村"
 
+
+
+def test_requests_to_ollama_ask_it_to_keep_the_models_loaded():
+    """沒帶 keep_alive 時 Ollama 閒置 5 分鐘就卸下模型，展示前預熱設的時間也會被改回去"""
+    from unittest.mock import MagicMock, patch
+
+    import config
+    from services.chat import llm_client
+    from services.retrieval.embeddings import OllamaEmbedding
+
+    assert llm_client.payload("問題", stream=True)["keep_alive"] == config.OLLAMA_KEEP_ALIVE
+    response = MagicMock()
+    response.json.return_value = {"embeddings": [[0.1, 0.2]]}
+    with patch("services.retrieval.embeddings.requests.post", return_value=response) as post:
+        OllamaEmbedding("bge-m3", "http://ollama:11434")._embed_batch(["暖機"])
+    assert post.call_args.kwargs["json"]["keep_alive"] == config.OLLAMA_KEEP_ALIVE
+
+
+def test_keep_alive_accepts_seconds_or_a_duration(monkeypatch):
+    import importlib
+
+    import config
+    for raw, expected in (("-1", -1), ("600", 600), ("2h", "2h"), ("", "30m")):
+        monkeypatch.setenv("OLLAMA_KEEP_ALIVE", raw)
+        assert importlib.reload(config).OLLAMA_KEEP_ALIVE == expected
+    monkeypatch.delenv("OLLAMA_KEEP_ALIVE")
+    importlib.reload(config)
