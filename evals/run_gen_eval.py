@@ -75,7 +75,10 @@ def run(cases, store, shelters, progress_handle=None, done=None):
     from services.chat.service import ChatService
 
     catalog = build_catalog(shelters)
-    svc = ChatService(vector_store=store, repo=None)
+    from repositories.shelter_repository import ShelterRepository
+
+    # 跟線上一樣接資料庫：小地名、最近避難所的回答要查 PostGIS，沒有資料庫時那幾題只會回錯誤訊息
+    svc = ChatService(vector_store=store, repo=ShelterRepository())
     done = done or {}
     rows = []
     total = len(cases)

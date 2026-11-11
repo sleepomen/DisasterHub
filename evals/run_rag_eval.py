@@ -65,7 +65,30 @@ def build_store(embedder_spec: str, label: str, doc_style: str = "current"):
     return store, len(shelters), time.perf_counter() - t0
 
 
-def run(cases, store, ks, top, threshold, use_rules=True):
+def rules_only(store, query, plan) -> list:
+    """
+    消融用：只有規則層與 metadata 查詢、完全不用向量。順序與筆數上限跟 plan_retrieve 一樣，
+    只是把「依向量相似度排」換成「依容量排」（等於 SQL 的 WHERE … ORDER BY capacity）：
+    容量排名題照舊；問句裡有完整的避難所名稱就拿那幾間；有篩選條件就取符合的，
+    超過總覽門檻時跟線上一樣只列 OVERVIEW_LIST 筆；以上都沒有就什麼也拿不到——
+    語意題、別名題沒有向量就答不了，這正是要量的。
+    """
+    from services.chat.query_rules import MAX_FILTERED_RESULTS, MAX_RANKED_RESULTS
+    from services.retrieval.vector_store import OVERVIEW_LIST, OVERVIEW_THRESHOLD
+
+    where = plan.to_where()
+    if plan.order_by_capacity:
+        return store.rank_by_capacity(where, plan.capacity_order != "asc")[:MAX_RANKED_RESULTS]
+    exact = store.exact_named(query)
+    if exact:
+        return exact
+    if where is None:
+        return []
+    hits = store.rank_by_capacity(where)
+    return hits[:OVERVIEW_LIST] if len(hits) > OVERVIEW_THRESHOLD else hits[:MAX_FILTERED_RESULTS]
+
+
+def run(cases, store, ks, top, threshold, use_rules=True, use_dense=True):
     from services.chat import query_rules
     from services.chat.shelter_names import known_names_of
 
@@ -80,6 +103,8 @@ def run(cases, store, ks, top, threshold, use_rules=True):
             # 規則層的兩種拒答都算：範圍外縣市，以及問的不是避難所（天氣、醫院、補助…）
             if plan.out_of_scope or plan.off_topic:
                 hits, rejected = [], plan.out_of_scope or plan.off_topic
+            elif not use_dense:
+                hits = rules_only(store, c["query"], plan)
             else:
                 # 有篩選時交給規則決定筆數（回傳全部符合者），沒篩選時維持 top
                 hits = store.retrieve_planned(c["query"], plan, n_results=None if plan.has_filter else top)
@@ -275,6 +300,7 @@ def main():
     parser.add_argument("--doc-style", default="current", choices=["current", "legacy"])
     parser.add_argument("--show-misses", type=int, default=15)
     parser.add_argument("--no-rules", action="store_true", help="skip the query rules layer (metadata filters / out-of-scope rejection)")
+    parser.add_argument("--no-dense", action="store_true", help="消融：只用規則層與 metadata 查詢，不用向量檢索")
     parser.add_argument("--out", default=None)
     args = parser.parse_args()
 
@@ -282,13 +308,17 @@ def main():
     label = args.label or args.embedder.replace(":", "_")
     cases = load_cases(args.cases)
     store, docs, build_s = build_store(args.embedder, label, args.doc_style)
-    rows = run(cases, store, ks, max(args.top, ks[-1]), args.threshold, use_rules=not args.no_rules)
+    if args.no_rules and args.no_dense:
+        raise SystemExit("--no-rules 與 --no-dense 不能同時用：兩個都拿掉就什麼都不剩")
+    rows = run(cases, store, ks, max(args.top, ks[-1]), args.threshold,
+               use_rules=not args.no_rules, use_dense=not args.no_dense)
     summary = summarize(rows, ks)
     meta = {
         "label": label,
         "embedder": args.embedder,
         "doc_style": args.doc_style,
         "rules": not args.no_rules,
+        "dense": not args.no_dense,
         "top": args.top,
         "docs": docs,
         "index_build_s": build_s,
