@@ -97,7 +97,7 @@ Open <http://localhost:8501>. The first start loads the shelters, hazard zones a
 | Document | What it covers |
 |---|---|
 | [Design decisions](docs/decisions.md) | What went wrong along the way, how it was measured, and what was decided. **Start here.** |
-| [Evaluation](docs/evaluation.md) | Retrieval, generation, boundary, routing, knowledge, simulation follow-up, place-name and assignment evaluations, with confidence intervals |
+| [Evaluation](docs/evaluation.md) | Retrieval, generation, boundary, routing, knowledge, simulation follow-up, place-name and assignment evaluations, coordinate check and sensitivity analysis, with confidence intervals |
 | [Question answering](docs/chat.md) | Answers written by code, verbatim knowledge passages, English mode, example questions |
 | [Simulation and routing](docs/simulation-and-routing.md) | Evacuation assignment, road routes, hazard-aware routing, live alerts, walking and driving |
 | [Architecture](docs/architecture.md) | Features, stack, project structure, data sources |
@@ -107,7 +107,7 @@ Open <http://localhost:8501>. The first start loads the shelters, hazard zones a
 ## Limitations
 
 - **The language model is small and local** (llama3.2:3b). It only answers what code cannot: plain semantic questions with no condition. Those are the weakest answers: a place the system does not know (「龜山島附近」) still falls back to semantic retrieval and gets shelters from elsewhere.
-- **The evacuation is a model, not a plan.** Each village starts from one point (its largest settlement), the population is the registered one rather than who is there at the time, and road speeds are fixed with no traffic or congestion.
+- **The evacuation is a model, not a plan.** Each village starts from one point (its largest settlement), the population is the registered one rather than who is there at the time, and road speeds are fixed with no traffic or congestion. A [sensitivity analysis](docs/evaluation.md#sensitivity-analysis) shows which shelters are used and the gain from coordination hold up, while travel times shift by a quarter or more when people start elsewhere, so the minutes are orders of magnitude, not forecasts.
 - **Live alerts have not been seen live yet.** The feed reported no alerts while this was built, so the alert format is inferred from the dataset description.
 - **English mode is partial.** The 34 knowledge passages have draft translations awaiting review, so English answers still show the Chinese passage.
 - **Two retrieval categories are partly circular.** The township and facility answers in the retrieval set come from the same functions that write the index metadata, so they partly test the retriever against itself. The alias, semantic, boundary, routing and knowledge questions are written by hand.
@@ -232,7 +232,7 @@ docker compose up --build
 | 文件 | 內容 |
 |---|---|
 | [設計決定](docs/zh-TW/decisions.md) | 一路上遇到的問題、怎麼量出來的、最後怎麼決定。**建議從這裡開始看。** |
-| [評測](docs/zh-TW/evaluation.md) | 檢索、生成、拒答、路由、防災知識、模擬追問、小地名、疏散分配評測，附信賴區間 |
+| [評測](docs/zh-TW/evaluation.md) | 檢索、生成、拒答、路由、防災知識、模擬追問、小地名、疏散分配評測，座標檢查與敏感度分析，附信賴區間 |
 | [問答流程](docs/zh-TW/chat.md) | 程式直接回答、防災知識原文、英文模式、問題範例 |
 | [模擬與路線規劃](docs/zh-TW/simulation-and-routing.md) | 疏散分配、道路路線、避開災害範圍、即時警戒、步行與開車 |
 | [架構](docs/zh-TW/architecture.md) | 功能、技術架構、專案結構、資料來源 |
@@ -242,7 +242,7 @@ docker compose up --build
 ## 限制
 
 - **語言模型小、跑在本機**（llama3.2:3b）。它只回答程式答不了的題目：沒有任何條件的語意題。這些也是答得最弱的：系統不認得的地名（「龜山島附近」）仍交給語意檢索，撈到別處的避難所。
-- **疏散是模型，不是計畫**。每個村里只用一個點（最大的聚落）當起點，人口是戶籍人口而不是當下實際在那裡的人，道路速度是固定值、沒有路況與壅塞。
+- **疏散是模型，不是計畫**。每個村里只用一個點（最大的聚落）當起點，人口是戶籍人口而不是當下實際在那裡的人，道路速度是固定值、沒有路況與壅塞。[敏感度分析](docs/zh-TW/evaluation.md#敏感度分析)顯示用到哪些避難所、統一調度的效益都站得住，但人從別的地方出發時通行時間會差四分之一以上，所以分鐘數是量級，不是預測。
 - **即時警戒還沒遇過真的警戒**。開發期間來源都回報沒有警戒，所以警戒格式是依資料集說明推斷的。
 - **英文模式只做了一部分**。34 段防災知識的英文稿還在等審稿，英文回答目前仍顯示中文原文。
 - **檢索評測有兩類部分是循環的**。檢索題庫裡鄉鎮與設施兩類的正解，是用寫進索引 metadata 的同一組函式算出來的，等於讓檢索器考自己。別名、語意、拒答、路由與防災知識題都是人工出題。
