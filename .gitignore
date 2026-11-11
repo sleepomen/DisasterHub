@@ -6,3 +6,5 @@ venv/
 .docker_tmp/
 *.log
 data/
+# tools/record_demo.py 錄的展示影片（幾十 MB，不進版本控制）
+demo/
