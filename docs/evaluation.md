@@ -10,12 +10,12 @@
 
 ```
           n   |rel|   metrics that apply
-single   92   1       MRR 0.984   hit@3 0.989   hit@10 0.989   R@all 0.989
+single   92   1       MRR 0.989   hit@3 1.000   hit@10 1.000   R@all 1.000
 multi   105   35.8    R-Prec 0.658   R@all 0.658   P@all 0.951   (R@10 0.621, its ceiling 0.634)
 negatives 10/10 rejected by the rules layer
 ```
 
-- **Single-answer questions are nearly saturated.** One question still misses: 「馬蘭榮家」, an abbreviation of 行政院國軍退除役官兵輔導委員會馬蘭榮譽國民之家 that no rule produces and bge-m3 does not connect.
+- **Single-answer questions are saturated.** 「馬蘭榮家」, an abbreviation of 行政院國軍退除役官兵輔導委員會馬蘭榮譽國民之家, used to be the one miss. bge-m3 does connect it: the approximate search was skipping the closest document, fixed on 2026-11-11 (see [Ablation](#ablation)). Rerun after the fix as `--label ablation_rules_dense`.
 - **List recall is low by design.** Listing questions now average 35.8 correct shelters each. A filtered result returns at most 30 shelters, and above 15 matches the prompt gets the overview with 10. Region questions (≈ 200 each) score R@all 0.047, and that is exactly what the model is shown.
 - **What the listing numbers mean now.** Precision on listing questions stays at 0.951: whatever is returned matches the condition. For listings, the useful number is now whether the answer gives the right total and distribution, not R@all.
 
@@ -128,9 +128,12 @@ DisasterHub/
 > |---|---|---|---|---|---|---|---|---|---|
 > | first run on the official data | 0.624 | 0.831 | 0.521 | 0.320 | 0.008 | 0.978 | 0.931 | 1.000 | 21.2 s |
 > | + metric fixes + answer guard | 0.621 | 0.830 | 0.512 | 0.000 | 0.008 | 0.997 | 0.996 | 1.000 | 19.7 s |
-> | **+ lists and named shelters formatted by code (2026-10-29)** | **0.684** | **0.857** | **0.594** | 0.000 | 0.000 | 1.000 | 1.000 | 1.000 | **0.2 s** |
+> | + lists and named shelters formatted by code (2026-10-29) | 0.684 | 0.857 | 0.594 | 0.000 | 0.000 | 1.000 | 1.000 | 1.000 | 0.2 s |
+> | **+ exact vector search, rerun with the database (2026-11-11)** | **0.697** | **0.860** | **0.602** | 0.000 | 0.000 | 1.000 | 1.000 | 1.000 | **0.3 s** |
 >
-> The last row is the [direct answers](chat.md#direct-answers) change: 201 of the 207 questions no longer call the model, p95 latency dropped from 61.5 s to 0.5 s, and a paired bootstrap against the previous run puts every gain outside zero (answer recall +0.050 [+0.021, +0.084], precision +0.028 [+0.005, +0.052], complete +0.076 [+0.035, +0.122], micro). `halluc` and `num_ok` are true by construction for answers written by code (they are scored against the answer's own source data), so the meaningful columns are `ansR` / `ansP` / `full`. What the gains measure is the model no longer dropping or misplacing shelters while copying them: named questions went from 0.954 to 1.000, facility lists from 0.412 to 0.535 complete. Listing recall stays low by design (the overview shows ten of a region's 200).
+> The 2026-11-11 row is a rerun after the [search fix](#ablation) (`--label official_gen_after_hnsw_fix`). Two answers changed. 「淡江蘭陽校區」: the approximate index had skipped the shelter, so the model never saw it; now it names it. 「知本附近」: the place-name answers added after 2026-10-29 need the database, which this evaluation did not connect (that question returned the generic error message); it now uses the database like the live site, so the question is answered by code and the model writes 5 answers instead of 6. The boundary evaluation is unchanged at 53/53.
+>
+> The 2026-10-29 row is the [direct answers](chat.md#direct-answers) change: 201 of the 207 questions no longer call the model, p95 latency dropped from 61.5 s to 0.5 s, and a paired bootstrap against the previous run puts every gain outside zero (answer recall +0.050 [+0.021, +0.084], precision +0.028 [+0.005, +0.052], complete +0.076 [+0.035, +0.122], micro). `halluc` and `num_ok` are true by construction for answers written by code (they are scored against the answer's own source data), so the meaningful columns are `ansR` / `ansP` / `full`. What the gains measure is the model no longer dropping or misplacing shelters while copying them: named questions went from 0.954 to 1.000, facility lists from 0.412 to 0.535 complete. Listing recall stays low by design (the overview shows ten of a region's 200).
 >
 > - **Metric fixes.** `halluc` no longer flags a fragment of a real name (the facility-suffix rule cuts 礁溪鄉公所二樓 at 礁溪鄉公所), and `fmt_ok` no longer flags English letters that are part of a real name (F Hotel). Most of the first run's township `halluc` 0.516 and region 0.667 were these false positives.
 > - **Answer guard** (`services/chat/answer_guard.py`). A reply line that names something place-like (ends in 國小, 活動中心, 公所…) that matches none of the shelters sent in the prompt is removed; streaming is buffered one line at a time, so a removed line never reaches the screen. If every line would be removed, the reply is kept as is. In this run it removed 69 lines from 22 of 207 replies. 46 of them were in 9 single-shelter questions, where the 3B model answered the one shelter and then kept going with invented entries such as 「宜蘭社區活動中心：容量 30 人」.
@@ -682,3 +685,33 @@ Evacuees × 0.8 and × 1.2 stand for people present who are not registered there
 - **How many are placed is set by capacity and demand, almost one to one.** Extra evacuees or lost capacity turn into unplaced people; the routing does not absorb them.
 - **Travel times depend most on where people start.** Moving every origin 0.5–1 km in a random direction adds 26–35% to the mean time per person, part of it the walk to the nearest road. The minutes in the other sections are best read as orders of magnitude, which matches the township-centroid result above.
 - **Tighter capacity shortens the mean trip, but only because the people nearest the shelters take the places.** It is not a faster evacuation: more than half are left unplaced.
+
+## Ablation
+
+Which layer does the work? `evals/run_rag_eval.py` runs the 207 retrieval questions with one layer removed at a time:
+
+```bash
+docker exec disaster_app python evals/run_rag_eval.py --embedder ollama:bge-m3 --label ablation_rules_dense
+docker exec disaster_app python evals/run_rag_eval.py --embedder ollama:bge-m3 --no-rules --label ablation_dense_only
+docker exec disaster_app python evals/run_rag_eval.py --embedder ollama:bge-m3 --no-dense --label ablation_rules_only
+```
+
+`--no-dense` keeps the rules layer and the metadata queries but never touches the vectors: a question that names a shelter gets that shelter, a filter (township, facility, capacity, road) gets the matching shelters ordered by capacity, with the same caps as the live path (30, or the overview's 10 above 15 matches), and anything else gets nothing.
+
+| Configuration | Single-answer hit@10 | Single-answer MRR | Listing R@all | Listing P@all | Negatives refused |
+|---|---|---|---|---|---|
+| Rules and metadata only | 0.957 | 0.917 | 0.640 | 0.951 | 10/10 |
+| Dense retrieval only | 0.989 | 0.969 | 0.509 | 0.718 | 0/10 |
+| **Rules + dense (current)** | **1.000** | **0.989** | **0.658** | **0.951** | **10/10** |
+
+- **The rules layer does most of the work on this set.** On its own it keeps every listing's precision and refuses every out-of-scope question. Dense retrieval on its own returns ten neighbours for anything: listing precision falls to 0.718 and none of the ten negatives is refused (the distance gate cannot separate them either, see [Abstention](#abstention-and-boundary-questions)).
+- **Dense retrieval adds 6 of the 207 questions, all words that are not in the data.** Five are abbreviations (淡江蘭陽校區, 慈惠堂, 外役監, 805醫院, 馬蘭榮家); with rules only, 5 of the 16 alias questions return nothing. The sixth is 「知本附近」, which the chat layer now answers through the place-name index before retrieval.
+- **The rules add what similarity cannot express.** Without them, capacity thresholds (「台東容量超過300人的避難所」), "the largest" and a road (「介仁街附近」) miss, and the listings are not filtered.
+- **The set favours the rules.** Its questions and the rules were written by the same person, so the share left to dense retrieval is probably understated. The [held-out questions](#held-out-questions) are written by other people and will be run with the same three configurations.
+- **Code versus model** is measured in [Generation Quality](#generation-quality-evaluation): writing lists and named shelters by code instead of the model raised answer recall from 0.621 to 0.684 and complete answers from 0.512 to 0.594, and the median answer time fell from 19.7 s to 0.2 s. The model now writes 5 of the 207 answers.
+
+**A bug found by this run.** The first ablation run had full-system misses that the earlier run did not: 「外役監」's shelter was the closest document (distance 0.50 against 0.58 for the next) but not in the top ten. ChromaDB's approximate nearest-neighbour index (HNSW) searches 10 candidates by default, so asking for ten can miss the true nearest; asking for fifty found it first. 「馬蘭榮家」, described above as a miss bge-m3 could not connect, was the same failure. Every collection is now created with a search width larger than the collection (`services/retrieval/chroma.py`), which makes the search exact at this size, and the index settings are part of the index fingerprint so saved indexes rebuild. The run also showed that all collections shared one fingerprint file, so an evaluation index could make another collection skip a needed rebuild; each collection now has its own. The numbers in this section are after both fixes.
+
+## Held-out questions
+
+The other question sets were written while building the system, by the same person who wrote the rules. `evals/datasets/heldout/README.md` asks other people for questions, with no access to the system or the existing sets, and `evals/run_heldout_eval.py` answers them through the live path and scores hand-graded verdicts. Results will be added when the questions are in.

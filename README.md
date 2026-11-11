@@ -97,7 +97,7 @@ Open <http://localhost:8501>. The first start loads the shelters, hazard zones a
 | Document | What it covers |
 |---|---|
 | [Design decisions](docs/decisions.md) | What went wrong along the way, how it was measured, and what was decided. **Start here.** |
-| [Evaluation](docs/evaluation.md) | Retrieval, generation, boundary, routing, knowledge, simulation follow-up, place-name and assignment evaluations, coordinate check and sensitivity analysis, with confidence intervals |
+| [Evaluation](docs/evaluation.md) | Retrieval, generation, boundary, routing, knowledge, simulation follow-up, place-name and assignment evaluations, coordinate check, sensitivity analysis and ablation, with confidence intervals |
 | [Question answering](docs/chat.md) | Answers written by code, verbatim knowledge passages, English mode, example questions |
 | [Simulation and routing](docs/simulation-and-routing.md) | Evacuation assignment, road routes, hazard-aware routing, live alerts, walking and driving |
 | [Architecture](docs/architecture.md) | Features, stack, project structure, data sources |
@@ -232,7 +232,7 @@ docker compose up --build
 | 文件 | 內容 |
 |---|---|
 | [設計決定](docs/zh-TW/decisions.md) | 一路上遇到的問題、怎麼量出來的、最後怎麼決定。**建議從這裡開始看。** |
-| [評測](docs/zh-TW/evaluation.md) | 檢索、生成、拒答、路由、防災知識、模擬追問、小地名、疏散分配評測，座標檢查與敏感度分析，附信賴區間 |
+| [評測](docs/zh-TW/evaluation.md) | 檢索、生成、拒答、路由、防災知識、模擬追問、小地名、疏散分配評測，座標檢查、敏感度分析與消融實驗，附信賴區間 |
 | [問答流程](docs/zh-TW/chat.md) | 程式直接回答、防災知識原文、英文模式、問題範例 |
 | [模擬與路線規劃](docs/zh-TW/simulation-and-routing.md) | 疏散分配、道路路線、避開災害範圍、即時警戒、步行與開車 |
 | [架構](docs/zh-TW/architecture.md) | 功能、技術架構、專案結構、資料來源 |
