@@ -48,6 +48,7 @@ def payload(prompt: str, stream: bool, lang: str = "zh") -> dict:
         "system": SYSTEM_PROMPT_EN if lang == "en" else SYSTEM_PROMPT,
         "prompt": prompt,
         "stream": stream,
+        "keep_alive": config.OLLAMA_KEEP_ALIVE,
         "options": {
             "temperature": config.OLLAMA_TEMPERATURE,
             "num_predict": config.OLLAMA_NUM_PREDICT,

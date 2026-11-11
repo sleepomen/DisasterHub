@@ -59,6 +59,14 @@ OLLAMA_TEMPERATURE = _env_float("OLLAMA_TEMPERATURE", 0.3)
 OLLAMA_NUM_CTX = _env_int("OLLAMA_NUM_CTX", 8192)
 OLLAMA_NUM_PREDICT = _env_int("OLLAMA_NUM_PREDICT", 800)
 OLLAMA_TIMEOUT = _env_int("OLLAMA_TIMEOUT", 120)
+# 模型在 Ollama 記憶體裡留多久。每次請求都會重設這個時間；沒帶的話 Ollama 用預設的 5 分鐘，
+# 閒置一下下一題就要重新載入模型（CPU 上十幾秒到一分鐘）。展示前用 tools/demo_warmup.py 預熱時，
+# 預熱設的時間也會被網站的請求改回 5 分鐘，所以由網站自己帶。純數字是秒數（-1 表示不卸下），
+# 也可以寫 30m、2h 這種 Ollama 的時間格式
+OLLAMA_KEEP_ALIVE_RAW = os.environ.get("OLLAMA_KEEP_ALIVE", "30m").strip() or "30m"
+OLLAMA_KEEP_ALIVE: int | str = (
+    int(OLLAMA_KEEP_ALIVE_RAW) if OLLAMA_KEEP_ALIVE_RAW.lstrip("-").isdigit() else OLLAMA_KEEP_ALIVE_RAW
+)
 
 EMBEDDING_PROVIDER = os.environ.get("EMBEDDING_PROVIDER", "ollama")
 EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", "bge-m3")

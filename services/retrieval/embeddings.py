@@ -20,7 +20,7 @@ class OllamaEmbedding:
     def _embed_batch(self, texts: list[str]) -> list[list[float]]:
         response = requests.post(
             self.url,
-            json={"model": self.model, "input": texts},
+            json={"model": self.model, "input": texts, "keep_alive": config.OLLAMA_KEEP_ALIVE},
             timeout=self.timeout,
         )
         response.raise_for_status()
