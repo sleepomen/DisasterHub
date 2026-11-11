@@ -99,12 +99,14 @@ DisasterHub/
 │   ├── run_assignment_eval.py  # 疏散分配：統一調度（最小成本流）對上各自就近前往
 │   ├── run_coordinate_check.py # 避難所座標：離路網、離自己村里多遠
 │   ├── run_sensitivity_eval.py # 疏散人數、容量、起點改變時的疏散分配
+│   ├── run_heldout_eval.py     # 別人出的題：系統回答、人工判定、計分
 │   ├── datasets/               # 題庫
 │   │   ├── rag_eval.jsonl      # 評測集
 │   │   ├── route_eval.jsonl    # 路由測試集（59 題，涵蓋全部十二條路由）
 │   │   ├── boundary_eval.jsonl # 邊界題／拒答題庫（54 題，涵蓋五層防線）
 │   │   ├── knowledge_eval.jsonl # 知識題（正例 / 語料沒有 / 混合 / 其實在問避難所）
-│   │   └── place_eval.jsonl    # 小地名與它所在的鄉鎮
+│   │   ├── place_eval.jsonl    # 小地名與它所在的鄉鎮
+│   │   └── heldout/            # 請別人出題的說明與範本
 │   ├── lib/                    # 評分、統計與共用工具
 │   │   ├── metrics.py          # Recall / Precision / MRR / R-Precision / 天花板 / bootstrap 區間
 │   │   ├── gen_metrics.py      # 回答召回 / 幻覺 / 數字忠實 / 格式規則

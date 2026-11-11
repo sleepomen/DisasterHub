@@ -103,12 +103,14 @@ DisasterHub/
 │   ├── run_assignment_eval.py  # Evacuation assignment: coordinated (min-cost flow) against everyone heading for the nearest shelter
 │   ├── run_coordinate_check.py # Shelter coordinates: distance to the road network and to their own village
 │   ├── run_sensitivity_eval.py # Evacuation assignment when demand, capacity or origins change
+│   ├── run_heldout_eval.py     # Questions written by other people: answer, grade by hand, score
 │   ├── datasets/               # Question sets
 │   │   ├── rag_eval.jsonl      # The evaluation set
 │   │   ├── route_eval.jsonl    # Routing test set (59 questions, all twelve routes)
 │   │   ├── boundary_eval.jsonl # Boundary / abstention set (54 questions, five defences)
 │   │   ├── knowledge_eval.jsonl # Knowledge questions (positive / not covered / mixed / shelter look-alikes)
-│   │   └── place_eval.jsonl    # Small place names with the township each lies in
+│   │   ├── place_eval.jsonl    # Small place names with the township each lies in
+│   │   └── heldout/            # Instructions and template for questions written by other people
 │   ├── lib/                    # Scoring, statistics and tools shared by the runners
 │   │   ├── metrics.py          # Recall / Precision / MRR / R-Precision / ceilings / bootstrap CIs
 │   │   ├── gen_metrics.py      # Answer recall / hallucination / number faithfulness / format rules
