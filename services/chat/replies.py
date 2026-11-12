@@ -78,6 +78,20 @@ EN_REPLIES = {
 }
 
 
+def unknown_place_reply(place: str, lang: str = "zh") -> str:
+    """問句指了一個系統不認得的地方。語意檢索只會找到字面相近的別處避難所，不如直接說找不到"""
+    if lang == "en":
+        return (
+            f"I could not find the place 「{place}」. The system knows the townships, villages and common landmarks of "
+            "Yilan, Hualien and Taitung. Please ask with a township or village name (for example 「頭城鎮的避難所」), "
+            "or give your coordinates to find the nearest shelter, for example: 緯度 23.99 經度 121.60."
+        )
+    return (
+        f"找不到「{place}」這個地名。系統認得宜蘭、花蓮、台東的鄉鎮、村里與常見地標，"
+        "請改用鄉鎮或村里名稱（例如「頭城鎮的避難所」），或提供座標查詢最近的避難所，例如：緯度 23.99 經度 121.60。"
+    )
+
+
 def tr(text: str | None, lang: str) -> str | None:
     """固定回覆翻成英文；不是固定句（已經是該語言的動態回覆）就原樣回傳"""
     if lang != "en" or text is None:

@@ -67,6 +67,8 @@ ROUTE_COUNTERS = (
     "chat.route.needs_coords",
     "chat.route.no_simulation_advice",
     "chat.route.unknown_name",
+    # 「龜山島附近」：問句指了一個系統不認得的地方，誠實說找不到，不拿別處的避難所充數
+    "chat.route.unknown_place",
     "chat.route.no_clue",
     "chat.route.rag",
     # 防災知識：只有知識、知識加避難所
@@ -87,6 +89,30 @@ def needs_coordinates(message: str) -> bool:
     for word in GEO_KEYWORDS + GEO_GENERIC_WORDS:
         rest = rest.replace(word, "")
     return len(rest.strip()) < 2
+
+
+# 「X附近」「X一帶」「X最近的避難所」裡的 X。只看緊接在這些字前面的那一段，
+# 所以「最近有沒有新增避難所」（時間的「最近」）抓不到東西
+PLACE_BEFORE_GEO = re.compile(r"([\u4e00-\u9fff]{2,12})(?:附近|周邊|周圍|一帶|最近的)")
+# X 開頭的這些字不是地名的一部分（「我在龜山島附近」→「龜山島」）
+PLACE_PREFIXES = ("請問", "我們在", "我人在", "我現在在", "我在", "人在", "現在在", "在", "我們", "我")
+# 相對位置不是地名：「我家附近」該要座標，不是回「找不到這個地名」
+RELATIVE_PLACES = ("家", "家裡", "住家", "公司", "學校", "這裡", "這邊", "那邊", "這", "那", "目前位置", "現在位置")
+
+
+def place_before_geo_word(message: str) -> str | None:
+    """問句用「X附近」這類說法指了一個地方時回傳 X；相對位置（我家、公司）與太短的不算"""
+    match = PLACE_BEFORE_GEO.search(message)
+    if match is None:
+        return None
+    place = match.group(1)
+    for prefix in PLACE_PREFIXES:
+        if place.startswith(prefix):
+            place = place[len(prefix):]
+            break
+    if len(place) < 2 or place in RELATIVE_PLACES:
+        return None
+    return place
 
 
 def is_explicit_simulation_query(message: str) -> bool:

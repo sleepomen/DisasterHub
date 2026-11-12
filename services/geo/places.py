@@ -39,6 +39,9 @@ REGION_OF_TAG = {"YILAN": "宜蘭縣", "HUALIEN": "花蓮縣", "TAITUNG": "台�
 # 兩個字的地名前面可以緊接的字：「去知本」「到知本」「請問知本附近」。其他中文字代表這兩個字是更長名字的一部分
 SHORT_NAME = 2
 JOINERS = set("在去到往從離近的問是於靠和跟與或找住回想要")
+# 地名後面緊接這些字，代表它是更長名字的開頭：「我在龜山島」的「龜山」是龜山島，不是龜山里。
+# 村、里不算：「我在知本里」就是知本
+LONGER_NAME_ENDINGS = set("島嶼山溪湖潭港橋站路街灣岬角")
 # 鄉鎮全名、簡稱、縣名：規則層已經認得，不當小地名
 TOWNSHIP_NAMES = (
     {t for ts in TOWNSHIPS.values() for t in ts}
@@ -145,7 +148,10 @@ class PlaceIndex:
             start = question.find(form)
             while start != -1:
                 before, after = question[:start], question[start + len(form):]
-                if (after.startswith(AFTER_PLACE) or before.endswith(BEFORE_PLACE)) and self._stands_alone(form, before):
+                pattern = after.startswith(AFTER_PLACE) or (
+                    before.endswith(BEFORE_PLACE) and after[:1] not in LONGER_NAME_ENDINGS
+                )
+                if pattern and self._stands_alone(form, before):
                     # 兩字地名前面緊接縣或鄉鎮（「壽豐溪口」）：只留真的在那裡的
                     prefixed = len(form) <= SHORT_NAME and _joined(before)
                     places = self._narrow(before if prefixed else question, self.places[form], strict=prefixed)

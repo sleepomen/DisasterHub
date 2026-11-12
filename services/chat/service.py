@@ -31,6 +31,7 @@ from services.chat.replies import (
     NOT_SIMULATED_REPLY,
     STREAM_INTERRUPTED,
     tr,
+    unknown_place_reply,
 )
 from services.chat.shelter_names import display_name, known_names_of, typo_note, unknown_shelter_reply
 from services.geo.places import PlaceIndex, load_osm_places, place_label
@@ -345,6 +346,13 @@ class ChatService:
             metrics.route("simulation")
             return self._get_simulation_context(user_message, lang)
 
+        # 「龜山島附近」：指了一個地方，但它不是座標、不在地名索引裡，也不是鄉鎮、路名、設施或某間避難所。
+        # 交給語意檢索只會找到字面相近的別處避難所，所以直接說找不到
+        place = self._unknown_place(user_message, plan, names)
+        if place is not None:
+            metrics.route("unknown_place")
+            return None, unknown_place_reply(place, lang)
+
         if intent.asks_evacuation_advice(user_message):
             metrics.route("no_simulation_advice")
             return None, NO_SIMULATION_REPLY
@@ -402,6 +410,17 @@ class ChatService:
         written, form = found
         real = forms[form]
         return user_message.replace(written, real), typo_note(written, real, lang)
+
+    @staticmethod
+    def _unknown_place(user_message: str, plan, names: list[str]) -> str | None:
+        """問句用「X附近」指了一個系統認不出來的地方時回傳 X"""
+        place = intent.place_before_geo_word(user_message)
+        if place is None or plan.has_filter or plan.order_by_capacity:
+            return None
+        # 避難所名稱或別名（慈惠堂附近）、看起來像場所的名稱（頭城國中附近）交給點名那幾條路
+        if any(place in name for name in names) or query_rules.match_named_facility(user_message, names):
+            return None
+        return place
 
     def _lacks_shelter_clue(self, user_message: str) -> bool:
         names = known_names_of(self._shelter_metadata() or [])
