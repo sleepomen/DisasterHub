@@ -106,7 +106,7 @@ Open <http://localhost:8501>. The first start loads the shelters, hazard zones a
 
 ## Limitations
 
-- **The language model is small and local** (llama3.2:3b). It only answers what code cannot: plain semantic questions with no condition. Those are the weakest answers: a place the system does not know (「龜山島附近」) still falls back to semantic retrieval and gets shelters from elsewhere.
+- **The language model is small and local** (llama3.2:3b). It only answers what code cannot: plain semantic questions with no condition. Those are the weakest answers.
 - **The evacuation is a model, not a plan.** Each village starts from one point (its largest settlement), the population is the registered one rather than who is there at the time, and road speeds are fixed with no traffic or congestion. A [sensitivity analysis](docs/evaluation.md#sensitivity-analysis) shows which shelters are used and the gain from coordination hold up, while travel times shift by a quarter or more when people start elsewhere, so the minutes are orders of magnitude, not forecasts.
 - **Live alerts have not been seen live yet.** The feed reported no alerts while this was built, so the alert format is inferred from the dataset description.
 - **English mode is partial.** The 34 knowledge passages have draft translations awaiting review, so English answers still show the Chinese passage.
@@ -241,7 +241,7 @@ docker compose up --build
 
 ## 限制
 
-- **語言模型小、跑在本機**（llama3.2:3b）。它只回答程式答不了的題目：沒有任何條件的語意題。這些也是答得最弱的：系統不認得的地名（「龜山島附近」）仍交給語意檢索，撈到別處的避難所。
+- **語言模型小、跑在本機**（llama3.2:3b）。它只回答程式答不了的題目：沒有任何條件的語意題。這些也是答得最弱的。
 - **疏散是模型，不是計畫**。每個村里只用一個點（最大的聚落）當起點，人口是戶籍人口而不是當下實際在那裡的人，道路速度是固定值、沒有路況與壅塞。[敏感度分析](docs/zh-TW/evaluation.md#敏感度分析)顯示用到哪些避難所、統一調度的效益都站得住，但人從別的地方出發時通行時間會差四分之一以上，所以分鐘數是量級，不是預測。
 - **即時警戒還沒遇過真的警戒**。開發期間來源都回報沒有警戒，所以警戒格式是依資料集說明推斷的。
 - **英文模式只做了一部分**。34 段防災知識的英文稿還在等審稿，英文回答目前仍顯示中文原文。
