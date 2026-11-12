@@ -191,7 +191,7 @@ DisasterHub/
 
 ## Shelter Data
 
-The shelters come from the National Fire Agency's open dataset 避難收容處所點位檔 ([data.gov.tw/dataset/73242](https://data.gov.tw/dataset/73242), updated 2025-12-16, Open Government Data License v1). Until October 2026 the project used 50 hand-compiled shelters; only 9 of them appear in the official list, and their capacities did not match (澳花國小 was 150 there, 50 officially), so the data was replaced rather than merged.
+The shelters come from the National Fire Agency's open dataset 避難收容處所點位檔 ([data.gov.tw/dataset/73242](https://data.gov.tw/dataset/73242), updated 2025-12-16, Open Government Data License v1). The version date is also in `services/chat/replies.py`, which quotes it when someone asks whether shelters were added; change both when the data is rebuilt. Until October 2026 the project used 50 hand-compiled shelters; only 9 of them appear in the official list, and their capacities did not match (澳花國小 was 150 there, 50 officially), so the data was replaced rather than merged.
 
 - **Rebuilding.** Download the CSV into its own folder outside the project and run `python tools/build_shelters.py <csv>`. It writes `data_for_refuge/{yilan,hualien,taitung}_shelter.json`, one shelter per line so a rebuild shows up in the diff shelter by shelter.
 - **Fields.** Besides name, capacity (預計收容人數), address and coordinates, each shelter carries its township and village, the disasters it is designated for (`hazards`: 水災 / 震災 / 土石流 / 海嘯), indoor / outdoor, whether it suits vulnerable evacuees, the villages it is planned to receive (`serves`) and the contact phone. The manager's personal name is not imported.

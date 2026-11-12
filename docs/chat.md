@@ -11,6 +11,7 @@ Most shelter questions are answered by code, not by the LLM (`services/chat/dire
 - an overview of a wide match (total, capacity, distribution, the ten most relevant, how to narrow down)
 - a named shelter (address, capacity, occupancy, the disasters it is designated for)
 - a filter that matched nothing ("no shelter matches; the closest are…")
+- a question about the data itself (「最近有沒有新增避難所」, 「資料多久更新」): the dataset and its version date. The data has no date for when each shelter was set up, so the answer says it cannot tell which are new; the model used to answer 「沒有新增避難所。」 on its own
 
 The same goes for the nearest shelters to a pair of coordinates: road distance, walking and driving time, capacity and hazard warnings are formatted by code from the routing result.
 

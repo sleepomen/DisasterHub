@@ -106,7 +106,7 @@ DisasterHub/
 │   ├── run_heldout_eval.py     # Questions written by other people: answer, grade by hand, score
 │   ├── datasets/               # Question sets
 │   │   ├── rag_eval.jsonl      # The evaluation set
-│   │   ├── route_eval.jsonl    # Routing test set (63 questions, all thirteen routes)
+│   │   ├── route_eval.jsonl    # Routing test set (65 questions, all fourteen routes)
 │   │   ├── boundary_eval.jsonl # Boundary / abstention set (54 questions, five defences)
 │   │   ├── knowledge_eval.jsonl # Knowledge questions (positive / not covered / mixed / shelter look-alikes)
 │   │   ├── place_eval.jsonl    # Small place names with the township each lies in
@@ -459,7 +459,7 @@ coverage at all**, including both of the non-RAG paths that make the routing "hy
 `evals/datasets/route_eval.jsonl` is a separate 42-question set labelled with the route each question *should*
 take, including the state-dependent case ("請給我疏散建議" must go to `no_simulation_advice` with no
 simulation and to `simulation` while one is running). Two routes were added later: `off_topic` and
-`unknown_name` (see [Nonexistent shelters](#nonexistent-shelters)), and with the disaster-preparedness passages `knowledge` and `knowledge_mixed` (10 more questions, 56 in total; small place names later added `place` and three more, 59 in total, and unknown places `unknown_place` and four more, 63 in total; the runner stubs the knowledge store as well, returning the first passage of the hazard so a mixed question has knowledge hits). The runner stubs the vector store and
+`unknown_name` (see [Nonexistent shelters](#nonexistent-shelters)), and with the disaster-preparedness passages `knowledge` and `knowledge_mixed` (10 more questions, 56 in total; small place names later added `place` and three more, 59 in total, unknown places `unknown_place` and four more, 63, and questions about the data `data_info` and two more, 65 in total; the runner stubs the knowledge store as well, returning the first passage of the hazard so a mixed question has knowledge hits). The runner stubs the vector store and
 the repository, because `metrics.route()` is recorded in `build_context` *before* retrieval or the
 database is touched. The stub returns the real shelter list read from the JSON files in
 `data_for_refuge/`, since `unknown_name` must be decided against real names. So it needs no Ollama, no
