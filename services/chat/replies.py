@@ -78,6 +78,27 @@ EN_REPLIES = {
 }
 
 
+# 避難所資料的來源與版本。換資料時（tools/build_shelters.py）這裡跟 docs/architecture.md 一起改
+SHELTER_DATASET_URL = "https://data.gov.tw/dataset/73242"
+SHELTER_DATASET_UPDATED = "2025-12-16"
+
+
+def data_info_reply(count: int, lang: str = "zh") -> str:
+    """資料版本與總數；資料裡沒有每間避難所的設立日期，所以說不出哪些是新增的"""
+    if lang == "en":
+        return (
+            f"The shelter data is the National Fire Agency's open dataset 避難收容處所點位檔 ({SHELTER_DATASET_URL}), "
+            f"the version updated on {SHELTER_DATASET_UPDATED}, with {count} shelters in Yilan, Hualien and Taitung. "
+            "The data has no date for when each shelter was set up, so I cannot tell which ones are new. "
+            "For the latest changes, please check with the county government or the dataset page."
+        )
+    return (
+        f"避難所資料來自消防署開放資料「避難收容處所點位檔」（{SHELTER_DATASET_URL}），"
+        f"使用 {SHELTER_DATASET_UPDATED} 更新的版本，宜蘭、花蓮、台東共 {count} 處。"
+        "資料裡沒有每間避難所設立或新增的日期，所以無法判斷哪些是新增的；最新異動請洽縣市政府，或查看上面的資料集頁面。"
+    )
+
+
 def unknown_place_reply(place: str, lang: str = "zh") -> str:
     """問句指了一個系統不認得的地方。語意檢索只會找到字面相近的別處避難所，不如直接說找不到"""
     if lang == "en":

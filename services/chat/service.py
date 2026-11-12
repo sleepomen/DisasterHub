@@ -30,6 +30,7 @@ from services.chat.replies import (
     NO_SIMULATION_REPLY,
     NOT_SIMULATED_REPLY,
     STREAM_INTERRUPTED,
+    data_info_reply,
     tr,
     unknown_place_reply,
 )
@@ -345,6 +346,11 @@ class ChatService:
         if self._is_simulation_followup(user_message):
             metrics.route("simulation")
             return self._get_simulation_context(user_message, lang)
+
+        # 問資料本身（有沒有新增、多久更新）：資料沒有新增日期，模型只會編一個答案
+        if intent.asks_about_data_freshness(user_message):
+            metrics.route("data_info")
+            return None, data_info_reply(len(self._shelter_metadata() or []), lang)
 
         # 「龜山島附近」：指了一個地方，但它不是座標、不在地名索引裡，也不是鄉鎮、路名、設施或某間避難所。
         # 交給語意檢索只會找到字面相近的別處避難所，所以直接說找不到

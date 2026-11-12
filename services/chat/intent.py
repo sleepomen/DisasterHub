@@ -69,6 +69,8 @@ ROUTE_COUNTERS = (
     "chat.route.unknown_name",
     # 「龜山島附近」：問句指了一個系統不認得的地方，誠實說找不到，不拿別處的避難所充數
     "chat.route.unknown_place",
+    # 「最近有沒有新增避難所」：說明資料版本，資料裡沒有新增日期
+    "chat.route.data_info",
     "chat.route.no_clue",
     "chat.route.rag",
     # 防災知識：只有知識、知識加避難所
@@ -113,6 +115,16 @@ def place_before_geo_word(message: str) -> str | None:
     if len(place) < 2 or place in RELATIVE_PLACES:
         return None
     return place
+
+
+# 問資料本身：有沒有新增、多久更新、資料從哪裡來。資料裡沒有每間避難所的設立或新增日期，
+# 實測模型會自己答「沒有新增避難所。」，所以由程式說明資料版本與做不到的部分
+DATA_FRESHNESS_WORDS = ("新增", "新設", "新開", "新蓋", "更新", "最新", "資料來源", "資料日期", "資料時間", "哪裡來的資料")
+DATA_SUBJECT_WORDS = ("避難所", "收容所", "收容處所", "資料")
+
+
+def asks_about_data_freshness(message: str) -> bool:
+    return any(w in message for w in DATA_FRESHNESS_WORDS) and any(w in message for w in DATA_SUBJECT_WORDS)
 
 
 def is_explicit_simulation_query(message: str) -> bool:
