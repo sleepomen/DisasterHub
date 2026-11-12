@@ -7,7 +7,7 @@
 {"query": "中華路一段附近的避難所", "expected_route": "rag", "simulation": false, "note": "同上，路名就是地點線索"}
 {"query": "頭城鎮附近的學校", "expected_route": "rag", "simulation": false, "note": "同上，鄉鎮名"}
 {"query": "台北到宜蘭之間有避難所嗎", "expected_route": "rag", "simulation": false, "note": "刻意同時出現範圍外與範圍內地名；設計上只有整句沒有範圍內線索才拒答"}
-{"query": "最近有沒有新增避難所", "expected_route": "rag", "simulation": false, "note": "「最近」是時間副詞不是距離；關鍵字路由預期會誤判成 needs_coords"}
+{"query": "最近有沒有新增避難所", "expected_route": "data_info", "simulation": false, "note": "「最近」是時間副詞不是距離；資料沒有新增日期，由程式說明資料版本（模型曾自己答「沒有新增避難所」）"}
 {"query": "高雄有哪些避難所", "expected_route": "out_of_scope", "simulation": false, "note": "範圍外縣市"}
 {"query": "台北的避難所在哪裡", "expected_route": "out_of_scope", "simulation": false, "note": "範圍外縣市"}
 {"query": "新竹縣的收容所", "expected_route": "out_of_scope", "simulation": false, "note": "範圍外縣市"}
@@ -61,3 +61,5 @@
 {"query": "龜山島一帶有收容所嗎", "expected_route": "unknown_place", "simulation": false, "note": "「一帶」也是指地方的說法"}
 {"query": "我家附近的避難所", "expected_route": "needs_coords", "simulation": false, "note": "相對位置不是地名：要座標，不說找不到「家」"}
 {"query": "慈惠堂附近有避難所嗎", "expected_route": "rag", "simulation": false, "note": "慈惠堂是避難所的別名，不是不認得的地名"}
+{"query": "避難所資料多久更新一次", "expected_route": "data_info", "simulation": false, "note": "問資料本身"}
+{"query": "花蓮有新增的收容所嗎", "expected_route": "data_info", "simulation": false, "note": "有地區條件仍是問資料版本，不是列清單"}

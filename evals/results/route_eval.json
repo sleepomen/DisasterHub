@@ -1,9 +1,14 @@
 {
   "summary": {
-    "count": 63,
-    "correct": 63,
+    "count": 65,
+    "correct": 65,
     "accuracy": 1.0,
     "per_route": {
+      "data_info": {
+        "count": 3,
+        "correct": 3,
+        "accuracy": 1.0
+      },
       "knowledge": {
         "count": 5,
         "correct": 5,
@@ -50,8 +55,8 @@
         "accuracy": 1.0
       },
       "rag": {
-        "count": 15,
-        "correct": 15,
+        "count": 14,
+        "correct": 14,
         "accuracy": 1.0
       },
       "simulation": {
@@ -71,6 +76,9 @@
       }
     },
     "confusion": {
+      "data_info": {
+        "data_info": 3
+      },
       "knowledge": {
         "knowledge": 5
       },
@@ -99,7 +107,7 @@
         "place": 2
       },
       "rag": {
-        "rag": 15
+        "rag": 14
       },
       "simulation": {
         "simulation": 10
@@ -112,6 +120,7 @@
       }
     },
     "routes": [
+      "data_info",
       "knowledge",
       "knowledge_mixed",
       "nearest",
@@ -203,10 +212,10 @@
     {
       "query": "最近有沒有新增避難所",
       "simulation": false,
-      "expected": "rag",
-      "actual": "rag",
-      "answered_without_llm": false,
-      "note": "「最近」是時間副詞不是距離；關鍵字路由預期會誤判成 needs_coords"
+      "expected": "data_info",
+      "actual": "data_info",
+      "answered_without_llm": true,
+      "note": "「最近」是時間副詞不是距離；資料沒有新增日期，由程式說明資料版本（模型曾自己答「沒有新增避難所」）"
     },
     {
       "query": "高雄有哪些避難所",
@@ -631,6 +640,22 @@
       "actual": "rag",
       "answered_without_llm": false,
       "note": "慈惠堂是避難所的別名，不是不認得的地名"
+    },
+    {
+      "query": "避難所資料多久更新一次",
+      "simulation": false,
+      "expected": "data_info",
+      "actual": "data_info",
+      "answered_without_llm": true,
+      "note": "問資料本身"
+    },
+    {
+      "query": "花蓮有新增的收容所嗎",
+      "simulation": false,
+      "expected": "data_info",
+      "actual": "data_info",
+      "answered_without_llm": true,
+      "note": "有地區條件仍是問資料版本，不是列清單"
     }
   ]
 }
