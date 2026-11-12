@@ -1063,3 +1063,18 @@ def test_guard_ignores_road_names_and_tai_variants():
     kept, dropped = filter_lines(text, names)
     assert dropped == ["宜蘭社區活動中心：30 人"]
     assert "三聖宮" in kept and "台東大學" in kept
+
+
+@pytest.mark.parametrize("msg", ["最近有沒有新增避難所", "避難所資料多久更新一次", "花蓮有新增的收容所嗎"])
+def test_questions_about_the_data_itself_get_its_version_not_a_guess(svc, msg):
+    # 資料沒有每間避難所的新增日期；模型曾自己答「沒有新增避難所。」
+    context, early = svc.build_context(msg)
+    assert context is None
+    assert "2025-12-16" in early and "無法判斷哪些是新增的" in early
+    svc.vector_store.search.assert_not_called()
+
+
+@pytest.mark.parametrize("msg", ["颱風最新消息", "模擬結果有更新嗎"])
+def test_news_and_simulation_updates_are_not_data_questions(svc, msg):
+    context, early = svc.build_context(msg)
+    assert "2025-12-16" not in (early or "")
