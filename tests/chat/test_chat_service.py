@@ -131,7 +131,7 @@ def test_geo_query_without_coords_returns_prompt(svc):
     assert "座標" in early
 
 
-@pytest.mark.parametrize("msg", ["龜山島附近", "頭城鎮附近的學校", "中華路一段附近", "宜蘭市附近有哪些避難所"])
+@pytest.mark.parametrize("msg", ["頭城鎮附近的學校", "中華路一段附近", "宜蘭市附近有哪些避難所"])
 def test_geo_query_with_place_name_goes_to_retrieval(svc, msg):
     # 使用者已經講了地點，就交給檢索，不要回頭要座標
     context, early = svc.build_context(msg)
@@ -684,11 +684,28 @@ def test_geo_question_with_only_question_words_still_asks_for_coords(svc, msg):
     assert "座標" in early
 
 
-def test_place_name_outside_every_known_list_still_counts_as_a_clue(svc):
-    # 補黑名單時不能把不在任何清單裡的地名一起剝掉：「龜山島」不是鄉鎮，也不在小地名檔裡，
-    # 仍然是地點線索，要交給檢索，不能回頭要座標
-    context, early = svc.build_context("龜山島附近")
-    assert early is None and context is not None
+@pytest.mark.parametrize("msg,place", [
+    ("龜山島附近", "龜山島"), ("我在龜山島附近，可以去哪裡避難", "龜山島"), ("蘭陽溪口一帶有收容所嗎", "蘭陽溪口"),
+])
+def test_a_place_the_system_does_not_know_is_reported_not_guessed(svc, msg, place):
+    # 「龜山島」不是鄉鎮、不在小地名檔，也不是避難所：交給檢索只會拿到別處的避難所。
+    # 也不能回頭要座標（使用者已經說了地點），而是說找不到這個地名
+    context, early = svc.build_context(msg)
+    assert context is None
+    assert early.startswith(f"找不到「{place}」這個地名")
+    svc.vector_store.search.assert_not_called()
+
+
+@pytest.mark.parametrize("msg", ["最近有沒有新增避難所", "我家附近的避難所", "公司附近有避難所嗎"])
+def test_time_and_relative_places_are_not_unknown_places(svc, msg):
+    # 時間的「最近」、我家、公司都不是地名，不能回「找不到『家』這個地名」
+    context, early = svc.build_context(msg)
+    assert not (early or "").startswith("找不到")
+
+
+def test_unknown_place_reply_is_in_english_too(svc):
+    context, early = svc.build_context("龜山島附近", lang="en")
+    assert early.startswith("I could not find the place 「龜山島」")
 
 
 def test_small_place_names_are_answered_by_road_distance(svc):

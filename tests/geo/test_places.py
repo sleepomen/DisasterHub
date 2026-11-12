@@ -36,6 +36,17 @@ def test_place_names_outside_location_phrases_are_ignored(question):
     assert index([osm("七星潭", 24.026, 121.632), osm("平台", 23.5, 121.4)]).find(question) is None
 
 
+@pytest.mark.parametrize("question", ["我在龜山島，可以去哪裡避難", "住在龜山島要去哪裡"])
+def test_a_place_name_that_starts_a_longer_name_is_not_that_place(question):
+    """「我在龜山島」的「龜山」是龜山島，不是頭城的龜山里"""
+    assert index([osm("龜山", 24.85, 121.87)]).find(question) is None
+
+
+def test_village_suffix_after_a_place_name_is_still_that_place():
+    found = index([osm("龜山", 24.85, 121.87)]).find("我在龜山里，可以去哪裡避難")
+    assert found and found[0] == "龜山"
+
+
 def test_longest_name_wins():
     found = index([osm("七星", 24.0, 121.6), osm("七星潭", 24.026, 121.632)]).find("七星潭附近")
     assert found[0] == "七星潭"
