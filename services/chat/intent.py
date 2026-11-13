@@ -73,6 +73,8 @@ ROUTE_COUNTERS = (
     "chat.route.data_info",
     # 「颱風最新消息」「蘇花公路路況」：系統沒有即時消息，指向中央氣象署與縣市政府
     "chat.route.live_info",
+    # 「現在有土石流警戒嗎」：讀即時警戒，由程式回答
+    "chat.route.alerts",
     "chat.route.no_clue",
     "chat.route.rag",
     # 防災知識：只有知識、知識加避難所

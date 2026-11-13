@@ -12,6 +12,8 @@
 """
 import asyncio
 import logging
+import time
+from datetime import datetime
 
 import requests
 
@@ -25,6 +27,17 @@ HAZARD_TYPE = "debris_flow"
 LEVELS = {"r": "red", "y": "yellow"}
 
 metrics.register("alerts.refreshed", "alerts.failed")
+
+# 這個行程最後一次成功更新警戒的時間：monotonic 用來算經過多久，datetime 給回答顯示。
+# 聊天回答「目前沒有警戒」之前要確認資料是新的：更新一直失敗時舊警戒會過期，資料庫看起來也是「沒有警戒」
+_last_refresh: tuple[float, datetime] | None = None
+
+
+def last_refresh() -> datetime | None:
+    """最近 ALERT_TTL_MINUTES 分鐘內成功更新的時間；沒有就回 None（狀態無法確認）"""
+    if _last_refresh is None or time.monotonic() - _last_refresh[0] >= config.ALERT_TTL_MINUTES * 60:
+        return None
+    return _last_refresh[1]
 
 
 class AlertFormatError(ValueError):
@@ -67,7 +80,9 @@ def fetch_debris_alerts(url: str | None = None, timeout: float | None = None) ->
 def refresh_alerts(repo) -> int:
     """抓一次警戒並整批寫入，回傳生效的警戒數；失敗時丟例外，資料庫裡上一次的警戒原封不動"""
     alerts = fetch_debris_alerts()
+    global _last_refresh
     count = repo.replace_alerts(SOURCE, HAZARD_TYPE, alerts, config.ALERT_TTL_MINUTES)
+    _last_refresh = (time.monotonic(), datetime.now().astimezone())
     metrics.incr("alerts.refreshed")
     reds = sum(1 for a in alerts if a["level"] == "red")
     logger.info("土石流警戒更新：%d 條（紅色 %d、黃色 %d）", count, reds, count - reds)

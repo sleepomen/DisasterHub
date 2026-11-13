@@ -16,6 +16,7 @@ import time
 
 import config
 from services.chat import intent, llm_client, query_rules
+from services.chat.alert_answer import alert_answer, asks_current_alerts
 from services.chat.answer_guard import LineGuard, filter_lines, supported_names
 from services.chat.direct_answer import nearest_answer
 from services.chat.replies import (
@@ -248,6 +249,11 @@ class ChatService:
         context 前面放知識段落、後面放避難所資料，由 chat_stream 先送原文再讓模型列避難所。
         模擬相關的問題優先走模擬，「模擬中怎麼疏散」要的是這次的分配，不是一般須知
         """
+        # 「現在有土石流警戒嗎」：系統有即時警戒，由程式讀出來回答；不然知識路由會拿警戒等級的定義來答
+        if asks_current_alerts(user_message) and not self._is_simulation_query(user_message):
+            metrics.route("alerts")
+            return None, self._alert_answer(user_message, lang)
+
         # 問即時消息（颱風到哪了、災情、路況）：系統沒有，放在知識之前，「地震最新消息」才不會拿到地震須知
         if query_rules.live_info_topic(user_message) and not self._is_simulation_query(user_message):
             metrics.route("live_info")
@@ -421,6 +427,17 @@ class ChatService:
         written, form = found
         real = forms[form]
         return user_message.replace(written, real), typo_note(written, real, lang)
+
+    def _alert_answer(self, user_message: str, lang: str) -> str:
+        from services.geo.hazard_alerts import last_refresh
+
+        alerts = None
+        if self.repo is not None:
+            try:
+                alerts = self.repo.active_alerts()
+            except Exception:
+                logger.exception("查詢土石流警戒失敗")
+        return alert_answer(user_message, alerts, last_refresh(), lang)
 
     @staticmethod
     def _unknown_place(user_message: str, plan, names: list[str]) -> str | None:
