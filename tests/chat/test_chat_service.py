@@ -1098,3 +1098,11 @@ def test_shelter_and_alert_questions_are_not_live_news(svc, msg):
 def test_live_news_reply_is_in_english_too(svc):
     context, early = svc.build_context("颱風最新消息", lang="en")
     assert early.startswith("This system only covers") and "cwa.gov.tw" in early
+
+
+def test_alerts_now_are_answered_from_the_alert_data_not_the_knowledge(svc):
+    svc.repo.active_alerts = lambda: []
+    context, early = svc.build_context("現在有土石流警戒嗎")
+    assert context is None
+    # 測試行程沒有跑過警戒更新，所以是「無法確認」，不是知識文件的警戒定義
+    assert early.startswith("目前無法確認土石流警戒狀態")
