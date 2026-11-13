@@ -1,17 +1,22 @@
 {
   "summary": {
-    "count": 68,
-    "correct": 68,
+    "count": 71,
+    "correct": 71,
     "accuracy": 1.0,
     "per_route": {
+      "alerts": {
+        "count": 2,
+        "correct": 2,
+        "accuracy": 1.0
+      },
       "data_info": {
         "count": 3,
         "correct": 3,
         "accuracy": 1.0
       },
       "knowledge": {
-        "count": 5,
-        "correct": 5,
+        "count": 6,
+        "correct": 6,
         "accuracy": 1.0
       },
       "knowledge_mixed": {
@@ -81,11 +86,14 @@
       }
     },
     "confusion": {
+      "alerts": {
+        "alerts": 2
+      },
       "data_info": {
         "data_info": 3
       },
       "knowledge": {
-        "knowledge": 5
+        "knowledge": 6
       },
       "knowledge_mixed": {
         "knowledge_mixed": 2
@@ -128,6 +136,7 @@
       }
     },
     "routes": [
+      "alerts",
       "data_info",
       "knowledge",
       "knowledge_mixed",
@@ -689,6 +698,30 @@
       "actual": "live_info",
       "answered_without_llm": true,
       "note": "路況不是避難所資料"
+    },
+    {
+      "query": "現在有土石流警戒嗎",
+      "simulation": false,
+      "expected": "alerts",
+      "actual": "alerts",
+      "answered_without_llm": true,
+      "note": "問現況：讀即時警戒；以前知識路由拿警戒等級的定義來答"
+    },
+    {
+      "query": "花蓮目前有土石流警戒嗎",
+      "simulation": false,
+      "expected": "alerts",
+      "actual": "alerts",
+      "answered_without_llm": true,
+      "note": "有縣名時只列那裡的警戒"
+    },
+    {
+      "query": "紅色警戒有沒有要撤離",
+      "simulation": false,
+      "expected": "knowledge",
+      "actual": "knowledge",
+      "answered_without_llm": true,
+      "note": "「有沒有」在警戒後面，問的是該怎麼做，不是現況"
     }
   ]
 }

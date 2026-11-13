@@ -66,3 +66,6 @@
 {"query": "颱風最新消息", "expected_route": "live_info", "simulation": false, "note": "系統沒有即時消息；曾走到檢索，模型列出不相干的避難所"}
 {"query": "地震最新消息", "expected_route": "live_info", "simulation": false, "note": "要在知識路由之前判斷，否則會拿到地震須知"}
 {"query": "蘇花公路路況", "expected_route": "live_info", "simulation": false, "note": "路況不是避難所資料"}
+{"query": "現在有土石流警戒嗎", "expected_route": "alerts", "simulation": false, "note": "問現況：讀即時警戒；以前知識路由拿警戒等級的定義來答"}
+{"query": "花蓮目前有土石流警戒嗎", "expected_route": "alerts", "simulation": false, "note": "有縣名時只列那裡的警戒"}
+{"query": "紅色警戒有沒有要撤離", "expected_route": "knowledge", "simulation": false, "note": "「有沒有」在警戒後面，問的是該怎麼做，不是現況"}
