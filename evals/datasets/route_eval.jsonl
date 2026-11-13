@@ -63,3 +63,6 @@
 {"query": "慈惠堂附近有避難所嗎", "expected_route": "rag", "simulation": false, "note": "慈惠堂是避難所的別名，不是不認得的地名"}
 {"query": "避難所資料多久更新一次", "expected_route": "data_info", "simulation": false, "note": "問資料本身"}
 {"query": "花蓮有新增的收容所嗎", "expected_route": "data_info", "simulation": false, "note": "有地區條件仍是問資料版本，不是列清單"}
+{"query": "颱風最新消息", "expected_route": "live_info", "simulation": false, "note": "系統沒有即時消息；曾走到檢索，模型列出不相干的避難所"}
+{"query": "地震最新消息", "expected_route": "live_info", "simulation": false, "note": "要在知識路由之前判斷，否則會拿到地震須知"}
+{"query": "蘇花公路路況", "expected_route": "live_info", "simulation": false, "note": "路況不是避難所資料"}

@@ -1,7 +1,7 @@
 {
   "summary": {
-    "count": 65,
-    "correct": 65,
+    "count": 68,
+    "correct": 68,
     "accuracy": 1.0,
     "per_route": {
       "data_info": {
@@ -17,6 +17,11 @@
       "knowledge_mixed": {
         "count": 2,
         "correct": 2,
+        "accuracy": 1.0
+      },
+      "live_info": {
+        "count": 3,
+        "correct": 3,
         "accuracy": 1.0
       },
       "nearest": {
@@ -85,6 +90,9 @@
       "knowledge_mixed": {
         "knowledge_mixed": 2
       },
+      "live_info": {
+        "live_info": 3
+      },
       "nearest": {
         "nearest": 4
       },
@@ -123,6 +131,7 @@
       "data_info",
       "knowledge",
       "knowledge_mixed",
+      "live_info",
       "nearest",
       "needs_coords",
       "no_clue",
@@ -656,6 +665,30 @@
       "actual": "data_info",
       "answered_without_llm": true,
       "note": "有地區條件仍是問資料版本，不是列清單"
+    },
+    {
+      "query": "颱風最新消息",
+      "simulation": false,
+      "expected": "live_info",
+      "actual": "live_info",
+      "answered_without_llm": true,
+      "note": "系統沒有即時消息；曾走到檢索，模型列出不相干的避難所"
+    },
+    {
+      "query": "地震最新消息",
+      "simulation": false,
+      "expected": "live_info",
+      "actual": "live_info",
+      "answered_without_llm": true,
+      "note": "要在知識路由之前判斷，否則會拿到地震須知"
+    },
+    {
+      "query": "蘇花公路路況",
+      "simulation": false,
+      "expected": "live_info",
+      "actual": "live_info",
+      "answered_without_llm": true,
+      "note": "路況不是避難所資料"
     }
   ]
 }
