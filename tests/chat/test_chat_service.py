@@ -1078,3 +1078,23 @@ def test_questions_about_the_data_itself_get_its_version_not_a_guess(svc, msg):
 def test_news_and_simulation_updates_are_not_data_questions(svc, msg):
     context, early = svc.build_context(msg)
     assert "2025-12-16" not in (early or "")
+
+
+@pytest.mark.parametrize("msg", ["颱風最新消息", "地震最新消息", "颱風現在到哪了", "花蓮災情如何", "蘇花公路路況"])
+def test_live_news_is_pointed_to_the_weather_administration(svc, msg):
+    # 系統沒有即時消息；以前「颱風最新消息」走到檢索，模型列出一串不相干的避難所
+    context, early = svc.build_context(msg)
+    assert context is None
+    assert early.startswith("本系統只涵蓋") and "中央氣象署" in early
+    svc.vector_store.search.assert_not_called()
+
+
+@pytest.mark.parametrize("msg", ["目前還有空位嗎", "家裡停電了可以去哪裡過夜", "颱風動態下要去哪避難", "現在有土石流警戒嗎"])
+def test_shelter_and_alert_questions_are_not_live_news(svc, msg):
+    context, early = svc.build_context(msg)
+    assert "中央氣象署" not in (early or "")
+
+
+def test_live_news_reply_is_in_english_too(svc):
+    context, early = svc.build_context("颱風最新消息", lang="en")
+    assert early.startswith("This system only covers") and "cwa.gov.tw" in early
