@@ -71,6 +71,8 @@ ROUTE_COUNTERS = (
     "chat.route.unknown_place",
     # 「最近有沒有新增避難所」：說明資料版本，資料裡沒有新增日期
     "chat.route.data_info",
+    # 「颱風最新消息」「蘇花公路路況」：系統沒有即時消息，指向中央氣象署與縣市政府
+    "chat.route.live_info",
     "chat.route.no_clue",
     "chat.route.rag",
     # 防災知識：只有知識、知識加避難所

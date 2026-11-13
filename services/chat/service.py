@@ -248,6 +248,11 @@ class ChatService:
         context 前面放知識段落、後面放避難所資料，由 chat_stream 先送原文再讓模型列避難所。
         模擬相關的問題優先走模擬，「模擬中怎麼疏散」要的是這次的分配，不是一般須知
         """
+        # 問即時消息（颱風到哪了、災情、路況）：系統沒有，放在知識之前，「地震最新消息」才不會拿到地震須知
+        if query_rules.live_info_topic(user_message) and not self._is_simulation_query(user_message):
+            metrics.route("live_info")
+            return None, query_rules.live_info_reply(lang)
+
         knowledge = query_rules.knowledge_request(user_message)
         if knowledge is None or self._is_simulation_query(user_message):
             return self._shelter_context(user_message, lang)

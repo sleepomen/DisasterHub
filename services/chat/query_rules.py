@@ -375,6 +375,41 @@ def _find_off_topic(query: str) -> str | None:
     return next((word for word in OFF_TOPIC_WORDS if word in query), None)
 
 
+# 問即時消息：颱風到哪了、災情、路況。系統沒有即時消息，只有避難所資料與防災須知；
+# 不擋的話「颱風最新消息」會走到語意檢索，模型拿一串不相干的避難所來答（實測列出古風國小、舊蘭嶼國小）。
+# 「停電」「停水」不收：「家裡停電了可以去哪裡過夜」是在找避難所
+LIVE_INFO_WORDS = [
+    "最新消息", "最新動態", "最新狀況", "最新情況", "最新資訊", "新聞", "即時", "動態",
+    "到哪了", "在哪了", "現在在哪", "目前在哪", "颱風路徑", "災情", "傷亡", "路況", "封路", "雨量", "淹到哪",
+]
+
+
+def live_info_topic(query: str) -> str | None:
+    """
+    問句在問即時消息時回報命中的詞。同一句提到避難主題（「目前還有空位嗎」「颱風動態下要去哪避難」）不算；
+    問土石流「警戒」也不算：系統有即時的土石流警戒資料，交給原本的路
+    """
+    if "警戒" in query or any(word in query for word in SHELTER_TOPIC_WORDS):
+        return None
+    return next((word for word in LIVE_INFO_WORDS if word in query), None)
+
+
+def live_info_reply(lang: str = "zh") -> str:
+    # 開頭跟 off_topic_reply 一樣用「本系統只涵蓋」：生成評測的 ABSTAIN_MARKERS 認這個字串
+    if lang == "en":
+        return (
+            "This system only covers emergency shelters in Yilan, Hualien and Taitung and disaster-preparedness guidance; "
+            "it has no live news, weather, typhoon tracks or road conditions. For the latest updates, see the Central "
+            "Weather Administration (https://www.cwa.gov.tw) and your county government's emergency operations center. "
+            "You can ask here where the nearest shelter is or what to do in a disaster."
+        )
+    return (
+        "本系統只涵蓋宜蘭、花蓮、台東三縣的避難收容場所資訊與防災須知，沒有即時的災情、天氣、颱風動態或路況。"
+        "最新消息請看中央氣象署（https://www.cwa.gov.tw）與縣市政府的災害應變中心。"
+        "這裡可以問最近的避難所在哪裡，或災害發生時該怎麼做。"
+    )
+
+
 def off_topic_word_is_a_name(query: str, word: str, known_names: list[str]) -> bool:
     """
     離題詞其實是避難所名稱的一部分：消防署資料裡有「國軍805醫院」「元新溫泉飯店」。
