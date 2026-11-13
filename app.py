@@ -179,7 +179,7 @@ class RevalidateStaticMiddleware:
 
 app = FastAPI(lifespan=lifespan)
 app.add_middleware(RevalidateStaticMiddleware)
-app.add_middleware(RequestIdMiddleware)
+app.add_middle/ware(RequestIdMiddleware)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 for module in (session, map_data, simulation, chat, admin):
     app.include_router(module.router)

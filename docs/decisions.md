@@ -34,7 +34,7 @@ Most of what this project does differently came from measuring something and not
 
 **Result.** A dedicated boundary set of 53 questions is answered or refused correctly in all 53 cases. All 34 should-refuse questions are stopped before the model, and the distance threshold decides none of them.
 
-**Cost.** The checks are word lists, and word lists need maintenance; the list of generic words used to decide whether a question names a place is a blacklist, and every missed word is a misroute. The routing evaluation (65 questions) is the guard rail. → [Abstention and boundary questions](evaluation.md#abstention-and-boundary-questions)
+**Cost.** The checks are word lists, and word lists need maintenance; the list of generic words used to decide whether a question names a place is a blacklist, and every missed word is a misroute. The routing evaluation (68 questions) is the guard rail. → [Abstention and boundary questions](evaluation.md#abstention-and-boundary-questions)
 
 ## 4. Be suspicious of your own best number
 
