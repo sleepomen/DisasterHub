@@ -81,6 +81,7 @@ DisasterHub/
 │   │   ├── llm_client.py       # Ollama generation: system prompts, request, streaming with a deadline
 │   │   ├── query_rules.py      # Query rules layer: region / township / facility / capacity → metadata filters, out-of-scope rejection
 │   │   ├── direct_answer.py    # Shelter lists, rankings, overviews and named shelters formatted by code (no LLM)
+│   │   ├── alert_answer.py     # 「現在有土石流警戒嗎」 answered from the live alerts
 │   │   ├── answer_guard.py     # Drops reply lines naming a place that is not in the prompt's shelter data
 │   │   └── shelter_names.py    # Display names, aliases, typo notes, "no such shelter" replies
 │   ├── retrieval/              # Retrieval
@@ -154,6 +155,7 @@ DisasterHub/
     │   ├── test_chat_service.py
     │   ├── test_query_rules.py
     │   ├── test_direct_answer.py
+    │   ├── test_alert_answer.py
     │   └── test_i18n.py
     ├── retrieval/
     │   ├── test_vector_store.py

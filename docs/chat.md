@@ -13,6 +13,7 @@ Most shelter questions are answered by code, not by the LLM (`services/chat/dire
 - a filter that matched nothing ("no shelter matches; the closest are…")
 - a question about the data itself (「最近有沒有新增避難所」, 「資料多久更新」): the dataset and its version date. The data has no date for when each shelter was set up, so the answer says it cannot tell which are new; the model used to answer 「沒有新增避難所。」 on its own
 - a question about live news (「颱風最新消息」, 「颱風現在到哪了」, 「蘇花公路路況」): the system has no live news, weather, typhoon tracks or road conditions, so the answer says so and points to the Central Weather Administration and the county emergency operations centers. It is checked before the knowledge route, so 「地震最新消息」 does not get the earthquake guidance. A question that also mentions shelters (「目前還有空位嗎」) or asks about debris-flow alerts (「現在有土石流警戒嗎」) is not caught. The model used to answer 「颱風最新消息」 with a list of unrelated shelters
+- current debris-flow alerts (「現在有土石流警戒嗎」): read from the live alerts, see [Avoiding hazard zones and live alerts](simulation-and-routing.md#avoiding-hazard-zones-and-live-alerts). The knowledge route used to answer with what the alert levels mean
 
 The same goes for the nearest shelters to a pair of coordinates: road distance, walking and driving time, capacity and hazard warnings are formatted by code from the routing result.
 

@@ -81,6 +81,7 @@ DisasterHub/
 │   │   ├── llm_client.py       # 呼叫 Ollama：系統提示、請求內容、有時限的串流生成
 │   │   ├── query_rules.py      # 查詢規則層：地區 / 鄉鎮 / 設施 / 容量 → metadata 篩選，範圍外拒答
 │   │   ├── direct_answer.py    # 避難所清單、容量排名、概況、點名由程式排版（不經過 LLM）
+│   │   ├── alert_answer.py     # 「現在有土石流警戒嗎」讀即時警戒回答
 │   │   ├── answer_guard.py     # 回覆中提到 prompt 資料裡沒有的場所，整行拿掉
 │   │   └── shelter_names.py    # 顯示名稱、別名、錯字說明、查無此間的回覆
 │   ├── retrieval/              # 檢索
@@ -154,6 +155,7 @@ DisasterHub/
     │   ├── test_chat_service.py
     │   ├── test_query_rules.py
     │   ├── test_direct_answer.py
+    │   ├── test_alert_answer.py
     │   └── test_i18n.py
     ├── retrieval/
     │   ├── test_vector_store.py
