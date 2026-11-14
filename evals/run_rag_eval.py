@@ -31,8 +31,12 @@ def load_cases(path):
 def make_embedder(spec: str):
     from services.retrieval.embeddings import build_embedding_function
 
-    if spec == "minilm":
-        return build_embedding_function("minilm")
+    if spec == "lexical":
+        import config
+
+        config.use_lexical_defaults()
+    if spec in ("minilm", "lexical"):
+        return build_embedding_function(spec)
     if spec.startswith("ollama:"):
         return build_embedding_function("ollama", spec.split(":", 1)[1])
     raise SystemExit(f"unknown embedder: {spec}")
@@ -292,7 +296,7 @@ def print_misses(rows, k, limit):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--cases", default=DEFAULT_CASES)
-    parser.add_argument("--embedder", default="minilm", help="minilm | ollama:<model>")
+    parser.add_argument("--embedder", default="minilm", help="minilm | lexical | ollama:<model>")
     parser.add_argument("--label", default=None)
     parser.add_argument("--k", default="3,5,10")
     parser.add_argument("--top", type=int, default=10)

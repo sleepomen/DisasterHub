@@ -11,6 +11,7 @@
     python evals/run_gen_eval.py --embedder ollama:bge-m3 --model qwen2.5:7b --label qwen2.5-7b
     python evals/run_gen_eval.py --limit 10 --category region      # 快速抽查
     python evals/run_gen_eval.py --model qwen2.5:7b --fresh        # 不接續，重頭跑
+    python evals/run_gen_eval.py --embedder lexical --no-llm --label lite   # 輕量模式（不需要 Ollama）
 """
 import argparse
 import json
@@ -283,7 +284,8 @@ def print_ci(summary) -> None:
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--cases", default=DEFAULT_CASES)
-    parser.add_argument("--embedder", default="ollama:bge-m3", help="minilm | ollama:<model>")
+    parser.add_argument("--embedder", default="ollama:bge-m3", help="minilm | lexical | ollama:<model>")
+    parser.add_argument("--no-llm", action="store_true", help="輕量模式：不呼叫模型，原本交給模型的題目由程式列出")
     parser.add_argument("--model", default=None, help="覆寫 OLLAMA_MODEL")
     parser.add_argument("--num-predict", type=int, default=None, help="覆寫 OLLAMA_NUM_PREDICT")
     parser.add_argument("--temperature", type=float, default=None, help="覆寫 OLLAMA_TEMPERATURE")
@@ -302,6 +304,8 @@ def main():
         config.OLLAMA_NUM_PREDICT = args.num_predict
     if args.temperature is not None:
         config.OLLAMA_TEMPERATURE = args.temperature
+    if args.no_llm:
+        config.LLM_ENABLED = False
 
     cases = load_cases(args.cases)
     if args.category:
@@ -318,7 +322,7 @@ def main():
         "model": config.OLLAMA_MODEL, "embedder": args.embedder,
         "num_predict": config.OLLAMA_NUM_PREDICT, "temperature": config.OLLAMA_TEMPERATURE,
         "num_ctx": config.OLLAMA_NUM_CTX, "cases": args.cases,
-        "category": args.category, "limit": args.limit,
+        "category": args.category, "limit": args.limit, "llm": config.LLM_ENABLED,
     }
     progress_path = progress_path_for(out)
     done = {} if args.fresh else load_progress(progress_path, signature)
@@ -336,7 +340,7 @@ def main():
 
     summary = summarize(rows)
     meta = {
-        "label": label, "model": config.OLLAMA_MODEL, "embedder": args.embedder,
+        "label": label, "model": config.OLLAMA_MODEL if config.LLM_ENABLED else None, "embedder": args.embedder,
         "num_predict": config.OLLAMA_NUM_PREDICT, "temperature": config.OLLAMA_TEMPERATURE,
         "num_ctx": config.OLLAMA_NUM_CTX, "docs": docs, "index_build_s": build_s, "cases": len(cases),
     }
