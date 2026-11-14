@@ -12,15 +12,8 @@ from api import deps
 from api.models import OccupancyRequest, SimulateRequest
 from services.geo.routing import attach_evacuation_paths, evacuation_road_distances, solve_assignment
 from services.ingest.sync import DataSyncService
-from services.simulation.evacuation import (
-    DESIGNATED_HAZARD,
-    EXCLUDED_HAZARDS,
-    HAZARD_WARN_M,
-    origins_from,
-    plan_evacuation,
-    split_hazard_hits,
-    undesignated,
-)
+from services.simulation.evacuation import DESIGNATED_HAZARD, origins_from, plan_evacuation
+from services.simulation.scenario import destinations_for
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -34,23 +27,10 @@ async def simulate(request: SimulateRequest, http_request: Request, x_api_key: s
     impacted = await asyncio.to_thread(
         repo.get_shelters_in_radius, request.lat, request.lon, request.radius
     )
-    # 位在對應災害潛勢區域內的避難所不當疏散目的地（淹水模擬避開土石流影響範圍）。
-    # 範圍外 HAZARD_WARN_M 公尺內的照常分配，只附上警告。
-    # 查不到潛勢資料時退回「不排除」，跟沒有這個功能時一樣，模擬本身不能因此失敗
-    excluded: dict[str, list[str]] = {}
-    near: dict[str, dict] = {}
-    hazard = EXCLUDED_HAZARDS.get(request.type)
-    if hazard:
-        try:
-            hits = await asyncio.to_thread(repo.shelter_hazard_distances, hazard, HAZARD_WARN_M)
-            inside, nearby = split_hazard_hits(hits)
-            excluded = {s.name: inside[s.name] for s in impacted if s.name in inside}
-            near = {s.name: nearby[s.name] for s in impacted if s.name in nearby}
-        except Exception:
-            logger.exception("查詢災害潛勢區域失敗，本次模擬不排除任何避難所")
-    # 消防署資料沒把這間列為這類災害的避難收容處所（例如只列水災的，地震時不去）
-    not_designated = undesignated(impacted, request.type)
-    destinations = [s for s in impacted if s.name not in excluded and s.name not in not_designated]
+    # 潛勢範圍內的、沒列為這類災害避難收容處所的不當目的地（services/simulation/scenario.py，容量缺口報告也用同一套）
+    chosen = await asyncio.to_thread(destinations_for, repo, impacted, request.type)
+    destinations, hazard = chosen.shelters, chosen.hazard
+    excluded, near, not_designated = chosen.excluded, chosen.near, chosen.undesignated
 
     # 人口估算與前端動畫、AI 回答共用同一份模型，三邊數字才會一致；
     # 可安置空間只算真的能去的避難所，否則「可安置」會跟分配結果對不上
