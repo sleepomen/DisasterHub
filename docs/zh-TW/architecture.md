@@ -56,6 +56,7 @@ DisasterHub/
 ├── Dockerfile                  # INSTALL_DEV build arg 控制 dev 依賴
 ├── docker-compose.yml          # 正式設定
 ├── docker-compose.dev.yml      # 開發疊加（熱重載 / 原始碼掛載 / 測試依賴）
+├── docker-compose.lite.yml     # 輕量疊加：不用語言模型、改用字面向量，不需要 Ollama
 ├── ruff.toml                   # Lint 設定（CI 跑 `ruff check .`）
 ├── requirements.txt            # 執行期依賴（意圖：版本範圍）
 ├── requirements-dev.txt        # 測試依賴（pytest / httpx）
@@ -87,7 +88,7 @@ DisasterHub/
 │   ├── retrieval/              # 檢索
 │   │   ├── vector_store.py     # ChromaDB 向量索引（支援局部更新）
 │   │   ├── chroma.py           # 建立 ChromaDB client 的唯一入口，關掉它的使用統計
-│   │   ├── embeddings.py       # Ollama / MiniLM embedding
+│   │   ├── embeddings.py       # Ollama / MiniLM / 字面向量（lexical）embedding
 │   │   ├── knowledge.py        # 防災知識文件：解析、索引、檢索、回答組字、出處
 │   │   └── shelter_profile.py  # 名稱/地址 → 鄉鎮、設施、別名
 │   ├── simulation/             # 災害模擬
@@ -156,6 +157,7 @@ DisasterHub/
     │   ├── test_query_rules.py
     │   ├── test_direct_answer.py
     │   ├── test_alert_answer.py
+    │   ├── test_lite_mode.py
     │   └── test_i18n.py
     ├── retrieval/
     │   ├── test_vector_store.py

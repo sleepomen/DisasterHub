@@ -712,6 +712,28 @@ docker exec disaster_app python evals/run_rag_eval.py --embedder ollama:bge-m3 -
 
 **A bug found by this run.** The first ablation run had full-system misses that the earlier run did not: 「外役監」's shelter was the closest document (distance 0.50 against 0.58 for the next) but not in the top ten. ChromaDB's approximate nearest-neighbour index (HNSW) searches 10 candidates by default, so asking for ten can miss the true nearest; asking for fifty found it first. 「馬蘭榮家」, described above as a miss bge-m3 could not connect, was the same failure. Every collection is now created with a search width larger than the collection (`services/retrieval/chroma.py`), which makes the search exact at this size, and the index settings are part of the index fingerprint so saved indexes rebuild. The run also showed that all collections shared one fingerprint file, so an evaluation index could make another collection skip a needed rebuild; each collection now has its own. The numbers in this section are after both fixes.
 
+## Lightweight mode
+
+How much is lost without Ollama ([Lightweight mode](setup.md#lightweight-mode-no-ollama))? The same evaluations, run with the language model off and with the character vectors in place of bge-m3:
+
+```bash
+docker exec disaster_app python evals/run_rag_eval.py --embedder lexical --label lexical_rules
+docker exec disaster_app python evals/run_knowledge_eval.py --embedder lexical --label knowledge_lexical
+docker exec disaster_app python evals/run_gen_eval.py --no-llm --label no_llm
+docker exec disaster_app python evals/run_gen_eval.py --embedder lexical --no-llm --label lite
+```
+
+| Configuration | Needs | Single-answer MRR | Listing R@all | Knowledge: first passage right | Knowledge: right passage sent | Answers ansR / ansP / full (macro) |
+|---|---|---|---|---|---|---|
+| Full (current) | Ollama, llama3.2:3b, bge-m3 | 0.989 | 0.658 | 0.975 | 1.000 | 0.697 / 0.860 / 0.602 |
+| No LLM | Ollama, bge-m3 | 0.989 | 0.658 | 0.975 | 1.000 | 0.720 / 0.867 / 0.625 |
+| **Lightweight** | **nothing** | **0.995** | **0.652** | **0.750** | **0.850** | **0.719 / 0.863 / 0.625** |
+
+- **Turning the model off changes 5 of the 207 answers.** The other 202 are word for word the same, because code already wrote them. The five are the abbreviations the model was left with (淡江蘭陽校區, 慈惠堂, 外役監, 805醫院, 馬蘭榮家). Listing the five closest puts the right shelter in all five, with one or two right lines out of five. The model also put the right shelter first and then added unrelated ones, but in three it shortened the name (「光復自強外役監」 for 光復自強外役監獄, 「馬蘭榮譽國民之家」), which the scorer does not count. So the higher totals do not show that the list is better than the model on these five, only that turning the model off costs nothing measurable on this set.
+- **Character vectors find shelters about as well as bge-m3.** With the rules layer in front, single-answer MRR is 0.995 against 0.989 and every single-answer question has its shelter in the top ten. Abbreviations work because they share characters with the full name (淡江蘭陽校區 and 淡江大學蘭陽校園). What they lose is meaning: the semantic category's MRR falls from 0.926 to 0.854, and 「廟宇可以避難嗎」 finds churches instead of temples, because 廟宇 shares no character with 宮 or 堂.
+- **Knowledge passages are where it falls short.** The right passage comes first in 30 of the 40 knowledge questions instead of 39, and is among those sent in 34. A passage that covers more of the question's words wins: 「颱風快來了家裡該做哪些準備」 gets the typhoon-intensity passage first and the home-preparation passage second. So in this mode a knowledge answer ends with the titles of the next two passages (「如果這不是你要問的，也可以直接問：…」); with them the right passage is shown or offered in 38 of 40. A question containing a passage's full title now returns that passage directly, so asking a suggested title again always works, and titles that would not be routed as knowledge questions are not suggested. This match applies with bge-m3 too and did not change its results.
+- **The distance cutoffs had to change.** Related shelters and passages are 0.6 to 0.9 away in these vectors, so bge-m3's cutoffs (0.70, 0.45) refused almost everything, including 40 of 40 knowledge questions in the first run. Both default to 0.95 in this mode. They were never what refuses an unrelated question (see [Abstention](#abstention-and-boundary-questions)); the rules layer does that in both modes, and all ten negatives are still refused.
+
 ## Held-out questions
 
 The other question sets were written while building the system, by the same person who wrote the rules. `evals/datasets/heldout/README.md` asks other people for questions, with no access to the system or the existing sets, and `evals/run_heldout_eval.py` answers them through the live path and scores hand-graded verdicts. Results will be added when the questions are in.

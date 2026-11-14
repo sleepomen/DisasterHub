@@ -8,7 +8,7 @@
 
 - Docker Desktop
 - [Ollama](https://ollama.com) installed on the host (containers reach it via `host.docker.internal`)
-- 16 GB RAM or more
+- 16 GB RAM or more (or the [lightweight mode](#lightweight-mode-no-ollama), which needs neither Ollama nor much memory)
 
 ### 1. Clone the project
 
@@ -43,7 +43,7 @@ Edit `.env`:
 | `ALERT_POLL_SECONDS` / `ALERT_TTL_MINUTES` | How often live debris-flow alerts are fetched (default 600 s) and how long a fetched alert stays in effect if later fetches fail (default 180 min). `ALERT_POLL_SECONDS=0` disables fetching, for offline machines; the tests set it to 0 |
 | `DB_CONNECT_TIMEOUT` / `DB_STATEMENT_TIMEOUT_MS` | Database connect timeout (seconds, default 5) and per-statement timeout (milliseconds, default 15000), so a hung database fails requests within seconds instead of blocking every worker thread |
 
-Optional variables: `OLLAMA_MODEL` (default `llama3.2:3b`), `OLLAMA_TEMPERATURE`, `OLLAMA_NUM_CTX` (default 8192 — must hold the 20–30 shelter documents a list-style query retrieves), `OLLAMA_NUM_PREDICT` (default 800), `OLLAMA_TIMEOUT`, `OLLAMA_KEEP_ALIVE` (default `30m` — how long Ollama keeps a model loaded after each request; seconds, `-1` for never, or a duration such as `2h`. Without it Ollama unloads after 5 minutes idle and the next question waits for the model to load again), `EMBEDDING_PROVIDER` (`ollama` or `minilm`), `EMBEDDING_MODEL` (default `bge-m3`), `EMBEDDING_TIMEOUT`, `RAG_TOP_K`, `RAG_MAX_DISTANCE` (default 0.70 — cosine distance above which a plain semantic search is treated as "no relevant data"; a last-resort backstop, since off-topic questions are already refused by the earlier layers), `KNOWLEDGE_MAX_DISTANCE` (default 0.45 — the same cutoff for knowledge passages), `DB_POOL_MIN` / `DB_POOL_MAX` (default 1 / 10).
+Optional variables: `OLLAMA_MODEL` (default `llama3.2:3b`), `OLLAMA_TEMPERATURE`, `OLLAMA_NUM_CTX` (default 8192 — must hold the 20–30 shelter documents a list-style query retrieves), `OLLAMA_NUM_PREDICT` (default 800), `OLLAMA_TIMEOUT`, `OLLAMA_KEEP_ALIVE` (default `30m` — how long Ollama keeps a model loaded after each request; seconds, `-1` for never, or a duration such as `2h`. Without it Ollama unloads after 5 minutes idle and the next question waits for the model to load again), `LLM_ENABLED` (default `true`; `false` never calls the language model, see [Lightweight mode](#lightweight-mode-no-ollama)), `EMBEDDING_PROVIDER` (`ollama`, `lexical` or `minilm`), `EMBEDDING_MODEL` (default `bge-m3`), `EMBEDDING_TIMEOUT`, `RAG_TOP_K`, `RAG_MAX_DISTANCE` (default 0.70, or 0.95 with `lexical` — cosine distance above which a plain semantic search is treated as "no relevant data"; a last-resort backstop, since off-topic questions are already refused by the earlier layers), `KNOWLEDGE_MAX_DISTANCE` (default 0.45, or 0.95 with `lexical` — the same cutoff for knowledge passages), `DB_POOL_MIN` / `DB_POOL_MAX` (default 1 / 10).
 
 Numeric settings are range-checked at startup (for example `SESSION_HOURS` must be positive and `DB_POOL_MAX` may not be smaller than `DB_POOL_MIN`); an out-of-range value stops the service with a clear message, and a value that cannot be parsed falls back to the default with a warning in the log.
 
@@ -77,6 +77,21 @@ The application process runs as an unprivileged `app` user inside the container.
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 ```
+
+### Lightweight mode (no Ollama)
+
+For a laptop without Ollama or 16 GB of RAM, layer `docker-compose.lite.yml` on top:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.lite.yml up --build
+```
+
+It sets two switches, which can also be set on their own in `.env`:
+
+- `LLM_ENABLED=false`: the language model is never called. It only wrote two kinds of answer: plain semantic questions with no condition (「淡江蘭陽校區」) and the shelter half of a mixed question. Those now list the five closest shelters in search order, marked as not checked by a model. Every other answer was already written by code and does not change.
+- `EMBEDDING_PROVIDER=lexical`: retrieval uses vectors built from single characters and adjacent character pairs instead of bge-m3, so nothing needs to be downloaded. The distance cutoffs default to 0.95 for these vectors (`RAG_MAX_DISTANCE`, `KNOWLEDGE_MAX_DISTANCE`), because their distances run higher than bge-m3's.
+
+With both off, the app container used about 220 MB and was ready about 12 s after starting, including building the 644-shelter index. The index is kept in its own `chroma_lite` volume, so switching back to the full setup does not rebuild the bge-m3 index. Shelter retrieval is almost as good as with bge-m3; finding the right knowledge passage is not, so knowledge answers end with the titles of other passages that may be what was meant. The numbers are in [Lightweight mode](evaluation.md#lightweight-mode).
 
 ## Running the Tests
 

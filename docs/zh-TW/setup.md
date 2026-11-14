@@ -8,7 +8,7 @@
 
 - Docker Desktop
 - 宿主機安裝 [Ollama](https://ollama.com)（容器透過 `host.docker.internal` 連線）
-- 16GB RAM 以上
+- 16GB RAM 以上（或用[輕量模式](#輕量模式不需要-ollama)，不需要 Ollama，記憶體也少很多）
 
 ### 1. 複製專案
 
@@ -43,7 +43,7 @@ cp .env.example .env
 | `ALERT_POLL_SECONDS` / `ALERT_TTL_MINUTES` | 多久抓一次即時土石流警戒（預設 600 秒），以及之後抓取一直失敗時，已抓到的警戒維持多久（預設 180 分鐘）。`ALERT_POLL_SECONDS=0` 停用抓取，給沒有網路的環境用；測試一律設為 0 |
 | `DB_CONNECT_TIMEOUT` / `DB_STATEMENT_TIMEOUT_MS` | 資料庫連線逾時（秒，預設 5）與單一 SQL 逾時（毫秒，預設 15000），資料庫卡住時請求會在幾秒內失敗，不會把所有工作執行緒一起卡死 |
 
-可選變數：`OLLAMA_MODEL`（預設 `llama3.2:3b`）、`OLLAMA_TEMPERATURE`、`OLLAMA_NUM_CTX`（預設 8192，要放得下列舉題一次撈出的 20 至 30 筆避難所文件）、`OLLAMA_NUM_PREDICT`（預設 800）、`OLLAMA_TIMEOUT`、`OLLAMA_KEEP_ALIVE`（預設 `30m`，每次請求之後 Ollama 把模型留在記憶體裡多久；秒數、`-1` 表示不卸下，或 `2h` 這種時間格式。沒設的話閒置 5 分鐘就卸下，下一題要等模型重新載入）、`EMBEDDING_PROVIDER`（`ollama` 或 `minilm`）、`EMBEDDING_MODEL`（預設 `bge-m3`）、`EMBEDDING_TIMEOUT`、`RAG_TOP_K`、`RAG_MAX_DISTANCE`（預設 0.70，純語意檢索的 cosine 距離超過此值就視為沒有相關資料；離題問題已經由前面幾層擋掉，這裡只是最後一道保險）、`KNOWLEDGE_MAX_DISTANCE`（預設 0.45，知識文件的同一種門檻）、`DB_POOL_MIN` / `DB_POOL_MAX`（預設 1 / 10）。
+可選變數：`OLLAMA_MODEL`（預設 `llama3.2:3b`）、`OLLAMA_TEMPERATURE`、`OLLAMA_NUM_CTX`（預設 8192，要放得下列舉題一次撈出的 20 至 30 筆避難所文件）、`OLLAMA_NUM_PREDICT`（預設 800）、`OLLAMA_TIMEOUT`、`OLLAMA_KEEP_ALIVE`（預設 `30m`，每次請求之後 Ollama 把模型留在記憶體裡多久；秒數、`-1` 表示不卸下，或 `2h` 這種時間格式。沒設的話閒置 5 分鐘就卸下，下一題要等模型重新載入）、`LLM_ENABLED`（預設 `true`；`false` 完全不呼叫語言模型，見[輕量模式](#輕量模式不需要-ollama)）、`EMBEDDING_PROVIDER`（`ollama`、`lexical` 或 `minilm`）、`EMBEDDING_MODEL`（預設 `bge-m3`）、`EMBEDDING_TIMEOUT`、`RAG_TOP_K`、`RAG_MAX_DISTANCE`（預設 0.70，`lexical` 時 0.95；純語意檢索的 cosine 距離超過此值就視為沒有相關資料；離題問題已經由前面幾層擋掉，這裡只是最後一道保險）、`KNOWLEDGE_MAX_DISTANCE`（預設 0.45，`lexical` 時 0.95；知識文件的同一種門檻）、`DB_POOL_MIN` / `DB_POOL_MAX`（預設 1 / 10）。
 
 數值設定啟動時會檢查範圍（例如 `SESSION_HOURS` 必須大於 0、`DB_POOL_MAX` 不能小於 `DB_POOL_MIN`）；超出範圍會以清楚的訊息停止服務，解析不了的值會退回預設並在 log 提醒。
 
@@ -77,6 +77,21 @@ docker compose up --build
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 ```
+
+### 輕量模式（不需要 Ollama）
+
+沒有 Ollama、或記憶體不到 16 GB 的筆電，疊上 `docker-compose.lite.yml`：
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.lite.yml up --build
+```
+
+它設定兩個開關，也可以在 `.env` 單獨設定：
+
+- `LLM_ENABLED=false`：完全不呼叫語言模型。模型原本只負責兩種回答：沒有任何條件的純語意題（「淡江蘭陽校區」），以及混合題的避難所那一半。這兩種改成依檢索順序列出最接近的 5 間避難所，並註明沒有經過模型挑選；其餘回答本來就由程式排好，不會改變。
+- `EMBEDDING_PROVIDER=lexical`：檢索不用 bge-m3，改用由單字與相鄰兩字組成的向量，不必下載任何模型。這種向量的距離比 bge-m3 大，所以兩個距離門檻（`RAG_MAX_DISTANCE`、`KNOWLEDGE_MAX_DISTANCE`）預設改成 0.95。
+
+兩個都關掉時，app 容器約用 220 MB 記憶體，啟動後約 12 秒就就緒，包括建立 644 間避難所的索引。索引放在另一個 `chroma_lite` volume，切回完整設定時不必重建 bge-m3 的索引。避難所檢索跟 bge-m3 差不多，找對防災知識段落則差一截，所以知識回答最後會附上其他可能相關的段落標題。數字見[輕量模式](evaluation.md#輕量模式)。
 
 ## 執行測試
 

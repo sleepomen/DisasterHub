@@ -17,7 +17,7 @@ Most shelter questions are answered by code, not by the LLM (`services/chat/dire
 
 The same goes for the nearest shelters to a pair of coordinates: road distance, walking and driving time, capacity and hazard warnings are formatted by code from the routing result.
 
-Simulation follow-ups are answered by code as well (see [Simulation follow-ups](simulation-and-routing.md#simulation-follow-ups)). Small place names (「知本附近」) are turned into coordinates and answered like nearest-shelter questions (see [Small place names](#small-place-names)). Only plain semantic questions with no condition (「有沒有可以帶寵物的避難所」) still go to the model.
+Simulation follow-ups are answered by code as well (see [Simulation follow-ups](simulation-and-routing.md#simulation-follow-ups)). Small place names (「知本附近」) are turned into coordinates and answered like nearest-shelter questions (see [Small place names](#small-place-names)). Only plain semantic questions with no condition (「有沒有可以帶寵物的避難所」) still go to the model. In the [lightweight mode](setup.md#lightweight-mode-no-ollama) they list the five closest shelters instead.
 
 - **Nearest shelters were the last to move.** They were still copied by the model until a clean-install run on 2026-10-31: asked from the centre of Hualien City, the model wrote the second shelter (國立花蓮農業職業學校, 0.91 km, capacity 382) as 花蓮高商, the first one's name. The answer guard cannot catch that, because 花蓮高商 is in the data. Formatted by code, the answer takes about a second instead of about 29 s.
 

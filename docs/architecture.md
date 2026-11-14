@@ -56,6 +56,7 @@ DisasterHub/
 ├── Dockerfile                  # INSTALL_DEV build arg controls dev dependencies
 ├── docker-compose.yml          # Production setup
 ├── docker-compose.dev.yml      # Dev overlay (hot reload / source mount / test deps)
+├── docker-compose.lite.yml     # Lightweight overlay: no language model, character vectors, no Ollama
 ├── ruff.toml                   # Lint config (CI runs `ruff check .`)
 ├── requirements.txt            # Runtime dependencies (intent: version ranges)
 ├── requirements-dev.txt        # Test dependencies (pytest / httpx)
@@ -87,7 +88,7 @@ DisasterHub/
 │   ├── retrieval/              # Retrieval
 │   │   ├── vector_store.py     # ChromaDB vector index (supports partial updates)
 │   │   ├── chroma.py           # The one place ChromaDB clients are made; turns its usage telemetry off
-│   │   ├── embeddings.py       # Ollama / MiniLM embeddings
+│   │   ├── embeddings.py       # Ollama / MiniLM / character (lexical) embeddings
 │   │   ├── knowledge.py        # Disaster-preparedness passages: parsing, index, retrieval, answer text, source lines
 │   │   └── shelter_profile.py  # Name/address → township, facilities, aliases
 │   ├── simulation/             # Disaster simulation
@@ -156,6 +157,7 @@ DisasterHub/
     │   ├── test_query_rules.py
     │   ├── test_direct_answer.py
     │   ├── test_alert_answer.py
+    │   ├── test_lite_mode.py
     │   └── test_i18n.py
     ├── retrieval/
     │   ├── test_vector_store.py
