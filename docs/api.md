@@ -21,6 +21,8 @@
 | POST | `/api/nearest_shelter` | Find the nearest shelters, ranked by travel time (`mode`: `walk` or `drive`). Each result has `road_distance_km` (`null` when it cannot be routed), the straight-line `distance_km`, `walk_min`, `drive_min`, `hazard_m` (metres still inside an alert zone) and `unreachable` (cut off by a red alert) |
 | GET | `/api/hazard_zones` | Debris-flow impact zones as GeoJSON, for the map layer |
 | GET | `/api/alerts` | Debris-flow alerts in effect, with the length of road each one closes or reroutes |
+| GET | `/report` | The capacity gap report as a page: sortable tables, filtered by county |
+| GET | `/api/capacity_report` | What the report page shows, read from `reports/capacity_gap.json` (written by `tools/capacity_report.py`, never recomputed per request); without the per-scenario shelter lists, under 100 KB instead of 450 KB. 404 with the command to run when there is no report yet |
 | POST | `/api/chat` | AI decision assistant. Streams the answer back as Server-Sent Events. Returns 429 when all `CHAT_MAX_CONCURRENT` generation slots are busy |
 | POST | `/api/sync` | Trigger a data sync manually. Accepts `SYNC_API_KEY`, a logged-in session, or `WRITE_API_KEY` — the startup sync can fail, and an operator must be able to recover without restarting the container. The index is rebuilt into a staging collection and swapped in atomically, so chat keeps answering from the old index while embeddings are recomputed |
 

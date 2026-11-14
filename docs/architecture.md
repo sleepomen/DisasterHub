@@ -50,6 +50,7 @@ DisasterHub/
 │   ├── session.py              # /api/login, /api/logout, /api/me
 │   ├── map_data.py             # Shelters, hazard zones, alerts, population, picked-point names, nearest shelters
 │   ├── simulation.py           # /api/simulate_disaster, /api/occupancy, /api/reset_simulation
+│   ├── report.py               # /report, /api/capacity_report (reads reports/capacity_gap.json)
 │   ├── chat.py                 # /api/chat (SSE stream, rate limit, generation slots)
 │   └── admin.py                # /api/sync, /api/stats
 ├── config.py                   # Single place for all environment variables
@@ -143,6 +144,8 @@ DisasterHub/
 │   ├── index.html              # Page skeleton
 │   ├── style.css               # UI styles
 │   ├── favicon.svg             # Same mark as the top-left logo
+│   ├── report.html             # Capacity gap report page (/report)
+│   ├── report.css              # Report page layout (colours and navbar come from style.css)
 │   ├── i18n.js                 # Interface strings in Chinese and English, language toggle
 │   └── js/                     # Page logic, loaded in order as plain scripts sharing one global scope
 │       ├── controls.js         # Side-panel dropdowns and the current choices
@@ -153,6 +156,7 @@ DisasterHub/
 │       ├── simulation.js       # Run-simulation and clear buttons
 │       ├── picking.js          # Picking the simulation centre on the map, village origins
 │       ├── chat.js             # Assistant chat and streamed answers
+│       ├── report.js           # Capacity report page: sortable tables, county filter (loaded only by report.html)
 │       └── main.js             # Radius slider, language toggle, start-up; loaded last
 │
 └── tests/
@@ -183,6 +187,7 @@ DisasterHub/
     │   └── test_shelter_model.py
     ├── web/
     │   ├── test_api_data.py
+    │   ├── test_report_api.py
     │   ├── test_auth.py
     │   ├── test_rate_limit.py
     │   ├── test_metrics.py

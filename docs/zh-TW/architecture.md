@@ -50,6 +50,7 @@ DisasterHub/
 │   ├── session.py              # /api/login、/api/logout、/api/me
 │   ├── map_data.py             # 避難所、潛勢範圍、警戒、人口、選點名稱、最近避難所
 │   ├── simulation.py           # /api/simulate_disaster、/api/occupancy、/api/reset_simulation
+│   ├── report.py               # /report、/api/capacity_report（讀 reports/capacity_gap.json）
 │   ├── chat.py                 # /api/chat（SSE 串流、限流、生成名額）
 │   └── admin.py                # /api/sync、/api/stats
 ├── config.py                   # 所有環境變數集中處
@@ -143,6 +144,8 @@ DisasterHub/
 │   ├── index.html              # 頁面骨架
 │   ├── style.css               # 介面樣式
 │   ├── favicon.svg             # 跟左上角標誌同一個圖形
+│   ├── report.html             # 容量缺口報告頁（/report）
+│   ├── report.css              # 報告頁的版面（顏色與導覽列沿用 style.css）
 │   ├── i18n.js                 # 介面的中英文字串與語言切換
 │   └── js/                     # 頁面邏輯，依序用一般的 <script> 載入、共用同一個全域範圍
 │       ├── controls.js         # 左側面板的下拉選單與目前的選項
@@ -153,6 +156,7 @@ DisasterHub/
 │       ├── simulation.js       # 執行模擬與清除圖層的按鈕
 │       ├── picking.js          # 在地圖上點選模擬中心、村里起點
 │       ├── chat.js             # AI 助手對話框與串流回答
+│       ├── report.js           # 報告頁：可排序的表格、依縣篩選（只有 report.html 載入）
 │       └── main.js             # 半徑滑桿、語言切換、頁面載入；最後載入
 │
 └── tests/
@@ -183,6 +187,7 @@ DisasterHub/
     │   └── test_shelter_model.py
     ├── web/
     │   ├── test_api_data.py
+    │   ├── test_report_api.py
     │   ├── test_auth.py
     │   ├── test_rate_limit.py
     │   ├── test_metrics.py

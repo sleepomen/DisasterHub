@@ -21,6 +21,8 @@
 | POST | `/api/nearest_shelter` | 查詢最近避難所，依通行時間排序（`mode`：`walk` 或 `drive`）。每筆附 `road_distance_km`（算不出路線時是 `null`）、直線距離 `distance_km`、`walk_min`、`drive_min`、`hazard_m`（仍經過警戒範圍的公尺數）與 `unreachable`（被紅色警戒封路擋住）|
 | GET | `/api/hazard_zones` | 土石流潛勢溪流影響範圍（GeoJSON），地圖圖層用 |
 | GET | `/api/alerts` | 目前生效的土石流警戒，以及各自封閉或要繞行的道路長度 |
+| GET | `/report` | 容量缺口報告的網頁版：可以排序、依縣篩選的表格 |
+| GET | `/api/capacity_report` | 報告頁要的資料，讀 `reports/capacity_gap.json`（由 `tools/capacity_report.py` 產生，不會在請求裡重算）；不含每個情境的避難所清單，不到 100 KB，完整檔是 450 KB。還沒有報告時回 404，附上要執行的指令 |
 | POST | `/api/chat` | AI 決策助手，回答以 Server-Sent Events 逐段串流。`CHAT_MAX_CONCURRENT` 個生成名額都在忙時回 429 |
 | POST | `/api/sync` | 手動觸發資料同步。`SYNC_API_KEY`、登入的 session、`WRITE_API_KEY` 三者任一即可——啟動同步是會失敗的，操作員要能不重啟容器就把資料救回來。索引會先建到暫存 collection 再整個換過去，重算 embedding 期間問答仍用舊索引回答 |
 
