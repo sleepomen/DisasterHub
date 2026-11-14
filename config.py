@@ -68,7 +68,16 @@ OLLAMA_KEEP_ALIVE: int | str = (
     int(OLLAMA_KEEP_ALIVE_RAW) if OLLAMA_KEEP_ALIVE_RAW.lstrip("-").isdigit() else OLLAMA_KEEP_ALIVE_RAW
 )
 
-EMBEDDING_PROVIDER = os.environ.get("EMBEDDING_PROVIDER", "ollama")
+# 輕量模式（docker-compose.lite.yml）：LLM_ENABLED=false 不呼叫語言模型，原本要交給模型的兩種題目
+# （沒有篩選條件的語意題、混合題的避難所那一半）改由程式列出最相關的避難所；
+# EMBEDDING_PROVIDER=lexical 改用不需要模型的字面向量。兩個都關掉就完全不需要 Ollama
+LLM_ENABLED = _env_bool("LLM_ENABLED", True)
+
+EMBEDDING_PROVIDER = os.environ.get("EMBEDDING_PROVIDER", "ollama").strip().lower() or "ollama"
+# 字面向量的距離尺度跟 bge-m3 不同：相關的避難所與知識段落常落在 0.6 到 0.9，沿用 bge-m3 的門檻會全部擋掉。
+# 兩個門檻都只當最後一道保險（無關問題由規則層擋），見 docs/evaluation.md 的輕量模式一節
+LEXICAL = EMBEDDING_PROVIDER == "lexical"
+LEXICAL_MAX_DISTANCE = 0.95
 EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", "bge-m3")
 EMBEDDING_TIMEOUT = _env_int("EMBEDDING_TIMEOUT", 120)
 
@@ -77,11 +86,21 @@ RAG_TOP_K = _env_int("RAG_TOP_K", 10)
 # 無關問題現在由前面的 off_topic / no_clue 擋掉，走到這裡的邊界題與 rag 負例沒有一題該拒答；
 # 原本的 0.56 只剩誤擋（「我們一家五口可以去哪」0.583、「土石流要撤離到哪」0.646），
 # 這裡只留給極端偏離的問句當最後一道保險
-RAG_MAX_DISTANCE = _env_float("RAG_MAX_DISTANCE", 0.70)
+RAG_MAX_DISTANCE = _env_float("RAG_MAX_DISTANCE", LEXICAL_MAX_DISTANCE if LEXICAL else 0.70)
 # 防災知識檢索的 cosine 距離上限（bge-m3）。正常知識題最接近的一段都在 0.40 以內；
 # 語料沒有的題目（火災逃生 0.34、颱風補助 0.37、防災包 0.43）有的也在 0.40 以內，分不開，
 # 所以「是不是知識題」由 query_rules.knowledge_request 先用規則判斷，這裡只擋完全對不上的
-KNOWLEDGE_MAX_DISTANCE = _env_float("KNOWLEDGE_MAX_DISTANCE", 0.45)
+KNOWLEDGE_MAX_DISTANCE = _env_float("KNOWLEDGE_MAX_DISTANCE", LEXICAL_MAX_DISTANCE if LEXICAL else 0.45)
+
+
+def use_lexical_defaults() -> None:
+    """評測腳本用 --embedder lexical 時呼叫：容器沒設 EMBEDDING_PROVIDER=lexical，門檻也要換成字面向量的"""
+    global LEXICAL, RAG_MAX_DISTANCE, KNOWLEDGE_MAX_DISTANCE
+    LEXICAL = True
+    if not os.environ.get("RAG_MAX_DISTANCE"):
+        RAG_MAX_DISTANCE = LEXICAL_MAX_DISTANCE
+    if not os.environ.get("KNOWLEDGE_MAX_DISTANCE"):
+        KNOWLEDGE_MAX_DISTANCE = LEXICAL_MAX_DISTANCE
 # 同時進行的 LLM 生成上限。每次生成最長 OLLAMA_TIMEOUT 秒，佔用一條工作執行緒；
 # 不設上限的話幾個人同時發問就會把執行緒池吃光，地圖載入與 readiness 一起卡住
 CHAT_MAX_CONCURRENT = _env_int("CHAT_MAX_CONCURRENT", 2)

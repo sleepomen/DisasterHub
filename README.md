@@ -90,6 +90,8 @@ ollama pull bge-m3          # embedding model
 docker compose up --build
 ```
 
+No Ollama, or less memory? `docker compose -f docker-compose.yml -f docker-compose.lite.yml up --build` runs a [lightweight mode](docs/setup.md#lightweight-mode-no-ollama) without the language model or any model download; on the 207-question evaluation, turning the model off changes 5 answers, and the character-based retrieval finds shelters about as well but knowledge passages less well.
+
 Open <http://localhost:8501>. The first start loads the shelters, hazard zones and road network into PostGIS and builds the vector index, which takes a few minutes. The map and the chat work without logging in; running a simulation needs the `ADMIN_USERNAME` / `ADMIN_PASSWORD` from `.env`. Configuration, development mode and tests are in [docs/setup.md](docs/setup.md).
 
 ## Documentation
@@ -224,6 +226,8 @@ ollama pull llama3.2:3b     # 對話模型
 ollama pull bge-m3          # embedding 模型
 docker compose up --build
 ```
+
+沒有 Ollama 或記憶體不夠？`docker compose -f docker-compose.yml -f docker-compose.lite.yml up --build` 會以[輕量模式](docs/zh-TW/setup.md#輕量模式不需要-ollama)啟動，不用語言模型、也不必下載任何模型；207 題評測裡，關掉模型只改變 5 題的回答；字面檢索找避難所差不多準，找防災知識段落則比較不準。
 
 打開 <http://localhost:8501>。第一次啟動會把避難所、土石流潛勢範圍與路網匯入 PostGIS，並建立向量索引，需要幾分鐘。不登入也能看地圖、問 AI；執行模擬要用 `.env` 裡的 `ADMIN_USERNAME` / `ADMIN_PASSWORD` 登入。完整設定、開發模式與測試見 [docs/zh-TW/setup.md](docs/zh-TW/setup.md)。
 

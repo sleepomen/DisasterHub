@@ -1,0 +1,18 @@
+# 輕量模式：不需要 Ollama，一般筆電就跑得動（見 docs/setup.md 的「輕量模式」）
+# 用法：docker compose -f docker-compose.yml -f docker-compose.lite.yml up --build
+#
+# - LLM_ENABLED=false：不呼叫語言模型。原本交給模型的兩種題目（沒有篩選條件的語意題、混合題的避難所那一半）
+#   改由程式列出最相關的避難所；其餘題目本來就由程式回答，答案不變
+# - EMBEDDING_PROVIDER=lexical：檢索改用不需要模型的字面向量（單字與相鄰兩字）。
+#   避難所檢索跟 bge-m3 差不多，防災知識段落比較差，回答後面會附其他可能相關的主題
+# - 索引放在另一個 volume：跟完整模式切換時不必每次重建 bge-m3 的索引
+services:
+  disaster_app:
+    environment:
+      - LLM_ENABLED=false
+      - EMBEDDING_PROVIDER=lexical
+    volumes:
+      - chroma_lite:/data/chroma
+
+volumes:
+  chroma_lite:
