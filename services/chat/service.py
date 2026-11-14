@@ -18,7 +18,7 @@ import config
 from services.chat import intent, llm_client, query_rules
 from services.chat.alert_answer import alert_answer, asks_current_alerts
 from services.chat.answer_guard import LineGuard, filter_lines, supported_names
-from services.chat.direct_answer import nearest_answer
+from services.chat.direct_answer import nearest_answer, related_answer
 from services.chat.replies import (
     AI_UNAVAILABLE,
     GENERIC_ERROR,
@@ -270,7 +270,8 @@ class ChatService:
                 return None, KNOWLEDGE_UNAVAILABLE
             if not hits:
                 return None, NO_KNOWLEDGE_REPLY
-            return None, knowledge_answer([h.chunk for h in hits], lang)
+            chunks = [h.chunk for h in hits]
+            return None, knowledge_answer(chunks, lang) + self._related_topics(knowledge, chunks, lang)
 
         hits = self._knowledge_hits(knowledge.search_text, knowledge.hazards)
         if not hits:
@@ -289,6 +290,29 @@ class ChatService:
             parts = [knowledge_text(chunks, lang), note, sources_text(chunks, lang)]
             return None, "\n\n".join(part for part in parts if part)
         return f"{knowledge_context(hits)}\n\n{SHELTER_HEADER}\n{context}", None
+
+    def _related_topics(self, knowledge, chunks: list[KnowledgeChunk], lang: str) -> str:
+        """字面向量（輕量模式）時，在知識回答後面附上其他可能相關的段落標題；bge-m3 夠準，不附"""
+        if not config.LEXICAL:
+            return ""
+        try:
+            titles = self.knowledge.related_titles(
+                knowledge.search_text, knowledge.hazards, chunks, is_question=self._asks_knowledge_only,
+            )
+        except Exception:
+            logger.exception("查詢相關知識段落失敗")
+            return ""
+        if not titles:
+            return ""
+        quoted = "".join(f"「{t}」" for t in titles)
+        if lang == "en":
+            return f"\n\nIf this is not what you asked, you can ask one of these instead: {quoted}"
+        return f"\n\n如果這不是你要問的，也可以直接問：{quoted}"
+
+    def _asks_knowledge_only(self, text: str) -> bool:
+        """這句話照問會走到純知識路由（建議的標題要照問得到）"""
+        request = query_rules.knowledge_request(text)
+        return request is not None and not request.mixed and not self._is_simulation_query(text)
 
     def _knowledge_hits(self, user_message: str, hazards: list[str]) -> list[KnowledgeHit] | None:
         """距離門檻以內的知識段落；知識庫沒載入或查詢失敗回 None"""
@@ -402,6 +426,10 @@ class ChatService:
         if direct:
             metrics.incr("chat.answer.direct")
             return None, direct
+        if not config.LLM_ENABLED:
+            # 輕量模式：沒有模型可以挑，照檢索順序列出最接近的幾間
+            metrics.incr("chat.answer.direct")
+            return None, related_answer([h.metadata for h in result.hits or []], lang)
         return result.text, None
 
     def _shelter_metadata(self) -> list[dict] | None:

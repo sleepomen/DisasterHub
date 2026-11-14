@@ -178,6 +178,11 @@ def load_chunks(directory: Path = KNOWLEDGE_DIR) -> list[KnowledgeChunk]:
     return chunks
 
 
+def _compact(text: str) -> str:
+    """只留文字與數字，比對標題時不管空白與標點（「震度 4 級、5 弱」對「震度4級5弱」）"""
+    return "".join(c for c in text.replace("臺", "台") if c.isalnum())
+
+
 def sources_text(chunks: list[KnowledgeChunk], lang: str = "zh") -> str:
     """
     回答最後附的出處：由程式產生，不交給模型（模型會把網址抄錯，系統提示也不准它寫英文）。
@@ -280,10 +285,27 @@ class KnowledgeStore:
     def search(self, query: str, hazards: list[str] | None = None, n: int = MAX_CHUNKS) -> list[KnowledgeHit]:
         """
         問句提到災害時只在那些災害的段落裡找：「颱風前要準備什麼」不該拿到地震前的準備。
-        結果依距離排序，第一段之後只留跟第一段差不多近的
+        結果依距離排序，第一段之後只留跟第一段差不多近的。
+
+        問句裡有某段的完整標題就直接給那一段：字面向量（輕量模式）會讓涵蓋面較廣的段落搶走第一名，
+        照著「如果這不是你要問的」建議的標題再問一次，卻拿到同一段，就沒有意義了
         """
         if not self.ready():
             return []
+        compact = _compact(query)
+        titled = [
+            KnowledgeHit(c, 0.0) for c in self.chunks.values()
+            if (not hazards or c.hazard in hazards) and _compact(c.title) in compact
+        ]
+        if titled:
+            return titled[:n]
+        hits = self._nearest(query, hazards, n)
+        if not hits:
+            return []
+        best = hits[0].distance
+        return [h for h in hits if h.distance - best <= FOLLOWER_MARGIN]
+
+    def _nearest(self, query: str, hazards: list[str] | None, n: int) -> list[KnowledgeHit]:
         where = None
         if hazards:
             where = {"hazard": hazards[0]} if len(hazards) == 1 else {"hazard": {"$in": list(hazards)}}
@@ -292,15 +314,23 @@ class KnowledgeStore:
             result = self.collection.query(
                 query_embeddings=[vector], n_results=min(n, len(self.chunks)), where=where, include=["distances"],
             )
-        hits = [
+        return [
             KnowledgeHit(self.chunks[cid], float(dist))
             for cid, dist in zip(result["ids"][0], result["distances"][0], strict=True)
             if cid in self.chunks
         ]
-        if not hits:
-            return []
-        best = hits[0].distance
-        return [h for h in hits if h.distance - best <= FOLLOWER_MARGIN]
+
+    def related_titles(
+        self, query: str, hazards: list[str] | None, sent: list[KnowledgeChunk], is_question, n: int = 2,
+    ) -> list[str]:
+        """
+        送出的段落以外、接下來最接近的 n 段標題。字面向量（輕量模式）找知識段落沒有 bge-m3 準
+        （第一段送對的比例 0.75 對 0.975），附上這幾個標題，使用者可以照著再問一次。
+        照問會不會走到知識路由由呼叫端判斷（is_question），走不到的標題不建議
+        """
+        sent_ids = {c.id for c in sent}
+        hits = self._nearest(query, hazards, len(self.chunks))
+        return [h.chunk.title for h in hits if h.chunk.id not in sent_ids and is_question(h.chunk.title)][:n]
 
 
 # 防災知識題由程式直接回知識文件原文，不交給模型改寫。曾經讓 llama3.2:3b 依原文回答，

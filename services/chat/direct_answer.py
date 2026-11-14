@@ -176,6 +176,24 @@ def _compose_en(plan, result, metas: list[dict]) -> str | None:
     return None
 
 
+# 輕量模式（不呼叫模型）時純語意題列出的筆數。top-k 裡混著不相干的，列太多只會更難找
+RELATED_LIST = 5
+
+
+def related_answer(metas: list[dict], lang: str = "zh") -> str:
+    """
+    輕量模式的純語意題：沒有模型替使用者挑，就照檢索順序列出最接近的幾間，並說明這只是字面或語意上接近，
+    請使用者指定鄉鎮、設施或名稱。有模型時這一題交給模型（見 compose 的說明）
+    """
+    shown = metas[:RELATED_LIST]
+    if lang == "en":
+        return (f"The {len(shown)} shelters closest to your question (lightweight mode: listed in search order, "
+                "not checked by a language model):\n" + _bullets(shown, "en")
+                + "\n\nName a township, a facility type or a shelter for a more precise answer.")
+    return (f"跟問題最接近的 {len(shown)} 間避難所（輕量模式：依檢索順序列出，沒有經過語言模型挑選）：\n"
+            + _bullets(shown, lang) + "\n\n指定鄉鎮、設施類型或避難所名稱，可以得到更準確的答案。")
+
+
 def _nearest_distance(n, lang: str) -> str:
     """一間最近避難所的距離與時間；到不了、只有直線距離、仍經過警戒範圍各有說法"""
     en = lang == "en"

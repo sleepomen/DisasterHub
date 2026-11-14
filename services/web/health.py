@@ -31,6 +31,9 @@ def check_index(vector_store) -> tuple[bool, str]:
 
 
 def check_ollama() -> tuple[bool, str]:
+    if not config.LLM_ENABLED and config.EMBEDDING_PROVIDER != "ollama":
+        # 輕量模式完全不用 Ollama，沒裝也不是問題
+        return True, "not used (lightweight mode)"
     try:
         response = requests.get(f"{config.OLLAMA_HOST}/api/tags", timeout=OLLAMA_PING_TIMEOUT)
         response.raise_for_status()

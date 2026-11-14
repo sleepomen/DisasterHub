@@ -1,4 +1,6 @@
 import logging
+import math
+import zlib
 
 import requests
 
@@ -52,6 +54,50 @@ class OllamaEmbedding:
             return False
 
 
+class LexicalEmbedding:
+    """
+    不用模型的字面向量：問句與文件拆成單字與相鄰兩字，雜湊到固定維度，再做 L2 正規化，
+    cosine 相似度就是「共同的字與詞有多少」。給輕量模式用（docker-compose.lite.yml）：
+    不需要 Ollama、不必下載任何模型，在一般筆電上建 644 間的索引不到一秒。
+    代價是不懂語意：「淡江蘭陽校區」對得到「淡江大學蘭陽校園」，「適合老人的」就對不到「避難弱者」。
+    跟 bge-m3 的檢索比較見 docs/evaluation.md
+    """
+
+    DIM = 4096
+    # 兩字詞比單字有鑑別力（「國小」對「國」「小」），權重給高一點
+    UNIGRAM_WEIGHT = 0.5
+
+    def name(self) -> str:
+        return "lexical-v1"
+
+    @classmethod
+    def _tokens(cls, text: str) -> list[tuple[str, float]]:
+        chars = [c for c in text.replace("臺", "台").lower() if c.isalnum()]
+        grams = [(c, cls.UNIGRAM_WEIGHT) for c in chars]
+        grams += [(a + b, 1.0) for a, b in zip(chars, chars[1:], strict=False)]
+        return grams
+
+    def _embed(self, text: str) -> list[float]:
+        vector = [0.0] * self.DIM
+        for gram, weight in self._tokens(text):
+            vector[zlib.crc32(gram.encode("utf-8")) % self.DIM] += weight
+        norm = math.sqrt(sum(v * v for v in vector))
+        if norm == 0:
+            # 全是標點的問句：給一個固定方向，cosine 才算得出來（跟每份文件都一樣遠）
+            vector[0], norm = 1.0, 1.0
+        return [v / norm for v in vector]
+
+    def __call__(self, input):
+        texts = input if isinstance(input, list) else [input]
+        return [self._embed(t) for t in texts]
+
+    def embed_query(self, input):
+        return self(input)
+
+    def embed_documents(self, input):
+        return self(input)
+
+
 def build_embedding_function(provider: str | None = None, model: str | None = None):
     provider = (provider or config.EMBEDDING_PROVIDER).lower()
     if provider == "ollama":
@@ -62,6 +108,8 @@ def build_embedding_function(provider: str | None = None, model: str | None = No
         )
         ef.warm_up()
         return ef
+    if provider == "lexical":
+        return LexicalEmbedding()
     if provider == "minilm":
         from chromadb.utils import embedding_functions
         return embedding_functions.ONNXMiniLM_L6_V2()

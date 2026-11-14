@@ -59,6 +59,8 @@ class SearchResult:
     # 程式排好的回答（services/chat/direct_answer.py）；None 代表要交給模型
     direct: str | None = None
     direct_en: str | None = None
+    # 給模型的那幾筆（沒有篩選條件的純語意題）。輕量模式不呼叫模型，由程式直接列出
+    hits: list | None = None
 
     def answer(self, lang: str = "zh") -> str | None:
         return self.direct_en if lang == "en" else self.direct
@@ -568,5 +570,5 @@ class VectorStore:
         body = "\n".join(f"- {ALIAS_PATTERN.sub('', h.document)}" for h in hits)
         text = f"{header}\n{body}" if header else body
         if result is None or unfiltered:
-            return SearchResult(text)
+            return SearchResult(text, hits=hits)
         return SearchResult(text, compose(plan, result), compose(plan, result, "en"))
