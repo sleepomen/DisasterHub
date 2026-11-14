@@ -1,0 +1,68 @@
+/* 容量缺口報告頁（/report）。顏色變數與導覽列在 style.css，這裡只有報告頁的版面 */
+
+/* 地圖頁的 body 不捲動、整頁是地圖；報告頁是一般的長文件 */
+body.report-page { display: block; height: auto; overflow: auto; }
+body.report-page .navbar { position: sticky; top: 0; z-index: 10; }
+body.report-page .auth-area { margin-left: auto; }
+
+.report { max-width: 1080px; margin: 0 auto; padding: 24px 20px 64px; line-height: 1.7; }
+.report h2 {
+    font-family: var(--font-title); font-size: 20px; margin: 36px 0 10px;
+    padding-bottom: 6px; border-bottom: 1px solid var(--line);
+}
+.report h3 { font-size: 15px; margin: 24px 0 8px; }
+.report a { color: var(--accent); }
+.report code { font-size: 13px; background: var(--bg-deep); padding: 1px 5px; border-radius: var(--radius-sm); word-break: break-all; }
+
+.report-status { color: var(--text-dim); padding: 40px 0; }
+.report-status.is-error { color: var(--danger); }
+.report-generated { color: var(--text-faint); font-size: 13px; margin-top: 8px; }
+.report-lead { color: var(--text-dim); font-size: 14px; margin-bottom: 12px; }
+
+.report-note {
+    margin: 16px 0 0; padding: 12px 14px; font-size: 14px;
+    background: var(--danger-dim); border-left: 3px solid var(--danger); border-radius: var(--radius-sm);
+}
+
+.report-list { padding-left: 20px; }
+.report-list li { margin: 6px 0; }
+
+.report-filter { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.report-filter button {
+    font: inherit; font-size: 13px; padding: 3px 12px; cursor: pointer;
+    border: 1px solid var(--line-strong); border-radius: 999px; background: var(--surface); color: var(--text);
+}
+.report-filter button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+
+/* 窄螢幕整張表橫向捲動，頁面本身不橫向捲動 */
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.report-table { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+.report-table th, .report-table td { padding: 7px 10px; border-bottom: 1px solid var(--hairline); white-space: nowrap; }
+.report-table thead th { background: var(--bg-deep); text-align: left; font-weight: 500; position: sticky; top: 0; }
+.report-table tbody tr:last-child td { border-bottom: none; }
+.report-table .num { text-align: right; }
+.report-table-plain td { white-space: normal; }
+.report-table th button {
+    font: inherit; font-weight: 500; color: inherit; background: none; border: none; cursor: pointer; padding: 0;
+    display: inline-flex; gap: 4px; align-items: center;
+}
+.report-table th.num button { flex-direction: row-reverse; }
+.report-table th button::after { content: "↕"; color: var(--text-faint); font-size: 11px; }
+.report-table th[aria-sort="ascending"] button::after { content: "▲"; color: var(--accent); }
+.report-table th[aria-sort="descending"] button::after { content: "▼"; color: var(--accent); }
+
+/* 占人口幾 %：不到 5% 是紅色，0 另外加粗；疏散比例以下是琥珀色 */
+.share { display: inline-flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.share-bar { width: 72px; height: 4px; background: var(--hairline); border-radius: 2px; position: relative; overflow: hidden; }
+.share-bar span { position: absolute; inset: 0 auto 0 0; background: var(--ok); }
+.share.is-low .share-bar span { background: var(--caution); }
+.share.is-critical .share-bar span { background: var(--danger); }
+.share.is-critical .share-text { color: var(--danger); }
+.share.is-zero .share-text { color: var(--danger); font-weight: 700; }
+.range { color: var(--text-faint); }
+.is-danger { color: var(--danger); }
+
+@media (max-width: 760px) {
+    .report { padding: 16px 16px 48px; }
+    body.report-page .brand-sub { display: none; }
+}

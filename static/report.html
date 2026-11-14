@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>容量缺口報告｜東台灣避難所決策系統</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap" rel="stylesheet">
+    <!-- 顏色、導覽列跟地圖頁同一份；report.css 只加報告頁自己的版面 -->
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/report.css">
+</head>
+<body class="report-page">
+
+<header class="navbar">
+    <div class="logo-mark">
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7V12C3 17.5 6.8 21.7 12 23C17.2 21.7 21 17.5 21 12V7L12 2Z" stroke="white" stroke-width="2" stroke-linejoin="round" fill="rgba(255,255,255,0.15)"/></svg>
+    </div>
+    <div class="brand">
+        <span class="brand-name">容量缺口報告</span>
+        <span class="brand-sub">宜蘭・花蓮・台東 41 個鄉鎮的避難收容規劃參考</span>
+    </div>
+    <div class="auth-area">
+        <a class="auth-btn" href="/">回到地圖</a>
+    </div>
+</header>
+
+<main class="report" id="report">
+    <p class="report-status" id="report-status" role="status">載入中…</p>
+
+    <div id="report-body" hidden>
+        <p class="report-generated" id="report-generated"></p>
+
+        <aside class="report-note" role="note">
+            <strong>規劃參考，不是預測。</strong>不能當成災時指揮依據。人口是戶籍人口，避難所容量照登記的算，疏散比例是假設，所以未安置人數都給範圍。
+        </aside>
+
+        <section aria-labelledby="h-highlights">
+            <h2 id="h-highlights">重點</h2>
+            <ul class="report-list" id="highlights"></ul>
+        </section>
+
+        <section aria-labelledby="h-towns">
+            <h2 id="h-towns">一、各鄉鎮自有容量</h2>
+            <p class="report-lead" id="towns-lead"></p>
+            <div class="report-filter" role="group" aria-label="依縣篩選" id="county-filter"></div>
+            <div class="table-wrap"><table class="report-table" id="towns-table"></table></div>
+        </section>
+
+        <section aria-labelledby="h-scenarios">
+            <h2 id="h-scenarios">二、情境模擬</h2>
+            <p class="report-lead" id="scenarios-lead"></p>
+            <div class="table-wrap"><table class="report-table" id="scenarios-table"></table></div>
+            <h3>紅色警戒時被切斷的村里</h3>
+            <div class="table-wrap"><table class="report-table" id="cut-table"></table></div>
+        </section>
+
+        <section aria-labelledby="h-shelters">
+            <h2 id="h-shelters">三、避難所</h2>
+            <p class="report-lead" id="shelters-lead"></p>
+        </section>
+
+        <section aria-labelledby="h-checks">
+            <h2 id="h-checks">需要跟公所核對的資料</h2>
+            <ul class="report-list" id="checks"></ul>
+        </section>
+
+        <section aria-labelledby="h-data">
+            <h2 id="h-data">資料與限制</h2>
+            <div class="table-wrap"><table class="report-table report-table-plain" id="data-table"></table></div>
+            <ul class="report-list" id="limitations"></ul>
+            <p class="report-generated">完整數字：<a href="/api/capacity_report">/api/capacity_report</a>（JSON）。重新產生：<code>docker exec disaster_app python tools/capacity_report.py</code></p>
+        </section>
+    </div>
+</main>
+
+<script src="/static/js/report.js"></script>
+</body>
+</html>

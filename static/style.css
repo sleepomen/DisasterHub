@@ -499,6 +499,10 @@
 
         /* ── 登入 ─────────────────────────────────── */
         .auth-area { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+        a.auth-btn { text-decoration: none; display: inline-flex; align-items: center; }
+        /* 報告頁是給規劃用的寬表格，手機上導覽列放不下第三顆按鈕：最窄的螢幕不顯示，網址 /report 照樣能開 */
+        .report-link { white-space: nowrap; }
+        @media (max-width: 480px) { .auth-btn.report-link { display: none; } }
         .auth-chip { display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--text-dim); }
         .auth-chip[hidden] { display: none; }
         .auth-user { color: var(--text); font-weight: 600; }

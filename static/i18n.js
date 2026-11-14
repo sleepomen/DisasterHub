@@ -9,7 +9,7 @@
         zh: {
             brand_name: '東台灣避難所決策系統', brand_sub: '宜蘭・花蓮・台東 避難收容處所與疏散模擬',
             stat_shelters: '避難所', stat_capacity: '總容量',
-            btn_logout: '登出', btn_login: '登入', btn_retry: '重新載入', lang_toggle: 'EN',
+            btn_logout: '登出', btn_login: '登入', btn_retry: '重新載入', lang_toggle: 'EN', report_link: '容量報告',
             legend_hualien_taitung: '花蓮 / 台東避難所', legend_yilan: '宜蘭避難所', legend_impact: '受災影響範圍',
             legend_crowd: '疏散中人群', legend_route: '疏散路線', legend_debris: '土石流潛勢影響範圍',
             legend_alert: '紅色警戒（道路封閉）', legend_label: '圖例', map_label: '地圖',
@@ -75,7 +75,7 @@
         en: {
             brand_name: 'East Taiwan Shelter Decision Support', brand_sub: 'Shelters and evacuation in Yilan, Hualien and Taitung',
             stat_shelters: 'Shelters', stat_capacity: 'Capacity',
-            btn_logout: 'Sign out', btn_login: 'Sign in', btn_retry: 'Reload', lang_toggle: '中文',
+            btn_logout: 'Sign out', btn_login: 'Sign in', btn_retry: 'Reload', lang_toggle: '中文', report_link: 'Capacity report (zh)',
             legend_hualien_taitung: 'Hualien / Taitung shelters', legend_yilan: 'Yilan shelters', legend_impact: 'Impact area',
             legend_crowd: 'Evacuees on the move', legend_route: 'Evacuation routes', legend_debris: 'Debris-flow impact zones',
             legend_alert: 'Red alert (roads closed)', legend_label: 'Legend', map_label: 'Map',
