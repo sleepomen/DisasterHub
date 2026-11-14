@@ -22,6 +22,7 @@ Built in response to the 2025 barrier-lake disaster in Guangfu Township, Hualien
 - **Answers in under a second, mostly without the LLM.** When the rules layer already knows which shelters or which passage answer a question, the reply is assembled by code. 201 of the 207 generation-eval questions never call the model. p50 latency is 0.2 s, and accuracy went up, because the model can no longer misquote a list it is copying.
 - **Refuses what it does not know.** Out-of-area counties, off-topic questions, shelters that do not exist and misspelled names are handled before the model sees anything. 53 of 53 boundary questions are answered or refused correctly.
 - **Evacuation by road, not straight line.** Click anywhere on the map to pick the simulation centre. Evacuees start from every affected village and are assigned to shelters with room so that the total travel time, on foot or by car along the OpenStreetMap road network, is as short as possible (min-cost flow, solved in pgRouting). The actual routes are drawn on the map, they bend around debris-flow zones in floods, and a red debris-flow alert from the soil and water conservation agency closes the roads inside its zone.
+- **A capacity gap report for planners.** One command runs an earthquake, flood and red-alert scenario for each of the 41 townships with the same code as the map and writes [reports/capacity_gap.md](reports/capacity_gap.md): which townships cannot house their own residents, unplaced counts as a range because the evacuation ratio is an assumption, and the villages a red alert cuts off. See [Simulation and routing](docs/simulation-and-routing.md#capacity-gap-report).
 - **Works on a phone and without a mouse.** Below 760 px the two panels fold into tabs at the bottom so the map keeps the screen; the dropdowns work with the keyboard and every control has a name a screen reader can read.
 - **Measured, not claimed.** Separate evaluations for retrieval, generation, routing, boundaries, counterfactual faithfulness, knowledge answers, small place names, simulation follow-ups and the evacuation assignment, with bootstrap confidence intervals, plus 726 tests and a browser test of the page.
 
@@ -120,7 +121,7 @@ Open <http://localhost:8501>. The first start loads the shelters, hazard zones a
 - Debris-flow impact zones: Ministry of Agriculture, [土石流潛勢溪流影響範圍圖](https://data.gov.tw/dataset/176526)
 - Debris-flow alerts: Agency of Rural Development and Soil and Water Conservation, [土石流及大規模崩塌警戒資料](https://data.gov.tw/dataset/148402)
 - Preparedness passages: Central Weather Administration, National Fire Agency, Agency of Rural Development and Soil and Water Conservation
-- Village population: Ministry of the Interior, [村里戶數、單一年齡人口](https://www.ris.gov.tw/app/portal/3053) (September 2025)
+- Village population: Ministry of the Interior, [村里戶數、單一年齡人口](https://www.ris.gov.tw/app/portal/3053) (September 2026)
 
 All of the above are published under the [Open Government Data License, version 1.0](https://data.gov.tw/license). The road network, place names, village boundaries and buildings are © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors, available under the Open Database License (ODbL 1.0); `data_reference/east_roads.json.gz`, `data_reference/east_places.json` and the origin points in `data_reference/east_villages.json` are derived databases under the same licence.
 
@@ -159,6 +160,7 @@ The code is released under the [MIT License](LICENSE). The data keeps its own li
 - **不到一秒回答，大部分不經過 LLM**：只要規則層已經知道答案是哪些避難所或哪一段知識，回覆就由程式組出來。生成評測 207 題裡有 201 題完全不打模型，p50 延遲 0.2 秒；正確率也跟著提升，因為模型沒機會在重抄清單時抄錯。
 - **不知道的就不答**：範圍外縣市、離題問題、不存在的避難所、錯字名稱，都在模型看到之前處理掉。邊界題 53 題全部正確回答或拒答。
 - **依道路疏散，不是直線**：在地圖上任何地方點一下就能當模擬中心。疏散人口從每個受影響的村里出發，分配到還有空位的避難所，讓所有人沿 OpenStreetMap 路網步行或開車的時間加總最短（最小成本流，在 pgRouting 裡解）。實際路線畫在地圖上，淹水時會繞開土石流潛勢範圍；農村水保署發布土石流紅色警戒時，範圍內的道路直接封閉。
+- **給規劃單位的容量缺口報告**：一個指令用跟地圖同一套程式，替 41 個鄉鎮各跑強震、淹水、紅色警戒情境，產生 [reports/capacity_gap.md](reports/capacity_gap.md)：哪些鄉鎮收不下自己的居民、未安置人數（疏散比例是假設，所以給範圍），以及紅色警戒會切斷哪些村里。見[模擬與路線規劃](docs/zh-TW/simulation-and-routing.md#容量缺口報告)。
 - **手機和鍵盤都能用**：寬度 760px 以下，兩個面板收進底部分頁，地圖佔滿畫面；下拉選單可以只用鍵盤操作，每個控制項都有螢幕閱讀器念得出來的名稱。
 - **用數字說話**：檢索、生成、路由、邊界題、反事實忠實度、防災知識、小地名、模擬追問、疏散分配各有獨立評測，附 bootstrap 信賴區間，另有 726 個測試與網頁的瀏覽器測試。
 
@@ -257,7 +259,7 @@ docker compose up --build
 - 土石流潛勢範圍：農業部「[土石流潛勢溪流影響範圍圖](https://data.gov.tw/dataset/176526)」
 - 土石流警戒：農業部農村發展及水土保持署「[土石流及大規模崩塌警戒資料](https://data.gov.tw/dataset/148402)」
 - 防災知識：中央氣象署、內政部消防署、農業部農村發展及水土保持署
-- 村里人口：內政部戶政司「[村里戶數、單一年齡人口](https://www.ris.gov.tw/app/portal/3053)」（2025 年 9 月）
+- 村里人口：內政部戶政司「[村里戶數、單一年齡人口](https://www.ris.gov.tw/app/portal/3053)」（2026 年 9 月）
 
 以上皆依[政府資料開放授權條款第 1 版](https://data.gov.tw/license)使用。路網、地名、村里界與建物 © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors，以開放資料庫授權（ODbL 1.0）提供；`data_reference/east_roads.json.gz`、`data_reference/east_places.json` 與 `data_reference/east_villages.json` 的起點座標是衍生資料庫，以同樣的授權散布。
 
