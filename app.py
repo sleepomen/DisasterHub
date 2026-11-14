@@ -50,7 +50,7 @@ except config.ConfigError as e:
     logger.error("設定檢查失敗：%s", e)
     raise
 
-from api import admin, chat, deps, map_data, session, simulation  # noqa: E402
+from api import admin, chat, deps, map_data, report, session, simulation  # noqa: E402
 
 # 測試與操作時常用的物件，從 app 也拿得到（實際都在 api.deps，同一個物件）
 from api.deps import (  # noqa: E402, F401
@@ -181,7 +181,7 @@ app = FastAPI(lifespan=lifespan)
 app.add_middleware(RevalidateStaticMiddleware)
 app.add_middleware(RequestIdMiddleware)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
-for module in (session, map_data, simulation, chat, admin):
+for module in (session, map_data, simulation, chat, admin, report):
     app.include_router(module.router)
 
 
