@@ -237,3 +237,24 @@ def test_phone_layout_opens_one_panel_at_a_time(browser):
     assert not sidebar.is_visible()
     assert page.errors == []
     context.close()
+
+
+def test_capacity_report_page_sorts_and_filters(page):
+    # 從地圖頁的導覽列進報告頁；報告檔要先用 tools/capacity_report.py 產生
+    skip_login(page)
+    page.click(".report-link")
+    page.wait_for_selector("#report-body:not([hidden])")
+    assert page.locator("#highlights li").count() >= 1
+    towns = page.locator("#towns-table tbody tr")
+    assert towns.count() == 41
+
+    # 依強震可用比例由高到低排序，再只看臺東縣：兩張表一起篩
+    page.click("#towns-table th:nth-child(6) button")
+    assert page.locator("#towns-table th:nth-child(6)").get_attribute("aria-sort") == "descending"
+    shares = [float(t.split("（")[1].rstrip("%）")) for t in
+              page.locator("#towns-table tbody td:nth-child(6) .share-text").all_inner_texts()]
+    assert shares == sorted(shares, reverse=True)
+    page.click("#county-filter button:has-text('臺東縣')")
+    assert towns.count() == 16 and page.locator("#scenarios-table tbody tr").count() == 16
+    assert set(page.locator("#towns-table tbody td:nth-child(1)").all_inner_texts()) == {"臺東縣"}
+    assert page.errors == []
