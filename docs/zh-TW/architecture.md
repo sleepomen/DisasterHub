@@ -92,9 +92,11 @@ DisasterHub/
 │   │   ├── knowledge.py        # 防災知識文件：解析、索引、檢索、回答組字、出處
 │   │   └── shelter_profile.py  # 名稱/地址 → 鄉鎮、設施、別名
 │   ├── simulation/             # 災害模擬
+│   │   ├── capacity_report.py  # 容量缺口報告：鄉鎮自有容量、情境摘要、輸出 Markdown
 │   │   ├── evacuation.py       # 疏散分配：村里 → 避難所，不超過容量
 │   │   ├── min_cost_flow.py    # 純 Python 的最小成本流（備援與測試對照；API 在 pgRouting 裡解）
 │   │   ├── population.py       # 海岸線 + 村里人口模型，疏散人數估算
+│   │   ├── scenario.py         # 模擬可以把人送到哪些避難所（模擬 API 與報告共用）
 │   │   └── text.py             # 模擬結果寫成文字：人口、分配、潛勢範圍與路線說明
 │   ├── geo/                    # 路網與警戒
 │   │   ├── routing.py          # 最近避難所與疏散分配的道路距離，算不出來退回直線距離
@@ -125,12 +127,15 @@ DisasterHub/
 │   ├── shelter_coordinate_fixes.json # 用 OpenStreetMap 修正的官方避難所座標
 │   └── knowledge/                   # 防災知識文件，每種災害一個 Markdown 檔（格式見資料夾內 README）
 │
+├── reports/                    # 容量缺口報告（由 tools/capacity_report.py 產生）
+│
 ├── tools/
 │   ├── build_hazard_zones.py   # 農業部 SHP → debris_flow_east.geojson（TWD97 → WGS84）
 │   ├── build_shelters.py       # 消防署 CSV → data_for_refuge/*.json
 │   ├── build_road_network.py   # OpenStreetMap PBF → east_roads.json.gz（pgRouting 邊表）
 │   ├── build_place_names.py    # OpenStreetMap PBF → east_places.json（村落、地標）
 │   ├── build_villages.py       # 內政部村里人口 + OSM 村里界與建物 → east_villages.json
+│   ├── capacity_report.py      # 容量缺口報告 → reports/capacity_gap.{md,json}
 │   ├── demo_warmup.py          # 展示前：把模型載進記憶體、每條回答路徑各問一題
 │   └── record_demo.py          # 錄一支附字幕的展示影片，現場出狀況時的備援
 │
@@ -164,6 +169,7 @@ DisasterHub/
     │   ├── test_knowledge.py
     │   └── test_shelter_profile.py
     ├── simulation/
+    │   ├── test_capacity_report.py
     │   ├── test_evacuation.py
     │   └── test_population_service.py
     ├── geo/
