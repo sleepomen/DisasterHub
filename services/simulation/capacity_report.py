@@ -220,8 +220,6 @@ def checks(report: dict) -> list[str]:
     zero = zero_capacity(report)
     if zero:
         out.append(f"登記容量為 0 的 {len(zero)} 處：{'、'.join(_short(n) for n in zero)}。")
-    if any("?" in n for n in list(report["shelter_usage"]) + zero):
-        out.append("名稱裡的「?」是來源資料的缺字（例如「土?天主堂」應該是土坂），不影響計算。")
     return out
 
 
