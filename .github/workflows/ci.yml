@@ -49,3 +49,59 @@ jobs:
       # 在映像裡面跑測試：這才證明映像自己帶齊了跑得起來的依賴，
       # 順便走過 entrypoint 的降權路徑（runuser → app 使用者）
       - run: "docker run --rm disasterhub:ci python -m pytest tests/ -q"
+
+  e2e:
+    # 前端（static/js/）只有這套瀏覽器測試會碰到。用輕量模式把整套服務跑起來：
+    # 不需要 Ollama，資料庫、路網、避難所與索引都是啟動時從 repo 裡的資料載入的
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      COMPOSE: docker compose -f docker-compose.yml -f docker-compose.lite.yml
+      E2E_BASE_URL: http://localhost:8501
+    steps:
+      - uses: actions/checkout@v4
+      # 每次建置產生一組只活在這個 runner 上的密碼；管理員帳號給模擬來回的那個測試用
+      - name: Write a throwaway .env
+        run: |
+          secret() { openssl rand -hex 24; }
+          admin_password=$(secret)
+          echo "::add-mask::$admin_password"
+          cat > .env <<EOF
+          POSTGRES_DB=disaster_db
+          POSTGRES_USER=disaster
+          POSTGRES_PASSWORD=$(secret)
+          POSTGRES_HOST=disaster_db
+          POSTGRES_PORT=5432
+          SYNC_API_KEY=$(secret)
+          SESSION_SECRET=$(secret)
+          ADMIN_USERNAME=e2e_admin
+          ADMIN_PASSWORD=$admin_password
+          ALERT_POLL_SECONDS=0
+          EOF
+          echo "ADMIN_USERNAME=e2e_admin" >> "$GITHUB_ENV"
+          echo "ADMIN_PASSWORD=$admin_password" >> "$GITHUB_ENV"
+      # ALERT_POLL_SECONDS=0：不去抓即時土石流警戒，測試結果才不會跟著當天的警戒變
+      - run: $COMPOSE up --build -d
+      - name: Wait until the site is ready
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS "$E2E_BASE_URL/health/ready"; then echo; exit 0; fi
+            sleep 5
+          done
+          echo "five minutes and still not ready"; exit 1
+      # 重新產生容量報告：順便證明 tools/capacity_report.py 在真的資料庫上跑得完，
+      # 報告頁的測試讀的就是這一份（紅色警戒情境寫的暫時警戒，腳本結束前會清掉）
+      - run: docker exec -u app disaster_app python tools/capacity_report.py
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # 版本釘住，跟本機跑出一樣的結果；Playwright 的瀏覽器版本跟著套件版本走
+      - run: pip install pytest==9.1.1 playwright==1.64.1
+      - run: python -m playwright install --with-deps chromium
+      - run: pytest e2e/ -v
+      - name: Service logs
+        if: failure()
+        run: $COMPOSE logs --no-color --tail 300
+      - name: Stop the stack
+        if: always()
+        run: $COMPOSE down -v
