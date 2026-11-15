@@ -120,16 +120,16 @@ pip install ruff==0.16.10
 ruff check .
 ```
 
-CI 有三個 job：`ruff check .`；在乾淨的 Python 3.12 上從 lock 檔安裝後跑測試，
+CI 有四個 job：`ruff check .`；在乾淨的 Python 3.12 上從 lock 檔安裝後跑測試，
 接著把路由評測當回歸哨兵跑一次（`--min-accuracy 1.0`）；以及 `docker build` 之後在**映像裡面**
 跑測試——最後這個才證明映像自己帶齊了依賴，而且「不需要編譯器」的前提還成立。lint 那個 job 另外對每個前端
-腳本跑 `node --check`，因為 Python 的測試完全不會載入它們。
+腳本跑 `node --check`，因為 Python 的測試完全不會載入它們。第四個 job 跑下面的瀏覽器冒煙測試。
 
 ### 瀏覽器冒煙測試
 
 `e2e/test_browser.py` 用真的瀏覽器操作正在跑的網站：地區篩選、避難所資訊框、在地圖上選模擬中心、語言切換、問一題；
 只用鍵盤操作下拉選單，以及只有圖示的控制項有螢幕閱讀器念得出來的名稱；390×844 的手機版面，兩個面板從底部分頁一次打開一個；容量報告頁的排序與依縣篩選；
-有管理員帳號時再跑一次模擬並重置。這是 `static/js/` 唯一的測試。它需要服務在跑、主機上有 Playwright，所以 CI 不跑：
+有管理員帳號時再跑一次模擬並重置。這是 `static/js/` 唯一的測試。它需要服務在跑，以及 Playwright：
 
 ```bash
 pip install pytest playwright
@@ -138,6 +138,8 @@ E2E_BASE_URL=http://localhost:8501 pytest e2e/ -v
 ```
 
 設定 `ADMIN_USERNAME`、`ADMIN_PASSWORD` 才會跑模擬的那個測試，它會寫入收容人數、結束時重置；沒設定就跳過。
+
+CI 也會跑，在獨立的 `e2e` job 裡。這個 job 用[輕量模式](#輕量模式不需要-ollama)把服務跑起來，所以不需要 Ollama：資料庫、路網、避難所和索引都是從 repo 裡的資料載入的（啟動後大約 20 秒就緒）。它會寫一份臨時的 `.env`，密碼只存在那台 runner 上，裡面也有管理員帳號，模擬的測試才會真的跑而不是跳過；另外設 `ALERT_POLL_SECONDS=0`，結果才不會跟著當天的即時警戒變。跑瀏覽器測試之前，先用 `tools/capacity_report.py` 重新產生容量報告，順便證明這支腳本在真的資料庫上跑得完。失敗時會印出服務的 log；不論成敗，最後都會把服務和 volume 刪掉。
 
 ## 展示前檢查
 

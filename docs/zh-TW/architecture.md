@@ -67,7 +67,7 @@ DisasterHub/
 ├── .env.example
 ├── .github/workflows/ci.yml    # push / PR 自動跑測試
 ├── conftest.py                 # 測試用環境變數預設值
-├── e2e/test_browser.py         # 對正在跑的網站做瀏覽器冒煙測試（Playwright；CI 不跑）
+├── e2e/test_browser.py         # 對正在跑的網站做瀏覽器冒煙測試（Playwright；CI 用輕量模式跑）
 │
 ├── models/
 │   └── shelter.py              # Shelter 與 NearbyShelter（避難所 + 該次查詢的距離）

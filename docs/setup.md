@@ -120,19 +120,18 @@ pip install ruff==0.16.10
 ruff check .
 ```
 
-CI runs three jobs: `ruff check .`; the tests on a clean Python 3.12 installed from the lock file,
+CI runs four jobs: `ruff check .`; the tests on a clean Python 3.12 installed from the lock file,
 followed by the routing evaluation as a regression gate (`--min-accuracy 1.0`); and `docker build`
 followed by the tests *inside* the image — the last one is what proves the image carries everything it
 needs and that the "no compiler required" assumption still holds. The lint job also runs `node --check` on
-every frontend script, since the Python tests never load them.
+every frontend script, since the Python tests never load them. The fourth job runs the browser smoke test below.
 
 ### Browser smoke test
 
 `e2e/test_browser.py` drives the running site in a real browser: the region filter, a shelter popup, picking the
 simulation centre on the map, the language toggle and a chat question; the dropdowns driven by keyboard alone and the
 names screen readers read for icon-only controls; the phone layout at 390×844, where the two panels open one at a time
-from tabs at the bottom; the capacity report page, sorted and filtered by county; and, with an admin login, a simulation that is reset afterwards. It is the only test of `static/js/`. It needs the stack running and Playwright on the host, so CI does
-not run it:
+from tabs at the bottom; the capacity report page, sorted and filtered by county; and, with an admin login, a simulation that is reset afterwards. It is the only test of `static/js/`. It needs the stack running and Playwright:
 
 ```bash
 pip install pytest playwright
@@ -142,6 +141,8 @@ E2E_BASE_URL=http://localhost:8501 pytest e2e/ -v
 
 Set `ADMIN_USERNAME` and `ADMIN_PASSWORD` to include the simulation test, which writes occupancy and resets it at the
 end; without them it is skipped.
+
+CI runs it too, in its own `e2e` job. That job starts the stack in [lightweight mode](#lightweight-mode-no-ollama), so it needs no Ollama: the database, road network, shelters and indexes all load from the data in the repo (ready about 20 s after start). It writes a throwaway `.env` whose passwords exist only on that runner, including an admin account so the simulation test runs instead of being skipped, and sets `ALERT_POLL_SECONDS=0` so the result does not depend on the day's live alerts. Before the browser tests it regenerates the capacity report with `tools/capacity_report.py`, which also proves the script runs to the end against a real database. On failure the job prints the service logs; the stack and its volumes are removed either way.
 
 ## Before a live demo
 

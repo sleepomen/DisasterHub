@@ -67,7 +67,7 @@ DisasterHub/
 ├── .env.example
 ├── .github/workflows/ci.yml    # Runs the tests on push / PR
 ├── conftest.py                 # Default environment variables for tests
-├── e2e/test_browser.py         # Browser smoke test of the running site (Playwright; not run in CI)
+├── e2e/test_browser.py         # Browser smoke test of the running site (Playwright; CI runs it in lightweight mode)
 │
 ├── models/
 │   └── shelter.py              # Shelter + NearbyShelter (shelter plus a per-query distance)
