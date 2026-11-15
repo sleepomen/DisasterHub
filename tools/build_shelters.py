@@ -14,6 +14,8 @@
 - 名稱或地址後面夾英文（「介達國小 Jieda Elementary School」）的去掉英文
 - 同一縣裡同名的（各鄉都有「建業社區活動中心」）在名稱後面加上鄉鎮，名稱在資料庫裡是唯一鍵
 - 地址補上縣市鄉鎮；只寫「1鄰6號」的再補上村里
+- 原始檔裡有 25 個欄位把罕用字寫成「?」（土坂村成了「土?村」）。依鄉鎮補回，見 MISSING_CHARS；
+  沒對上的「?」原樣保留，建置結束時列出來
 
 用法（下載的檔案放在專案外的獨立資料夾）：
     python tools/build_shelters.py /path/to/避難收容處所點位檔.csv
@@ -40,6 +42,17 @@ COUNTIES = {
 # 實際抓到的三筆都差了 46～77 公里（緯度打錯一位數、放到隔壁縣）
 TOWNSHIP_OUTLIER_KM = 40
 
+# 鄉鎮 → {原始檔裡的寫法: 正確寫法}。村里名對照內政部村里資料（data_reference/east_villages.json 的
+# 土坂村、台坂村、公舘村、里壠里），壯圍鄉東港村的廍後對照 OpenStreetMap 的地名。
+# 帶著前後一個字比對、而且只在那個鄉鎮換：別的地方的「?」不會被猜成這幾個字
+MISSING_CHARS = {
+    "達仁鄉": {"土?": "土坂", "台?": "台坂"},
+    "綠島鄉": {"公?": "公舘"},
+    "關山鎮": {"里?": "里壠"},
+    "壯圍鄉": {"?後": "廍後"},
+}
+TEXT_FIELDS = ("避難收容處所名稱", "村里", "避難收容處所地址", "預計收容村里")
+
 LATIN_TAIL = re.compile(r"\s*[A-Za-z].*$")
 COUNTY_PREFIX = re.compile(r"^(宜蘭縣|花蓮縣|臺東縣|台東縣)")
 
@@ -52,6 +65,16 @@ def strip_latin(text: str) -> str:
     """去掉中文後面夾的英文；整串都是英文就原樣保留"""
     stripped = LATIN_TAIL.sub("", text).strip()
     return stripped or text.strip()
+
+
+def restore_chars(row: dict, township: str) -> dict:
+    """把這個鄉鎮已知的「?」換回原字；回傳新的一列，不改原本的"""
+    fixes = MISSING_CHARS.get(township, {})
+    row = dict(row)
+    for field in TEXT_FIELDS:
+        for wrong, right in fixes.items():
+            row[field] = row[field].replace(wrong, right)
+    return row
 
 
 def full_address(county_town: str, village: str, address: str, towns: set[str]) -> str:
@@ -86,6 +109,7 @@ def build(rows: list[dict], fixes: dict) -> tuple[dict[str, list[dict]], list[st
         county = county_town[:3]
         if county not in COUNTIES:
             continue
+        row = restore_chars(row, county_town[3:])
         raw_name = row["避難收容處所名稱"].strip()
         key = f"{county_town}|{raw_name}"
         try:
@@ -169,6 +193,12 @@ def main():
         (out_dir / filename).write_text(text, encoding="utf-8", newline="\n")
         print(f"{filename}: {len(shelters)} 筆")
     print(f"修正座標 {len(fixes)} 筆（{FIXES.name}）")
+    unknown = [f"{s['township']}|{s['name']}" for shelters in by_county.values() for s in shelters
+               if any("?" in s[k] for k in ("name", "village", "address", "serves"))]
+    if unknown:
+        print(f"還有 {len(unknown)} 筆含「?」，原字不明，沒有補（要補就加進 MISSING_CHARS）：")
+        for line in unknown:
+            print("  " + line)
     print(f"丟掉 {len(dropped)} 筆：")
     for line in dropped:
         print("  " + line)
