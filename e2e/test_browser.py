@@ -3,7 +3,8 @@
 
 tests/ 底下的測試都用假的資料庫與模型，前端（static/js/*.js）沒有被測到；
 2026-11-09 把 app.js 拆成九個檔案時，就是靠這套步驟確認行為沒變。
-放在 tests/ 外面：CI 與映像裡沒有瀏覽器，tests/ 的 conftest 也需要 psycopg2，主機上不一定有。
+放在 tests/ 外面：映像裡沒有瀏覽器，tests/ 的 conftest 也需要 psycopg2，主機上不一定有。
+CI 的 e2e job 用輕量模式把整套服務跑起來再跑這裡（見 .github/workflows/ci.yml）。
 
 需要網站已經在跑（docker compose up），以及 Playwright：
     pip install pytest playwright
