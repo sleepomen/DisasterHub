@@ -218,10 +218,10 @@ The shelters come from the National Fire Agency's open dataset 避難收容處�
   - A later check of where the kept shelters sit on the road network (see [Coordinate check](evaluation.md#coordinate-check)) found four more placed kilometres away from their own address: 南澳高中, 西林社區活動中心, 樟原國民小學 and 大義社區臨時收容站. Each matches an OpenStreetMap object at the same address and was moved there the same way.
   - Names that repeat within a county get their township appended, e.g. 南興社區活動中心（冬山鄉）, since the name is the database key.
   - English tails such as 介達國小 Jieda Elementary School are removed, and addresses are completed with county and township.
+  - Rare characters the source writes as `?` (土?村 for 土坂村) are restored township by township: 土坂, 台坂, 公舘 and 里壠 from the MOI village names, 廍後 in 壯圍 from OpenStreetMap, 25 fields in all. Any other `?` is left as it is and listed when the build finishes, rather than guessed.
 - **Known quirks of the source.**
   - 12 coordinate pairs are shared by several shelters; four in Changbin share one point, probably the village office.
   - 8 shelters list capacity 0. They are kept as locations but never receive evacuees.
-  - A few rare characters were lost upstream and appear as `?` (台?基督教會).
   - One name is truncated (行政院國軍退除役官兵輔導委員會花).
 - **Schema.** The new columns are added to existing databases with `ADD COLUMN IF NOT EXISTS` and filled by the next sync. The sync's delete-missing step removes the 41 old shelters that are not in the official list.
 
