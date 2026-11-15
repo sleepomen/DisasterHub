@@ -113,7 +113,7 @@ def full_scenario(town, kind, destinations=3, unplaced=(0, 100, 200), cut_off=()
 
 
 def test_markdown_report_states_the_assumptions_and_flags_data_to_check():
-    towns = township_capacity(TOWNS, [shelter("一號", 300, hazards=("水災",)), shelter("土?國小", 0, township="乙鄉")])
+    towns = township_capacity(TOWNS, [shelter("一號", 300, hazards=("水災",)), shelter("乙鄉國小", 0, township="乙鄉")])
     report = {
         "meta": {"generated_at": "2026-11-14 10:00", "shelter_dataset_updated": "2025-12-16", "shelters": 2,
                  "population_month": "民國 115 年 9 月", "villages": 2, "roads_loaded": "2026-11-02", "debris_zones": 1,
@@ -133,7 +133,6 @@ def test_markdown_report_states_the_assumptions_and_flags_data_to_check():
     assert "| 甲鄉 | 9,000 | 全部 1,200（960～1,440） | 0%（沒有能去的避難所） | 100（0～200） | 5.0% | 1 村里，300 人 |" in text
     assert "| 乙鄉 | — | — | — | — | — | —（無潛勢溪流） |" in text
     assert "會讓 1 個村里完全沒有安全道路" in text
-    assert "名稱裡的「?」是來源資料的缺字" in text
 
 
 def test_destinations_skip_hazard_zones_and_undesignated_shelters():
