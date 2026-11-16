@@ -8,55 +8,55 @@
       "townships_max": 9
     },
     "seconds_max": {
-      "cost_matrix": 1.19,
-      "db_solver": 0.303,
-      "python_solver": 1.789
+      "cost_matrix": 0.735,
+      "db_solver": 0.387,
+      "python_solver": 1.507
     },
     "capacity_fits_demand": {
       "scenarios": 62,
       "placed_differs": 0,
-      "min_cost_better": 42,
-      "greedy_extra_time_mean": 0.0277,
+      "min_cost_better": 41,
+      "greedy_extra_time_mean": 0.0275,
       "greedy_extra_time_max": 0.1113,
       "minutes_per_person": [
-        5.8,
+        5.7,
         5.6
       ],
       "longest_trip_minutes": [
-        25.9,
-        23.5
+        25.7,
+        23.3
       ]
     },
     "demand_exceeds_capacity": {
       "scenarios": 97,
       "placed_differs": 0,
       "min_cost_better": 74,
-      "greedy_extra_time_mean": 0.0284,
-      "greedy_extra_time_max": 0.1534,
+      "greedy_extra_time_mean": 0.0276,
+      "greedy_extra_time_max": 0.1524,
       "minutes_per_person": [
-        4.4,
+        4.3,
         4.2
       ],
       "longest_trip_minutes": [
-        15.4,
-        13.5
+        15.2,
+        13.3
       ]
     },
     "villages_vs_township_centroids": {
       "minutes_per_person": [
         12.2,
-        4.8
+        4.7
       ],
       "longest_trip_minutes": [
         26.8,
-        17.4
+        17.2
       ],
       "per_person_difference_minutes": {
         "mean": -7.5,
         "min": -42.0,
-        "max": 4.0
+        "max": 2.4
       },
-      "scenarios_longer_with_villages": 2
+      "scenarios_longer_with_villages": 1
     },
     "origin_to_road": {
       "villages": {
@@ -75,21 +75,21 @@
     "largest_gaps": [
       {
         "scenario": "鹿野鄉 10 km flood",
-        "greedy_person_hours": 204.7,
-        "min_cost_person_hours": 173.3,
-        "gap": 0.1534
+        "greedy_person_hours": 206.0,
+        "min_cost_person_hours": 174.6,
+        "gap": 0.1524
       },
       {
         "scenario": "太麻里鄉 5 km earthquake",
-        "greedy_person_hours": 78.8,
-        "min_cost_person_hours": 67.0,
-        "gap": 0.1497
+        "greedy_person_hours": 69.3,
+        "min_cost_person_hours": 59.2,
+        "gap": 0.1457
       },
       {
         "scenario": "金峰鄉 10 km earthquake",
-        "greedy_person_hours": 149.6,
-        "min_cost_person_hours": 127.5,
-        "gap": 0.1477
+        "greedy_person_hours": 133.4,
+        "min_cost_person_hours": 114.0,
+        "gap": 0.1454
       }
     ]
   },
@@ -102,31 +102,31 @@
       "pairs": 4473,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.224,
-        "db_solver": 0.049,
+        "cost_matrix": 0.226,
+        "db_solver": 0.06,
         "python_solver": 0.139
       },
       "min_cost": {
         "placed": 9240,
-        "person_hours": 518.5,
-        "minutes_per_person": 3.37,
+        "person_hours": 514.7,
+        "minutes_per_person": 3.34,
         "longest_trip_minutes": 10.2
       },
       "python": {
         "placed": 9240,
-        "person_hours": 518.5,
-        "minutes_per_person": 3.37,
+        "person_hours": 514.7,
+        "minutes_per_person": 3.34,
         "longest_trip_minutes": 10.2
       },
       "greedy": {
         "placed": 9240,
-        "person_hours": 537.0,
-        "minutes_per_person": 3.49,
+        "person_hours": 534.2,
+        "minutes_per_person": 3.47,
         "longest_trip_minutes": 10.2
       },
       "township_origins": {
         "placed": 9240,
-        "person_hours": 819.4,
+        "person_hours": 819.2,
         "minutes_per_person": 5.32,
         "longest_trip_minutes": 12.2
       }
@@ -139,31 +139,31 @@
       "pairs": 4473,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.209,
-        "db_solver": 0.039,
-        "python_solver": 0.083
+        "cost_matrix": 0.196,
+        "db_solver": 0.05,
+        "python_solver": 0.093
       },
       "min_cost": {
         "placed": 9240,
-        "person_hours": 400.8,
-        "minutes_per_person": 2.6,
+        "person_hours": 398.1,
+        "minutes_per_person": 2.58,
         "longest_trip_minutes": 8.2
       },
       "python": {
         "placed": 9240,
-        "person_hours": 400.8,
-        "minutes_per_person": 2.6,
+        "person_hours": 398.1,
+        "minutes_per_person": 2.58,
         "longest_trip_minutes": 8.2
       },
       "greedy": {
         "placed": 9240,
-        "person_hours": 408.0,
-        "minutes_per_person": 2.65,
-        "longest_trip_minutes": 9.4
+        "person_hours": 405.0,
+        "minutes_per_person": 2.63,
+        "longest_trip_minutes": 9.2
       },
       "township_origins": {
         "placed": 9240,
-        "person_hours": 797.6,
+        "person_hours": 797.4,
         "minutes_per_person": 5.18,
         "longest_trip_minutes": 12.2
       }
@@ -176,32 +176,32 @@
       "pairs": 18850,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 1.19,
-        "db_solver": 0.303,
-        "python_solver": 1.707
+        "cost_matrix": 0.735,
+        "db_solver": 0.265,
+        "python_solver": 1.507
       },
       "min_cost": {
         "placed": 21417,
-        "person_hours": 2187.9,
-        "minutes_per_person": 6.13,
+        "person_hours": 2184.7,
+        "minutes_per_person": 6.12,
         "longest_trip_minutes": 28.2
       },
       "python": {
         "placed": 21417,
-        "person_hours": 2187.9,
-        "minutes_per_person": 6.13,
+        "person_hours": 2184.7,
+        "minutes_per_person": 6.12,
         "longest_trip_minutes": 28.2
       },
       "greedy": {
         "placed": 21417,
-        "person_hours": 2270.3,
-        "minutes_per_person": 6.36,
-        "longest_trip_minutes": 30.1
+        "person_hours": 2283.3,
+        "minutes_per_person": 6.4,
+        "longest_trip_minutes": 33.8
       },
       "township_origins": {
         "placed": 21417,
-        "person_hours": 2708.2,
-        "minutes_per_person": 7.59,
+        "person_hours": 2707.4,
+        "minutes_per_person": 7.58,
         "longest_trip_minutes": 31.6
       }
     },
@@ -213,31 +213,31 @@
       "pairs": 18415,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.865,
-        "db_solver": 0.227,
-        "python_solver": 0.818
+        "cost_matrix": 0.615,
+        "db_solver": 0.151,
+        "python_solver": 0.768
       },
       "min_cost": {
         "placed": 20631,
-        "person_hours": 1253.2,
+        "person_hours": 1251.6,
         "minutes_per_person": 3.64,
         "longest_trip_minutes": 25.3
       },
       "python": {
         "placed": 20631,
-        "person_hours": 1253.2,
+        "person_hours": 1251.6,
         "minutes_per_person": 3.64,
         "longest_trip_minutes": 25.3
       },
       "greedy": {
         "placed": 20631,
-        "person_hours": 1278.2,
-        "minutes_per_person": 3.72,
+        "person_hours": 1276.2,
+        "minutes_per_person": 3.71,
         "longest_trip_minutes": 26.8
       },
       "township_origins": {
         "placed": 20631,
-        "person_hours": 1960.1,
+        "person_hours": 1959.8,
         "minutes_per_person": 5.7,
         "longest_trip_minutes": 26.1
       }
@@ -250,31 +250,31 @@
       "pairs": 2842,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.138,
-        "db_solver": 0.025,
-        "python_solver": 0.05
+        "cost_matrix": 0.137,
+        "db_solver": 0.028,
+        "python_solver": 0.051
       },
       "min_cost": {
         "placed": 8874,
-        "person_hours": 313.7,
+        "person_hours": 313.8,
         "minutes_per_person": 2.12,
         "longest_trip_minutes": 8.2
       },
       "python": {
         "placed": 8874,
-        "person_hours": 313.7,
+        "person_hours": 313.8,
         "minutes_per_person": 2.12,
         "longest_trip_minutes": 8.2
       },
       "greedy": {
         "placed": 8874,
-        "person_hours": 323.8,
+        "person_hours": 323.9,
         "minutes_per_person": 2.19,
         "longest_trip_minutes": 9.6
       },
       "township_origins": {
         "placed": 8874,
-        "person_hours": 480.5,
+        "person_hours": 480.6,
         "minutes_per_person": 3.25,
         "longest_trip_minutes": 9.6
       }
@@ -287,31 +287,31 @@
       "pairs": 2610,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.14,
-        "db_solver": 0.023,
-        "python_solver": 0.034
+        "cost_matrix": 0.121,
+        "db_solver": 0.026,
+        "python_solver": 0.031
       },
       "min_cost": {
         "placed": 8064,
-        "person_hours": 251.8,
+        "person_hours": 252.0,
         "minutes_per_person": 1.87,
         "longest_trip_minutes": 5.9
       },
       "python": {
         "placed": 8064,
-        "person_hours": 251.8,
+        "person_hours": 252.0,
         "minutes_per_person": 1.87,
         "longest_trip_minutes": 5.9
       },
       "greedy": {
         "placed": 8064,
-        "person_hours": 254.7,
-        "minutes_per_person": 1.89,
+        "person_hours": 254.8,
+        "minutes_per_person": 1.9,
         "longest_trip_minutes": 5.9
       },
       "township_origins": {
         "placed": 8064,
-        "person_hours": 438.6,
+        "person_hours": 438.7,
         "minutes_per_person": 3.26,
         "longest_trip_minutes": 9.6
       }
@@ -324,31 +324,31 @@
       "pairs": 18705,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 1.041,
-        "db_solver": 0.285,
-        "python_solver": 1.789
+        "cost_matrix": 0.627,
+        "db_solver": 0.161,
+        "python_solver": 1.118
       },
       "min_cost": {
         "placed": 18178,
-        "person_hours": 1112.9,
+        "person_hours": 1112.7,
         "minutes_per_person": 3.67,
         "longest_trip_minutes": 28.6
       },
       "python": {
         "placed": 18178,
-        "person_hours": 1112.9,
+        "person_hours": 1112.7,
         "minutes_per_person": 3.67,
         "longest_trip_minutes": 28.6
       },
       "greedy": {
         "placed": 18178,
-        "person_hours": 1181.6,
+        "person_hours": 1180.1,
         "minutes_per_person": 3.9,
         "longest_trip_minutes": 32.1
       },
       "township_origins": {
         "placed": 18178,
-        "person_hours": 1623.1,
+        "person_hours": 1623.0,
         "minutes_per_person": 5.36,
         "longest_trip_minutes": 35.1
       }
@@ -361,31 +361,31 @@
       "pairs": 18104,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.859,
-        "db_solver": 0.155,
-        "python_solver": 1.028
+        "cost_matrix": 0.548,
+        "db_solver": 0.146,
+        "python_solver": 0.704
       },
       "min_cost": {
         "placed": 17444,
-        "person_hours": 696.8,
-        "minutes_per_person": 2.4,
+        "person_hours": 694.6,
+        "minutes_per_person": 2.39,
         "longest_trip_minutes": 8.6
       },
       "python": {
         "placed": 17444,
-        "person_hours": 696.8,
-        "minutes_per_person": 2.4,
+        "person_hours": 694.6,
+        "minutes_per_person": 2.39,
         "longest_trip_minutes": 8.6
       },
       "greedy": {
         "placed": 17444,
-        "person_hours": 711.2,
-        "minutes_per_person": 2.45,
+        "person_hours": 708.7,
+        "minutes_per_person": 2.44,
         "longest_trip_minutes": 9.3
       },
       "township_origins": {
         "placed": 17444,
-        "person_hours": 1387.8,
+        "person_hours": 1387.7,
         "minutes_per_person": 4.77,
         "longest_trip_minutes": 13.7
       }
@@ -398,9 +398,9 @@
       "pairs": 864,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.072,
-        "db_solver": 0.012,
-        "python_solver": 0.012
+        "cost_matrix": 0.061,
+        "db_solver": 0.011,
+        "python_solver": 0.011
       },
       "min_cost": {
         "placed": 2250,
@@ -435,9 +435,9 @@
       "pairs": 864,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.049,
+        "cost_matrix": 0.042,
         "db_solver": 0.014,
-        "python_solver": 0.011
+        "python_solver": 0.008
       },
       "min_cost": {
         "placed": 2189,
@@ -472,9 +472,9 @@
       "pairs": 3366,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.36,
+        "cost_matrix": 0.246,
         "db_solver": 0.031,
-        "python_solver": 0.072
+        "python_solver": 0.065
       },
       "min_cost": {
         "placed": 4295,
@@ -509,9 +509,9 @@
       "pairs": 3168,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.228,
-        "db_solver": 0.028,
-        "python_solver": 0.037
+        "cost_matrix": 0.184,
+        "db_solver": 0.03,
+        "python_solver": 0.038
       },
       "min_cost": {
         "placed": 3987,
@@ -546,8 +546,8 @@
       "pairs": 340,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.034,
-        "db_solver": 0.006,
+        "cost_matrix": 0.03,
+        "db_solver": 0.007,
         "python_solver": 0.003
       },
       "min_cost": {
@@ -583,8 +583,8 @@
       "pairs": 260,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.043,
-        "db_solver": 0.005,
+        "cost_matrix": 0.033,
+        "db_solver": 0.01,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -620,9 +620,9 @@
       "pairs": 1247,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.156,
-        "db_solver": 0.015,
-        "python_solver": 0.023
+        "cost_matrix": 0.113,
+        "db_solver": 0.017,
+        "python_solver": 0.022
       },
       "min_cost": {
         "placed": 3730,
@@ -657,7 +657,7 @@
       "pairs": 1032,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.139,
+        "cost_matrix": 0.113,
         "db_solver": 0.012,
         "python_solver": 0.008
       },
@@ -694,9 +694,9 @@
       "pairs": 735,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.137,
-        "db_solver": 0.012,
-        "python_solver": 0.011
+        "cost_matrix": 0.113,
+        "db_solver": 0.014,
+        "python_solver": 0.009
       },
       "min_cost": {
         "placed": 3566,
@@ -731,9 +731,9 @@
       "pairs": 720,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.186,
-        "db_solver": 0.013,
-        "python_solver": 0.009
+        "cost_matrix": 0.117,
+        "db_solver": 0.009,
+        "python_solver": 0.008
       },
       "min_cost": {
         "placed": 5022,
@@ -768,32 +768,32 @@
       "pairs": 9964,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.678,
-        "db_solver": 0.094,
-        "python_solver": 0.575
+        "cost_matrix": 0.422,
+        "db_solver": 0.091,
+        "python_solver": 0.476
       },
       "min_cost": {
         "placed": 12803,
-        "person_hours": 790.9,
-        "minutes_per_person": 3.71,
+        "person_hours": 788.6,
+        "minutes_per_person": 3.7,
         "longest_trip_minutes": 19.4
       },
       "python": {
         "placed": 12803,
-        "person_hours": 790.9,
-        "minutes_per_person": 3.71,
+        "person_hours": 788.6,
+        "minutes_per_person": 3.7,
         "longest_trip_minutes": 19.4
       },
       "greedy": {
         "placed": 12803,
-        "person_hours": 844.3,
-        "minutes_per_person": 3.96,
+        "person_hours": 841.8,
+        "minutes_per_person": 3.94,
         "longest_trip_minutes": 19.4
       },
       "township_origins": {
         "placed": 12803,
-        "person_hours": 1046.8,
-        "minutes_per_person": 4.91,
+        "person_hours": 1046.2,
+        "minutes_per_person": 4.9,
         "longest_trip_minutes": 10.8
       }
     },
@@ -805,31 +805,31 @@
       "pairs": 9434,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.986,
-        "db_solver": 0.117,
-        "python_solver": 0.345
+        "cost_matrix": 0.391,
+        "db_solver": 0.074,
+        "python_solver": 0.248
       },
       "min_cost": {
         "placed": 13711,
-        "person_hours": 936.4,
-        "minutes_per_person": 4.1,
+        "person_hours": 933.2,
+        "minutes_per_person": 4.08,
         "longest_trip_minutes": 26.1
       },
       "python": {
         "placed": 13711,
-        "person_hours": 936.4,
-        "minutes_per_person": 4.1,
+        "person_hours": 933.2,
+        "minutes_per_person": 4.08,
         "longest_trip_minutes": 24.4
       },
       "greedy": {
         "placed": 13711,
-        "person_hours": 947.5,
-        "minutes_per_person": 4.15,
+        "person_hours": 944.4,
+        "minutes_per_person": 4.13,
         "longest_trip_minutes": 26.8
       },
       "township_origins": {
         "placed": 13711,
-        "person_hours": 1468.5,
+        "person_hours": 1468.3,
         "minutes_per_person": 6.43,
         "longest_trip_minutes": 26.1
       }
@@ -842,26 +842,26 @@
       "pairs": 2145,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.183,
-        "db_solver": 0.023,
-        "python_solver": 0.045
+        "cost_matrix": 0.129,
+        "db_solver": 0.026,
+        "python_solver": 0.038
       },
       "min_cost": {
         "placed": 4305,
-        "person_hours": 222.6,
-        "minutes_per_person": 3.1,
+        "person_hours": 220.9,
+        "minutes_per_person": 3.08,
         "longest_trip_minutes": 11.6
       },
       "python": {
         "placed": 4305,
-        "person_hours": 222.6,
-        "minutes_per_person": 3.1,
+        "person_hours": 220.9,
+        "minutes_per_person": 3.08,
         "longest_trip_minutes": 11.6
       },
       "greedy": {
         "placed": 4305,
-        "person_hours": 230.9,
-        "minutes_per_person": 3.22,
+        "person_hours": 229.2,
+        "minutes_per_person": 3.19,
         "longest_trip_minutes": 13.1
       },
       "township_origins": {
@@ -879,26 +879,26 @@
       "pairs": 2035,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.142,
-        "db_solver": 0.02,
+        "cost_matrix": 0.134,
+        "db_solver": 0.022,
         "python_solver": 0.034
       },
       "min_cost": {
         "placed": 5081,
-        "person_hours": 222.8,
-        "minutes_per_person": 2.63,
+        "person_hours": 220.1,
+        "minutes_per_person": 2.6,
         "longest_trip_minutes": 5.2
       },
       "python": {
         "placed": 5081,
-        "person_hours": 222.8,
-        "minutes_per_person": 2.63,
+        "person_hours": 220.1,
+        "minutes_per_person": 2.6,
         "longest_trip_minutes": 5.2
       },
       "greedy": {
         "placed": 5081,
-        "person_hours": 232.4,
-        "minutes_per_person": 2.74,
+        "person_hours": 229.4,
+        "minutes_per_person": 2.71,
         "longest_trip_minutes": 8.7
       },
       "township_origins": {
@@ -916,31 +916,31 @@
       "pairs": 17255,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.652,
-        "db_solver": 0.164,
-        "python_solver": 1.107
+        "cost_matrix": 0.513,
+        "db_solver": 0.174,
+        "python_solver": 1.06
       },
       "min_cost": {
         "placed": 17121,
-        "person_hours": 1086.8,
-        "minutes_per_person": 3.81,
+        "person_hours": 1085.3,
+        "minutes_per_person": 3.8,
         "longest_trip_minutes": 19.1
       },
       "python": {
         "placed": 17121,
-        "person_hours": 1086.8,
-        "minutes_per_person": 3.81,
+        "person_hours": 1085.3,
+        "minutes_per_person": 3.8,
         "longest_trip_minutes": 19.1
       },
       "greedy": {
         "placed": 17121,
-        "person_hours": 1170.5,
-        "minutes_per_person": 4.1,
+        "person_hours": 1165.9,
+        "minutes_per_person": 4.09,
         "longest_trip_minutes": 33.0
       },
       "township_origins": {
         "placed": 17121,
-        "person_hours": 1607.0,
+        "person_hours": 1606.4,
         "minutes_per_person": 5.63,
         "longest_trip_minutes": 17.4
       }
@@ -953,31 +953,31 @@
       "pairs": 16095,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.691,
-        "db_solver": 0.14,
-        "python_solver": 0.942
+        "cost_matrix": 0.51,
+        "db_solver": 0.127,
+        "python_solver": 0.552
       },
       "min_cost": {
         "placed": 18072,
-        "person_hours": 785.1,
-        "minutes_per_person": 2.61,
+        "person_hours": 782.6,
+        "minutes_per_person": 2.6,
         "longest_trip_minutes": 8.9
       },
       "python": {
         "placed": 18072,
-        "person_hours": 785.1,
-        "minutes_per_person": 2.61,
+        "person_hours": 782.6,
+        "minutes_per_person": 2.6,
         "longest_trip_minutes": 8.9
       },
       "greedy": {
         "placed": 18072,
-        "person_hours": 803.3,
-        "minutes_per_person": 2.67,
+        "person_hours": 800.3,
+        "minutes_per_person": 2.66,
         "longest_trip_minutes": 10.6
       },
       "township_origins": {
         "placed": 18072,
-        "person_hours": 1393.7,
+        "person_hours": 1393.5,
         "minutes_per_person": 4.63,
         "longest_trip_minutes": 12.0
       }
@@ -990,19 +990,19 @@
       "pairs": 2160,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.144,
-        "db_solver": 0.02,
-        "python_solver": 0.044
+        "cost_matrix": 0.119,
+        "db_solver": 0.026,
+        "python_solver": 0.039
       },
       "min_cost": {
         "placed": 4273,
-        "person_hours": 206.6,
+        "person_hours": 206.5,
         "minutes_per_person": 2.9,
         "longest_trip_minutes": 9.0
       },
       "python": {
         "placed": 4273,
-        "person_hours": 206.6,
+        "person_hours": 206.5,
         "minutes_per_person": 2.9,
         "longest_trip_minutes": 9.0
       },
@@ -1014,8 +1014,8 @@
       },
       "township_origins": {
         "placed": 4273,
-        "person_hours": 326.0,
-        "minutes_per_person": 4.58,
+        "person_hours": 325.1,
+        "minutes_per_person": 4.57,
         "longest_trip_minutes": 11.5
       }
     },
@@ -1027,9 +1027,9 @@
       "pairs": 2160,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.138,
-        "db_solver": 0.022,
-        "python_solver": 0.037
+        "cost_matrix": 0.131,
+        "db_solver": 0.023,
+        "python_solver": 0.035
       },
       "min_cost": {
         "placed": 4273,
@@ -1051,7 +1051,7 @@
       },
       "township_origins": {
         "placed": 4273,
-        "person_hours": 302.2,
+        "person_hours": 301.8,
         "minutes_per_person": 4.24,
         "longest_trip_minutes": 11.5
       }
@@ -1064,31 +1064,31 @@
       "pairs": 16820,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.873,
-        "db_solver": 0.161,
-        "python_solver": 1.624
+        "cost_matrix": 0.6,
+        "db_solver": 0.156,
+        "python_solver": 1.307
       },
       "min_cost": {
         "placed": 17421,
-        "person_hours": 1630.6,
-        "minutes_per_person": 5.62,
+        "person_hours": 1628.0,
+        "minutes_per_person": 5.61,
         "longest_trip_minutes": 19.4
       },
       "python": {
         "placed": 17421,
-        "person_hours": 1630.6,
-        "minutes_per_person": 5.62,
+        "person_hours": 1628.0,
+        "minutes_per_person": 5.61,
         "longest_trip_minutes": 19.4
       },
       "greedy": {
         "placed": 17421,
-        "person_hours": 1768.7,
-        "minutes_per_person": 6.09,
+        "person_hours": 1765.8,
+        "minutes_per_person": 6.08,
         "longest_trip_minutes": 35.8
       },
       "township_origins": {
         "placed": 17421,
-        "person_hours": 2049.8,
+        "person_hours": 2048.9,
         "minutes_per_person": 7.06,
         "longest_trip_minutes": 19.6
       }
@@ -1101,31 +1101,31 @@
       "pairs": 16530,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.79,
-        "db_solver": 0.132,
-        "python_solver": 0.829
+        "cost_matrix": 0.626,
+        "db_solver": 0.133,
+        "python_solver": 0.749
       },
       "min_cost": {
         "placed": 17941,
-        "person_hours": 1277.5,
-        "minutes_per_person": 4.27,
+        "person_hours": 1273.6,
+        "minutes_per_person": 4.26,
         "longest_trip_minutes": 26.8
       },
       "python": {
         "placed": 17941,
-        "person_hours": 1277.5,
-        "minutes_per_person": 4.27,
-        "longest_trip_minutes": 26.1
+        "person_hours": 1273.6,
+        "minutes_per_person": 4.26,
+        "longest_trip_minutes": 26.8
       },
       "greedy": {
         "placed": 17941,
-        "person_hours": 1315.1,
-        "minutes_per_person": 4.4,
+        "person_hours": 1310.5,
+        "minutes_per_person": 4.38,
         "longest_trip_minutes": 26.8
       },
       "township_origins": {
         "placed": 17941,
-        "person_hours": 1874.9,
+        "person_hours": 1874.6,
         "minutes_per_person": 6.27,
         "longest_trip_minutes": 26.1
       }
@@ -1138,31 +1138,31 @@
       "pairs": 2385,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.117,
+        "cost_matrix": 0.105,
         "db_solver": 0.021,
-        "python_solver": 0.054
+        "python_solver": 0.052
       },
       "min_cost": {
         "placed": 7693,
-        "person_hours": 355.2,
+        "person_hours": 355.3,
         "minutes_per_person": 2.77,
         "longest_trip_minutes": 7.1
       },
       "python": {
         "placed": 7693,
-        "person_hours": 355.2,
+        "person_hours": 355.3,
         "minutes_per_person": 2.77,
         "longest_trip_minutes": 7.1
       },
       "greedy": {
         "placed": 7693,
-        "person_hours": 374.3,
+        "person_hours": 374.4,
         "minutes_per_person": 2.92,
         "longest_trip_minutes": 10.1
       },
       "township_origins": {
         "placed": 7693,
-        "person_hours": 564.4,
+        "person_hours": 564.5,
         "minutes_per_person": 4.4,
         "longest_trip_minutes": 11.6
       }
@@ -1175,31 +1175,31 @@
       "pairs": 2120,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.115,
+        "cost_matrix": 0.103,
         "db_solver": 0.023,
-        "python_solver": 0.027
+        "python_solver": 0.028
       },
       "min_cost": {
         "placed": 6911,
-        "person_hours": 199.2,
+        "person_hours": 199.3,
         "minutes_per_person": 1.73,
         "longest_trip_minutes": 4.3
       },
       "python": {
         "placed": 6911,
-        "person_hours": 199.2,
+        "person_hours": 199.3,
         "minutes_per_person": 1.73,
         "longest_trip_minutes": 4.3
       },
       "greedy": {
         "placed": 6911,
-        "person_hours": 205.9,
+        "person_hours": 206.0,
         "minutes_per_person": 1.79,
         "longest_trip_minutes": 4.3
       },
       "township_origins": {
         "placed": 6911,
-        "person_hours": 358.5,
+        "person_hours": 358.6,
         "minutes_per_person": 3.11,
         "longest_trip_minutes": 11.5
       }
@@ -1212,31 +1212,31 @@
       "pairs": 10647,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.589,
-        "db_solver": 0.086,
-        "python_solver": 0.361
+        "cost_matrix": 0.482,
+        "db_solver": 0.085,
+        "python_solver": 0.358
       },
       "min_cost": {
         "placed": 12755,
-        "person_hours": 593.7,
+        "person_hours": 593.8,
         "minutes_per_person": 2.79,
         "longest_trip_minutes": 27.4
       },
       "python": {
         "placed": 12755,
-        "person_hours": 593.7,
+        "person_hours": 593.8,
         "minutes_per_person": 2.79,
         "longest_trip_minutes": 27.4
       },
       "greedy": {
         "placed": 12755,
-        "person_hours": 619.3,
+        "person_hours": 619.5,
         "minutes_per_person": 2.91,
         "longest_trip_minutes": 28.6
       },
       "township_origins": {
         "placed": 12755,
-        "person_hours": 1144.3,
+        "person_hours": 1144.4,
         "minutes_per_person": 5.38,
         "longest_trip_minutes": 35.1
       }
@@ -1249,31 +1249,31 @@
       "pairs": 10266,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.447,
-        "db_solver": 0.075,
-        "python_solver": 0.233
+        "cost_matrix": 0.405,
+        "db_solver": 0.078,
+        "python_solver": 0.217
       },
       "min_cost": {
         "placed": 12049,
-        "person_hours": 434.0,
+        "person_hours": 434.1,
         "minutes_per_person": 2.16,
         "longest_trip_minutes": 8.1
       },
       "python": {
         "placed": 12049,
-        "person_hours": 434.0,
+        "person_hours": 434.1,
         "minutes_per_person": 2.16,
         "longest_trip_minutes": 8.1
       },
       "greedy": {
         "placed": 12049,
-        "person_hours": 438.6,
+        "person_hours": 438.7,
         "minutes_per_person": 2.18,
         "longest_trip_minutes": 8.1
       },
       "township_origins": {
         "placed": 12049,
-        "person_hours": 1046.7,
+        "person_hours": 1046.8,
         "minutes_per_person": 5.21,
         "longest_trip_minutes": 13.7
       }
@@ -1286,9 +1286,9 @@
       "pairs": 2565,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.151,
-        "db_solver": 0.025,
-        "python_solver": 0.064
+        "cost_matrix": 0.13,
+        "db_solver": 0.026,
+        "python_solver": 0.065
       },
       "min_cost": {
         "placed": 7996,
@@ -1323,9 +1323,9 @@
       "pairs": 2223,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.148,
-        "db_solver": 0.02,
-        "python_solver": 0.026
+        "cost_matrix": 0.136,
+        "db_solver": 0.027,
+        "python_solver": 0.027
       },
       "min_cost": {
         "placed": 7374,
@@ -1360,31 +1360,31 @@
       "pairs": 18864,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.647,
-        "db_solver": 0.181,
-        "python_solver": 1.191
+        "cost_matrix": 0.523,
+        "db_solver": 0.176,
+        "python_solver": 1.189
       },
       "min_cost": {
         "placed": 18728,
-        "person_hours": 1166.7,
+        "person_hours": 1166.3,
         "minutes_per_person": 3.74,
-        "longest_trip_minutes": 18.3
+        "longest_trip_minutes": 18.4
       },
       "python": {
         "placed": 18728,
-        "person_hours": 1166.7,
+        "person_hours": 1166.3,
         "minutes_per_person": 3.74,
         "longest_trip_minutes": 18.3
       },
       "greedy": {
         "placed": 18728,
-        "person_hours": 1239.1,
-        "minutes_per_person": 3.97,
+        "person_hours": 1237.4,
+        "minutes_per_person": 3.96,
         "longest_trip_minutes": 20.4
       },
       "township_origins": {
         "placed": 18728,
-        "person_hours": 1668.5,
+        "person_hours": 1668.6,
         "minutes_per_person": 5.35,
         "longest_trip_minutes": 14.1
       }
@@ -1397,31 +1397,31 @@
       "pairs": 18144,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.698,
-        "db_solver": 0.159,
-        "python_solver": 0.778
+        "cost_matrix": 0.515,
+        "db_solver": 0.144,
+        "python_solver": 0.724
       },
       "min_cost": {
         "placed": 17999,
-        "person_hours": 720.8,
-        "minutes_per_person": 2.4,
+        "person_hours": 718.2,
+        "minutes_per_person": 2.39,
         "longest_trip_minutes": 8.6
       },
       "python": {
         "placed": 17999,
-        "person_hours": 720.8,
-        "minutes_per_person": 2.4,
+        "person_hours": 718.2,
+        "minutes_per_person": 2.39,
         "longest_trip_minutes": 8.6
       },
       "greedy": {
         "placed": 17999,
-        "person_hours": 732.5,
-        "minutes_per_person": 2.44,
+        "person_hours": 729.6,
+        "minutes_per_person": 2.43,
         "longest_trip_minutes": 9.3
       },
       "township_origins": {
         "placed": 17999,
-        "person_hours": 1427.3,
+        "person_hours": 1427.4,
         "minutes_per_person": 4.76,
         "longest_trip_minutes": 13.1
       }
@@ -1434,21 +1434,21 @@
       "pairs": 220,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.104,
-        "db_solver": 0.006,
-        "python_solver": 0.002
+        "cost_matrix": 0.067,
+        "db_solver": 0.108,
+        "python_solver": 0.003
       },
       "min_cost": {
         "placed": 1074,
         "person_hours": 89.8,
-        "minutes_per_person": 5.02,
+        "minutes_per_person": 5.01,
         "longest_trip_minutes": 13.0
       },
       "python": {
         "placed": 1074,
         "person_hours": 89.8,
-        "minutes_per_person": 5.02,
-        "longest_trip_minutes": 11.5
+        "minutes_per_person": 5.01,
+        "longest_trip_minutes": 13.0
       },
       "greedy": {
         "placed": 1074,
@@ -1459,7 +1459,7 @@
       "township_origins": {
         "placed": 1074,
         "person_hours": 171.4,
-        "minutes_per_person": 9.58,
+        "minutes_per_person": 9.57,
         "longest_trip_minutes": 21.4
       }
     },
@@ -1471,9 +1471,9 @@
       "pairs": 300,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.085,
-        "db_solver": 0.008,
-        "python_solver": 0.003
+        "cost_matrix": 0.07,
+        "db_solver": 0.276,
+        "python_solver": 0.004
       },
       "min_cost": {
         "placed": 1882,
@@ -1491,7 +1491,7 @@
         "placed": 1882,
         "person_hours": 155.5,
         "minutes_per_person": 4.96,
-        "longest_trip_minutes": 11.5
+        "longest_trip_minutes": 11.4
       },
       "township_origins": {
         "placed": 1882,
@@ -1508,31 +1508,31 @@
       "pairs": 7957,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.683,
-        "db_solver": 0.074,
-        "python_solver": 0.372
+        "cost_matrix": 0.423,
+        "db_solver": 0.07,
+        "python_solver": 0.32
       },
       "min_cost": {
         "placed": 9019,
-        "person_hours": 690.6,
+        "person_hours": 690.7,
         "minutes_per_person": 4.59,
         "longest_trip_minutes": 24.6
       },
       "python": {
         "placed": 9019,
-        "person_hours": 690.6,
+        "person_hours": 690.7,
         "minutes_per_person": 4.59,
         "longest_trip_minutes": 24.6
       },
       "greedy": {
         "placed": 9019,
-        "person_hours": 724.8,
+        "person_hours": 724.9,
         "minutes_per_person": 4.82,
         "longest_trip_minutes": 33.6
       },
       "township_origins": {
         "placed": 9019,
-        "person_hours": 1099.2,
+        "person_hours": 1098.9,
         "minutes_per_person": 7.31,
         "longest_trip_minutes": 67.6
       }
@@ -1545,31 +1545,31 @@
       "pairs": 8175,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.633,
-        "db_solver": 0.071,
-        "python_solver": 0.305
+        "cost_matrix": 0.39,
+        "db_solver": 0.065,
+        "python_solver": 0.217
       },
       "min_cost": {
         "placed": 10605,
-        "person_hours": 477.8,
+        "person_hours": 477.9,
         "minutes_per_person": 2.7,
         "longest_trip_minutes": 22.3
       },
       "python": {
         "placed": 10605,
-        "person_hours": 477.8,
+        "person_hours": 477.9,
         "minutes_per_person": 2.7,
         "longest_trip_minutes": 22.3
       },
       "greedy": {
         "placed": 10605,
-        "person_hours": 496.4,
+        "person_hours": 496.5,
         "minutes_per_person": 2.81,
         "longest_trip_minutes": 25.8
       },
       "township_origins": {
         "placed": 10605,
-        "person_hours": 1040.9,
+        "person_hours": 1040.6,
         "minutes_per_person": 5.89,
         "longest_trip_minutes": 30.1
       }
@@ -1583,25 +1583,25 @@
       "demand_fits": true,
       "seconds": {
         "cost_matrix": 0.005,
-        "db_solver": 0.005,
+        "db_solver": 0.009,
         "python_solver": 0.0
       },
       "min_cost": {
         "placed": 30,
         "person_hours": 5.0,
-        "minutes_per_person": 9.97,
+        "minutes_per_person": 9.98,
         "longest_trip_minutes": 33.2
       },
       "python": {
         "placed": 30,
         "person_hours": 5.0,
-        "minutes_per_person": 9.97,
+        "minutes_per_person": 9.98,
         "longest_trip_minutes": 33.2
       },
       "greedy": {
         "placed": 30,
         "person_hours": 5.0,
-        "minutes_per_person": 9.97,
+        "minutes_per_person": 9.98,
         "longest_trip_minutes": 33.2
       },
       "township_origins": {
@@ -1619,7 +1619,7 @@
       "pairs": 2,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.005,
+        "cost_matrix": 0.002,
         "db_solver": 0.004,
         "python_solver": 0.0
       },
@@ -1656,7 +1656,7 @@
       "pairs": 12,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.031,
+        "cost_matrix": 0.026,
         "db_solver": 0.005,
         "python_solver": 0.0
       },
@@ -1693,8 +1693,8 @@
       "pairs": 12,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.037,
-        "db_solver": 0.004,
+        "cost_matrix": 0.026,
+        "db_solver": 0.005,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -1730,9 +1730,9 @@
       "pairs": 84,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.24,
-        "db_solver": 0.004,
-        "python_solver": 0.001
+        "cost_matrix": 0.202,
+        "db_solver": 0.009,
+        "python_solver": 0.0
       },
       "min_cost": {
         "placed": 393,
@@ -1767,8 +1767,8 @@
       "pairs": 84,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.225,
-        "db_solver": 0.009,
+        "cost_matrix": 0.202,
+        "db_solver": 0.012,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -1804,9 +1804,9 @@
       "pairs": 126,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.232,
-        "db_solver": 0.007,
-        "python_solver": 0.001
+        "cost_matrix": 0.192,
+        "db_solver": 0.011,
+        "python_solver": 0.002
       },
       "min_cost": {
         "placed": 614,
@@ -1841,8 +1841,8 @@
       "pairs": 126,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.231,
-        "db_solver": 0.006,
+        "cost_matrix": 0.192,
+        "db_solver": 0.005,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -1878,7 +1878,7 @@
       "pairs": 165,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.044,
+        "cost_matrix": 0.037,
         "db_solver": 0.005,
         "python_solver": 0.001
       },
@@ -1915,8 +1915,8 @@
       "pairs": 363,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.048,
-        "db_solver": 0.008,
+        "cost_matrix": 0.043,
+        "db_solver": 0.013,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -1952,31 +1952,31 @@
       "pairs": 920,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.081,
-        "db_solver": 0.017,
-        "python_solver": 0.008
+        "cost_matrix": 0.079,
+        "db_solver": 0.014,
+        "python_solver": 0.007
       },
       "min_cost": {
         "placed": 1139,
-        "person_hours": 119.9,
+        "person_hours": 119.8,
         "minutes_per_person": 6.31,
         "longest_trip_minutes": 12.3
       },
       "python": {
         "placed": 1139,
-        "person_hours": 119.9,
+        "person_hours": 119.8,
         "minutes_per_person": 6.31,
         "longest_trip_minutes": 12.3
       },
       "greedy": {
         "placed": 1139,
-        "person_hours": 120.7,
-        "minutes_per_person": 6.36,
+        "person_hours": 120.6,
+        "minutes_per_person": 6.35,
         "longest_trip_minutes": 12.3
       },
       "township_origins": {
         "placed": 1139,
-        "person_hours": 263.8,
+        "person_hours": 263.6,
         "minutes_per_person": 13.89,
         "longest_trip_minutes": 22.1
       }
@@ -1989,20 +1989,20 @@
       "pairs": 1426,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.093,
-        "db_solver": 0.015,
-        "python_solver": 0.013
+        "cost_matrix": 0.081,
+        "db_solver": 0.019,
+        "python_solver": 0.012
       },
       "min_cost": {
         "placed": 1475,
         "person_hours": 130.4,
-        "minutes_per_person": 5.31,
+        "minutes_per_person": 5.3,
         "longest_trip_minutes": 12.1
       },
       "python": {
         "placed": 1475,
         "person_hours": 130.4,
-        "minutes_per_person": 5.31,
+        "minutes_per_person": 5.3,
         "longest_trip_minutes": 12.1
       },
       "greedy": {
@@ -2013,8 +2013,8 @@
       },
       "township_origins": {
         "placed": 1475,
-        "person_hours": 342.4,
-        "minutes_per_person": 13.93,
+        "person_hours": 342.3,
+        "minutes_per_person": 13.92,
         "longest_trip_minutes": 22.1
       }
     },
@@ -2027,7 +2027,7 @@
       "demand_fits": false,
       "seconds": {
         "cost_matrix": 0.01,
-        "db_solver": 0.004,
+        "db_solver": 0.01,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -2101,7 +2101,7 @@
       "demand_fits": false,
       "seconds": {
         "cost_matrix": 0.03,
-        "db_solver": 0.004,
+        "db_solver": 0.006,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -2137,8 +2137,8 @@
       "pairs": 90,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.031,
-        "db_solver": 0.005,
+        "cost_matrix": 0.033,
+        "db_solver": 0.011,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -2174,8 +2174,8 @@
       "pairs": 99,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.019,
-        "db_solver": 0.004,
+        "cost_matrix": 0.025,
+        "db_solver": 0.009,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -2211,7 +2211,7 @@
       "pairs": 99,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.021,
+        "cost_matrix": 0.02,
         "db_solver": 0.004,
         "python_solver": 0.001
       },
@@ -2249,7 +2249,7 @@
       "demand_fits": true,
       "seconds": {
         "cost_matrix": 0.05,
-        "db_solver": 0.014,
+        "db_solver": 0.017,
         "python_solver": 0.006
       },
       "min_cost": {
@@ -2286,8 +2286,8 @@
       "demand_fits": true,
       "seconds": {
         "cost_matrix": 0.05,
-        "db_solver": 0.014,
-        "python_solver": 0.009
+        "db_solver": 0.011,
+        "python_solver": 0.013
       },
       "min_cost": {
         "placed": 2426,
@@ -2322,8 +2322,8 @@
       "pairs": 126,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.033,
-        "db_solver": 0.005,
+        "cost_matrix": 0.039,
+        "db_solver": 0.01,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -2340,14 +2340,14 @@
       },
       "greedy": {
         "placed": 585,
-        "person_hours": 58.1,
+        "person_hours": 58.0,
         "minutes_per_person": 5.95,
         "longest_trip_minutes": 12.3
       },
       "township_origins": {
         "placed": 585,
-        "person_hours": 99.1,
-        "minutes_per_person": 10.17,
+        "person_hours": 99.0,
+        "minutes_per_person": 10.15,
         "longest_trip_minutes": 14.4
       }
     },
@@ -2359,8 +2359,8 @@
       "pairs": 154,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.03,
-        "db_solver": 0.01,
+        "cost_matrix": 0.032,
+        "db_solver": 0.008,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -2377,14 +2377,14 @@
       },
       "greedy": {
         "placed": 643,
-        "person_hours": 57.2,
+        "person_hours": 57.3,
         "minutes_per_person": 5.34,
         "longest_trip_minutes": 12.1
       },
       "township_origins": {
         "placed": 643,
-        "person_hours": 108.0,
-        "minutes_per_person": 10.08,
+        "person_hours": 107.8,
+        "minutes_per_person": 10.06,
         "longest_trip_minutes": 14.4
       }
     },
@@ -2396,31 +2396,31 @@
       "pairs": 988,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.091,
-        "db_solver": 0.011,
-        "python_solver": 0.006
+        "cost_matrix": 0.101,
+        "db_solver": 0.016,
+        "python_solver": 0.005
       },
       "min_cost": {
         "placed": 1094,
-        "person_hours": 99.7,
-        "minutes_per_person": 5.47,
+        "person_hours": 100.9,
+        "minutes_per_person": 5.53,
         "longest_trip_minutes": 10.6
       },
       "python": {
         "placed": 1094,
-        "person_hours": 99.7,
-        "minutes_per_person": 5.47,
+        "person_hours": 100.9,
+        "minutes_per_person": 5.53,
         "longest_trip_minutes": 10.6
       },
       "greedy": {
         "placed": 1094,
-        "person_hours": 102.8,
-        "minutes_per_person": 5.64,
+        "person_hours": 103.0,
+        "minutes_per_person": 5.65,
         "longest_trip_minutes": 12.1
       },
       "township_origins": {
         "placed": 1094,
-        "person_hours": 221.4,
+        "person_hours": 221.3,
         "minutes_per_person": 12.14,
         "longest_trip_minutes": 19.5
       }
@@ -2433,31 +2433,31 @@
       "pairs": 1404,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.092,
-        "db_solver": 0.014,
-        "python_solver": 0.011
+        "cost_matrix": 0.101,
+        "db_solver": 0.018,
+        "python_solver": 0.008
       },
       "min_cost": {
         "placed": 1333,
-        "person_hours": 101.0,
-        "minutes_per_person": 4.54,
+        "person_hours": 101.3,
+        "minutes_per_person": 4.56,
         "longest_trip_minutes": 10.6
       },
       "python": {
         "placed": 1333,
-        "person_hours": 101.0,
-        "minutes_per_person": 4.54,
+        "person_hours": 101.3,
+        "minutes_per_person": 4.56,
         "longest_trip_minutes": 10.6
       },
       "greedy": {
         "placed": 1333,
-        "person_hours": 103.0,
-        "minutes_per_person": 4.64,
+        "person_hours": 103.3,
+        "minutes_per_person": 4.65,
         "longest_trip_minutes": 12.1
       },
       "township_origins": {
         "placed": 1333,
-        "person_hours": 269.8,
+        "person_hours": 269.6,
         "minutes_per_person": 12.14,
         "longest_trip_minutes": 19.5
       }
@@ -2470,9 +2470,9 @@
       "pairs": 133,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.017,
-        "db_solver": 0.006,
-        "python_solver": 0.001
+        "cost_matrix": 0.018,
+        "db_solver": 0.011,
+        "python_solver": 0.002
       },
       "min_cost": {
         "placed": 334,
@@ -2507,8 +2507,8 @@
       "pairs": 133,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.018,
-        "db_solver": 0.006,
+        "cost_matrix": 0.017,
+        "db_solver": 0.007,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -2544,26 +2544,26 @@
       "pairs": 609,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.064,
+        "cost_matrix": 0.067,
         "db_solver": 0.013,
-        "python_solver": 0.007
+        "python_solver": 0.008
       },
       "min_cost": {
         "placed": 1040,
-        "person_hours": 124.2,
-        "minutes_per_person": 7.16,
+        "person_hours": 124.9,
+        "minutes_per_person": 7.21,
         "longest_trip_minutes": 50.3
       },
       "python": {
         "placed": 1040,
-        "person_hours": 124.2,
-        "minutes_per_person": 7.16,
+        "person_hours": 124.9,
+        "minutes_per_person": 7.21,
         "longest_trip_minutes": 45.1
       },
       "greedy": {
         "placed": 1040,
-        "person_hours": 126.3,
-        "minutes_per_person": 7.29,
+        "person_hours": 127.1,
+        "minutes_per_person": 7.33,
         "longest_trip_minutes": 50.3
       },
       "township_origins": {
@@ -2581,26 +2581,26 @@
       "pairs": 609,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.066,
-        "db_solver": 0.013,
+        "cost_matrix": 0.065,
+        "db_solver": 0.015,
         "python_solver": 0.007
       },
       "min_cost": {
         "placed": 1430,
-        "person_hours": 173.3,
-        "minutes_per_person": 7.27,
+        "person_hours": 174.6,
+        "minutes_per_person": 7.33,
         "longest_trip_minutes": 18.9
       },
       "python": {
         "placed": 1430,
-        "person_hours": 173.3,
-        "minutes_per_person": 7.27,
+        "person_hours": 174.6,
+        "minutes_per_person": 7.33,
         "longest_trip_minutes": 18.9
       },
       "greedy": {
         "placed": 1430,
-        "person_hours": 204.7,
-        "minutes_per_person": 8.59,
+        "person_hours": 206.0,
+        "minutes_per_person": 8.64,
         "longest_trip_minutes": 37.1
       },
       "township_origins": {
@@ -2618,9 +2618,9 @@
       "pairs": 208,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.021,
-        "db_solver": 0.007,
-        "python_solver": 0.001
+        "cost_matrix": 0.026,
+        "db_solver": 0.387,
+        "python_solver": 0.003
       },
       "min_cost": {
         "placed": 812,
@@ -2655,8 +2655,8 @@
       "pairs": 234,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.021,
-        "db_solver": 0.012,
+        "cost_matrix": 0.026,
+        "db_solver": 0.009,
         "python_solver": 0.002
       },
       "min_cost": {
@@ -2692,8 +2692,8 @@
       "pairs": 676,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.054,
-        "db_solver": 0.014,
+        "cost_matrix": 0.052,
+        "db_solver": 0.013,
         "python_solver": 0.007
       },
       "min_cost": {
@@ -2729,9 +2729,9 @@
       "pairs": 858,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.052,
-        "db_solver": 0.012,
-        "python_solver": 0.015
+        "cost_matrix": 0.057,
+        "db_solver": 0.016,
+        "python_solver": 0.013
       },
       "min_cost": {
         "placed": 2871,
@@ -2767,7 +2767,7 @@
       "demand_fits": false,
       "seconds": {
         "cost_matrix": 0.014,
-        "db_solver": 0.01,
+        "db_solver": 0.009,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -2803,7 +2803,7 @@
       "pairs": 4,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.015,
+        "cost_matrix": 0.011,
         "db_solver": 0.004,
         "python_solver": 0.0
       },
@@ -2840,8 +2840,8 @@
       "pairs": 24,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.05,
-        "db_solver": 0.003,
+        "cost_matrix": 0.047,
+        "db_solver": 0.007,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -2877,7 +2877,7 @@
       "pairs": 60,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.048,
+        "cost_matrix": 0.049,
         "db_solver": 0.01,
         "python_solver": 0.0
       },
@@ -2914,7 +2914,7 @@
       "pairs": 24,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.009,
+        "cost_matrix": 0.01,
         "db_solver": 0.005,
         "python_solver": 0.0
       },
@@ -2951,9 +2951,9 @@
       "pairs": 27,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.009,
-        "db_solver": 0.004,
-        "python_solver": 0.0
+        "cost_matrix": 0.007,
+        "db_solver": 0.008,
+        "python_solver": 0.001
       },
       "min_cost": {
         "placed": 617,
@@ -2988,8 +2988,8 @@
       "pairs": 144,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.035,
-        "db_solver": 0.005,
+        "cost_matrix": 0.034,
+        "db_solver": 0.008,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -3025,8 +3025,8 @@
       "pairs": 144,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.037,
-        "db_solver": 0.007,
+        "cost_matrix": 0.035,
+        "db_solver": 0.006,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -3068,27 +3068,27 @@
       },
       "min_cost": {
         "placed": 560,
-        "person_hours": 67.0,
-        "minutes_per_person": 7.18,
-        "longest_trip_minutes": 22.9
+        "person_hours": 59.2,
+        "minutes_per_person": 6.34,
+        "longest_trip_minutes": 16.5
       },
       "python": {
         "placed": 560,
-        "person_hours": 67.0,
-        "minutes_per_person": 7.18,
-        "longest_trip_minutes": 22.9
+        "person_hours": 59.2,
+        "minutes_per_person": 6.34,
+        "longest_trip_minutes": 16.5
       },
       "greedy": {
         "placed": 560,
-        "person_hours": 78.8,
-        "minutes_per_person": 8.44,
-        "longest_trip_minutes": 36.1
+        "person_hours": 69.3,
+        "minutes_per_person": 7.42,
+        "longest_trip_minutes": 29.4
       },
       "township_origins": {
         "placed": 560,
-        "person_hours": 78.9,
-        "minutes_per_person": 8.45,
-        "longest_trip_minutes": 20.8
+        "person_hours": 79.3,
+        "minutes_per_person": 8.5,
+        "longest_trip_minutes": 21.6
       }
     },
     {
@@ -3105,27 +3105,27 @@
       },
       "min_cost": {
         "placed": 860,
-        "person_hours": 99.7,
-        "minutes_per_person": 6.96,
+        "person_hours": 95.9,
+        "minutes_per_person": 6.69,
         "longest_trip_minutes": 18.1
       },
       "python": {
         "placed": 860,
-        "person_hours": 99.7,
-        "minutes_per_person": 6.96,
+        "person_hours": 95.9,
+        "minutes_per_person": 6.69,
         "longest_trip_minutes": 18.1
       },
       "greedy": {
         "placed": 860,
-        "person_hours": 115.4,
-        "minutes_per_person": 8.05,
+        "person_hours": 106.1,
+        "minutes_per_person": 7.4,
         "longest_trip_minutes": 18.1
       },
       "township_origins": {
         "placed": 860,
         "person_hours": 116.7,
         "minutes_per_person": 8.14,
-        "longest_trip_minutes": 15.1
+        "longest_trip_minutes": 14.9
       }
     },
     {
@@ -3136,32 +3136,32 @@
       "pairs": 140,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.024,
+        "cost_matrix": 0.025,
         "db_solver": 0.005,
         "python_solver": 0.001
       },
       "min_cost": {
         "placed": 830,
-        "person_hours": 108.5,
-        "minutes_per_person": 7.84,
-        "longest_trip_minutes": 22.8
+        "person_hours": 103.7,
+        "minutes_per_person": 7.5,
+        "longest_trip_minutes": 18.5
       },
       "python": {
         "placed": 830,
-        "person_hours": 108.5,
-        "minutes_per_person": 7.84,
-        "longest_trip_minutes": 22.8
+        "person_hours": 103.7,
+        "minutes_per_person": 7.5,
+        "longest_trip_minutes": 18.5
       },
       "greedy": {
         "placed": 830,
-        "person_hours": 119.6,
-        "minutes_per_person": 8.64,
-        "longest_trip_minutes": 44.3
+        "person_hours": 114.4,
+        "minutes_per_person": 8.27,
+        "longest_trip_minutes": 37.7
       },
       "township_origins": {
         "placed": 830,
-        "person_hours": 152.8,
-        "minutes_per_person": 11.05,
+        "person_hours": 153.2,
+        "minutes_per_person": 11.08,
         "longest_trip_minutes": 24.7
       }
     },
@@ -3174,31 +3174,31 @@
       "demand_fits": false,
       "seconds": {
         "cost_matrix": 0.025,
-        "db_solver": 0.007,
+        "db_solver": 0.006,
         "python_solver": 0.002
       },
       "min_cost": {
         "placed": 1300,
-        "person_hours": 152.2,
-        "minutes_per_person": 7.02,
+        "person_hours": 149.6,
+        "minutes_per_person": 6.9,
         "longest_trip_minutes": 15.8
       },
       "python": {
         "placed": 1300,
-        "person_hours": 152.2,
-        "minutes_per_person": 7.02,
+        "person_hours": 149.6,
+        "minutes_per_person": 6.9,
         "longest_trip_minutes": 15.8
       },
       "greedy": {
         "placed": 1300,
-        "person_hours": 167.6,
-        "minutes_per_person": 7.73,
-        "longest_trip_minutes": 16.5
+        "person_hours": 160.5,
+        "minutes_per_person": 7.41,
+        "longest_trip_minutes": 16.4
       },
       "township_origins": {
         "placed": 1300,
-        "person_hours": 238.8,
-        "minutes_per_person": 11.02,
+        "person_hours": 238.6,
+        "minutes_per_person": 11.01,
         "longest_trip_minutes": 23.5
       }
     },
@@ -3210,7 +3210,7 @@
       "pairs": 18,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.005,
+        "cost_matrix": 0.006,
         "db_solver": 0.004,
         "python_solver": 0.0
       },
@@ -3247,8 +3247,8 @@
       "pairs": 21,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.005,
-        "db_solver": 0.003,
+        "cost_matrix": 0.006,
+        "db_solver": 0.005,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -3284,7 +3284,7 @@
       "pairs": 150,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.009,
+        "cost_matrix": 0.01,
         "db_solver": 0.005,
         "python_solver": 0.001
       },
@@ -3321,8 +3321,8 @@
       "pairs": 180,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.01,
-        "db_solver": 0.004,
+        "cost_matrix": 0.011,
+        "db_solver": 0.006,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -3358,8 +3358,8 @@
       "pairs": 24,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.003,
-        "db_solver": 0.003,
+        "cost_matrix": 0.004,
+        "db_solver": 0.004,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -3376,9 +3376,9 @@
       },
       "greedy": {
         "placed": 439,
-        "person_hours": 26.1,
-        "minutes_per_person": 3.56,
-        "longest_trip_minutes": 13.9
+        "person_hours": 25.9,
+        "minutes_per_person": 3.54,
+        "longest_trip_minutes": 13.1
       },
       "township_origins": {
         "placed": 439,
@@ -3395,7 +3395,7 @@
       "pairs": 24,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.004,
+        "cost_matrix": 0.003,
         "db_solver": 0.003,
         "python_solver": 0.0
       },
@@ -3433,7 +3433,7 @@
       "demand_fits": true,
       "seconds": {
         "cost_matrix": 0.003,
-        "db_solver": 0.004,
+        "db_solver": 0.003,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -3450,8 +3450,8 @@
       },
       "greedy": {
         "placed": 502,
-        "person_hours": 35.4,
-        "minutes_per_person": 4.23,
+        "person_hours": 34.7,
+        "minutes_per_person": 4.14,
         "longest_trip_minutes": 14.9
       },
       "township_origins": {
@@ -3469,7 +3469,7 @@
       "pairs": 24,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.003,
+        "cost_matrix": 0.002,
         "db_solver": 0.003,
         "python_solver": 0.0
       },
@@ -3506,8 +3506,8 @@
       "pairs": 6,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.008,
-        "db_solver": 0.002,
+        "cost_matrix": 0.009,
+        "db_solver": 0.004,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -3543,8 +3543,8 @@
       "pairs": 6,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.009,
-        "db_solver": 0.004,
+        "cost_matrix": 0.008,
+        "db_solver": 0.005,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -3580,8 +3580,8 @@
       "pairs": 504,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.04,
-        "db_solver": 0.014,
+        "cost_matrix": 0.036,
+        "db_solver": 0.01,
         "python_solver": 0.004
       },
       "min_cost": {
@@ -3617,8 +3617,8 @@
       "pairs": 525,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.035,
-        "db_solver": 0.015,
+        "cost_matrix": 0.037,
+        "db_solver": 0.013,
         "python_solver": 0.004
       },
       "min_cost": {
@@ -3654,8 +3654,8 @@
       "pairs": 78,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.015,
-        "db_solver": 0.011,
+        "cost_matrix": 0.013,
+        "db_solver": 0.007,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -3691,8 +3691,8 @@
       "pairs": 78,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.013,
-        "db_solver": 0.006,
+        "cost_matrix": 0.016,
+        "db_solver": 0.005,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -3728,26 +3728,26 @@
       "pairs": 540,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.058,
-        "db_solver": 0.012,
+        "cost_matrix": 0.061,
+        "db_solver": 0.017,
         "python_solver": 0.007
       },
       "min_cost": {
         "placed": 1113,
-        "person_hours": 152.0,
-        "minutes_per_person": 8.19,
+        "person_hours": 153.4,
+        "minutes_per_person": 8.27,
         "longest_trip_minutes": 20.9
       },
       "python": {
         "placed": 1113,
-        "person_hours": 152.0,
-        "minutes_per_person": 8.19,
+        "person_hours": 153.4,
+        "minutes_per_person": 8.27,
         "longest_trip_minutes": 20.9
       },
       "greedy": {
         "placed": 1113,
-        "person_hours": 157.9,
-        "minutes_per_person": 8.51,
+        "person_hours": 159.4,
+        "minutes_per_person": 8.59,
         "longest_trip_minutes": 30.9
       },
       "township_origins": {
@@ -3765,26 +3765,26 @@
       "pairs": 540,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.057,
-        "db_solver": 0.012,
+        "cost_matrix": 0.06,
+        "db_solver": 0.01,
         "python_solver": 0.005
       },
       "min_cost": {
         "placed": 1170,
-        "person_hours": 110.5,
-        "minutes_per_person": 5.67,
+        "person_hours": 111.6,
+        "minutes_per_person": 5.72,
         "longest_trip_minutes": 11.5
       },
       "python": {
         "placed": 1170,
-        "person_hours": 110.5,
-        "minutes_per_person": 5.67,
+        "person_hours": 111.6,
+        "minutes_per_person": 5.72,
         "longest_trip_minutes": 11.5
       },
       "greedy": {
         "placed": 1170,
-        "person_hours": 114.8,
-        "minutes_per_person": 5.89,
+        "person_hours": 115.9,
+        "minutes_per_person": 5.94,
         "longest_trip_minutes": 17.9
       },
       "township_origins": {
@@ -3802,33 +3802,33 @@
       "pairs": 42,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.008,
-        "db_solver": 0.009,
+        "cost_matrix": 0.011,
+        "db_solver": 0.011,
         "python_solver": 0.0
       },
       "min_cost": {
         "placed": 410,
-        "person_hours": 70.4,
-        "minutes_per_person": 10.3,
-        "longest_trip_minutes": 22.9
+        "person_hours": 56.0,
+        "minutes_per_person": 8.2,
+        "longest_trip_minutes": 16.5
       },
       "python": {
         "placed": 410,
-        "person_hours": 70.4,
-        "minutes_per_person": 10.3,
-        "longest_trip_minutes": 22.9
+        "person_hours": 56.0,
+        "minutes_per_person": 8.2,
+        "longest_trip_minutes": 16.5
       },
       "greedy": {
         "placed": 410,
-        "person_hours": 71.2,
-        "minutes_per_person": 10.43,
-        "longest_trip_minutes": 29.8
+        "person_hours": 56.5,
+        "minutes_per_person": 8.27,
+        "longest_trip_minutes": 23.6
       },
       "township_origins": {
         "placed": 410,
-        "person_hours": 59.1,
-        "minutes_per_person": 8.66,
-        "longest_trip_minutes": 14.2
+        "person_hours": 59.4,
+        "minutes_per_person": 8.69,
+        "longest_trip_minutes": 14.7
       }
     },
     {
@@ -3845,27 +3845,27 @@
       },
       "min_cost": {
         "placed": 751,
-        "person_hours": 156.2,
-        "minutes_per_person": 12.48,
-        "longest_trip_minutes": 29.6
+        "person_hours": 136.5,
+        "minutes_per_person": 10.9,
+        "longest_trip_minutes": 26.5
       },
       "python": {
         "placed": 751,
-        "person_hours": 156.2,
-        "minutes_per_person": 12.48,
-        "longest_trip_minutes": 29.6
+        "person_hours": 136.5,
+        "minutes_per_person": 10.9,
+        "longest_trip_minutes": 26.5
       },
       "greedy": {
         "placed": 751,
-        "person_hours": 166.9,
-        "minutes_per_person": 13.33,
-        "longest_trip_minutes": 36.1
+        "person_hours": 148.4,
+        "minutes_per_person": 11.85,
+        "longest_trip_minutes": 29.4
       },
       "township_origins": {
         "placed": 751,
-        "person_hours": 105.6,
-        "minutes_per_person": 8.44,
-        "longest_trip_minutes": 20.8
+        "person_hours": 105.9,
+        "minutes_per_person": 8.46,
+        "longest_trip_minutes": 21.6
       }
     },
     {
@@ -3876,32 +3876,32 @@
       "pairs": 140,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.025,
+        "cost_matrix": 0.027,
         "db_solver": 0.006,
         "python_solver": 0.001
       },
       "min_cost": {
         "placed": 830,
-        "person_hours": 127.5,
-        "minutes_per_person": 9.22,
-        "longest_trip_minutes": 22.9
+        "person_hours": 114.0,
+        "minutes_per_person": 8.24,
+        "longest_trip_minutes": 16.8
       },
       "python": {
         "placed": 830,
-        "person_hours": 127.5,
-        "minutes_per_person": 9.22,
-        "longest_trip_minutes": 22.9
+        "person_hours": 114.0,
+        "minutes_per_person": 8.24,
+        "longest_trip_minutes": 16.8
       },
       "greedy": {
         "placed": 830,
-        "person_hours": 149.6,
-        "minutes_per_person": 10.81,
-        "longest_trip_minutes": 44.3
+        "person_hours": 133.4,
+        "minutes_per_person": 9.64,
+        "longest_trip_minutes": 37.8
       },
       "township_origins": {
         "placed": 830,
-        "person_hours": 163.9,
-        "minutes_per_person": 11.85,
+        "person_hours": 164.3,
+        "minutes_per_person": 11.87,
         "longest_trip_minutes": 25.3
       }
     },
@@ -3914,31 +3914,31 @@
       "demand_fits": false,
       "seconds": {
         "cost_matrix": 0.029,
-        "db_solver": 0.007,
-        "python_solver": 0.003
+        "db_solver": 0.008,
+        "python_solver": 0.002
       },
       "min_cost": {
         "placed": 1400,
-        "person_hours": 212.7,
-        "minutes_per_person": 9.12,
-        "longest_trip_minutes": 29.6
+        "person_hours": 202.6,
+        "minutes_per_person": 8.68,
+        "longest_trip_minutes": 27.0
       },
       "python": {
         "placed": 1400,
-        "person_hours": 212.7,
-        "minutes_per_person": 9.12,
-        "longest_trip_minutes": 29.6
+        "person_hours": 202.6,
+        "minutes_per_person": 8.68,
+        "longest_trip_minutes": 21.1
       },
       "greedy": {
         "placed": 1400,
-        "person_hours": 234.9,
-        "minutes_per_person": 10.07,
-        "longest_trip_minutes": 50.2
+        "person_hours": 222.2,
+        "minutes_per_person": 9.52,
+        "longest_trip_minutes": 43.6
       },
       "township_origins": {
         "placed": 1400,
-        "person_hours": 288.1,
-        "minutes_per_person": 12.35,
+        "person_hours": 288.0,
+        "minutes_per_person": 12.34,
         "longest_trip_minutes": 24.2
       }
     },
@@ -3950,7 +3950,7 @@
       "pairs": 18,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.006,
+        "cost_matrix": 0.007,
         "db_solver": 0.004,
         "python_solver": 0.0
       },
@@ -4025,7 +4025,7 @@
       "demand_fits": true,
       "seconds": {
         "cost_matrix": 0.01,
-        "db_solver": 0.006,
+        "db_solver": 0.005,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -4099,7 +4099,7 @@
       "demand_fits": true,
       "seconds": {
         "cost_matrix": 0.003,
-        "db_solver": 0.008,
+        "db_solver": 0.003,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -4135,7 +4135,7 @@
       "pairs": 24,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.003,
+        "cost_matrix": 0.004,
         "db_solver": 0.004,
         "python_solver": 0.0
       },
@@ -4172,8 +4172,8 @@
       "pairs": 20,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.004,
-        "db_solver": 0.004,
+        "cost_matrix": 0.003,
+        "db_solver": 0.003,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -4209,8 +4209,8 @@
       "pairs": 24,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.004,
-        "db_solver": 0.004,
+        "cost_matrix": 0.003,
+        "db_solver": 0.003,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -4246,9 +4246,9 @@
       "pairs": 2240,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.094,
-        "db_solver": 0.02,
-        "python_solver": 0.028
+        "cost_matrix": 0.106,
+        "db_solver": 0.028,
+        "python_solver": 0.026
       },
       "min_cost": {
         "placed": 6915,
@@ -4283,9 +4283,9 @@
       "pairs": 2816,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.099,
-        "db_solver": 0.029,
-        "python_solver": 0.037
+        "cost_matrix": 0.09,
+        "db_solver": 0.03,
+        "python_solver": 0.031
       },
       "min_cost": {
         "placed": 9205,
@@ -4320,9 +4320,9 @@
       "pairs": 3525,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.131,
-        "db_solver": 0.029,
-        "python_solver": 0.041
+        "cost_matrix": 0.122,
+        "db_solver": 0.034,
+        "python_solver": 0.044
       },
       "min_cost": {
         "placed": 7605,
@@ -4357,9 +4357,9 @@
       "pairs": 4350,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.133,
-        "db_solver": 0.04,
-        "python_solver": 0.059
+        "cost_matrix": 0.152,
+        "db_solver": 0.042,
+        "python_solver": 0.065
       },
       "min_cost": {
         "placed": 9982,
@@ -4394,8 +4394,8 @@
       "pairs": 50,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.017,
-        "db_solver": 0.01,
+        "cost_matrix": 0.015,
+        "db_solver": 0.005,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -4468,8 +4468,8 @@
       "pairs": 434,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.066,
-        "db_solver": 0.008,
+        "cost_matrix": 0.067,
+        "db_solver": 0.017,
         "python_solver": 0.004
       },
       "min_cost": {
@@ -4505,8 +4505,8 @@
       "pairs": 899,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.069,
-        "db_solver": 0.01,
+        "cost_matrix": 0.067,
+        "db_solver": 0.015,
         "python_solver": 0.011
       },
       "min_cost": {
@@ -4542,7 +4542,7 @@
       "pairs": 77,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.018,
+        "cost_matrix": 0.019,
         "db_solver": 0.005,
         "python_solver": 0.0
       },
@@ -4580,7 +4580,7 @@
       "demand_fits": false,
       "seconds": {
         "cost_matrix": 0.044,
-        "db_solver": 0.01,
+        "db_solver": 0.012,
         "python_solver": 0.002
       },
       "min_cost": {
@@ -4616,8 +4616,8 @@
       "pairs": 420,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.04,
-        "db_solver": 0.012,
+        "cost_matrix": 0.046,
+        "db_solver": 0.013,
         "python_solver": 0.004
       },
       "min_cost": {
@@ -4653,8 +4653,8 @@
       "pairs": 504,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.044,
-        "db_solver": 0.013,
+        "cost_matrix": 0.043,
+        "db_solver": 0.009,
         "python_solver": 0.005
       },
       "min_cost": {
@@ -4690,9 +4690,9 @@
       "pairs": 3330,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.136,
-        "db_solver": 0.031,
-        "python_solver": 0.057
+        "cost_matrix": 0.134,
+        "db_solver": 0.033,
+        "python_solver": 0.052
       },
       "min_cost": {
         "placed": 7612,
@@ -4727,9 +4727,9 @@
       "pairs": 4218,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.144,
-        "db_solver": 0.04,
-        "python_solver": 0.07
+        "cost_matrix": 0.129,
+        "db_solver": 0.034,
+        "python_solver": 0.063
       },
       "min_cost": {
         "placed": 10012,
@@ -4764,9 +4764,9 @@
       "pairs": 1830,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.098,
-        "db_solver": 0.021,
-        "python_solver": 0.019
+        "cost_matrix": 0.078,
+        "db_solver": 0.02,
+        "python_solver": 0.018
       },
       "min_cost": {
         "placed": 5851,
@@ -4801,9 +4801,9 @@
       "pairs": 2318,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.091,
-        "db_solver": 0.027,
-        "python_solver": 0.027
+        "cost_matrix": 0.083,
+        "db_solver": 0.019,
+        "python_solver": 0.025
       },
       "min_cost": {
         "placed": 8102,
@@ -4838,9 +4838,9 @@
       "pairs": 4029,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.159,
-        "db_solver": 0.042,
-        "python_solver": 0.079
+        "cost_matrix": 0.139,
+        "db_solver": 0.036,
+        "python_solver": 0.059
       },
       "min_cost": {
         "placed": 7851,
@@ -4875,9 +4875,9 @@
       "pairs": 4977,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.174,
-        "db_solver": 0.04,
-        "python_solver": 0.078
+        "cost_matrix": 0.151,
+        "db_solver": 0.042,
+        "python_solver": 0.074
       },
       "min_cost": {
         "placed": 10298,
@@ -4912,8 +4912,8 @@
       "pairs": 132,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.037,
-        "db_solver": 0.012,
+        "cost_matrix": 0.031,
+        "db_solver": 0.007,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -4949,8 +4949,8 @@
       "pairs": 132,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.035,
-        "db_solver": 0.004,
+        "cost_matrix": 0.032,
+        "db_solver": 0.009,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -4986,8 +4986,8 @@
       "pairs": 550,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.1,
-        "db_solver": 0.008,
+        "cost_matrix": 0.085,
+        "db_solver": 0.013,
         "python_solver": 0.004
       },
       "min_cost": {
@@ -5023,9 +5023,9 @@
       "pairs": 600,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.157,
-        "db_solver": 0.008,
-        "python_solver": 0.005
+        "cost_matrix": 0.09,
+        "db_solver": 0.009,
+        "python_solver": 0.004
       },
       "min_cost": {
         "placed": 1102,
@@ -5060,8 +5060,8 @@
       "pairs": 110,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.017,
-        "db_solver": 0.015,
+        "cost_matrix": 0.015,
+        "db_solver": 0.01,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -5134,8 +5134,8 @@
       "pairs": 558,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.049,
-        "db_solver": 0.014,
+        "cost_matrix": 0.045,
+        "db_solver": 0.013,
         "python_solver": 0.006
       },
       "min_cost": {
@@ -5171,9 +5171,9 @@
       "pairs": 806,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.055,
-        "db_solver": 0.009,
-        "python_solver": 0.013
+        "cost_matrix": 0.052,
+        "db_solver": 0.014,
+        "python_solver": 0.012
       },
       "min_cost": {
         "placed": 2783,
@@ -5202,43 +5202,6 @@
     },
     {
       "scenario": "豐濱鄉 5 km earthquake",
-      "villages": 1,
-      "townships": 1,
-      "shelters": 2,
-      "pairs": 2,
-      "demand_fits": false,
-      "seconds": {
-        "cost_matrix": 0.005,
-        "db_solver": 0.0,
-        "python_solver": 0.0
-      },
-      "min_cost": {
-        "placed": 0,
-        "person_hours": 0.0,
-        "minutes_per_person": 0.0,
-        "longest_trip_minutes": 0.0
-      },
-      "python": {
-        "placed": 0,
-        "person_hours": 0.0,
-        "minutes_per_person": 0.0,
-        "longest_trip_minutes": 0.0
-      },
-      "greedy": {
-        "placed": 0,
-        "person_hours": 0.0,
-        "minutes_per_person": 0.0,
-        "longest_trip_minutes": 0.0
-      },
-      "township_origins": {
-        "placed": 0,
-        "person_hours": 0.0,
-        "minutes_per_person": 0.0,
-        "longest_trip_minutes": 0.0
-      }
-    },
-    {
-      "scenario": "豐濱鄉 5 km flood",
       "villages": 1,
       "townships": 1,
       "shelters": 2,
@@ -5275,6 +5238,43 @@
       }
     },
     {
+      "scenario": "豐濱鄉 5 km flood",
+      "villages": 1,
+      "townships": 1,
+      "shelters": 2,
+      "pairs": 2,
+      "demand_fits": false,
+      "seconds": {
+        "cost_matrix": 0.004,
+        "db_solver": 0.0,
+        "python_solver": 0.0
+      },
+      "min_cost": {
+        "placed": 0,
+        "person_hours": 0.0,
+        "minutes_per_person": 0.0,
+        "longest_trip_minutes": 0.0
+      },
+      "python": {
+        "placed": 0,
+        "person_hours": 0.0,
+        "minutes_per_person": 0.0,
+        "longest_trip_minutes": 0.0
+      },
+      "greedy": {
+        "placed": 0,
+        "person_hours": 0.0,
+        "minutes_per_person": 0.0,
+        "longest_trip_minutes": 0.0
+      },
+      "township_origins": {
+        "placed": 0,
+        "person_hours": 0.0,
+        "minutes_per_person": 0.0,
+        "longest_trip_minutes": 0.0
+      }
+    },
+    {
       "scenario": "豐濱鄉 10 km earthquake",
       "villages": 7,
       "townships": 3,
@@ -5282,8 +5282,8 @@
       "pairs": 21,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.029,
-        "db_solver": 0.01,
+        "cost_matrix": 0.026,
+        "db_solver": 0.009,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -5320,7 +5320,7 @@
       "demand_fits": false,
       "seconds": {
         "cost_matrix": 0.027,
-        "db_solver": 0.007,
+        "db_solver": 0.006,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -5356,8 +5356,8 @@
       "pairs": 9,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.011,
-        "db_solver": 0.003,
+        "cost_matrix": 0.012,
+        "db_solver": 0.005,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -5430,8 +5430,8 @@
       "pairs": 42,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.036,
-        "db_solver": 0.008,
+        "cost_matrix": 0.034,
+        "db_solver": 0.01,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -5467,9 +5467,9 @@
       "pairs": 567,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.04,
-        "db_solver": 0.023,
-        "python_solver": 0.005
+        "cost_matrix": 0.043,
+        "db_solver": 0.013,
+        "python_solver": 0.006
       },
       "min_cost": {
         "placed": 1895,
@@ -5504,9 +5504,9 @@
       "pairs": 80,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.018,
-        "db_solver": 0.005,
-        "python_solver": 0.001
+        "cost_matrix": 0.017,
+        "db_solver": 0.009,
+        "python_solver": 0.0
       },
       "min_cost": {
         "placed": 660,
@@ -5541,8 +5541,8 @@
       "pairs": 60,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.037,
-        "db_solver": 0.005,
+        "cost_matrix": 0.038,
+        "db_solver": 0.011,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -5578,9 +5578,9 @@
       "pairs": 400,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.051,
-        "db_solver": 0.019,
-        "python_solver": 0.004
+        "cost_matrix": 0.048,
+        "db_solver": 0.012,
+        "python_solver": 0.003
       },
       "min_cost": {
         "placed": 1220,
@@ -5615,8 +5615,8 @@
       "pairs": 42,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.02,
-        "db_solver": 0.005,
+        "cost_matrix": 0.022,
+        "db_solver": 0.009,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -5652,7 +5652,7 @@
       "pairs": 48,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.021,
+        "cost_matrix": 0.022,
         "db_solver": 0.005,
         "python_solver": 0.0
       },
@@ -5689,9 +5689,9 @@
       "pairs": 399,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.045,
-        "db_solver": 0.008,
-        "python_solver": 0.003
+        "cost_matrix": 0.055,
+        "db_solver": 0.012,
+        "python_solver": 0.004
       },
       "min_cost": {
         "placed": 1304,
@@ -5726,9 +5726,9 @@
       "pairs": 462,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.05,
-        "db_solver": 0.009,
-        "python_solver": 0.003
+        "cost_matrix": 0.046,
+        "db_solver": 0.013,
+        "python_solver": 0.004
       },
       "min_cost": {
         "placed": 1390,
@@ -5763,8 +5763,8 @@
       "pairs": 60,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.015,
-        "db_solver": 0.006,
+        "cost_matrix": 0.014,
+        "db_solver": 0.005,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -5801,7 +5801,7 @@
       "demand_fits": true,
       "seconds": {
         "cost_matrix": 0.016,
-        "db_solver": 0.004,
+        "db_solver": 0.007,
         "python_solver": 0.001
       },
       "min_cost": {
@@ -5837,8 +5837,8 @@
       "pairs": 486,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.045,
-        "db_solver": 0.008,
+        "cost_matrix": 0.047,
+        "db_solver": 0.015,
         "python_solver": 0.004
       },
       "min_cost": {
@@ -5874,8 +5874,8 @@
       "pairs": 702,
       "demand_fits": true,
       "seconds": {
-        "cost_matrix": 0.049,
-        "db_solver": 0.01,
+        "cost_matrix": 0.051,
+        "db_solver": 0.02,
         "python_solver": 0.009
       },
       "min_cost": {
@@ -5911,8 +5911,8 @@
       "pairs": 60,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.02,
-        "db_solver": 0.004,
+        "cost_matrix": 0.021,
+        "db_solver": 0.009,
         "python_solver": 0.0
       },
       "min_cost": {
@@ -5948,9 +5948,9 @@
       "pairs": 300,
       "demand_fits": false,
       "seconds": {
-        "cost_matrix": 0.042,
-        "db_solver": 0.006,
-        "python_solver": 0.001
+        "cost_matrix": 0.043,
+        "db_solver": 0.01,
+        "python_solver": 0.004
       },
       "min_cost": {
         "placed": 715,
