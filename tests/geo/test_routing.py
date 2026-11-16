@@ -9,7 +9,12 @@ import pytest
 
 from models.shelter import NearbyShelter, Shelter
 from repositories.shelter_repository import FRACTION_EPS, RoadPath, ShelterRepository
-from services.geo.routing import attach_evacuation_paths, evacuation_road_distances, nearest_by_road
+from services.geo.routing import (
+    attach_evacuation_paths,
+    evacuation_bottlenecks,
+    evacuation_road_distances,
+    nearest_by_road,
+)
 from services.simulation.evacuation import Origin
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -176,14 +181,18 @@ def test_road_paths_route_only_the_requested_pairs():
     cursor, fake_cursor = fake_repo_cursor([
         # 起點 0、1；終點 2、3（序號接在起點後面），終點 3 離路 1500 公尺
         [(0, 10, 0.5, 20.0), (1, 11, 0.0, 30.0), (2, 12, 0.25, 5.0), (3, 13, 0.5, 1500.0)],
-        [(-1, -3, 1000.0, 0.0, "abc", 60.0), (-2, -3, 2000.0, 150.0, "def", 100.0)],
+        [(-1, -3, 1000.0, 0.0, "abc", 60.0, [7, 8], [True, False], [400.0, 600.0]),
+         (-2, -3, 2000.0, 150.0, "def", 100.0, [9], [True], [2000.0])],
     ])
     with patch.object(ShelterRepository, "_cursor", fake_cursor):
         result = ShelterRepository().road_paths(
             [(24.0, 121.0), (24.1, 121.1)], [(24.01, 121.0), (24.5, 121.5)], [(0, 0), (1, 0), (0, 1)],
         )
     # 實際距離含走到路上、離開道路的兩小段；開車時間的這兩小段用步行速度（1 m/s）
-    assert result == {(0, 0): RoadPath(1025.0, 0.0, "abc", 85.0), (1, 0): RoadPath(2035.0, 150.0, "def", 135.0)}
+    assert result == {
+        (0, 0): RoadPath(1025.0, 0.0, "abc", 85.0, ((7, True, 400.0), (8, False, 600.0))),
+        (1, 0): RoadPath(2035.0, 150.0, "def", 135.0, ((9, True, 2000.0),)),
+    }
     assert result[(0, 0)].walk_s == 1025.0
     pids, fractions, _, points_sql, combinations_sql, directed, _ = cursor.execute.call_args.args[1]
     assert directed is False
@@ -265,6 +274,16 @@ def test_road_path_sql_follows_the_route_on_the_real_network(real_repo):
         length, head_gap, tail_gap = cursor.fetchone()
     assert head_gap < 1000 and tail_gap < 1000
     assert abs(length + head_gap + tail_gap - meters) / meters < 0.02
+    # 逐邊的路線（算道路瓶頸用）：照方向走，每一條邊的終點就是下一條的起點；公尺數不超過整條路線
+    edge_ids = [e for e, _, _ in path.edges]
+    with repo._cursor() as cursor:
+        cursor.execute("SELECT id, source, target FROM roads WHERE id = ANY(%s)", (edge_ids,))
+        ends = {i: (s, t) for i, s, t in cursor.fetchall()}
+    walked = [ends[e] if forward else ends[e][::-1] for e, forward, _ in path.edges]
+    assert len(walked) > 3 and all(a[1] == b[0] for a, b in zip(walked, walked[1:]))
+    assert 0 < sum(m for *_, m in path.edges) <= path.meters
+    info = repo.road_edges(edge_ids)
+    assert set(info) == set(ends) and all(v["length_m"] > 0 and v["highway"] for v in info.values())
 
 
 def test_unchanged_network_is_not_reimported():
@@ -369,6 +388,39 @@ def test_evacuation_paths_only_for_flows_with_road_distance():
     ]
     assert repo.road_paths.call_args.args[2] == [(0, 1)]
     assert repo.road_paths.call_args.kwargs == {"origin_snap_m": 5000, "hazard": "debris_flow", "mode": "drive"}
+
+
+def test_evacuation_paths_are_returned_by_name_for_bottlenecks():
+    repo = MagicMock()
+    path = RoadPath(1800.0, 0.0, "abc", 300.0, ((7, True, 1800.0),))
+    repo.road_paths.return_value = {(0, 1): path}
+    origins = [Origin("玉里鎮", 23.33, 121.31, 100)]
+    shelters = [Shelter("甲", 300, 23.34, 121.31), Shelter("乙", 300, 23.35, 121.32)]
+    flows = [{"from": "玉里鎮", "to": "乙", "routed": True, "road_km": None}]
+    assert attach_evacuation_paths(repo, origins, shelters, flows, None, "drive") == {("玉里鎮", "乙"): path}
+    # 逐邊的路線不放進 flows：回應會太大
+    assert "edges" not in flows[0]
+
+
+def test_bottlenecks_only_when_driving():
+    repo = MagicMock()
+    path = RoadPath(5000.0, 0.0, "abc", 300.0, ((7, True, 1000.0), (8, True, 3000.0), (9, True, 1000.0)))
+    repo.road_edges.return_value = {
+        e: {"highway": "primary", "lanes": 0, "oneway": 0, "name": "", "ref": "9", "bridge": False,
+            "length_m": 1000.0, "lat": 23.3, "lon": 121.3} for e in (7, 8, 9)
+    }
+    flows = [{"from": "甲", "to": "乙", "people": 1450}]
+    assert evacuation_bottlenecks(repo, flows, {("甲", "乙"): path}, "walk") is None
+    result = evacuation_bottlenecks(repo, flows, {("甲", "乙"): path}, "drive")
+    assert repo.road_edges.call_args.args[0] == [7, 8, 9]
+    assert [g["label"] for g in result["top"]] == ["台9"] and result["max_hours"] == 0.4
+
+
+def test_bottleneck_failure_leaves_the_simulation_alone():
+    repo = MagicMock()
+    repo.road_edges.side_effect = RuntimeError("db down")
+    path = RoadPath(5000.0, 0.0, "abc", 300.0, ((7, True, 5000.0),))
+    assert evacuation_bottlenecks(repo, [{"from": "甲", "to": "乙", "people": 10}], {("甲", "乙"): path}, "drive") is None
 
 
 def test_evacuation_path_failure_draws_straight_lines():
