@@ -11,6 +11,7 @@ https://download.geofabrik.de/asia/taiwan-latest.osm.pbf 。授權是 ODbL 1.0�
 2. 保留車輛可通行的道路（見 HIGHWAYS），首、中、末任一節點落在三縣內的整條保留。
 3. 在路口（被兩條以上道路共用的節點）與道路端點切開，每一段就是一條邊；
    長度用原始幾何算，存檔的幾何再簡化，檔案才不會太大。
+   每條邊帶著所屬道路的路名、路線編號、是不是橋與車道數（見 road_attrs），給瓶頸清單與道路容量用。
 4. 丟掉很小的孤立片段：使用者的位置若吸附到一段不跟任何路相連的停車場車道，
    就永遠到不了任何避難所。
 
@@ -44,6 +45,10 @@ ONEWAY_YES = {"yes", "true", "1"}
 ONEWAY_REVERSE = {"-1", "reverse"}
 IMPLIED_ONEWAY_HIGHWAYS = {"motorway", "motorway_link"}
 IMPLIED_ONEWAY_JUNCTIONS = {"roundabout", "circular"}
+# 路名與路線編號太長的少數幾筆截斷，資料表欄位才有上限
+NAME_MAX = 60
+REF_MAX = 30
+ATTR_KEYS = ("name", "ref", "bridge", "lanes")
 # 先用外接框擋掉西部，再做精確的縣界判斷（lon_min, lat_min, lon_max, lat_max）
 BBOX = (120.6, 21.8, 122.1, 25.1)
 # 連通片段少於這麼多條邊就丟掉。綠島、蘭嶼本身各有上百條邊，不會被誤刪
@@ -209,6 +214,26 @@ def oneway_of(tags, highway: str) -> int:
     return 0
 
 
+def road_attrs(tags) -> dict:
+    """
+    瓶頸清單與道路容量用的屬性：路名、路線編號（「台9」「縣193」，多條共線時 OSM 用分號隔開）、
+    是不是橋、車道數。車道數只有約 5% 的道路有標（省道約 28%），沒標或寫得看不懂的是 0，
+    由用的人依道路等級給預設值；單行道的車道數是同一個方向的全部車道
+    """
+    lanes = (tags.get("lanes") or "").split(";")[0].strip()
+    try:
+        lanes_n = max(0, round(float(lanes)))
+    except ValueError:
+        lanes_n = 0
+    bridge = (tags.get("bridge") or "no").strip().lower()
+    return {
+        "name": (tags.get("name") or "").strip()[:NAME_MAX],
+        "ref": (tags.get("ref") or "").strip()[:REF_MAX],
+        "bridge": 0 if bridge in ("no", "false", "0") else 1,
+        "lanes": lanes_n,
+    }
+
+
 def split_at_junctions(ways: list[dict]) -> list[dict]:
     """
     每條 way 在路口切開。路口是被兩條以上 way 共用（或同一條 way 經過兩次）的節點，
@@ -230,7 +255,8 @@ def split_at_junctions(ways: list[dict]) -> list[dict]:
                 length = line_length_m(part)
                 if length > 0:
                     edges.append({"source": refs[start], "target": refs[i], "length": length,
-                                  "highway": w["highway"], "coords": part, "oneway": w.get("oneway", 0)})
+                                  "highway": w["highway"], "coords": part, "oneway": w.get("oneway", 0),
+                                  **{k: w[k] for k in ATTR_KEYS if k in w}})
                 start = i
     return edges
 
@@ -313,7 +339,7 @@ def read_osm(path: str):
                 refs.reverse()
                 coords.reverse()
                 oneway = 1
-            self.roads.append({"refs": refs, "coords": coords, "highway": highway, "oneway": oneway})
+            self.roads.append({"refs": refs, "coords": coords, "highway": highway, "oneway": oneway, **road_attrs(tags)})
 
     boundaries = Boundaries()
     boundaries.apply_file(path)
@@ -348,11 +374,18 @@ def build(path: str) -> dict:
     return {
         "type": "road_network",
         "source": {**SOURCE, "built": datetime.date.today().isoformat()},
-        "counts": {"nodes": nodes, "edges": len(edges), "km": round(total_km), "oneway_edges": sum(e["oneway"] for e in edges)},
-        # [source, target, 長度（公尺）, 道路等級, encoded polyline, 單行道（1 = 只能 source → target）]
+        "counts": {
+            "nodes": nodes, "edges": len(edges), "km": round(total_km),
+            "oneway_edges": sum(e["oneway"] for e in edges),
+            "bridge_edges": sum(e.get("bridge", 0) for e in edges),
+            "lanes_edges": sum(1 for e in edges if e.get("lanes")),
+        },
+        # [source, target, 長度（公尺）, 道路等級, encoded polyline, 單行道（1 = 只能 source → target）,
+        #  路名, 路線編號, 橋（1 = 是）, 車道數（0 = 沒標）]
         "edges": [
             [e["source"], e["target"], round(e["length"], 1), e["highway"],
-             encode_polyline(simplify(e["coords"], SIMPLIFY_DEG)), e["oneway"]]
+             encode_polyline(simplify(e["coords"], SIMPLIFY_DEG)), e["oneway"],
+             e.get("name", ""), e.get("ref", ""), e.get("bridge", 0), e.get("lanes", 0)]
             for e in edges
         ],
     }
