@@ -93,6 +93,7 @@ DisasterHub/
 │   │   ├── knowledge.py        # Disaster-preparedness passages: parsing, index, retrieval, answer text, source lines
 │   │   └── shelter_profile.py  # Name/address → township, facilities, aliases
 │   ├── simulation/             # Disaster simulation
+│   │   ├── bottlenecks.py      # Road bottlenecks when driving: traffic per road ÷ capacity
 │   │   ├── capacity_report.py  # Capacity gap report: township capacity, scenario summaries, Markdown
 │   │   ├── evacuation.py       # Evacuation plan: villages → shelters, capacity-bounded
 │   │   ├── min_cost_flow.py    # Min-cost max-flow in Python (fallback and test reference; the API solves it in pgRouting)
@@ -173,6 +174,7 @@ DisasterHub/
     │   ├── test_knowledge.py
     │   └── test_shelter_profile.py
     ├── simulation/
+    │   ├── test_bottlenecks.py
     │   ├── test_capacity_report.py
     │   ├── test_evacuation.py
     │   └── test_population_service.py

@@ -66,7 +66,7 @@ Most of what this project does differently came from measuring something and not
 
 **What measuring caught.** The first version weighted a whole road segment if any part of it touched a zone. Mountain segments run for kilometres, so one route was reported as 12.87 km inside zones against 0.95 km measured. Only the part inside a zone is weighted now. → [Avoiding hazard zones and live alerts](simulation-and-routing.md#avoiding-hazard-zones-and-live-alerts)
 
-**Cost.** Speeds are fixed per road class with no traffic or congestion, and the alert feed has not yet been observed with a real alert.
+**Cost.** Speeds are fixed per road class with no live traffic; congestion is only estimated afterwards for driving, as bottlenecks that do not change the routes, and the alert feed has not yet been observed with a real alert.
 
 ## 7. Tests must not touch what they test
 

@@ -15,7 +15,7 @@
 | POST | `/api/login` | 以管理者帳密登入，成功後發 HttpOnly session cookie；連續失敗 5 次會鎖 5 分鐘 |
 | POST | `/api/logout` | 登出，清除 cookie |
 | GET | `/api/me` | 目前登入狀態，前端載入時用來決定是否顯示登入面板 |
-| POST | `/api/simulate_disaster` | 執行災害空間模擬，回傳受影響避難所、圈內人口 / 疏散需求 / 收容缺口估算、疏散分配（`evacuation`，每一筆附道路路線）與分配後的收容人數（已寫入資料庫）。`mode` 是 `walk`（預設）或 `drive`（需登入，或帶 `X-API-Key`）|
+| POST | `/api/simulate_disaster` | 執行災害空間模擬，回傳受影響避難所、圈內人口 / 疏散需求 / 收容缺口估算、疏散分配（`evacuation`，每一筆附道路路線；開車時另有道路瓶頸 `evacuation.bottlenecks`）與分配後的收容人數（已寫入資料庫）。`mode` 是 `walk`（預設）或 `drive`（需登入，或帶 `X-API-Key`）|
 | POST | `/api/occupancy` | 直接設定各避難所目前收容人數（給外部工具或手動修正用，模擬已不需要呼叫），只重算有變動的向量文件（需登入，或帶 `X-API-Key`）|
 | POST | `/api/reset_simulation` | 清除模擬狀態，並把收容人數還原成來源資料的初始值（需登入，或帶 `X-API-Key`）|
 | POST | `/api/nearest_shelter` | 查詢最近避難所，依通行時間排序（`mode`：`walk` 或 `drive`）。每筆附 `road_distance_km`（算不出路線時是 `null`）、直線距離 `distance_km`、`walk_min`、`drive_min`、`hazard_m`（仍經過警戒範圍的公尺數）與 `unreachable`（被紅色警戒封路擋住）|

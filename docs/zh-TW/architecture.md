@@ -93,6 +93,7 @@ DisasterHub/
 │   │   ├── knowledge.py        # 防災知識文件：解析、索引、檢索、回答組字、出處
 │   │   └── shelter_profile.py  # 名稱/地址 → 鄉鎮、設施、別名
 │   ├── simulation/             # 災害模擬
+│   │   ├── bottlenecks.py      # 開車時的道路瓶頸：每段路的車流 ÷ 容量
 │   │   ├── capacity_report.py  # 容量缺口報告：鄉鎮自有容量、情境摘要、輸出 Markdown
 │   │   ├── evacuation.py       # 疏散分配：村里 → 避難所，不超過容量
 │   │   ├── min_cost_flow.py    # 純 Python 的最小成本流（備援與測試對照；API 在 pgRouting 裡解）
@@ -173,6 +174,7 @@ DisasterHub/
     │   ├── test_knowledge.py
     │   └── test_shelter_profile.py
     ├── simulation/
+    │   ├── test_bottlenecks.py
     │   ├── test_capacity_report.py
     │   ├── test_evacuation.py
     │   └── test_population_service.py
