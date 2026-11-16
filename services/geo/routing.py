@@ -20,6 +20,7 @@ import logging
 
 from models.travel import DEFAULT_MODE, minutes
 from repositories.shelter_repository import ORIGIN_SNAP_M
+from services.simulation.bottlenecks import find_bottlenecks
 from services.simulation.min_cost_flow import min_cost_flow
 from services.web.metrics import metrics
 
@@ -30,7 +31,7 @@ CANDIDATES = 10
 metrics.register(
     "routing.road", "routing.fallback", "routing.failed", "routing.unreachable",
     "routing.evacuation_road", "routing.evacuation_fallback", "routing.evacuation_failed", "routing.path_failed",
-    "routing.assignment_db", "routing.assignment_fallback",
+    "routing.assignment_db", "routing.assignment_fallback", "routing.bottleneck_failed",
 )
 
 
@@ -138,11 +139,12 @@ def solve_assignment(repo, supply: list[int], capacity: list[int], cost: dict) -
 
 def attach_evacuation_paths(
     repo, origins: list, shelters: list, flows: list[dict], hazard: str | None = None, mode: str = DEFAULT_MODE,
-) -> None:
+) -> dict:
     """
     每一筆依路線分配的流量附上實際路線：flow["path"]（encoded polyline，前端沿著路畫人群移動）、
     road_km 實際公里數、walk_min / drive_min 步行與開車分鐘數、hazard_m 仍經過災害範圍的長度。
-    只算真的有人走的組合，不是全部鄉鎮 × 避難所。沒有路線或查詢失敗的 path 是 None，前端畫直線
+    只算真的有人走的組合，不是全部鄉鎮 × 避難所。沒有路線或查詢失敗的 path 是 None，前端畫直線。
+    回傳 {(起點名稱, 避難所名稱): RoadPath}，算道路瓶頸用（逐邊的路線不放進 flows，回應才不會太大）
     """
     origin_idx = {o.name: i for i, o in enumerate(origins)}
     shelter_idx = {s.name: j for j, s in enumerate(shelters)}
@@ -164,3 +166,20 @@ def attach_evacuation_paths(
         f["road_km"] = round(path.meters / 1000, 2) if path else None
         f["walk_min"] = minutes(path.walk_s) if path else None
         f["drive_min"] = minutes(path.drive_s) if path else None
+    return {(o.name, s.name): paths[(i, j)] for i, o in enumerate(origins) for j, s in enumerate(shelters) if (i, j) in paths}
+
+
+def evacuation_bottlenecks(repo, flows: list[dict], paths: dict, mode: str = DEFAULT_MODE) -> dict | None:
+    """
+    開車疏散的道路瓶頸（services/simulation/bottlenecks.py）。步行回 None：步道容量遠大於村里人數。
+    查不到道路屬性就回 None，模擬本身不能因此失敗
+    """
+    if mode != "drive":
+        return None
+    try:
+        edge_ids = {edge_id for path in paths.values() for edge_id, _, _ in path.edges}
+        return find_bottlenecks(flows, paths, repo.road_edges(sorted(edge_ids)))
+    except Exception:
+        metrics.incr("routing.bottleneck_failed")
+        logger.exception("道路瓶頸計算失敗，本次模擬不附瓶頸")
+        return None
