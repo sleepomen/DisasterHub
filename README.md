@@ -28,7 +28,7 @@ Built in response to the 2025 barrier-lake disaster in Guangfu Township, Hualien
 
 | | |
 |---|---|
-| Shelters / debris-flow zones / road edges | 644 / 531 / 118,584 |
+| Shelters / debris-flow zones / road edges | 644 / 531 / 118,399 |
 | Answered by code, no LLM | 201 of 207 eval questions, p50 0.2 s |
 | Boundary and refusal questions | 53 / 53 |
 | Routing decisions | 59 / 59 |
@@ -166,7 +166,7 @@ The code is released under the [MIT License](LICENSE). The data keeps its own li
 
 | | |
 |---|---|
-| 避難所 / 土石流潛勢區 / 路網路段 | 644 / 531 / 118,584 |
+| 避難所 / 土石流潛勢區 / 路網路段 | 644 / 531 / 118,399 |
 | 由程式回答、不經 LLM | 評測 207 題中 201 題，p50 0.2 秒 |
 | 邊界與拒答題 | 53 / 53 |
 | 路由判斷 | 59 / 59 |
