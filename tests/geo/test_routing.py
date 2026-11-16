@@ -20,6 +20,7 @@ from build_road_network import (  # noqa: E402
     drop_small_components,
     encode_polyline,
     in_any,
+    road_attrs,
     split_at_junctions,
     stitch_rings,
 )
@@ -81,6 +82,26 @@ def test_ways_are_split_at_shared_nodes_only():
     assert all(e["length"] > 100 for e in edges)
 
 
+def test_road_attributes_for_bottlenecks():
+    """路名、路線編號、橋與車道數；車道數寫得看不懂就當作沒標（0），由用的人依道路等級給預設值"""
+    attrs = road_attrs({"name": "富里大橋", "ref": "23", "bridge": "yes", "lanes": "2"})
+    assert attrs == {"name": "富里大橋", "ref": "23", "bridge": 1, "lanes": 2}
+    assert road_attrs({"bridge": "viaduct", "lanes": "2;3"})["bridge"] == 1
+    assert road_attrs({"lanes": "2;3"})["lanes"] == 2
+    assert road_attrs({"bridge": "no", "lanes": "many"}) == {"name": "", "ref": "", "bridge": 0, "lanes": 0}
+    assert len(road_attrs({"ref": "Freeway 5 Luodong North Entrance Ramp"})["ref"]) == 30
+
+
+def test_way_attributes_carry_over_to_every_edge():
+    ways = [{"refs": [1, 2, 3], "coords": [(121.0, 24.0), (121.001, 24.0), (121.002, 24.0)],
+             "highway": "primary", "oneway": 0, "name": "玉興橋", "ref": "9", "bridge": 1, "lanes": 2},
+            {"refs": [2, 9], "coords": [(121.001, 24.0), (121.001, 24.001)], "highway": "residential", "oneway": 0}]
+    edges = split_at_junctions(ways)
+    main = [e for e in edges if e["highway"] == "primary"]
+    assert len(main) == 2 and all(e["ref"] == "9" and e["bridge"] == 1 and e["lanes"] == 2 for e in main)
+    assert "ref" not in next(e for e in edges if e["highway"] == "residential")
+
+
 def test_small_isolated_fragments_are_dropped():
     main = [{"source": i, "target": i + 1} for i in range(30)]
     island = [{"source": 100, "target": 101}]
@@ -92,11 +113,15 @@ def test_bundled_network_covers_the_three_counties():
     network = json.loads(gzip.decompress(NETWORK.read_bytes()))
     assert network["source"]["license"].startswith("ODbL")
     assert network["counts"]["edges"] == len(network["edges"]) > 100000
-    source, target, length, highway, polyline, oneway = network["edges"][0]
-    assert oneway in (0, 1)
+    source, target, length, highway, polyline, oneway, name, ref, bridge, lanes = network["edges"][0]
+    assert oneway in (0, 1) and bridge in (0, 1) and isinstance(name, str) and isinstance(ref, str) and lanes >= 0
     # 單行道（多半是分隔島兩側各畫一條的省道）
     assert network["counts"]["oneway_edges"] == sum(e[5] for e in network["edges"]) > 1000
+    assert network["counts"]["bridge_edges"] == sum(e[8] for e in network["edges"]) > 1000
     assert isinstance(source, int) and length > 0 and highway and polyline
+    # 省道幾乎都有路線編號，瓶頸清單才寫得出「台9」
+    primary = [e for e in network["edges"] if e[3] == "primary"]
+    assert sum(1 for e in primary if e[7]) / len(primary) > 0.95
 
 
 # ── 資料庫 ─────────────────────────────────────────
@@ -190,7 +215,7 @@ def test_driving_respects_one_way_streets():
     assert cursor.execute.call_args.args[1][4] is True
 
 
-def test_old_network_files_without_the_oneway_column_still_import():
+def test_old_network_files_without_the_newer_columns_still_import():
     cursor = MagicMock()
     cursor.fetchone.return_value = None
 
@@ -199,9 +224,15 @@ def test_old_network_files_without_the_oneway_column_still_import():
         yield cursor
 
     with patch.object(ShelterRepository, "_cursor", fake_cursor), patch("psycopg2.extras.execute_values") as values:
-        ShelterRepository().replace_road_network([[1, 2, 10.0, "primary", "??"], [2, 3, 5.0, "primary", "??", 1]], "x")
+        ShelterRepository().replace_road_network([
+            [1, 2, 10.0, "primary", "??"],
+            [2, 3, 5.0, "primary", "??", 1],
+            [3, 4, 5.0, "primary", "??", 0, "玉興橋", "9", 1, 2],
+        ], "x")
     rows = values.call_args.args[2]
-    assert [row[6] for row in rows] == [0, 1]
+    # (id, source, target, cost, reverse_cost, highway, oneway, name, ref, bridge, lanes, polyline)
+    assert [row[6:11] for row in rows] == [(0, "", "", False, 0), (1, "", "", False, 0), (0, "玉興橋", "9", True, 2)]
+    assert all(row[11] == "??" for row in rows)
 
 
 def test_road_paths_skip_the_database_without_pairs():
