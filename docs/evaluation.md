@@ -620,7 +620,7 @@ docker exec disaster_app python evals/run_coordinate_check.py
 docker exec disaster_app python evals/run_assignment_eval.py
 ```
 
-**1. The database and Python solvers agree.** `pgr_maxFlowMinCost` and the pure-Python `min_cost_flow` give the same number placed and the same total time in 159 of 159 scenarios, on foot and by car. The largest scenarios (about 145 villages × 130 shelters) take about 0.2 s in the database and 1.2–1.5 s in Python; the slowest database solve stays under 0.35 s on every run.
+**1. The database and Python solvers agree.** `pgr_maxFlowMinCost` and the pure-Python `min_cost_flow` give the same number placed and the same total time in 159 of 159 scenarios, on foot and by car. The largest scenarios (about 145 villages × 130 shelters) take about 0.2 s in the database and 1.2–1.6 s in Python; the slowest database solve stays under 0.4 s on every run.
 
 **2. Coordinated assignment against everyone heading for the nearest shelter.** The comparison is the nearest-first rule the plan used until 2026-11-02: every village–shelter pair sorted by travel time and filled in that order, so each group goes to the closest shelter that still has room. It stands in for what happens without coordination, and the gap is what coordinating is worth.
 
@@ -639,8 +639,8 @@ docker exec disaster_app python evals/run_assignment_eval.py
 
 | | Township centroids | Villages |
 |---|---|---|
-| Minutes per person (mean over scenarios) | 67.1 | 33.5 |
-| Longest single trip (mean) | 170.9 min | 135.4 min |
+| Minutes per person (mean over scenarios) | 67.1 | 33.4 |
+| Longest single trip (mean) | 170.9 min | 135.3 min |
 
 - **A centroid makes trips about twice as long on average.** In a spread-out township the population-weighted centre falls between settlements, often in fields or on a slope, and everyone walks from there: 東河鄉 10 km flood 289 → 132 min per person, 卓溪鄉 10 km flood 115 → 22.
 - **In 6 scenarios villages are slower.** Five are in the mountain townships 大同鄉 and 金峰鄉, where the centroid happened to lie near the shelters while the villages are far up the valleys (大同鄉 10 km earthquake 65 → 145 min); the sixth is 鳳林鎮 10 km earthquake (38 → 43). That is the model becoming more realistic, not worse.
@@ -651,14 +651,14 @@ docker exec disaster_app python evals/run_assignment_eval.py
 | | Capacity fits demand (62) | Demand exceeds capacity (97) |
 |---|---|---|
 | Scenarios where the number placed differs | 0 | 0 |
-| Scenarios where coordination is strictly better | 42 | 74 |
-| Extra total time without coordination | mean 2.8%, max 11.1% | mean 2.8%, max 15.3% |
-| Minutes per person, nearest-first → coordinated | 5.8 → 5.6 | 4.4 → 4.2 |
-| Longest single trip (mean), nearest-first → coordinated | 25.9 → 23.5 min | 15.4 → 13.5 min |
+| Scenarios where coordination is strictly better | 41 | 74 |
+| Extra total time without coordination | mean 2.8%, max 11.1% | mean 2.8%, max 15.2% |
+| Minutes per person, nearest-first → coordinated | 5.7 → 5.6 | 4.3 → 4.2 |
+| Longest single trip (mean), nearest-first → coordinated | 25.7 → 23.3 min | 15.2 → 13.3 min |
 
 - **The database and Python still agree** in 159 of 159 scenarios.
-- **Largest gaps:** 鹿野鄉 10 km flood (205 against 173 person-hours, 15.3%), 太麻里鄉 5 km earthquake (15.0%), 金峰鄉 10 km earthquake (14.8%).
-- **Township centroids overstate driving even more:** 12.2 against 4.8 minutes per person (2.5×), with villages slower in only 2 scenarios. The leg from an origin to the nearest road is charged at walking speed even when driving, but it explains little of the gap: township centres are a median 50 m from a road (6 of 41 over 200 m) against 19 m for village origins (`summary.origin_to_road` in both result files). Most of the gap is that one centre stands in for settlements spread kilometres apart.
+- **Largest gaps:** 鹿野鄉 10 km flood (206 against 175 person-hours, 15.2%), 太麻里鄉 5 km earthquake (14.6%), 金峰鄉 10 km earthquake (14.5%).
+- **Township centroids overstate driving even more:** 12.2 against 4.7 minutes per person (2.6×), with villages slower in only 1 scenario. The leg from an origin to the nearest road is charged at walking speed even when driving, but it explains little of the gap: township centres are a median 50 m from a road (6 of 41 over 200 m) against 19 m for village origins (`summary.origin_to_road` in both result files). Most of the gap is that one centre stands in for settlements spread kilometres apart.
 
 **Tests.** The Python solver is checked against brute force on 200 small random cases; the database call is checked for its edge layout, integer costs and the mapping back to pairs, and for falling back to Python when it fails (`tests/simulation/test_min_cost_flow.py`).
 
@@ -675,7 +675,7 @@ docker exec disaster_app python evals/run_sensitivity_eval.py
 | None | 46.0% | — | — | 3.1% (helps in 114 scenarios) |
 | Evacuees × 0.8 | 36.4% | 0.97 | +4.3% | 3.2% |
 | Evacuees × 1.2 | 53.6% | 0.98 | −3.0% | 2.6% |
-| Capacity 75% | 58.0% | 0.97 | −4.9% | 2.3% |
+| Capacity 75% | 58.0% | 0.97 | −4.8% | 2.3% |
 | Capacity 50% | 71.3% | 0.94 | −11.9% | 2.0% (up to 22.5%) |
 | Origins moved 0.5–1 km, two random seeds | 46.0% | 0.96 | +26% to +35% | 3.0% |
 
