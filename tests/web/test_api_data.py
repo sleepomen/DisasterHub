@@ -688,6 +688,33 @@ def test_simulate_assigns_by_road_distance(client):
     assert all(f["road_km"] == 3.0 for f in plan["flows"])
     # 每一筆分配都附上它那條道路路線，前端沿著畫
     assert all(f["path"].startswith("route") for f in plan["flows"])
+    # 步行不算道路瓶頸
+    assert plan["bottlenecks"] is None
+
+
+def test_driving_simulation_reports_road_bottlenecks(client):
+    """開車時所有路線都經過同一座橋：瓶頸要附在回應裡，逐邊的路線不放進 flows"""
+    impacted = [Shelter(name="[HUALIEN] 丙", capacity=50000, lat=24.00, lon=121.60, current_people=0)]
+    edges = ((1, True, 500.0), (42, True, 2000.0), (2, True, 500.0))
+    paths = {(i, 0): RoadPath(3000.0, 0.0, f"route{i}", 300.0, edges) for i in range(400)}
+    bridge = {"highway": "primary", "lanes": 0, "oneway": 0, "name": "花蓮大橋", "ref": "11", "bridge": True,
+              "length_m": 2000.0, "lat": 23.95, "lon": 121.6}
+    local = {**bridge, "highway": "residential", "name": "", "ref": "", "bridge": False}
+    with (
+        patch("repositories.shelter_repository.ShelterRepository.get_shelters_in_radius", return_value=impacted),
+        patch("repositories.shelter_repository.ShelterRepository.road_distances", return_value={(i, 0): 3000.0 for i in range(400)}),
+        patch("repositories.shelter_repository.ShelterRepository.road_paths", return_value=paths),
+        patch("repositories.shelter_repository.ShelterRepository.road_edges", return_value={1: local, 42: bridge, 2: local}),
+    ):
+        res = client.post("/api/simulate_disaster", headers=WRITE_HEADERS,
+                          json={"lat": 23.977, "lon": 121.601, "radius": 10, "type": "earthquake", "mode": "drive"})
+    plan = res.json()["evacuation"]
+    bottlenecks = plan["bottlenecks"]
+    [top] = bottlenecks["top"]
+    assert (top["label"], top["bridges"], top["capacity_vph"]) == ("台11 花蓮大橋", ["花蓮大橋"], 1450)
+    assert top["people"] == plan["placed"] and bottlenecks["max_hours"] == top["hours"] > 0
+    assert bottlenecks["local_people"] == bottlenecks["uncounted_people"] == 0
+    assert all("edges" not in f for f in plan["flows"])
 
 
 def test_simulate_drops_the_snapshot_when_the_write_fails(client):

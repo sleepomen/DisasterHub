@@ -280,7 +280,7 @@ def test_road_path_sql_follows_the_route_on_the_real_network(real_repo):
         cursor.execute("SELECT id, source, target FROM roads WHERE id = ANY(%s)", (edge_ids,))
         ends = {i: (s, t) for i, s, t in cursor.fetchall()}
     walked = [ends[e] if forward else ends[e][::-1] for e, forward, _ in path.edges]
-    assert len(walked) > 3 and all(a[1] == b[0] for a, b in zip(walked, walked[1:]))
+    assert len(walked) > 3 and all(a[1] == b[0] for a, b in zip(walked, walked[1:], strict=False))
     assert 0 < sum(m for *_, m in path.edges) <= path.meters
     info = repo.road_edges(edge_ids)
     assert set(info) == set(ends) and all(v["length_m"] > 0 and v["highway"] for v in info.values())
