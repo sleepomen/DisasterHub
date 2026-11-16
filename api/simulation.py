@@ -10,7 +10,12 @@ from fastapi import APIRouter, Header, HTTPException, Request
 
 from api import deps
 from api.models import OccupancyRequest, SimulateRequest
-from services.geo.routing import attach_evacuation_paths, evacuation_road_distances, solve_assignment
+from services.geo.routing import (
+    attach_evacuation_paths,
+    evacuation_bottlenecks,
+    evacuation_road_distances,
+    solve_assignment,
+)
 from services.ingest.sync import DataSyncService
 from services.simulation.evacuation import DESIGNATED_HAZARD, origins_from, plan_evacuation
 from services.simulation.scenario import destinations_for
@@ -48,7 +53,11 @@ async def simulate(request: SimulateRequest, http_request: Request, x_api_key: s
         plan_evacuation, origins, destinations, road_m, request.mode, functools.partial(solve_assignment, repo),
     )
     # 實際路線用來畫圖、回報實際距離；分配已經決定好了，查不到就畫直線，不影響人數
-    await asyncio.to_thread(attach_evacuation_paths, repo, origins, destinations, plan["flows"], hazard, request.mode)
+    paths = await asyncio.to_thread(
+        attach_evacuation_paths, repo, origins, destinations, plan["flows"], hazard, request.mode,
+    )
+    # 開車時哪幾段路最可能塞住、要多久才能讓所有車通過（全部同時出發的下限）；步行是 None
+    plan["bottlenecks"] = await asyncio.to_thread(evacuation_bottlenecks, repo, plan["flows"], paths, request.mode)
     plan["route_hazard"] = hazard
     plan["alerts"] = await asyncio.to_thread(deps.alert_summary)
     plan["excluded"] = excluded
