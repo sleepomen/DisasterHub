@@ -55,6 +55,11 @@ CREATE TABLE IF NOT EXISTS roads (
     highway VARCHAR(20),
     -- 1 = 單行道，開車只能 source → target；步行不管
     oneway SMALLINT NOT NULL DEFAULT 0,
+    -- 路名、路線編號（台9、縣193）、是不是橋、車道數（0 = OSM 沒標）：瓶頸清單與道路容量用
+    name VARCHAR(60) NOT NULL DEFAULT '',
+    ref VARCHAR(30) NOT NULL DEFAULT '',
+    bridge BOOLEAN NOT NULL DEFAULT false,
+    lanes SMALLINT NOT NULL DEFAULT 0,
     geom GEOMETRY(LineString, 4326)
 );
 CREATE INDEX IF NOT EXISTS idx_roads_geom ON roads USING GIST (geom);
