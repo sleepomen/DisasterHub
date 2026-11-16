@@ -828,7 +828,7 @@ class ShelterRepository:
         return {
             (abs(s) - 1, abs(e) - 1): (
                 float(meters), float(hazard_m), polyline, float(drive_s),
-                tuple(zip(edge_ids or (), forward or (), (float(m) for m in edge_m or ()))),
+                tuple(zip(edge_ids or (), forward or (), [float(m) for m in edge_m or ()], strict=True)),
             )
             for s, e, meters, hazard_m, polyline, drive_s, edge_ids, forward, edge_m in cursor.fetchall()
         }
