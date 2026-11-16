@@ -98,6 +98,11 @@ ROAD_SCHEMA_SQL = (
     )
     """,
     "ALTER TABLE roads ADD COLUMN IF NOT EXISTS oneway SMALLINT NOT NULL DEFAULT 0",
+    # 路名、路線編號（台9、縣193）、是不是橋、車道數（0 = OSM 沒標）：瓶頸清單與道路容量用
+    "ALTER TABLE roads ADD COLUMN IF NOT EXISTS name VARCHAR(60) NOT NULL DEFAULT ''",
+    "ALTER TABLE roads ADD COLUMN IF NOT EXISTS ref VARCHAR(30) NOT NULL DEFAULT ''",
+    "ALTER TABLE roads ADD COLUMN IF NOT EXISTS bridge BOOLEAN NOT NULL DEFAULT false",
+    "ALTER TABLE roads ADD COLUMN IF NOT EXISTS lanes SMALLINT NOT NULL DEFAULT 0",
     "CREATE INDEX IF NOT EXISTS idx_roads_geom ON roads USING GIST (geom)",
     # 大檔案每次啟動都重灌太慢：記下匯入的是哪一版，內容沒變就跳過
     """
@@ -178,16 +183,28 @@ CAUTION_FACTOR = 5.0
 class RoadPath(NamedTuple):
     """
     一條實際路線：距離（公尺）、其中仍經過災害範圍的長度、路上那段的 encoded polyline、
-    開車沿這條路要幾秒（走到路上、離開道路的兩小段用步行速度）。步行時間就是 meters / WALK_MPS
+    開車沿這條路要幾秒（走到路上、離開道路的兩小段用步行速度）。步行時間就是 meters / WALK_MPS。
+    edges 是路上那段依序走過的邊：(邊編號, 是否順著 source → target, 走了幾公尺)，算道路瓶頸用
     """
     meters: float
     hazard_m: float
     polyline: str
     drive_s: float = 0.0
+    edges: tuple = ()
 
     @property
     def walk_s(self) -> float:
         return self.meters / WALK_MPS
+
+
+# 路網檔每條邊 polyline 後面的欄位與預設值：單行道、路名、路線編號、橋、車道數。舊版的檔案後面幾欄可能沒有
+EDGE_EXTRA_DEFAULTS = (0, "", "", 0, 0)
+
+
+def edge_extras(rest: list) -> tuple:
+    oneway, name, ref, bridge, lanes = (*rest, *EDGE_EXTRA_DEFAULTS[len(rest):])[:len(EDGE_EXTRA_DEFAULTS)]
+    return oneway, name, ref, bool(bridge), lanes
+
 
 SELECT_COLUMNS = (
     "name, capacity, current_ppl, ST_Y(geom::geometry), ST_X(geom::geometry), COALESCE(address, ''), "
@@ -496,7 +513,8 @@ class ShelterRepository:
     def replace_road_network(self, edges: list[list], checksum: str) -> int | None:
         """
         整批換掉路網，回傳寫入的邊數；內容跟上次匯入的一樣（checksum 相同）就跳過、回 None。
-        邊的格式見 tools/build_road_network.py：[source, target, 長度公尺, 道路等級, encoded polyline]。
+        邊的格式見 tools/build_road_network.py：[source, target, 長度公尺, 道路等級, encoded polyline,
+        單行道, 路名, 路線編號, 橋, 車道數]。舊版的路網檔後面幾欄可能沒有，缺的用預設值（雙向、沒有名字、不是橋、車道數不明）。
         在同一個交易裡清空再寫入，寫到一半失敗會整批回滾
         """
         from psycopg2.extras import execute_values
@@ -510,11 +528,11 @@ class ShelterRepository:
                 cursor.execute("TRUNCATE roads")
                 execute_values(
                     cursor,
-                    "INSERT INTO roads (id, source, target, cost, reverse_cost, highway, oneway, geom) VALUES %s",
-                    # 第 6 欄是單行道；舊版的路網檔沒有這一欄，當成雙向
-                    [(i, s, t, length, length, highway, rest[0] if rest else 0, polyline)
+                    "INSERT INTO roads (id, source, target, cost, reverse_cost, highway, oneway, name, ref, bridge, lanes, geom) "
+                    "VALUES %s",
+                    [(i, s, t, length, length, highway, *edge_extras(rest), polyline)
                      for i, (s, t, length, highway, polyline, *rest) in enumerate(edges, 1)],
-                    template="(%s, %s, %s, %s, %s, %s, %s, ST_LineFromEncodedPolyline(%s, 5))",
+                    template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, ST_LineFromEncodedPolyline(%s, 5))",
                     page_size=2000,
                 )
                 cursor.execute(
@@ -743,7 +761,7 @@ class ShelterRepository:
                 wanted = [(i, n + j) for i, j in pairs if i in starts and n + j in ends]
                 # 起訖吸附到道路上同一個位置時 pgRouting 不回傳路線：路上那段是 0，只剩走到路上、離開道路的兩小段。
                 # 小地名用村里避難所的位置當座標時，最近的那間就是起點本身（2026-11-02 實測「新社」）
-                same_spot = {pair: (0.0, 0.0, "", 0.0) for pair in wanted if snaps[pair[0]][:2] == snaps[pair[1]][:2]}
+                same_spot = {pair: (0.0, 0.0, "", 0.0, ()) for pair in wanted if snaps[pair[0]][:2] == snaps[pair[1]][:2]}
                 wanted = [pair for pair in wanted if pair not in same_spot]
                 found = dict(same_spot)
                 if wanted:
@@ -754,10 +772,37 @@ class ShelterRepository:
         except Exception as e:
             raise RuntimeError(f"road_paths 失敗：{e}") from e
         result = {}
-        for (i, k), (meters, hazard_m, polyline, drive_s) in found.items():
+        for (i, k), (meters, hazard_m, polyline, drive_s, edges) in found.items():
             off_road = snaps[i][2] + snaps[k][2]
-            result[(i, k - n)] = RoadPath(meters + off_road, hazard_m, polyline, drive_s + off_road / WALK_MPS)
+            result[(i, k - n)] = RoadPath(meters + off_road, hazard_m, polyline, drive_s + off_road / WALK_MPS, edges)
         return result
+
+    def road_edges(self, edge_ids: list[int]) -> dict[int, dict]:
+        """
+        道路瓶頸要的邊屬性：{邊編號: {highway, lanes, oneway, name, ref, bridge, length_m, lat, lon}}。
+        lat / lon 是這條邊的中點，地圖上標瓶頸的位置
+        """
+        if not edge_ids:
+            return {}
+        try:
+            with self._cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT id, highway, lanes, oneway, name, ref, bridge, cost,
+                           ST_Y(ST_LineInterpolatePoint(geom, 0.5)), ST_X(ST_LineInterpolatePoint(geom, 0.5))
+                    FROM roads WHERE id = ANY(%s)
+                    """,
+                    (sorted(set(edge_ids)),),
+                )
+                return {
+                    row[0]: {
+                        "highway": row[1], "lanes": row[2], "oneway": row[3], "name": row[4], "ref": row[5],
+                        "bridge": row[6], "length_m": float(row[7]), "lat": float(row[8]), "lon": float(row[9]),
+                    }
+                    for row in cursor.fetchall()
+                }
+        except Exception as e:
+            raise RuntimeError(f"road_edges 失敗：{e}") from e
 
     def _route_costs(self, cursor, points, snaps, starts, ends, hazard, mode, bounded: bool) -> dict:
         edges_sql, points_sql = self._routing_sql(points, snaps, starts + ends, starts, hazard, mode, bounded)
@@ -781,15 +826,19 @@ class ShelterRepository:
             edges_sql, points_sql, combinations_sql, mode == "drive", PATH_SIMPLIFY_DEG,
         ))
         return {
-            (abs(s) - 1, abs(e) - 1): (float(meters), float(hazard_m), polyline, float(drive_s))
-            for s, e, meters, hazard_m, polyline, drive_s in cursor.fetchall()
+            (abs(s) - 1, abs(e) - 1): (
+                float(meters), float(hazard_m), polyline, float(drive_s),
+                tuple(zip(edge_ids or (), forward or (), (float(m) for m in edge_m or ()))),
+            )
+            for s, e, meters, hazard_m, polyline, drive_s, edge_ids, forward, edge_m in cursor.fetchall()
         }
 
     # 把 pgr_withPoints 走過的邊接成一條線。吸附點在路徑上是負的節點編號，所在的那條邊只走一部分：
     # 每一步依「從哪個節點、到哪個節點」換算成邊上的位置（端點 0 或 1、吸附點用它的 fraction），
     # 用 ST_LineSubstring 切出那一段；逆著邊的方向走就反轉，整條線才是從起點連到終點。
     # 實際距離用 roads.cost（原始長度）乘上走過的比例；受限的邊再乘上落在範圍內的比例，加總成 hazard_m；
-    # 開車秒數依道路等級的速度另外加總（步行秒數就是距離除以步行速度，不必在 SQL 算）
+    # 開車秒數依道路等級的速度另外加總（步行秒數就是距離除以步行速度，不必在 SQL 算）。
+    # 最後三欄是依序走過的邊、是否順著 source → target（f0 < f1）、每條邊走了幾公尺，算道路瓶頸用
     PATH_SQL = """
         WITH pts AS (
             SELECT * FROM unnest(%s::bigint[], %s::float8[]) AS p(pid, fraction)
@@ -798,7 +847,7 @@ class ShelterRepository:
                    LEAD(node) OVER (PARTITION BY start_pid, end_pid ORDER BY path_seq) AS next_node
             FROM pgr_withPoints(%s, %s, %s, directed := %s)
         ), w AS ({weights}), seg AS (
-            SELECT path.start_pid, path.end_pid, path.path_seq, r.geom, r.cost AS length,
+            SELECT path.start_pid, path.end_pid, path.path_seq, path.edge, r.geom, r.cost AS length,
                    {drive_mps} AS drive_mps,
                    COALESCE(w.ratio, 0) AS hazard_ratio,
                    CASE WHEN path.node < 0 THEN (SELECT fraction FROM pts WHERE pid = -path.node)
@@ -817,7 +866,10 @@ class ShelterRepository:
                         ELSE ST_Reverse(ST_LineSubstring(geom, f1, f0)) END
                    ORDER BY path_seq
                ), %s), 5),
-               SUM(length * abs(f1 - f0) / drive_mps)
+               SUM(length * abs(f1 - f0) / drive_mps),
+               array_agg(edge ORDER BY path_seq),
+               array_agg(f0 < f1 ORDER BY path_seq),
+               array_agg(length * abs(f1 - f0) ORDER BY path_seq)
         FROM seg WHERE f0 <> f1
         GROUP BY start_pid, end_pid
     """
