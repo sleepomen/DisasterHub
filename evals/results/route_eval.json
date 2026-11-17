@@ -1,7 +1,7 @@
 {
   "summary": {
-    "count": 71,
-    "correct": 71,
+    "count": 73,
+    "correct": 73,
     "accuracy": 1.0,
     "per_route": {
       "alerts": {
@@ -70,8 +70,8 @@
         "accuracy": 1.0
       },
       "simulation": {
-        "count": 10,
-        "correct": 10,
+        "count": 12,
+        "correct": 12,
         "accuracy": 1.0
       },
       "unknown_name": {
@@ -126,7 +126,7 @@
         "rag": 14
       },
       "simulation": {
-        "simulation": 10
+        "simulation": 12
       },
       "unknown_name": {
         "unknown_name": 2
@@ -722,6 +722,22 @@
       "actual": "knowledge",
       "answered_without_llm": true,
       "note": "「有沒有」在警戒後面，問的是該怎麼做，不是現況"
+    },
+    {
+      "query": "開車疏散哪幾段路會塞？",
+      "simulation": true,
+      "expected": "simulation",
+      "actual": "simulation",
+      "answered_without_llm": true,
+      "note": "模擬進行中問道路瓶頸：由程式依同一份分配回答"
+    },
+    {
+      "query": "要多久才能清空",
+      "simulation": true,
+      "expected": "simulation",
+      "actual": "simulation",
+      "answered_without_llm": true,
+      "note": "模擬進行中問清空時間，沒有提到模擬也要走模擬"
     }
   ]
 }
