@@ -64,15 +64,24 @@ def capacity_vph(highway: str, lanes: int, oneway: int) -> int:
     return MINOR_ROAD_VPH if highway in MINOR_HIGHWAYS else TWO_LANE_VPH
 
 
+def route_number(ref: str, highway: str) -> str:
+    """
+    OSM 的國道、省道、縣道編號只寫數字（5、9丙、192甲），鄉道則已經帶縣名（花71、宜5）。
+    省道編號都在 100 以下、縣道在 100 以上，用編號分，不用道路等級：
+    東部路網有省道標成 tertiary、縣道標成 primary 或 unclassified 的
+    """
+    digits = len(ref) - len(ref.lstrip("0123456789"))
+    if not digits:
+        return ref
+    if highway.startswith("motorway"):
+        return f"國道{ref}"
+    return f"{'台' if int(ref[:digits]) < 100 else '縣'}{ref}"
+
+
 def road_label(info: dict) -> str:
     """「台9 玉興橋」「花71」「國道5 蔣渭水高速公路」；沒有編號也沒有名字的寫道路等級"""
     highway = info.get("highway") or ""
-    refs = [r.strip() for r in (info.get("ref") or "").split(";") if r.strip()]
-    if highway.startswith("motorway"):
-        refs = [f"國道{r}" if r[:1].isdigit() else r for r in refs]
-    elif highway.startswith(("primary", "trunk")):
-        # OSM 的省道編號只寫數字（9、9丙），縣鄉道則已經帶縣名（花71、宜26）
-        refs = [f"台{r}" if r[:1].isdigit() else r for r in refs]
+    refs = [route_number(r.strip(), highway) for r in (info.get("ref") or "").split(";") if r.strip()]
     name = info.get("name") or ""
     parts = ["/".join(refs)] if refs else []
     if name and name not in parts:
