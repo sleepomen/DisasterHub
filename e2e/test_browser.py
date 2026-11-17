@@ -164,12 +164,18 @@ def test_simulation_round_trip(page):
         page.evaluate("() => { const s = document.getElementById('sim-radius'); s.value = 8;"
                       " s.dispatchEvent(new Event('input', {bubbles: true})); }")
         assert page.locator("#radius-val").inner_text() == "8 km"
+        # 開車：路線之外還有道路瓶頸
+        page.click("#mode-trigger")
+        page.click("#mode-dropdown [data-value='drive']")
 
         page.click("#btn-simulate")
         page.wait_for_function("document.getElementById('btn-simulate').disabled", timeout=30000)
         page.wait_for_function("!document.getElementById('btn-simulate').disabled", timeout=240000)
         page.wait_for_timeout(1000)
-        assert "疏散模擬完成" in last_message(page)
+        messages = page.locator("#chat-container > *").all_inner_texts()
+        assert "疏散模擬完成" in messages[-2]
+        assert "開車疏散" in messages[-1] and "下限" in messages[-1]
+        assert count_layers(page, "bottleneck") > 0
         assert count_layers(page, "route") + count_layers(page, "routeHazard") > 0
         assert count_layers(page, "origin") > 0
 
@@ -178,6 +184,7 @@ def test_simulation_round_trip(page):
         page.wait_for_function(f"document.querySelectorAll('#chat-container > *').length > {before}", timeout=120000)
         assert "已還原" in last_message(page)
         assert count_layers(page, "origin") == 0
+        assert count_layers(page, "bottleneck") == 0
     finally:
         # 不論成敗都把收容人數還原，不留下測試的模擬
         page.evaluate("fetch('/api/reset_simulation', {method: 'POST'})")
