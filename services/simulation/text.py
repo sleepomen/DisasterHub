@@ -356,6 +356,7 @@ def advice_lines(sim: dict, lang: str = "zh") -> list[str]:
         key=lambda s: (-s.remaining, s.name),
     )
     busiest = sorted((plan.get("assigned") or {}).items(), key=lambda kv: (-kv[1], kv[0]))[:3]
+    slowest = next(iter((plan.get("bottlenecks") or {}).get("top") or []), None)
     lines = []
     if en:
         if unplaced:
@@ -368,6 +369,10 @@ def advice_lines(sim: dict, lang: str = "zh") -> list[str]:
         if busiest:
             top = ", ".join(f"{display_name(n)} ({p} people)" for n, p in busiest)
             lines.append(f"- The most evacuees go to {top}; send supplies and staff there first.")
+        if slowest:
+            lines.append(f"- The most congested road when driving is {slowest['label']} "
+                         f"({clearance_text(slowest['hours'], lang)} to clear); traffic control there first. "
+                         "For every road, ask 「哪幾段路會塞」.")
         lines.append("- For the full plan, ask 「每間避難所分配了多少人」; for excluded shelters, ask 「有沒有避難所被排除」.")
         return lines
     if unplaced:
@@ -378,7 +383,83 @@ def advice_lines(sim: dict, lang: str = "zh") -> list[str]:
     if busiest:
         top = "、".join(f"{display_name(n)}（{p} 人）" for n, p in busiest)
         lines.append(f"- 疏散人數最多的是 {top}，物資與人力可以優先安排到這幾處。")
+    if slowest:
+        lines.append(f"- 開車最塞的是 {slowest['label']}（{clearance_text(slowest['hours'])}才能全部通過），"
+                     "可以優先派人疏導；要看每一條路可以問「哪幾段路會塞」。")
     lines.append("- 要看完整分配可以問「每間避難所分配了多少人」，要看被排除的避難所可以問「有沒有避難所被排除」。")
+    return lines
+
+
+def clearance_text(hours: float, lang: str = "zh") -> str:
+    """一小時內寫分鐘（0.69 小時 → 約 41 分鐘），跟地圖上的提示一樣"""
+    en = lang == "en"
+    if hours < 1:
+        minutes = max(1, round(hours * 60))
+        return f"about {minutes} min" if en else f"約 {minutes} 分鐘"
+    return f"about {hours:.1f} hours" if en else f"約 {hours:.1f} 小時"
+
+
+BRIDGES_SHOWN = 3
+
+
+def bridge_text(bridges: list[str], lang: str = "zh") -> str:
+    """經過的橋最多列三座：一段長的省道可能過十幾座（玉里的台30 過 11 座）"""
+    if not bridges:
+        return ""
+    en = lang == "en"
+    shown = (", " if en else "、").join(bridges[:BRIDGES_SHOWN])
+    if len(bridges) > BRIDGES_SHOWN:
+        shown += f" and {len(bridges) - BRIDGES_SHOWN} more bridges" if en else f"等 {len(bridges)} 座橋"
+    return f" (crosses {shown})" if en else f"（經過{shown}）"
+
+
+def bottleneck_lines(plan: dict, lang: str = "zh") -> list[str]:
+    """
+    「哪條路會塞」：開車時的道路瓶頸（evacuation.bottlenecks，services/simulation/bottlenecks.py）。
+    步行沒有算，要說為什麼、怎麼看到；算出來的一律說明是下限
+    """
+    en = lang == "en"
+    plan = plan or {}
+    if plan.get("mode") != "drive":
+        return ["This simulation was on foot, so road bottlenecks were not estimated: footways can carry the "
+                "largest village in under an hour. Set the travel mode to car and run it again to see which "
+                "roads would clog." if en
+                else "這次模擬是步行，沒有估算道路瓶頸：人行道的容量足夠，最大的村里不到一小時就走完。"
+                "把交通方式改成開車再模擬一次，就會列出哪幾段路會塞。"]
+    info = plan.get("bottlenecks")
+    if not info:
+        return ["Road bottlenecks could not be estimated this time (the road data query failed); "
+                "the evacuation plan is not affected." if en
+                else "這次沒有算出道路瓶頸（查詢道路資料失敗），疏散分配不受影響。"]
+    top = info.get("top") or []
+    if top:
+        lines = [f"The {len(top)} most congested roads when driving (each at its slowest stretch):" if en
+                 else f"開車疏散最塞的 {len(top)} 條路（每條路列最慢的一段）："]
+        for i, g in enumerate(top, 1):
+            bridges = bridge_text(g.get("bridges") or [], lang)
+            time = clearance_text(g["hours"], lang)
+            if en:
+                lines.append(f"{i}. {g['label']}: about {g['vehicles']:,} cars at {g['capacity_vph']:,} per hour, "
+                             f"{time} to clear{bridges}")
+            else:
+                lines.append(f"{i}. {g['label']}：約 {g['vehicles']:,} 輛車，每小時可過 {g['capacity_vph']:,} 輛，"
+                             f"{time}才能全部通過{bridges}")
+    else:
+        lines = ["No road bottleneck could be estimated: every route is too short or has no road route." if en
+                 else "算不出哪段路會塞：路線都太短，或查不到道路路線。"]
+    local, uncounted = int(info.get("local_people") or 0), int(info.get("uncounted_people") or 0)
+    end_m = info.get("end_excluded_m")
+    if local:
+        lines.append(f"{local:,} people have routes too short to count (the first and last {end_m} m of every "
+                     "route are left out) and are not on any road above." if en
+                     else f"另有 {local:,} 人的路線太短（每條路線頭尾各 {end_m} 公尺不算），沒有算進任何路段。")
+    if uncounted:
+        lines.append(f"{uncounted:,} people have no road route (placed by straight-line distance) and are not counted either."
+                     if en else f"{uncounted:,} 人沒有道路路線（以直線距離分配），也沒有算進來。")
+    ppv = info.get("people_per_vehicle")
+    lines.append(f"This is a lower bound: everyone leaves at once, {ppv} people per car, passenger cars only, "
+                 "with no junctions or queues spilling back, so town centres will be slower." if en
+                 else f"這是下限：假設所有人同時出發、每車 {ppv} 人、全部是小客車，沒有算路口號誌與回堵，市區實際會更慢。")
     return lines
 
 
@@ -405,6 +486,7 @@ def simulation_answer(sim: dict, topics: list[str], lang: str = "zh") -> str:
         "unplaced": lambda: unplaced_lines(sim, lang),
         "impacted": lambda: impacted_lines(sim, lang),
         "excluded": lambda: exclusion_lines(sim, lang),
+        "bottlenecks": lambda: bottleneck_lines(plan, lang),
     }
     sections += [builders[topic]() for topic in topics]
     said = {line for section in sections for line in section}
