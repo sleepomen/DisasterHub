@@ -1,5 +1,6 @@
 """
 模擬追問評測：模擬跑完之後問「每間分配幾人」「還有多少人沒安置」「哪些受影響」「哪些被排除」，
+開車的情境另外問「哪幾段路會塞」（2026-11-17 加的，步行的情境要說沒有算），
 模型回答的名稱與數字是否跟後端的分配一致。
 
 最近避難所原本也交給模型重抄，2026-10-31 實測把第 2 名的名稱抄成第 1 名的（見 docs/decisions.md）。
@@ -61,6 +62,8 @@ QUESTIONS = {
     "unplaced": "這次模擬還有多少人沒有被安置？",
     "impacted": "哪些避難所受影響？",
     "excluded": "這次模擬有沒有避難所被排除？為什麼？",
+    # 開車的情境要列出 evacuation.bottlenecks 的每一條路與車輛數；步行的要說沒有算、怎麼看到
+    "bottlenecks": "開車疏散哪幾段路會塞？要多久？",
 }
 
 
@@ -209,6 +212,22 @@ def score(kind: str, text: str, catalog, sim: dict) -> dict:
             # 說成被排除、其實有分配到人的
             "assigned_but_mentioned": sorted(claimed & set(plan.get("assigned") or {}) - expected),
         })
+    elif kind == "bottlenecks":
+        top = (plan.get("bottlenecks") or {}).get("top") or []
+        if plan.get("mode") != "drive":
+            result["walk_explained"] = "步行" in text and "開車" in text
+        else:
+            # 每條路：有提到，而且提到它的那一行有它自己的車輛數
+            lines = text.splitlines()
+            right = [g["label"] for g in top
+                     if any(g["label"] in line and g["vehicles"] in integers_in(line.replace(",", "")) for line in lines)]
+            result.update({
+                "expected": len(top),
+                "covered": sum(1 for g in top if g["label"] in text),
+                "pairs_correct": len(right),
+                "pairs_wrong": [g["label"] for g in top if g["label"] in text and g["label"] not in right],
+                "says_lower_bound": "下限" in text,
+            })
     return result
 
 
@@ -249,6 +268,16 @@ def summarize(rows: list[dict]) -> dict:
         "coverage": round(total("excluded", "covered") / total("excluded", "expected"), 3) if total("excluded", "expected") else None,
         "assigned_but_mentioned": count("excluded", "assigned_but_mentioned"),
         "of": len(ex),
+    }
+    bn = [r for r in rows if r["kind"] == "bottlenecks"]
+    drive = [r for r in bn if "expected" in r["score"]]
+    walk = [r for r in bn if "walk_explained" in r["score"]]
+    summary["bottlenecks"] = {
+        "coverage": round(total("bottlenecks", "covered") / total("bottlenecks", "expected"), 3)
+        if total("bottlenecks", "expected") else None,
+        "pairs_wrong": count("bottlenecks", "pairs_wrong"),
+        "says_lower_bound": {"correct": sum(r["score"]["says_lower_bound"] for r in drive), "of": len(drive)},
+        "walk_explained": {"correct": sum(r["score"]["walk_explained"] for r in walk), "of": len(walk)},
     }
     summary["invented_names"] = sum(len(r["score"]["invented"]) for r in rows)
     summary["outside_simulation"] = sum(len(r["score"]["outside_simulation"]) for r in rows)

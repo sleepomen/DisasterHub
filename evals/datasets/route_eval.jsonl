@@ -69,3 +69,5 @@
 {"query": "現在有土石流警戒嗎", "expected_route": "alerts", "simulation": false, "note": "問現況：讀即時警戒；以前知識路由拿警戒等級的定義來答"}
 {"query": "花蓮目前有土石流警戒嗎", "expected_route": "alerts", "simulation": false, "note": "有縣名時只列那裡的警戒"}
 {"query": "紅色警戒有沒有要撤離", "expected_route": "knowledge", "simulation": false, "note": "「有沒有」在警戒後面，問的是該怎麼做，不是現況"}
+{"query": "開車疏散哪幾段路會塞？", "expected_route": "simulation", "simulation": true, "note": "模擬進行中問道路瓶頸：由程式依同一份分配回答"}
+{"query": "要多久才能清空", "expected_route": "simulation", "simulation": true, "note": "模擬進行中問清空時間，沒有提到模擬也要走模擬"}
