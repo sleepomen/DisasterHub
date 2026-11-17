@@ -154,10 +154,18 @@ function clearanceTime(hours) {
         : I18N.t('duration_hours', { n: hours.toFixed(1) });
 }
 
+// 經過的橋最多列三座（一段長的省道可能過十幾座），跟聊天的回答一樣
+function bridgeList(bridges) {
+    const en = I18N.lang === 'en';
+    const shown = bridges.slice(0, 3).join(en ? ', ' : '、');
+    if (bridges.length <= 3) return shown;
+    return shown + I18N.t('bridges_more', { n: bridges.length, more: bridges.length - 3 });
+}
+
 function bottleneckVars(b) {
     return {
         label: b.label, vehicles: formatCount(b.vehicles), capacity: formatCount(b.capacity_vph),
-        time: clearanceTime(b.hours), bridges: (b.bridges || []).join(I18N.lang === 'en' ? ', ' : '、'),
+        time: clearanceTime(b.hours), bridges: bridgeList(b.bridges || []),
     };
 }
 
