@@ -15,6 +15,7 @@ const THEME = {
     crowd: '#1F3A5F',               // 疏散動畫的人群點
     route: '#1F3A5F',               // 疏散路線
     routeHazard: '#B8651E',         // 仍經過災害範圍的路線
+    bottleneck: '#7A3B69',          // 開車時的道路瓶頸（跟警戒的紅、琥珀分開：塞車不是危險範圍）
     origin: '#5E574C',              // 村里起點
     picked: '#B23A2E',              // 地圖上點選的模擬中心
     zone: '#9A7B4F',                // 土石流潛勢範圍（沒有警戒）

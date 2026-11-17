@@ -135,6 +135,63 @@ function drawRoutes(flows, routes) {
     });
 }
 
+// 開車時的道路瓶頸（/api/simulate_disaster 的 evacuation.bottlenecks，步行時是 null）：
+// 每條路最慢的那一段標在地圖上，圈越大清空越久。算法與限制見 services/simulation/bottlenecks.py
+let bottleneckLayer = null;
+
+function clearBottlenecks() {
+    if (bottleneckLayer) { map.removeLayer(bottleneckLayer); bottleneckLayer = null; }
+}
+
+function formatCount(n) {
+    return Math.round(n).toLocaleString(I18N.lang === 'en' ? 'en' : 'zh-TW');
+}
+
+// 一小時內寫分鐘（0.69 小時 → 約 41 分鐘），比小數好讀
+function clearanceTime(hours) {
+    return hours < 1
+        ? I18N.t('duration_min', { n: Math.max(1, Math.round(hours * 60)) })
+        : I18N.t('duration_hours', { n: hours.toFixed(1) });
+}
+
+function bottleneckVars(b) {
+    return {
+        label: b.label, vehicles: formatCount(b.vehicles), capacity: formatCount(b.capacity_vph),
+        time: clearanceTime(b.hours), bridges: (b.bridges || []).join(I18N.lang === 'en' ? ', ' : '、'),
+    };
+}
+
+function drawBottlenecks(info) {
+    clearBottlenecks();
+    const top = (info && info.top) || [];
+    if (!top.length) return;
+    bottleneckLayer = L.layerGroup().addTo(map);
+    top.forEach(b => {
+        // 打開時才組字，切換語言後提示也跟著換
+        const tip = () => {
+            const vars = bottleneckVars(b);
+            return I18N.t('bottleneck_tip', vars) + (vars.bridges ? I18N.t('bottleneck_tip_bridges', vars) : '');
+        };
+        L.circleMarker([b.lat, b.lon], {
+            // 比村里起點（灰圈）大、填半透明紫色，才不會混在避難所的紅點裡
+            radius: Math.min(15, 8 + b.hours * 10),
+            color: THEME.bottleneck, weight: 3.5, opacity: 0.95, fillColor: THEME.bottleneck, fillOpacity: 0.3,
+        }).bindTooltip(tip, { sticky: true }).addTo(bottleneckLayer).bringToFront();
+    });
+}
+
+// 模擬完成後的一段話：最慢的一段、其次的三段、路線太短沒算的人，最後說明這是下限
+function bottleneckSummary(info) {
+    const top = info.top || [];
+    if (!top.length) return I18N.t('sim_bottleneck_none');
+    const sep = I18N.lang === 'en' ? ', ' : '、';
+    const more = top.slice(1, 4).map(b => I18N.t('bottleneck_item', bottleneckVars(b))).join(sep);
+    return I18N.t('sim_bottleneck', bottleneckVars(top[0]))
+        + (more ? I18N.t('sim_bottleneck_more', { list: more }) : '')
+        + (info.local_people > 0 ? I18N.t('sim_bottleneck_local', { n: formatCount(info.local_people) }) : '')
+        + I18N.t('sim_bottleneck_tail', { ppv: info.people_per_vehicle });
+}
+
 // 誰去哪一間、各多少人由後端決定（/api/simulate_disaster 的 evacuation），並已寫入資料庫。
 // 這裡只把每一筆分配拆成人群點畫出來；亂數只用在起點的散布位置，不影響任何數字。
 // 有道路路線的沿路移動，沒有的走直線
@@ -158,6 +215,7 @@ function startCrowdAnimation(plan, finalOccupancy, disasterLat, dotColor) {
     const totalDots = Math.min(300, Math.max(8, Math.round(placed / PEOPLE_PER_DOT)));
     const routes = flows.map(flowRoute);
     drawRoutes(flows, routes);
+    drawBottlenecks(plan.bottlenecks);
 
     flows.forEach((f, fi) => {
         // 每筆分配至少一個點；人數平均拆到各點，加總恰好等於分配人數
@@ -265,6 +323,7 @@ function startCrowdAnimation(plan, finalOccupancy, disasterLat, dotColor) {
                     names: plan.unreachable.map(n => n.replace(/\[.*?\]\s*/, '')).join(I18N.lang === 'en' ? ', ' : '、'),
                 }) : '')
                 + I18N.t('sim_done_tail'), 'ai');
+            if (plan.bottlenecks) addChat(bottleneckSummary(plan.bottlenecks), 'ai');
         }
     }
 

@@ -18,6 +18,7 @@ document.getElementById('btn-simulate').addEventListener('click', async () => {
 
     if (disasterCircle) map.removeLayer(disasterCircle);
     clearRoutes();
+    clearBottlenecks();
     clearOrigins();
     disasterCircle = L.circle([lat, lon], {
         radius: radius * 1000,
@@ -79,6 +80,7 @@ document.getElementById('btn-simulate').addEventListener('click', async () => {
 document.getElementById('btn-reset').addEventListener('click', async () => {
     if (disasterCircle) { map.removeLayer(disasterCircle); disasterCircle = null; }
     clearRoutes();
+    clearBottlenecks();
     clearOrigins();
     if (animationId) { cancelAnimationFrame(animationId); animationId = null; }
     ctx.clearRect(0, 0, canvas.width, canvas.height);
