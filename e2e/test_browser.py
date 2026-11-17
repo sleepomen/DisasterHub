@@ -176,6 +176,8 @@ def test_simulation_round_trip(page):
         assert "疏散模擬完成" in messages[-2]
         assert "開車疏散" in messages[-1] and "下限" in messages[-1]
         assert count_layers(page, "bottleneck") > 0
+        # 追問塞車：由程式用同一份分配回答
+        assert "開車疏散最塞的" in ask(page, "哪幾段路會塞？")
         assert count_layers(page, "route") + count_layers(page, "routeHazard") > 0
         assert count_layers(page, "origin") > 0
 
