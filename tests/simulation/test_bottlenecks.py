@@ -47,6 +47,10 @@ def test_road_labels():
     assert road_label(edge(ref="9", name="玉興橋")) == "台9 玉興橋"
     assert road_label(edge(ref="9;11")) == "台9/台11"
     assert road_label(edge(highway="tertiary", ref="花71")) == "花71"
+    # 縣道在 OSM 也只寫數字；省道、縣道用編號分，不看道路等級
+    assert road_label(edge(highway="secondary", ref="192甲;宜5", name="大坡路二段")) == "縣192甲/宜5 大坡路二段"
+    assert road_label(edge(highway="tertiary", ref="20")) == "台20"
+    assert road_label(edge(highway="primary", ref="193")) == "縣193"
     assert road_label(edge(highway="motorway", ref="5", name="蔣渭水高速公路")) == "國道5 蔣渭水高速公路"
     assert road_label(edge(highway="residential", ref="", name="中正路")) == "中正路"
     assert road_label(edge(highway="residential", ref="")) == "未命名巷弄"
