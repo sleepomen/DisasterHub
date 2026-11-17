@@ -28,6 +28,9 @@ def test_questions_are_sorted_into_topics():
     assert simulation_topics("哪些避難所受影響？") == ["impacted"]
     assert simulation_topics("這次模擬有沒有避難所被排除？為什麼？") == ["excluded"]
     assert simulation_topics("每間分配多少人？有沒有被排除？") == ["excluded", "allocation"]
+    assert simulation_topics("開車疏散哪幾段路會塞？要多久才能清空？") == ["bottlenecks"]
+    # 「塞不下」問的是容量，不是塞車
+    assert simulation_topics("避難所塞不下怎麼辦") == []
     # 建議、模擬結果：回整體摘要
     assert simulation_topics("有什麼建議") == []
 
@@ -111,3 +114,58 @@ def test_unreachable_shelters_are_not_also_called_still_used():
     assert not any("仍列為疏散目的地" in line and "碧候國小" in line for line in lines)
     assert not any("still used" in line and "碧候國小" in line for line in hazard_lines(plan, "en"))
 
+
+
+BOTTLENECKS = {
+    "top": [
+        {"label": "台9 礁溪路一段", "bridges": [], "vehicles": 1000, "capacity_vph": 1450, "hours": 0.69},
+        {"label": "台11 花蓮大橋", "bridges": ["花蓮大橋"], "vehicles": 2900, "capacity_vph": 1450, "hours": 2.0},
+    ],
+    "max_hours": 2.0, "vehicles": 3900, "local_people": 9680, "uncounted_people": 78,
+    "people_per_vehicle": 2.5, "end_excluded_m": 500,
+}
+DRIVE = {**SIM, "evacuation": {**SIM["evacuation"], "mode": "drive", "bottlenecks": BOTTLENECKS}}
+
+
+def test_bottleneck_answer_lists_each_road_with_its_numbers():
+    answer = simulation_answer(DRIVE, simulation_topics("哪幾段路會塞？"))
+    assert "開車疏散最塞的 2 條路（每條路列最慢的一段）：" in answer
+    # 一小時內寫分鐘
+    assert "1. 台9 礁溪路一段：約 1,000 輛車，每小時可過 1,450 輛，約 41 分鐘才能全部通過" in answer
+    assert "2. 台11 花蓮大橋：約 2,900 輛車，每小時可過 1,450 輛，約 2.0 小時才能全部通過（經過花蓮大橋）" in answer
+    # 沒算進來的人要說出來，結論要說是下限
+    assert "另有 9,680 人的路線太短（每條路線頭尾各 500 公尺不算）" in answer
+    assert "78 人沒有道路路線" in answer
+    assert "這是下限：假設所有人同時出發、每車 2.5 人" in answer
+
+
+def test_bottlenecks_on_foot_say_why_and_how_to_see_them():
+    answer = simulation_answer(SIM, ["bottlenecks"])
+    assert "這次模擬是步行，沒有估算道路瓶頸" in answer and "改成開車再模擬一次" in answer
+
+
+def test_bottlenecks_that_failed_or_found_nothing():
+    failed = {**SIM, "evacuation": {**SIM["evacuation"], "mode": "drive", "bottlenecks": None}}
+    assert "這次沒有算出道路瓶頸" in simulation_answer(failed, ["bottlenecks"])
+    empty = {**BOTTLENECKS, "top": [], "local_people": 0, "uncounted_people": 0}
+    nothing = {**SIM, "evacuation": {**SIM["evacuation"], "mode": "drive", "bottlenecks": empty}}
+    assert "算不出哪段路會塞" in simulation_answer(nothing, ["bottlenecks"])
+
+
+def test_advice_names_the_slowest_road_when_driving():
+    assert "開車最塞的是 台9 礁溪路一段（約 41 分鐘才能全部通過）" in simulation_answer(DRIVE, [])
+    assert "開車最塞" not in simulation_answer(SIM, [])
+
+
+def test_bottlenecks_in_english():
+    answer = simulation_answer(DRIVE, ["bottlenecks"], "en")
+    assert "1. 台9 礁溪路一段: about 1,000 cars at 1,450 per hour, about 41 min to clear" in answer
+    assert "(crosses 花蓮大橋)" in answer and "This is a lower bound" in answer
+    assert "This simulation was on foot" in simulation_answer(SIM, ["bottlenecks"], "en")
+
+
+def test_long_bridge_lists_are_cut_to_three():
+    many = {**BOTTLENECKS, "top": [{**BOTTLENECKS["top"][0], "bridges": [f"{c}橋" for c in "甲乙丙丁戊"]}]}
+    sim = {**DRIVE, "evacuation": {**DRIVE["evacuation"], "bottlenecks": many}}
+    assert "（經過甲橋、乙橋、丙橋等 5 座橋）" in simulation_answer(sim, ["bottlenecks"])
+    assert "(crosses 甲橋, 乙橋, 丙橋 and 2 more bridges)" in simulation_answer(sim, ["bottlenecks"], "en")
