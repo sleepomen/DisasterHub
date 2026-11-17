@@ -106,7 +106,7 @@ DisasterHub/
 │   ├── run_heldout_eval.py     # Questions written by other people: answer, grade by hand, score
 │   ├── datasets/               # Question sets
 │   │   ├── rag_eval.jsonl      # The evaluation set
-│   │   ├── route_eval.jsonl    # Routing test set (71 questions, all sixteen routes)
+│   │   ├── route_eval.jsonl    # Routing test set (73 questions, all sixteen routes)
 │   │   ├── boundary_eval.jsonl # Boundary / abstention set (54 questions, five defences)
 │   │   ├── knowledge_eval.jsonl # Knowledge questions (positive / not covered / mixed / shelter look-alikes)
 │   │   ├── place_eval.jsonl    # Small place names with the township each lies in
@@ -459,7 +459,7 @@ coverage at all**, including both of the non-RAG paths that make the routing "hy
 `evals/datasets/route_eval.jsonl` is a separate 42-question set labelled with the route each question *should*
 take, including the state-dependent case ("請給我疏散建議" must go to `no_simulation_advice` with no
 simulation and to `simulation` while one is running). Two routes were added later: `off_topic` and
-`unknown_name` (see [Nonexistent shelters](#nonexistent-shelters)), and with the disaster-preparedness passages `knowledge` and `knowledge_mixed` (10 more questions, 56 in total; small place names later added `place` and three more, 59 in total, unknown places `unknown_place` and four more, 63, questions about the data `data_info` and two more, 65, live news `live_info` and three more, 68, and current alerts `alerts` and three more, 71 in total; the runner stubs the knowledge store as well, returning the first passage of the hazard so a mixed question has knowledge hits). The runner stubs the vector store and
+`unknown_name` (see [Nonexistent shelters](#nonexistent-shelters)), and with the disaster-preparedness passages `knowledge` and `knowledge_mixed` (10 more questions, 56 in total; small place names later added `place` and three more, 59 in total, unknown places `unknown_place` and four more, 63, questions about the data `data_info` and two more, 65, live news `live_info` and three more, 68, and current alerts `alerts` and three more, 71, and road-bottleneck follow-ups during a simulation two more, 73 in total; the runner stubs the knowledge store as well, returning the first passage of the hazard so a mixed question has knowledge hits). The runner stubs the vector store and
 the repository, because `metrics.route()` is recorded in `build_context` *before* retrieval or the
 database is touched. The stub returns the real shelter list read from the JSON files in
 `data_for_refuge/`, since `unknown_name` must be decided against real names. So it needs no Ollama, no
@@ -550,7 +550,7 @@ Answers (llama3.2:3b, the 44 questions that return a passage):
 
 ## Simulation Follow-up Evaluation
 
-`evals/run_simulation_eval.py` runs five simulations through the real API (log in, simulate, ask, reset) and asks each the same four follow-ups: the allocation per shelter, how many people were not placed, which shelters are affected, and which were excluded. Scenarios: 花蓮市 earthquake 10 km, 台東市 flood 10 km by car, 南澳 flood 10 km with a red alert inserted as test data, 宜蘭市 earthquake 5 km, 玉里 flood 15 km by car.
+`evals/run_simulation_eval.py` runs five simulations through the real API (log in, simulate, ask, reset) and asks each the same four follow-ups (since 2026-11-17 also a fifth, on road bottlenecks, below): the allocation per shelter, how many people were not placed, which shelters are affected, and which were excluded. Scenarios: 花蓮市 earthquake 10 km, 台東市 flood 10 km by car, 南澳 flood 10 km with a red alert inserted as test data, 宜蘭市 earthquake 5 km, 玉里 flood 15 km by car.
 
 ```bash
 docker exec disaster_app python evals/run_simulation_eval.py --label sim_code
@@ -569,6 +569,7 @@ Scoring checks each line that names one shelter: its numbers must include that s
 | Invented or out-of-range shelters | 0 | 0 |
 | p50 time | 34.9 s (lists 34–108 s) | **0.1 s** |
 
+- **Road bottlenecks (added 2026-11-17, code only).** The fifth question is 「開車疏散哪幾段路會塞？要多久？」. In the two driving scenarios every listed road (10 of 10 in each) is named on a line with its own number of cars, and the answer says it is a lower bound; in the three walking scenarios the answer says bottlenecks are only estimated when driving (3 / 3). This checks that the reply matches `evacuation.bottlenecks`, not that the bottlenecks themselves are right ([how they are estimated](simulation-and-routing.md#road-bottlenecks-when-driving)).
 - **The model run scored only what the model wrote** (`--model-text-only`): the notes appended by code were removed first. The code run scores the whole reply, since the exclusion notes are the answer.
 - **What the model got wrong.** In 台東市 it said 「有 26 個避難所被排除」 when none were. In 玉里 it listed 21 shelters that had received people as excluded, all tagged with the same unrelated zone. In 花蓮市 it answered the number of unplaced people instead, missing the 18 shelters not designated for earthquakes. In 宜蘭市 it invented a reason.
 - **What this does not measure.** In all five scenarios demand exceeds capacity, so every shelter is filled and its headcount equals its free space. Whether the model answered with the headcount or just copied the capacity could not be told apart (0 distinguishing cases).

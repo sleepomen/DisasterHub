@@ -32,12 +32,13 @@ Questions asked while a simulation is running are answered by code from the simu
 | unplaced | 「還有多少人沒有被安置」「缺口多大」 | Evacuees, placed and unplaced, and what to do about the gap |
 | affected | 「哪些避難所受影響」「還有空間嗎」 | Every affected shelter with capacity, occupancy and free space, marking the ones not used and why |
 | excluded | 「有沒有避難所被排除」 | The shelters not used as destinations and why (inside a hazard zone, not designated for this disaster, no safe road); says so plainly when there are none |
-| anything else | 「有什麼建議」「模擬結果」 | A summary built from the numbers: population, placed and unplaced, the shortfall or where free space remains, and the shelters receiving the most people |
+| road bottlenecks | 「哪幾段路會塞」「要多久才能清空」 | When driving, the ten roads that take longest to clear, each with cars, capacity per hour, time and the bridges it crosses (at most three named), the people not counted, and that it is a lower bound; on foot, that it was not estimated and how to see it ([road bottlenecks](#road-bottlenecks-when-driving)) |
+| anything else | 「有什麼建議」「模擬結果」 | A summary built from the numbers: population, placed and unplaced, the shortfall or where free space remains, the shelters receiving the most people and, when driving, the slowest road |
 
 A question can ask for several at once (「每間分配多少人？有沒有被排除？」). Hazard, exclusion and route notes are appended once at the end, without repeating what the answer already said.
 
 - **Why.** The simulation follow-up evaluation (see [Simulation follow-up evaluation](evaluation.md#simulation-follow-up-evaluation)) found that the model copied names and numbers correctly but cut long lists short (26 of 63 shelters), took 34–108 s per list, and got the "excluded" question wrong in 4 of 5 scenarios: it said 26 shelters were excluded when none were, listed shelters that had received people, and made up reasons. The correct exclusion notes appended by code then contradicted it.
-- **Result.** Complete and correct in all 20 questions, in 0.1 s.
+- **Result.** Complete and correct in all 25 questions (20 before road bottlenecks were added), in 0.1 s.
 - **The suggestions are code too.** They come from the same numbers the model was given, so free text only added room for error. The cost is that they are fixed in form.
 
 ## Debris-Flow Hazard Zones

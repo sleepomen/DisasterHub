@@ -102,7 +102,7 @@ DisasterHub/
 │   ├── run_heldout_eval.py     # 別人出的題：系統回答、人工判定、計分
 │   ├── datasets/               # 題庫
 │   │   ├── rag_eval.jsonl      # 評測集
-│   │   ├── route_eval.jsonl    # 路由測試集（71 題，涵蓋全部十六條路由）
+│   │   ├── route_eval.jsonl    # 路由測試集（73 題，涵蓋全部十六條路由）
 │   │   ├── boundary_eval.jsonl # 邊界題／拒答題庫（54 題，涵蓋五層防線）
 │   │   ├── knowledge_eval.jsonl # 知識題（正例 / 語料沒有 / 混合 / 其實在問避難所）
 │   │   ├── place_eval.jsonl    # 小地名與它所在的鄉鎮
@@ -425,7 +425,7 @@ docker exec -it disaster_app python evals/lib/compare_runs.py   evals/results/ge
 
 `evals/datasets/route_eval.jsonl` 是另一份 42 題的測試集，每題標上它*應該*走的路由，包含狀態相依的案例
 （「請給我疏散建議」在沒有模擬時該走 `no_simulation_advice`，模擬進行中該走 `simulation`）。
-後來又加了兩條路由：`off_topic` 與 `unknown_name`（見[不存在的場所](#不存在的場所)）；加入防災知識文件時再加 `knowledge` 與 `knowledge_mixed`（多 10 題，共 56 題；後來小地名再加 `place` 與 3 題，共 59 題，不認得的地名再加 `unknown_place` 與 4 題，共 63 題，問資料本身再加 `data_info` 與 2 題，共 65 題，即時消息再加 `live_info` 與 3 題，共 68 題，目前的警戒再加 `alerts` 與 3 題，共 71 題；執行器也把知識庫換成替身，回傳該災害的第一段，混合題才會有知識結果）。
+後來又加了兩條路由：`off_topic` 與 `unknown_name`（見[不存在的場所](#不存在的場所)）；加入防災知識文件時再加 `knowledge` 與 `knowledge_mixed`（多 10 題，共 56 題；後來小地名再加 `place` 與 3 題，共 59 題，不認得的地名再加 `unknown_place` 與 4 題，共 63 題，問資料本身再加 `data_info` 與 2 題，共 65 題，即時消息再加 `live_info` 與 3 題，共 68 題，目前的警戒再加 `alerts` 與 3 題，共 71 題，模擬中問道路瓶頸再加 2 題，共 73 題；執行器也把知識庫換成替身，回傳該災害的第一段，混合題才會有知識結果）。
 執行器把向量庫與 repository 換成替身，因為 `metrics.route()` 是在 `build_context` 裡
 「碰到檢索或資料庫之前」就記下的。替身回傳的是從 `data_for_refuge/` JSON 讀出來的真實避難所名單，
 因為 `unknown_name` 必須拿真實名稱來判斷。所以它不需要 Ollama、ChromaDB 或 PostgreSQL，
@@ -513,7 +513,7 @@ docker exec -it disaster_app python evals/run_knowledge_eval.py --generate --lab
 
 ## 模擬追問評測
 
-`evals/run_simulation_eval.py` 經由真實的 API 跑 5 個模擬（登入、模擬、提問、重置），每個都問同樣 4 題：每間分配幾人、還有多少人沒安置、哪些受影響、哪些被排除。情境是花蓮市強震 10 公里、台東市淹水 10 公里開車、南澳淹水 10 公里加上測試用的紅色警戒、宜蘭市強震 5 公里、玉里淹水 15 公里開車。
+`evals/run_simulation_eval.py` 經由真實的 API 跑 5 個模擬（登入、模擬、提問、重置），每個都問同樣 4 題（2026-11-17 起另有第 5 題問道路瓶頸，見下）：每間分配幾人、還有多少人沒安置、哪些受影響、哪些被排除。情境是花蓮市強震 10 公里、台東市淹水 10 公里開車、南澳淹水 10 公里加上測試用的紅色警戒、宜蘭市強震 5 公里、玉里淹水 15 公里開車。
 
 ```bash
 docker exec disaster_app python evals/run_simulation_eval.py --label sim_code
@@ -532,6 +532,7 @@ docker exec disaster_app python evals/run_simulation_eval.py --label sim_code
 | 編造或範圍外的避難所 | 0 | 0 |
 | p50 時間 | 34.9 秒（清單題 34～108 秒） | **0.1 秒** |
 
+- **道路瓶頸（2026-11-17 加的，只有程式回答）**：第 5 題是「開車疏散哪幾段路會塞？要多久？」。兩個開車的情境裡，列出的每一條路（各 10 條）都在同一行附上自己的車輛數，也都說明這是下限；三個步行的情境都說明只有開車才估算瓶頸（3 / 3）。這量的是回答跟 `evacuation.bottlenecks` 一致，不是瓶頸本身算得對不對（[怎麼估算](simulation-and-routing.md#開車時的道路瓶頸)）。
 - **模型那一輪只評模型寫的部分**（`--model-text-only`）：程式附在最後的說明先拿掉。程式那一輪評整個回答，因為排除的說明本身就是答案。
 - **模型錯在哪裡**：台東市明明沒有排除，卻說「有 26 個避難所被排除」；玉里把 21 間有分配到人的避難所列成被排除，還全部標上同一個不相干的潛勢範圍編號；花蓮市答成無法安置的人數，漏了 18 間不適用地震的避難所；宜蘭市自己編了一個原因。
 - **量不到的地方**：5 個情境的需疏散人數都超過容量，每一間都被填滿，分配人數剛好等於剩餘空位。模型到底是答了分配人數，還是只抄了容量，這次分不出來（可區分的案例 0 個）。
