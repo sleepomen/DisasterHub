@@ -16,6 +16,8 @@
 - 巷弄、產業道路（unclassified 以下）：手冊沒有，假設是雙車道公路的一半。這是這裡最沒根據的數字
 車道數只有約 5% 的道路有標，沒標的依道路等級給預設值（見 lanes_per_direction）。
 """
+import math
+
 from models.travel import DEFAULT_DRIVE_KMH, DRIVE_KMH
 
 # 一輛車平均載幾個人（假設；疏散時全家一起走，比平日通勤的 1.3 人高）
@@ -28,6 +30,11 @@ PEOPLE_PER_VEHICLE = 2.5
 #     250 公尺  42%，同一段 0.73 小時，但宜蘭市的公正路這類巷弄開始排進前面，正是要排除的假瓶頸
 END_EXCLUDED_M = 500
 TOP_N = 10
+# 兩條邊的間隔在這個距離內（公里，中點距離扣掉兩邊各一半的長度；相接的邊是 0）就當成相連。
+# 2026-11-19 用 80 個情境（41 鄉鎮 × 淹水、強震，開車）找：同名但一段沒編號而在前十名各列一次的有 17 對，
+# 例如宜蘭市的「中山路一段」與「宜18 中山路一段」、「林尾路」與「宜6 林尾路」；
+# 另有相距 10～16 公里的同名路，是不同鄉鎮的路，不能合
+CONTIGUOUS_KM = 0.1
 
 MOTORWAY_LANE_VPH = 2000
 TWO_LANE_VPH = 1450
@@ -94,6 +101,40 @@ def road_key(info: dict) -> str:
     return info.get("ref") or info.get("name") or f"~{info.get('highway')}"
 
 
+def _gap_km(a: dict, b: dict) -> float:
+    """兩條邊大約隔多遠：中點距離扣掉兩條邊各一半的長度（長的郊區路段中點本來就離得遠）"""
+    dy = (a["lat"] - b["lat"]) * 110.57
+    dx = (a["lon"] - b["lon"]) * 111.32 * math.cos(math.radians((a["lat"] + b["lat"]) / 2))
+    return max(0.0, math.hypot(dx, dy) - (a["length_m"] + b["length_m"]) / 2000)
+
+
+def fill_missing_refs(edge_info: dict[int, dict]) -> dict[int, dict]:
+    """
+    OSM 常常只有一部分路段標了路線編號：宜6 林尾路往西整段只寫「林尾路」，就會跟「宜6 林尾路」分成兩條路各列一次。
+    沒有編號的邊跟同名、有編號的邊相連（間隔 CONTIGUOUS_KM 內），就借它的編號，再沿著相連的同名邊一路借下去。
+    只看這次模擬用到的邊；要相連是因為不同鄉鎮常有同名的路（中山路一段），不能只看名字
+    """
+    by_name: dict[str, list[int]] = {}
+    for edge_id, info in edge_info.items():
+        if info.get("name"):
+            by_name.setdefault(info["name"], []).append(edge_id)
+    out = dict(edge_info)
+    for ids in by_name.values():
+        known = [i for i in ids if out[i].get("ref")]
+        todo = [i for i in ids if not out[i].get("ref")]
+        # 一圈一圈往外：這一圈借到編號的邊，下一圈換它們當起點
+        while known and todo:
+            found = {}
+            for i in todo:
+                gap, ref = min((_gap_km(out[i], out[k]), out[k]["ref"]) for k in known)
+                if gap <= CONTIGUOUS_KM:
+                    found[i] = ref
+            for i, ref in found.items():
+                out[i] = {**out[i], "ref": ref}
+            known, todo = list(found), [i for i in todo if i not in found]
+    return out
+
+
 def counted_edges(edges: tuple, end_excluded_m: float = END_EXCLUDED_M) -> list[tuple[int, bool]]:
     """路線上要算進瓶頸的 (邊, 方向)：中點落在頭尾 end_excluded_m 公尺內的不算"""
     total = sum(m for _, _, m in edges)
@@ -116,13 +157,15 @@ def find_bottlenecks(
       top             清空最久的路段，最多 top_n 條路。同一條路（road_key）上車流一樣的邊合成一段，
                       名稱用其中最長那條邊的，經過的橋列在 bridges（只列名字裡有「橋」的：
                       OSM 有些橋用的是路名）。車流在路上一直變（有人匯入、有人下交流道），
-                      同一條路會有好幾段只差幾十輛，所以每條路只列最慢的那一段
+                      同一條路會有好幾段只差幾十輛，所以每條路只列最慢的那一段。
+                      沒標編號的路段先借附近同名路段的編號（fill_missing_refs），共線路段算兩條路都有
       max_hours       最慢那段路讓所有車通過要幾小時（全部同時出發的下限）
       vehicles        算進來的車輛數（人數 ÷ 每車人數）
       local_people    路線短到整條都在頭尾 end_excluded_m 公尺內、沒經過任何算進來的路段的人數
                       （市區避難所很密，這一類不少）。他們塞不塞是巷弄與路口的事，這裡算不出來
       uncounted_people  沒有實際路線（直線估算或查詢失敗）、沒算進任何路段的人數
     """
+    edge_info = fill_missing_refs(edge_info)
     load: dict[tuple[int, bool], float] = {}
     uncounted = local = counted_people = 0
     for f in flows:
@@ -171,8 +214,12 @@ def find_bottlenecks(
         g.pop("_longest")
         g["length_m"] = round(g["length_m"])
         g["bridges"] = sorted(g["bridges"])
-        if road not in seen:
-            seen.add(road)
+        # 兩條路線共線的路段編號是「7;宜18」：這一段同時屬於台7 和宜18。列了它，台7、宜18 都算列過；
+        # 兩條都已經列過才不再列。只要有一條列過就跳過會藏掉真的瓶頸：玉里的台30 玉長隧道排第一時，
+        # 台9/台30 共線的花東縱谷公路（14 分鐘，台9 最慢的一段）就不見了
+        refs = set(road.split(";"))
+        if not refs <= seen:
+            seen |= refs
             ranked.append(g)
     return {
         "top": ranked[:top_n],
