@@ -10,6 +10,8 @@
 
     const fmt = (n) => (n == null ? '—' : Number(n).toLocaleString('zh-TW'));
     const pct = (x) => (x == null ? '—' : `${(x * 100).toFixed(1)}%`);
+    // 一小時內寫分鐘，跟地圖上的提示與報告的 Markdown 一樣
+    const clearance = (h) => (h < 1 ? `約 ${Math.max(1, Math.round(h * 60))} 分鐘` : `約 ${h.toFixed(1)} 小時`);
 
     function el(tag, attrs, ...children) {
         const node = document.createElement(tag);
@@ -176,6 +178,32 @@
             { label: '受影響人口', num: true, sort: (r) => r.population, cell: (r) => fmt(r.population) },
         ], () => report.cut_off, [2, -1]);
 
+        // 開車時的道路瓶頸：一個情境一列，預設清空最久的排前面
+        const drive = meta.drive || {};
+        document.getElementById('bottleneck-lead').textContent =
+            '強震與淹水另外用開車跑一次基準疏散比例（跟地圖上選開車一樣），每個情境列清空最久的一段路：車輛數除以那段路每小時的容量。' +
+            `這是下限：所有人同時出發、每車 ${drive.people_per_vehicle ?? '—'} 人、沒有算路口號誌與回堵。` +
+            `每條路線頭尾各 ${drive.end_excluded_m ?? '—'} 公尺不算，路線比這短的人和沒有道路路線的人列在「沒算進來的人」。`;
+        const slowest = (r) => r.slowest || {};
+        const renderBottlenecks = sortableTable(document.getElementById('bottleneck-table'), [
+            { label: '中心鄉鎮', sort: (r) => r.township, cell: (r) => r.township },
+            { label: '災害', sort: (r) => r.kind, cell: (r) => KIND_LABEL[r.kind] },
+            { label: '最塞的路段', sort: (r) => slowest(r).label, cell: (r) => {
+                if (!r.slowest) return el('span', { class: 'range', text: '算不出來（路線都太短）' });
+                const bridges = r.slowest.bridges || [];
+                const out = el('span', {}, r.slowest.label);
+                if (bridges.length) {
+                    const more = bridges.length > 3 ? `等 ${bridges.length} 座橋` : '';
+                    out.append(' ', el('span', { class: 'range', text: `經過${bridges.slice(0, 3).join('、')}${more}` }));
+                }
+                return out;
+            } },
+            { label: '車輛', num: true, sort: (r) => slowest(r).vehicles, cell: (r) => fmt(slowest(r).vehicles) },
+            { label: '每小時容量', num: true, sort: (r) => slowest(r).capacity_vph, cell: (r) => fmt(slowest(r).capacity_vph) },
+            { label: '清空時間', num: true, sort: (r) => r.max_hours, cell: (r) => (r.slowest ? clearance(r.max_hours) : null) },
+            { label: '沒算進來的人', num: true, sort: (r) => r.left_out, cell: (r) => fmt(r.left_out) },
+        ], () => byCounty(report.bottlenecks || []), [5, -1]);
+
         const lead = document.getElementById('shelters-lead');
         lead.replaceChildren(`看強震與淹水共 ${report.main_scenarios} 個情境的基準分配。`);
         if (report.busiest.length) {
@@ -196,7 +224,7 @@
         document.getElementById('data-table').replaceChildren(el('tbody', {},
             ...data.map(([k, v]) => el('tr', {}, el('th', { scope: 'row', text: k }), el('td', { text: v })))));
 
-        // 依縣篩選，兩張表一起
+        // 依縣篩選，三張表一起
         const counties = ['', ...new Set(towns.map((t) => t.county.replace('台', '臺')))];
         const filter = document.getElementById('county-filter');
         const buttons = counties.map((c) => {
@@ -206,6 +234,7 @@
                 buttons.forEach((b, i) => b.setAttribute('aria-pressed', String(counties[i] === c)));
                 renderTowns();
                 renderScenarios();
+                renderBottlenecks();
             });
             return btn;
         });
