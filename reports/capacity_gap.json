@@ -1,10 +1,10 @@
 {
  "meta": {
-  "generated_at": "2026-11-15 08:03",
+  "generated_at": "2026-11-19 00:56",
   "shelter_dataset_updated": "2025-12-16",
   "population_month": "民國 115 年 9 月",
   "villages": 554,
-  "roads_loaded": "2026-11-15",
+  "roads_loaded": "2026-11-19",
   "debris_zones": 531,
   "radius_km": 10,
   "mode": "walk",
@@ -17,6 +17,10 @@
    1.0,
    1.2
   ],
+  "drive": {
+   "people_per_vehicle": 2.5,
+   "end_excluded_m": 500
+  },
   "shelters": 644
  },
  "townships": [
@@ -1188,7 +1192,36 @@
     "[YILAN] 龍潭國小匏崙分校"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.69,
+    "vehicles": 4661,
+    "local_people": 9686,
+    "uncounted_people": 78,
+    "top": [
+     {
+      "label": "台9 中正路一段",
+      "vehicles": 1000,
+      "capacity_vph": 1450,
+      "hours": 0.69,
+      "bridges": []
+     },
+     {
+      "label": "中山路一段",
+      "vehicles": 737,
+      "capacity_vph": 1450,
+      "hours": 0.51,
+      "bridges": []
+     },
+     {
+      "label": "宜18 中山路一段",
+      "vehicles": 737,
+      "capacity_vph": 1450,
+      "hours": 0.51,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "宜蘭市",
@@ -1479,7 +1512,36 @@
     "[YILAN] 龍潭國小匏崙分校"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.35,
+    "vehicles": 3078,
+    "local_people": 12859,
+    "uncounted_people": 78,
+    "top": [
+     {
+      "label": "匏杓崙路",
+      "vehicles": 257,
+      "capacity_vph": 725,
+      "hours": 0.35,
+      "bridges": []
+     },
+     {
+      "label": "未命名產業道路",
+      "vehicles": 255,
+      "capacity_vph": 725,
+      "hours": 0.35,
+      "bridges": []
+     },
+     {
+      "label": "林尾路",
+      "vehicles": 255,
+      "capacity_vph": 725,
+      "hours": 0.35,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "羅東鎮",
@@ -1774,7 +1836,39 @@
     "[YILAN] 龍德社區活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.33,
+    "vehicles": 2892,
+    "local_people": 10869,
+    "uncounted_people": 78,
+    "top": [
+     {
+      "label": "台9 蘭陽大橋",
+      "vehicles": 476,
+      "capacity_vph": 1450,
+      "hours": 0.33,
+      "bridges": [
+       "壯二南橋",
+       "蘭陽大橋"
+      ]
+     },
+     {
+      "label": "台7 東港路二段",
+      "vehicles": 288,
+      "capacity_vph": 1450,
+      "hours": 0.2,
+      "bridges": []
+     },
+     {
+      "label": "舊城北路",
+      "vehicles": 142,
+      "capacity_vph": 725,
+      "hours": 0.2,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "羅東鎮",
@@ -2059,7 +2153,36 @@
     "[YILAN] 黎明里慶安廟"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.17,
+    "vehicles": 1946,
+    "local_people": 12502,
+    "uncounted_people": 78,
+    "top": [
+     {
+      "label": "利成路二段248巷",
+      "vehicles": 121,
+      "capacity_vph": 725,
+      "hours": 0.17,
+      "bridges": []
+     },
+     {
+      "label": "東港路一段186巷",
+      "vehicles": 99,
+      "capacity_vph": 725,
+      "hours": 0.14,
+      "bridges": []
+     },
+     {
+      "label": "宜25 五結中路二段",
+      "vehicles": 186,
+      "capacity_vph": 1450,
+      "hours": 0.13,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "蘇澳鎮",
@@ -2198,7 +2321,36 @@
     "[YILAN] 龍德社區活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.11,
+    "vehicles": 666,
+    "local_people": 2629,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "台2戊 利成路一段",
+      "vehicles": 158,
+      "capacity_vph": 1450,
+      "hours": 0.11,
+      "bridges": []
+     },
+     {
+      "label": "未命名農路",
+      "vehicles": 56,
+      "capacity_vph": 725,
+      "hours": 0.08,
+      "bridges": []
+     },
+     {
+      "label": "武荖坑路",
+      "vehicles": 56,
+      "capacity_vph": 725,
+      "hours": 0.08,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "蘇澳鎮",
@@ -2329,7 +2481,36 @@
     "[YILAN] 馬賽國小"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.14,
+    "vehicles": 498,
+    "local_people": 2669,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "台2戊 福德路",
+      "vehicles": 206,
+      "capacity_vph": 1450,
+      "hours": 0.14,
+      "bridges": []
+     },
+     {
+      "label": "利成路二段248巷",
+      "vehicles": 56,
+      "capacity_vph": 725,
+      "hours": 0.08,
+      "bridges": []
+     },
+     {
+      "label": "太和路",
+      "vehicles": 30,
+      "capacity_vph": 725,
+      "hours": 0.04,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "蘇澳鎮",
@@ -2465,7 +2646,8 @@
     "[YILAN] 馬賽國小"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "頭城鎮",
@@ -2560,7 +2742,36 @@
     "[YILAN] 頂埔里-順天府池府王爺廟"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.12,
+    "vehicles": 812,
+    "local_people": 1699,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "台9 礁溪路五段",
+      "vehicles": 176,
+      "capacity_vph": 1450,
+      "hours": 0.12,
+      "bridges": []
+     },
+     {
+      "label": "台2 頭濱路一段",
+      "vehicles": 103,
+      "capacity_vph": 1450,
+      "hours": 0.07,
+      "bridges": []
+     },
+     {
+      "label": "宜3 宜三路一段",
+      "vehicles": 76,
+      "capacity_vph": 1450,
+      "hours": 0.05,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "頭城鎮",
@@ -2645,7 +2856,36 @@
     "[YILAN] 頂埔里-順天府池府王爺廟"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.1,
+    "vehicles": 452,
+    "local_people": 1885,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "台9 礁溪路四段",
+      "vehicles": 149,
+      "capacity_vph": 1450,
+      "hours": 0.1,
+      "bridges": []
+     },
+     {
+      "label": "台2 頭濱路一段",
+      "vehicles": 71,
+      "capacity_vph": 1450,
+      "hours": 0.05,
+      "bridges": []
+     },
+     {
+      "label": "宜2 大忠路",
+      "vehicles": 46,
+      "capacity_vph": 1450,
+      "hours": 0.03,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "頭城鎮",
@@ -2745,7 +2985,8 @@
    "unused": [
     "[YILAN] 合興里-合興社區活動中心"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "礁溪鄉",
@@ -2963,7 +3204,38 @@
     "[YILAN] 壯圍鄉公所",
     "[YILAN] 金面里-協天廟"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.19,
+    "vehicles": 2434,
+    "local_people": 6717,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "台9 礁溪路一段",
+      "vehicles": 281,
+      "capacity_vph": 1450,
+      "hours": 0.19,
+      "bridges": [
+       "柴圍橋"
+      ]
+     },
+     {
+      "label": "縣192甲/宜5/宜5-2 大坡路二段",
+      "vehicles": 250,
+      "capacity_vph": 1450,
+      "hours": 0.17,
+      "bridges": []
+     },
+     {
+      "label": "台7 壯五路",
+      "vehicles": 218,
+      "capacity_vph": 1450,
+      "hours": 0.15,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "礁溪鄉",
@@ -3178,7 +3450,36 @@
     "[YILAN] 龍潭國小匏崙分校"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.35,
+    "vehicles": 2028,
+    "local_people": 8642,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "匏杓崙路",
+      "vehicles": 257,
+      "capacity_vph": 725,
+      "hours": 0.35,
+      "bridges": []
+     },
+     {
+      "label": "未命名產業道路",
+      "vehicles": 255,
+      "capacity_vph": 725,
+      "hours": 0.35,
+      "bridges": []
+     },
+     {
+      "label": "林尾路",
+      "vehicles": 255,
+      "capacity_vph": 725,
+      "hours": 0.35,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "礁溪鄉",
@@ -3395,7 +3696,8 @@
    "unused": [
     "[YILAN] 德陽宮弘道大樓"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "壯圍鄉",
@@ -3661,7 +3963,36 @@
     "[YILAN] 龍潭國小匏崙分校"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.31,
+    "vehicles": 3206,
+    "local_people": 9032,
+    "uncounted_people": 73,
+    "top": [
+     {
+      "label": "台9 礁溪路一段",
+      "vehicles": 445,
+      "capacity_vph": 1450,
+      "hours": 0.31,
+      "bridges": []
+     },
+     {
+      "label": "東港路一段186巷",
+      "vehicles": 166,
+      "capacity_vph": 725,
+      "hours": 0.23,
+      "bridges": []
+     },
+     {
+      "label": "中山路五段",
+      "vehicles": 273,
+      "capacity_vph": 1450,
+      "hours": 0.19,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "壯圍鄉",
@@ -3920,7 +4251,36 @@
     "[YILAN] 龍潭國小匏崙分校"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.18,
+    "vehicles": 2575,
+    "local_people": 11556,
+    "uncounted_people": 78,
+    "top": [
+     {
+      "label": "台9 中正路一段",
+      "vehicles": 265,
+      "capacity_vph": 1450,
+      "hours": 0.18,
+      "bridges": []
+     },
+     {
+      "label": "宜25-1 大吉五路",
+      "vehicles": 186,
+      "capacity_vph": 1450,
+      "hours": 0.13,
+      "bridges": []
+     },
+     {
+      "label": "東港路一段186巷",
+      "vehicles": 96,
+      "capacity_vph": 725,
+      "hours": 0.13,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "員山鄉",
@@ -4185,7 +4545,36 @@
    "unused": [
     "[YILAN] 淡江大學蘭陽校園"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.5,
+    "vehicles": 4114,
+    "local_people": 7057,
+    "uncounted_people": 78,
+    "top": [
+     {
+      "label": "台9 中正路一段",
+      "vehicles": 721,
+      "capacity_vph": 1450,
+      "hours": 0.5,
+      "bridges": []
+     },
+     {
+      "label": "中山路一段",
+      "vehicles": 536,
+      "capacity_vph": 1450,
+      "hours": 0.37,
+      "bridges": []
+     },
+     {
+      "label": "宜18 中山路一段",
+      "vehicles": 536,
+      "capacity_vph": 1450,
+      "hours": 0.37,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "員山鄉",
@@ -4450,7 +4839,36 @@
     "[YILAN] 龍潭國小匏崙分校"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.37,
+    "vehicles": 3006,
+    "local_people": 10347,
+    "uncounted_people": 78,
+    "top": [
+     {
+      "label": "台9 礁溪路一段",
+      "vehicles": 538,
+      "capacity_vph": 1450,
+      "hours": 0.37,
+      "bridges": []
+     },
+     {
+      "label": "匏杓崙路",
+      "vehicles": 257,
+      "capacity_vph": 725,
+      "hours": 0.35,
+      "bridges": []
+     },
+     {
+      "label": "未命名產業道路",
+      "vehicles": 255,
+      "capacity_vph": 725,
+      "hours": 0.35,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "員山鄉",
@@ -4715,7 +5133,8 @@
     "[YILAN] 龍潭國小匏崙分校"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "冬山鄉",
@@ -4934,7 +5353,36 @@
     "[YILAN] 龍德社區活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.15,
+    "vehicles": 1604,
+    "local_people": 8670,
+    "uncounted_people": 74,
+    "top": [
+     {
+      "label": "利成路二段248巷",
+      "vehicles": 108,
+      "capacity_vph": 725,
+      "hours": 0.15,
+      "bridges": []
+     },
+     {
+      "label": "台2戊 利成路二段",
+      "vehicles": 191,
+      "capacity_vph": 1450,
+      "hours": 0.13,
+      "bridges": []
+     },
+     {
+      "label": "五福路",
+      "vehicles": 72,
+      "capacity_vph": 725,
+      "hours": 0.1,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "冬山鄉",
@@ -5145,7 +5593,36 @@
     "[YILAN] 鹿埔社區活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.14,
+    "vehicles": 1084,
+    "local_people": 9260,
+    "uncounted_people": 78,
+    "top": [
+     {
+      "label": "利成路二段248巷",
+      "vehicles": 98,
+      "capacity_vph": 725,
+      "hours": 0.14,
+      "bridges": []
+     },
+     {
+      "label": "宜25 五結中路二段",
+      "vehicles": 165,
+      "capacity_vph": 1450,
+      "hours": 0.11,
+      "bridges": []
+     },
+     {
+      "label": "台2戊 福德路",
+      "vehicles": 137,
+      "capacity_vph": 1450,
+      "hours": 0.09,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "冬山鄉",
@@ -5356,7 +5833,8 @@
     "[YILAN] 鹿埔社區活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "五結鄉",
@@ -5655,7 +6133,39 @@
     "[YILAN] 黎明里慶安廟"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.33,
+    "vehicles": 3058,
+    "local_people": 11005,
+    "uncounted_people": 78,
+    "top": [
+     {
+      "label": "台9 蘭陽大橋",
+      "vehicles": 472,
+      "capacity_vph": 1450,
+      "hours": 0.33,
+      "bridges": [
+       "壯二南橋",
+       "蘭陽大橋"
+      ]
+     },
+     {
+      "label": "舊城北路",
+      "vehicles": 182,
+      "capacity_vph": 725,
+      "hours": 0.25,
+      "bridges": []
+     },
+     {
+      "label": "台7 東港路二段",
+      "vehicles": 292,
+      "capacity_vph": 1450,
+      "hours": 0.2,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "五結鄉",
@@ -5944,7 +6454,36 @@
     "[YILAN] 黎明里慶安廟"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.2,
+    "vehicles": 2089,
+    "local_people": 12698,
+    "uncounted_people": 78,
+    "top": [
+     {
+      "label": "利成路二段248巷",
+      "vehicles": 146,
+      "capacity_vph": 725,
+      "hours": 0.2,
+      "bridges": []
+     },
+     {
+      "label": "東港路一段186巷",
+      "vehicles": 145,
+      "capacity_vph": 725,
+      "hours": 0.2,
+      "bridges": []
+     },
+     {
+      "label": "宜25 五結中路二段",
+      "vehicles": 186,
+      "capacity_vph": 1450,
+      "hours": 0.13,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "三星鄉",
@@ -6119,7 +6658,38 @@
    "unused": [
     "[YILAN] 羅東國中自強館"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.3,
+    "vehicles": 1836,
+    "local_people": 4352,
+    "uncounted_people": 78,
+    "top": [
+     {
+      "label": "台7丙 廣興路",
+      "vehicles": 438,
+      "capacity_vph": 1450,
+      "hours": 0.3,
+      "bridges": []
+     },
+     {
+      "label": "中山路一段",
+      "vehicles": 168,
+      "capacity_vph": 1450,
+      "hours": 0.12,
+      "bridges": []
+     },
+     {
+      "label": "凱旋橋",
+      "vehicles": 168,
+      "capacity_vph": 1450,
+      "hours": 0.12,
+      "bridges": [
+       "凱旋橋"
+      ]
+     }
+    ]
+   }
   },
   {
    "township": "三星鄉",
@@ -6306,7 +6876,38 @@
     "[YILAN] 鹿埔社區活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.09,
+    "vehicles": 1150,
+    "local_people": 7651,
+    "uncounted_people": 78,
+    "top": [
+     {
+      "label": "廣興路11巷",
+      "vehicles": 68,
+      "capacity_vph": 725,
+      "hours": 0.09,
+      "bridges": []
+     },
+     {
+      "label": "寒華大橋",
+      "vehicles": 49,
+      "capacity_vph": 725,
+      "hours": 0.07,
+      "bridges": [
+       "寒華大橋"
+      ]
+     },
+     {
+      "label": "未命名聯絡道",
+      "vehicles": 49,
+      "capacity_vph": 725,
+      "hours": 0.07,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "三星鄉",
@@ -6493,7 +7094,8 @@
     "[YILAN] 鹿埔社區活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "大同鄉",
@@ -6531,7 +7133,36 @@
    ],
    "full": [],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.02,
+    "vehicles": 39,
+    "local_people": 0,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "宜51 樂水路",
+      "vehicles": 18,
+      "capacity_vph": 725,
+      "hours": 0.02,
+      "bridges": []
+     },
+     {
+      "label": "未命名產業道路",
+      "vehicles": 12,
+      "capacity_vph": 725,
+      "hours": 0.02,
+      "bridges": []
+     },
+     {
+      "label": "台7丙 泰雅一路",
+      "vehicles": 20,
+      "capacity_vph": 1450,
+      "hours": 0.01,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "大同鄉",
@@ -6571,7 +7202,36 @@
     "[YILAN] 復興活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.05,
+    "vehicles": 71,
+    "local_people": 0,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "宜51 樂水路",
+      "vehicles": 33,
+      "capacity_vph": 725,
+      "hours": 0.05,
+      "bridges": []
+     },
+     {
+      "label": "未命名產業道路",
+      "vehicles": 23,
+      "capacity_vph": 725,
+      "hours": 0.03,
+      "bridges": []
+     },
+     {
+      "label": "台7丙 泰雅一路",
+      "vehicles": 35,
+      "capacity_vph": 1450,
+      "hours": 0.02,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "大同鄉",
@@ -6627,7 +7287,8 @@
    "unused": [
     "[YILAN] 樂水活動中心"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "南澳鄉",
@@ -6687,7 +7348,44 @@
    "unused": [
     "[YILAN] 蓬萊國小"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.03,
+    "vehicles": 99,
+    "local_people": 367,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "宜55 信義路陽明巷",
+      "vehicles": 37,
+      "capacity_vph": 1450,
+      "hours": 0.03,
+      "bridges": []
+     },
+     {
+      "label": "台9 觀音隧道",
+      "vehicles": 26,
+      "capacity_vph": 1450,
+      "hours": 0.02,
+      "bridges": [
+       "南澳北溪橋",
+       "南澳南溪橋",
+       "和平溪橋",
+       "大南澳陸橋",
+       "武塔高架橋",
+       "漢本高架橋",
+       "鼓音橋"
+      ]
+     },
+     {
+      "label": "未命名產業道路",
+      "vehicles": 13,
+      "capacity_vph": 725,
+      "hours": 0.02,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "南澳鄉",
@@ -6752,7 +7450,36 @@
     "[YILAN] 金洋社區活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.02,
+    "vehicles": 71,
+    "local_people": 573,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "宜55 信義路陽明巷",
+      "vehicles": 24,
+      "capacity_vph": 1450,
+      "hours": 0.02,
+      "bridges": []
+     },
+     {
+      "label": "未命名產業道路",
+      "vehicles": 11,
+      "capacity_vph": 725,
+      "hours": 0.02,
+      "bridges": []
+     },
+     {
+      "label": "台9丁 蘇花路二段",
+      "vehicles": 18,
+      "capacity_vph": 1450,
+      "hours": 0.01,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "南澳鄉",
@@ -6817,7 +7544,8 @@
     "[YILAN] 金洋社區活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "臺東市",
@@ -6894,7 +7622,36 @@
     "[TAITUNG] 賓朗老人暨多功能活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.06,
+    "vehicles": 350,
+    "local_people": 189,
+    "uncounted_people": 75,
+    "top": [
+     {
+      "label": "台9 賓朗路",
+      "vehicles": 83,
+      "capacity_vph": 1450,
+      "hours": 0.06,
+      "bridges": []
+     },
+     {
+      "label": "未命名巷弄",
+      "vehicles": 28,
+      "capacity_vph": 725,
+      "hours": 0.04,
+      "bridges": []
+     },
+     {
+      "label": "東54 東興路",
+      "vehicles": 41,
+      "capacity_vph": 1450,
+      "hours": 0.03,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "臺東市",
@@ -6993,7 +7750,38 @@
     "[TAITUNG] 賓朗老人暨多功能活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.05,
+    "vehicles": 423,
+    "local_people": 343,
+    "uncounted_people": 75,
+    "top": [
+     {
+      "label": "台9 太平橋",
+      "vehicles": 76,
+      "capacity_vph": 1450,
+      "hours": 0.05,
+      "bridges": [
+       "太平橋"
+      ]
+     },
+     {
+      "label": "未命名巷弄",
+      "vehicles": 37,
+      "capacity_vph": 725,
+      "hours": 0.05,
+      "bridges": []
+     },
+     {
+      "label": "東54 東興路",
+      "vehicles": 48,
+      "capacity_vph": 1450,
+      "hours": 0.03,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "臺東市",
@@ -7092,7 +7880,8 @@
     "[TAITUNG] 賓朗老人暨多功能活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "成功鎮",
@@ -7141,7 +7930,14 @@
     "[TAITUNG] 都歷活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.0,
+    "vehicles": 0,
+    "local_people": 570,
+    "uncounted_people": 0,
+    "top": []
+   }
   },
   {
    "township": "成功鎮",
@@ -7196,7 +7992,41 @@
     "[TAITUNG] 麒麟活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.03,
+    "vehicles": 104,
+    "local_people": 179,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "台11 美山路",
+      "vehicles": 42,
+      "capacity_vph": 1450,
+      "hours": 0.03,
+      "bridges": [
+       "紅毛橋",
+       "美佐呂橋"
+      ]
+     },
+     {
+      "label": "東15-1",
+      "vehicles": 42,
+      "capacity_vph": 1450,
+      "hours": 0.03,
+      "bridges": [
+       "三仙橋"
+      ]
+     },
+     {
+      "label": "未命名聯絡道",
+      "vehicles": 24,
+      "capacity_vph": 725,
+      "hours": 0.03,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "成功鎮",
@@ -7251,7 +8081,8 @@
     "[TAITUNG] 麒麟活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "關山鎮",
@@ -7328,7 +8159,38 @@
     "[TAITUNG] 關山鎮老人文康活動中心",
     "[TAITUNG] 電光活動中心"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.03,
+    "vehicles": 151,
+    "local_people": 945,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "台9 和平路",
+      "vehicles": 40,
+      "capacity_vph": 1450,
+      "hours": 0.03,
+      "bridges": []
+     },
+     {
+      "label": "東8-1 民權路",
+      "vehicles": 36,
+      "capacity_vph": 1450,
+      "hours": 0.02,
+      "bridges": []
+     },
+     {
+      "label": "台20 南部橫貫公路",
+      "vehicles": 18,
+      "capacity_vph": 1450,
+      "hours": 0.01,
+      "bridges": [
+       "愛砂卡橋"
+      ]
+     }
+    ]
+   }
   },
   {
    "township": "關山鎮",
@@ -7420,7 +8282,36 @@
     "[TAITUNG] 臺東縣池上鄉萬安國民小學",
     "[TAITUNG] 臺東縣立池上國民中學"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.06,
+    "vehicles": 367,
+    "local_people": 1509,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "新政路",
+      "vehicles": 40,
+      "capacity_vph": 725,
+      "hours": 0.06,
+      "bridges": []
+     },
+     {
+      "label": "未命名產業道路",
+      "vehicles": 40,
+      "capacity_vph": 725,
+      "hours": 0.06,
+      "bridges": []
+     },
+     {
+      "label": "東8-1 民權路",
+      "vehicles": 65,
+      "capacity_vph": 1450,
+      "hours": 0.04,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "關山鎮",
@@ -7512,7 +8403,8 @@
     "[TAITUNG] 臺東縣池上鄉萬安國民小學",
     "[TAITUNG] 臺東縣立池上國民中學"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "卑南鄉",
@@ -7587,7 +8479,36 @@
     "[TAITUNG] 賓朗老人暨多功能活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.05,
+    "vehicles": 332,
+    "local_people": 189,
+    "uncounted_people": 75,
+    "top": [
+     {
+      "label": "五家波產業道路",
+      "vehicles": 34,
+      "capacity_vph": 725,
+      "hours": 0.05,
+      "bridges": []
+     },
+     {
+      "label": "初鹿一街",
+      "vehicles": 34,
+      "capacity_vph": 725,
+      "hours": 0.05,
+      "bridges": []
+     },
+     {
+      "label": "台9 和平路",
+      "vehicles": 64,
+      "capacity_vph": 1450,
+      "hours": 0.04,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "卑南鄉",
@@ -7678,7 +8599,36 @@
     "[TAITUNG] 賓朗老人暨多功能活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.09,
+    "vehicles": 391,
+    "local_people": 280,
+    "uncounted_people": 75,
+    "top": [
+     {
+      "label": "五家波產業道路",
+      "vehicles": 63,
+      "capacity_vph": 725,
+      "hours": 0.09,
+      "bridges": []
+     },
+     {
+      "label": "初鹿一街",
+      "vehicles": 63,
+      "capacity_vph": 725,
+      "hours": 0.09,
+      "bridges": []
+     },
+     {
+      "label": "台9 中興路六段",
+      "vehicles": 64,
+      "capacity_vph": 1450,
+      "hours": 0.04,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "卑南鄉",
@@ -7774,7 +8724,8 @@
     "[TAITUNG] 賓朗老人暨多功能活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "鹿野鄉",
@@ -7862,7 +8813,36 @@
     "[TAITUNG] 關山鎮月眉國民小學",
     "[TAITUNG] 電光活動中心"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.08,
+    "vehicles": 314,
+    "local_people": 256,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "龍馬路392巷",
+      "vehicles": 55,
+      "capacity_vph": 725,
+      "hours": 0.08,
+      "bridges": []
+     },
+     {
+      "label": "東33 龍馬路",
+      "vehicles": 74,
+      "capacity_vph": 1450,
+      "hours": 0.05,
+      "bridges": []
+     },
+     {
+      "label": "東34 光榮路",
+      "vehicles": 60,
+      "capacity_vph": 1450,
+      "hours": 0.04,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "鹿野鄉",
@@ -7955,7 +8935,36 @@
     "[TAITUNG] 龍田社區活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.06,
+    "vehicles": 442,
+    "local_people": 295,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "縣197",
+      "vehicles": 80,
+      "capacity_vph": 1450,
+      "hours": 0.06,
+      "bridges": []
+     },
+     {
+      "label": "東33 龍馬路",
+      "vehicles": 72,
+      "capacity_vph": 1450,
+      "hours": 0.05,
+      "bridges": []
+     },
+     {
+      "label": "東33-2 五十戶路",
+      "vehicles": 72,
+      "capacity_vph": 1450,
+      "hours": 0.05,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "鹿野鄉",
@@ -8053,7 +9062,8 @@
     "[TAITUNG] 龍田社區活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "池上鄉",
@@ -8128,7 +9138,38 @@
     "[TAITUNG] 關山鎮德高國民小學",
     "[TAITUNG] 關山鎮老人文康活動中心"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.04,
+    "vehicles": 270,
+    "local_people": 891,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "台9 花東縱谷公路",
+      "vehicles": 61,
+      "capacity_vph": 1450,
+      "hours": 0.04,
+      "bridges": [
+       "縣界橋"
+      ]
+     },
+     {
+      "label": "中山路",
+      "vehicles": 23,
+      "capacity_vph": 725,
+      "hours": 0.03,
+      "bridges": []
+     },
+     {
+      "label": "台23 富東公路",
+      "vehicles": 30,
+      "capacity_vph": 1450,
+      "hours": 0.02,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "池上鄉",
@@ -8226,7 +9267,36 @@
     "[TAITUNG] 里壠活動中心",
     "[TAITUNG] 關山鎮老人文康活動中心"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.08,
+    "vehicles": 584,
+    "local_people": 1411,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "台9 新興一路",
+      "vehicles": 120,
+      "capacity_vph": 1450,
+      "hours": 0.08,
+      "bridges": []
+     },
+     {
+      "label": "台20 南部橫貫公路",
+      "vehicles": 68,
+      "capacity_vph": 1450,
+      "hours": 0.05,
+      "bridges": []
+     },
+     {
+      "label": "天堂之路",
+      "vehicles": 38,
+      "capacity_vph": 725,
+      "hours": 0.05,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "池上鄉",
@@ -8324,7 +9394,8 @@
     "[TAITUNG] 里壠活動中心",
     "[TAITUNG] 關山鎮老人文康活動中心"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "東河鄉",
@@ -8365,7 +9436,25 @@
     "[TAITUNG] 隆昌村辦公處活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.01,
+    "vehicles": 8,
+    "local_people": 49,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "台11 小馬路",
+      "vehicles": 8,
+      "capacity_vph": 1450,
+      "hours": 0.01,
+      "bridges": [
+       "半坪橋",
+       "都歷橋"
+      ]
+     }
+    ]
+   }
   },
   {
    "township": "東河鄉",
@@ -8412,7 +9501,38 @@
     "[TAITUNG] 泰源活動中心村辦公處"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.12,
+    "vehicles": 144,
+    "local_people": 0,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "未命名巷弄",
+      "vehicles": 84,
+      "capacity_vph": 725,
+      "hours": 0.12,
+      "bridges": []
+     },
+     {
+      "label": "大丘園大橋",
+      "vehicles": 62,
+      "capacity_vph": 725,
+      "hours": 0.09,
+      "bridges": [
+       "大丘園大橋"
+      ]
+     },
+     {
+      "label": "未命名產業道路",
+      "vehicles": 62,
+      "capacity_vph": 725,
+      "hours": 0.09,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "東河鄉",
@@ -8472,7 +9592,8 @@
     "[TAITUNG] 泰源活動中心村辦公處"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "長濱鄉",
@@ -8528,7 +9649,40 @@
     "[TAITUNG] 竹湖活動中心",
     "[TAITUNG] 長濱聯合村辦公處"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.03,
+    "vehicles": 93,
+    "local_people": 271,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "台11 花東海岸公路",
+      "vehicles": 41,
+      "capacity_vph": 1450,
+      "hours": 0.03,
+      "bridges": [
+       "長濱橋"
+      ]
+     },
+     {
+      "label": "齒草埔產業道路",
+      "vehicles": 22,
+      "capacity_vph": 725,
+      "hours": 0.03,
+      "bridges": []
+     },
+     {
+      "label": "台30 玉長公路",
+      "vehicles": 5,
+      "capacity_vph": 3400,
+      "hours": 0.0,
+      "bridges": [
+       "長濱橋"
+      ]
+     }
+    ]
+   }
   },
   {
    "township": "長濱鄉",
@@ -8588,7 +9742,38 @@
     "[TAITUNG] 烏石鼻社區活動中心",
     "[TAITUNG] 長濱聯合村辦公處"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.06,
+    "vehicles": 245,
+    "local_people": 310,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "齒草埔產業道路",
+      "vehicles": 41,
+      "capacity_vph": 725,
+      "hours": 0.06,
+      "bridges": []
+     },
+     {
+      "label": "東13 長光產業道路",
+      "vehicles": 71,
+      "capacity_vph": 1450,
+      "hours": 0.05,
+      "bridges": []
+     },
+     {
+      "label": "台11 花東海岸公路",
+      "vehicles": 45,
+      "capacity_vph": 1450,
+      "hours": 0.03,
+      "bridges": [
+       "大霸來橋"
+      ]
+     }
+    ]
+   }
   },
   {
    "township": "長濱鄉",
@@ -8648,7 +9833,8 @@
     "[TAITUNG] 烏石鼻社區活動中心",
     "[TAITUNG] 長濱聯合村辦公處"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "太麻里鄉",
@@ -8705,7 +9891,36 @@
     "[TAITUNG] 香蘭國小"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.06,
+    "vehicles": 259,
+    "local_people": 183,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "未命名產業道路",
+      "vehicles": 40,
+      "capacity_vph": 725,
+      "hours": 0.06,
+      "bridges": []
+     },
+     {
+      "label": "太峰路",
+      "vehicles": 39,
+      "capacity_vph": 725,
+      "hours": 0.05,
+      "bridges": []
+     },
+     {
+      "label": "未命名巷弄",
+      "vehicles": 36,
+      "capacity_vph": 725,
+      "hours": 0.05,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "太麻里鄉",
@@ -8774,7 +9989,38 @@
     "[TAITUNG] 香蘭國小"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.08,
+    "vehicles": 458,
+    "local_people": 154,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "德興路",
+      "vehicles": 58,
+      "capacity_vph": 725,
+      "hours": 0.08,
+      "bridges": []
+     },
+     {
+      "label": "未命名產業道路",
+      "vehicles": 58,
+      "capacity_vph": 725,
+      "hours": 0.08,
+      "bridges": []
+     },
+     {
+      "label": "東64",
+      "vehicles": 80,
+      "capacity_vph": 1450,
+      "hours": 0.06,
+      "bridges": [
+       "金峰橋"
+      ]
+     }
+    ]
+   }
   },
   {
    "township": "太麻里鄉",
@@ -8850,7 +10096,8 @@
    "unused": [
     "[TAITUNG] 新興國小"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "大武鄉",
@@ -8905,7 +10152,38 @@
     "[TAITUNG] 臺東縣立安朔國小新化分校",
     "[TAITUNG] 達仁鄉立土坂托兒所"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.03,
+    "vehicles": 163,
+    "local_people": 178,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "加津林聯外道路",
+      "vehicles": 21,
+      "capacity_vph": 725,
+      "hours": 0.03,
+      "bridges": []
+     },
+     {
+      "label": "未命名農路",
+      "vehicles": 21,
+      "capacity_vph": 725,
+      "hours": 0.03,
+      "bridges": []
+     },
+     {
+      "label": "台9 南迴公路",
+      "vehicles": 79,
+      "capacity_vph": 3400,
+      "hours": 0.02,
+      "bridges": [
+       "大鳥橋"
+      ]
+     }
+    ]
+   }
   },
   {
    "township": "大武鄉",
@@ -8963,7 +10241,38 @@
     "[TAITUNG] 臺東縣立安朔國小新化分校",
     "[TAITUNG] 達仁鄉立土坂托兒所"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.06,
+    "vehicles": 278,
+    "local_people": 380,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "金龍路",
+      "vehicles": 40,
+      "capacity_vph": 725,
+      "hours": 0.06,
+      "bridges": []
+     },
+     {
+      "label": "未命名農路",
+      "vehicles": 38,
+      "capacity_vph": 725,
+      "hours": 0.05,
+      "bridges": []
+     },
+     {
+      "label": "台9 南迴公路",
+      "vehicles": 107,
+      "capacity_vph": 3400,
+      "hours": 0.03,
+      "bridges": [
+       "大鳥橋"
+      ]
+     }
+    ]
+   }
   },
   {
    "township": "大武鄉",
@@ -9026,7 +10335,8 @@
     "[TAITUNG] 臺東縣立安朔國小新化分校",
     "[TAITUNG] 達仁鄉立土坂托兒所"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "綠島鄉",
@@ -9075,7 +10385,24 @@
     "[TAITUNG] 公館社區活動中心",
     "[TAITUNG] 綠島國民小學"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.04,
+    "vehicles": 52,
+    "local_people": 373,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "東90 環島公路",
+      "vehicles": 52,
+      "capacity_vph": 1450,
+      "hours": 0.04,
+      "bridges": [
+       "馬蹄橋"
+      ]
+     }
+    ]
+   }
   },
   {
    "township": "綠島鄉",
@@ -9126,7 +10453,26 @@
    "unused": [
     "[TAITUNG] 公館社區活動中心"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.04,
+    "vehicles": 95,
+    "local_people": 684,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "東90 環島公路",
+      "vehicles": 56,
+      "capacity_vph": 1450,
+      "hours": 0.04,
+      "bridges": [
+       "公館橋",
+       "尾湖橋",
+       "觀音橋"
+      ]
+     }
+    ]
+   }
   },
   {
    "township": "海端鄉",
@@ -9195,7 +10541,38 @@
     "[TAITUNG] 關山鎮德高國民小學",
     "[TAITUNG] 關山鎮老人文康活動中心"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.03,
+    "vehicles": 126,
+    "local_people": 586,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "台20 南部橫貫公路",
+      "vehicles": 50,
+      "capacity_vph": 1450,
+      "hours": 0.03,
+      "bridges": [
+       "愛砂卡橋"
+      ]
+     },
+     {
+      "label": "台9 和平路",
+      "vehicles": 38,
+      "capacity_vph": 1450,
+      "hours": 0.03,
+      "bridges": []
+     },
+     {
+      "label": "東8-1 民權路",
+      "vehicles": 20,
+      "capacity_vph": 1450,
+      "hours": 0.01,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "海端鄉",
@@ -9270,7 +10647,38 @@
    "unused": [
     "[TAITUNG] 關山鎮老人文康活動中心"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.07,
+    "vehicles": 252,
+    "local_people": 1023,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "台20甲",
+      "vehicles": 95,
+      "capacity_vph": 1450,
+      "hours": 0.07,
+      "bridges": []
+     },
+     {
+      "label": "台20 南部橫貫公路",
+      "vehicles": 90,
+      "capacity_vph": 1450,
+      "hours": 0.06,
+      "bridges": [
+       "愛砂卡橋"
+      ]
+     },
+     {
+      "label": "未命名聯絡道",
+      "vehicles": 44,
+      "capacity_vph": 725,
+      "hours": 0.06,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "海端鄉",
@@ -9345,7 +10753,8 @@
    "unused": [
     "[TAITUNG] 關山鎮老人文康活動中心"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "延平鄉",
@@ -9434,7 +10843,36 @@
     "[TAITUNG] 龍田社區活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.05,
+    "vehicles": 354,
+    "local_people": 227,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "未命名產業道路",
+      "vehicles": 38,
+      "capacity_vph": 725,
+      "hours": 0.05,
+      "bridges": []
+     },
+     {
+      "label": "高台路42巷",
+      "vehicles": 38,
+      "capacity_vph": 725,
+      "hours": 0.05,
+      "bridges": []
+     },
+     {
+      "label": "東33 龍馬路",
+      "vehicles": 65,
+      "capacity_vph": 1450,
+      "hours": 0.04,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "延平鄉",
@@ -9523,7 +10961,36 @@
     "[TAITUNG] 龍田社區活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.07,
+    "vehicles": 364,
+    "local_people": 230,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "東33 龍馬路",
+      "vehicles": 97,
+      "capacity_vph": 1450,
+      "hours": 0.07,
+      "bridges": []
+     },
+     {
+      "label": "東33-2 五十戶路",
+      "vehicles": 97,
+      "capacity_vph": 1450,
+      "hours": 0.07,
+      "bridges": []
+     },
+     {
+      "label": "五家波產業道路",
+      "vehicles": 48,
+      "capacity_vph": 725,
+      "hours": 0.07,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "延平鄉",
@@ -9619,7 +11086,8 @@
    "unused": [
     "[TAITUNG] 永康村鄉立幼兒園"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "金峰鄉",
@@ -9676,7 +11144,36 @@
     "[TAITUNG] 香蘭國小"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.06,
+    "vehicles": 255,
+    "local_people": 193,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "太峰路",
+      "vehicles": 40,
+      "capacity_vph": 725,
+      "hours": 0.06,
+      "bridges": []
+     },
+     {
+      "label": "東63 民權路",
+      "vehicles": 62,
+      "capacity_vph": 1450,
+      "hours": 0.04,
+      "bridges": []
+     },
+     {
+      "label": "未命名巷弄",
+      "vehicles": 30,
+      "capacity_vph": 725,
+      "hours": 0.04,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "金峰鄉",
@@ -9745,7 +11242,38 @@
     "[TAITUNG] 香蘭國小"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.09,
+    "vehicles": 452,
+    "local_people": 171,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "德興路",
+      "vehicles": 66,
+      "capacity_vph": 725,
+      "hours": 0.09,
+      "bridges": []
+     },
+     {
+      "label": "未命名產業道路",
+      "vehicles": 66,
+      "capacity_vph": 725,
+      "hours": 0.09,
+      "bridges": []
+     },
+     {
+      "label": "東64",
+      "vehicles": 80,
+      "capacity_vph": 1450,
+      "hours": 0.06,
+      "bridges": [
+       "金峰橋"
+      ]
+     }
+    ]
+   }
   },
   {
    "township": "金峰鄉",
@@ -9816,7 +11344,8 @@
    "unused": [
     "[TAITUNG] 北里活動中心"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "達仁鄉",
@@ -9870,7 +11399,38 @@
     "[TAITUNG] 臺東縣立安朔國小新化分校",
     "[TAITUNG] 達仁鄉立土坂托兒所"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.03,
+    "vehicles": 158,
+    "local_people": 169,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "加津林聯外道路",
+      "vehicles": 23,
+      "capacity_vph": 725,
+      "hours": 0.03,
+      "bridges": []
+     },
+     {
+      "label": "未命名農路",
+      "vehicles": 23,
+      "capacity_vph": 725,
+      "hours": 0.03,
+      "bridges": []
+     },
+     {
+      "label": "台9 南迴公路",
+      "vehicles": 78,
+      "capacity_vph": 3400,
+      "hours": 0.02,
+      "bridges": [
+       "大鳥橋"
+      ]
+     }
+    ]
+   }
   },
   {
    "township": "達仁鄉",
@@ -9928,7 +11488,38 @@
     "[TAITUNG] 臺東縣立安朔國小新化分校",
     "[TAITUNG] 達仁鄉立土坂托兒所"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.06,
+    "vehicles": 269,
+    "local_people": 360,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "未命名農路",
+      "vehicles": 42,
+      "capacity_vph": 725,
+      "hours": 0.06,
+      "bridges": []
+     },
+     {
+      "label": "金龍路",
+      "vehicles": 30,
+      "capacity_vph": 725,
+      "hours": 0.04,
+      "bridges": []
+     },
+     {
+      "label": "台9 南迴公路",
+      "vehicles": 101,
+      "capacity_vph": 3400,
+      "hours": 0.03,
+      "bridges": [
+       "大鳥橋"
+      ]
+     }
+    ]
+   }
   },
   {
    "township": "達仁鄉",
@@ -9993,7 +11584,8 @@
     "[TAITUNG] 臺東縣立安朔國小新化分校",
     "[TAITUNG] 達仁鄉立土坂托兒所"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "蘭嶼鄉",
@@ -10035,7 +11627,29 @@
     "[TAITUNG] 椰油國民小學",
     "[TAITUNG] 蘭嶼國民小學"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.04,
+    "vehicles": 65,
+    "local_people": 369,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "東80 蘭嶼環島公路",
+      "vehicles": 65,
+      "capacity_vph": 1450,
+      "hours": 0.04,
+      "bridges": []
+     },
+     {
+      "label": "東81 蘭嶼橫貫公路",
+      "vehicles": 65,
+      "capacity_vph": 1450,
+      "hours": 0.04,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "蘭嶼鄉",
@@ -10082,7 +11696,29 @@
    "unused": [
     "[TAITUNG] 椰油國民小學"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.08,
+    "vehicles": 143,
+    "local_people": 618,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "東81 蘭嶼橫貫公路",
+      "vehicles": 119,
+      "capacity_vph": 1450,
+      "hours": 0.08,
+      "bridges": []
+     },
+     {
+      "label": "東80 蘭嶼環島公路",
+      "vehicles": 79,
+      "capacity_vph": 1450,
+      "hours": 0.05,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "花蓮市",
@@ -10213,7 +11849,36 @@
     "[HUALIEN] 鑄強國小"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.1,
+    "vehicles": 580,
+    "local_people": 6155,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "介林九街",
+      "vehicles": 74,
+      "capacity_vph": 725,
+      "hours": 0.1,
+      "bridges": []
+     },
+     {
+      "label": "建興街",
+      "vehicles": 74,
+      "capacity_vph": 725,
+      "hours": 0.1,
+      "bridges": []
+     },
+     {
+      "label": "花15 中山路",
+      "vehicles": 224,
+      "capacity_vph": 3400,
+      "hours": 0.07,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "花蓮市",
@@ -10366,7 +12031,36 @@
     "[HUALIEN] 鑄強國小"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.12,
+    "vehicles": 552,
+    "local_people": 8602,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "介仁街",
+      "vehicles": 85,
+      "capacity_vph": 725,
+      "hours": 0.12,
+      "bridges": []
+     },
+     {
+      "label": "濟慈路",
+      "vehicles": 85,
+      "capacity_vph": 725,
+      "hours": 0.12,
+      "bridges": []
+     },
+     {
+      "label": "花15 中山路",
+      "vehicles": 258,
+      "capacity_vph": 3400,
+      "hours": 0.08,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "花蓮市",
@@ -10519,7 +12213,8 @@
     "[HUALIEN] 鑄強國小"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "鳳林鎮",
@@ -10578,7 +12273,38 @@
    "unused": [
     "[HUALIEN] 太巴塱國小"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.06,
+    "vehicles": 301,
+    "local_people": 840,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "平祥路",
+      "vehicles": 42,
+      "capacity_vph": 725,
+      "hours": 0.06,
+      "bridges": []
+     },
+     {
+      "label": "花46 中和路",
+      "vehicles": 65,
+      "capacity_vph": 1450,
+      "hours": 0.04,
+      "bridges": []
+     },
+     {
+      "label": "台9 花東縱谷公路",
+      "vehicles": 52,
+      "capacity_vph": 1450,
+      "hours": 0.04,
+      "bridges": [
+       "萬里溪橋"
+      ]
+     }
+    ]
+   }
   },
   {
    "township": "鳳林鎮",
@@ -10671,7 +12397,36 @@
     "[HUALIEN] 鳳禮,鳳智里活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.08,
+    "vehicles": 498,
+    "local_people": 1568,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "花46 中和路",
+      "vehicles": 120,
+      "capacity_vph": 1450,
+      "hours": 0.08,
+      "bridges": []
+     },
+     {
+      "label": "台9 花東縱谷公路",
+      "vehicles": 116,
+      "capacity_vph": 1450,
+      "hours": 0.08,
+      "bridges": []
+     },
+     {
+      "label": "未命名產業道路",
+      "vehicles": 55,
+      "capacity_vph": 725,
+      "hours": 0.08,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "鳳林鎮",
@@ -10764,7 +12519,8 @@
     "[HUALIEN] 鳳禮,鳳智里活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "玉里鎮",
@@ -10799,7 +12555,8 @@
    "used": [],
    "full": [],
    "unused": [],
-   "distance_basis": "none"
+   "distance_basis": "none",
+   "drive": null
   },
   {
    "township": "玉里鎮",
@@ -10870,7 +12627,36 @@
     "[HUALIEN] 長良社區活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.03,
+    "vehicles": 172,
+    "local_people": 411,
+    "uncounted_people": 50,
+    "top": [
+     {
+      "label": "花63",
+      "vehicles": 40,
+      "capacity_vph": 1450,
+      "hours": 0.03,
+      "bridges": []
+     },
+     {
+      "label": "花65",
+      "vehicles": 37,
+      "capacity_vph": 1450,
+      "hours": 0.03,
+      "bridges": []
+     },
+     {
+      "label": "未命名巷弄",
+      "vehicles": 20,
+      "capacity_vph": 725,
+      "hours": 0.03,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "玉里鎮",
@@ -10941,7 +12727,8 @@
     "[HUALIEN] 長良社區活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "新城鄉",
@@ -11068,7 +12855,36 @@
     "[HUALIEN] 鑄強國小"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.33,
+    "vehicles": 1123,
+    "local_people": 4804,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "睦和街",
+      "vehicles": 241,
+      "capacity_vph": 725,
+      "hours": 0.33,
+      "bridges": []
+     },
+     {
+      "label": "台9丙 中華路",
+      "vehicles": 241,
+      "capacity_vph": 1450,
+      "hours": 0.17,
+      "bridges": []
+     },
+     {
+      "label": "宜昌七街",
+      "vehicles": 91,
+      "capacity_vph": 725,
+      "hours": 0.13,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "新城鄉",
@@ -11219,7 +13035,36 @@
     "[HUALIEN] 順安農宅示範中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.12,
+    "vehicles": 847,
+    "local_people": 7895,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "花15 中山路一段",
+      "vehicles": 174,
+      "capacity_vph": 1450,
+      "hours": 0.12,
+      "bridges": []
+     },
+     {
+      "label": "介林九街",
+      "vehicles": 42,
+      "capacity_vph": 725,
+      "hours": 0.06,
+      "bridges": []
+     },
+     {
+      "label": "建興街",
+      "vehicles": 42,
+      "capacity_vph": 725,
+      "hours": 0.06,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "吉安鄉",
@@ -11358,7 +13203,36 @@
     "[HUALIEN] 鑄強國小"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.08,
+    "vehicles": 698,
+    "local_people": 6107,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "介林九街",
+      "vehicles": 61,
+      "capacity_vph": 725,
+      "hours": 0.08,
+      "bridges": []
+     },
+     {
+      "label": "建興街",
+      "vehicles": 61,
+      "capacity_vph": 725,
+      "hours": 0.08,
+      "bridges": []
+     },
+     {
+      "label": "花15 中山路",
+      "vehicles": 238,
+      "capacity_vph": 3400,
+      "hours": 0.07,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "吉安鄉",
@@ -11521,7 +13395,36 @@
     "[HUALIEN] 鑄強國小"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.15,
+    "vehicles": 620,
+    "local_people": 8749,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "介仁街",
+      "vehicles": 108,
+      "capacity_vph": 725,
+      "hours": 0.15,
+      "bridges": []
+     },
+     {
+      "label": "濟慈路",
+      "vehicles": 108,
+      "capacity_vph": 725,
+      "hours": 0.15,
+      "bridges": []
+     },
+     {
+      "label": "花15 中山路",
+      "vehicles": 260,
+      "capacity_vph": 3400,
+      "hours": 0.08,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "吉安鄉",
@@ -11684,7 +13587,8 @@
     "[HUALIEN] 鑄強國小"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "壽豐鄉",
@@ -11765,7 +13669,36 @@
     "[HUALIEN] 鹽寮活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.04,
+    "vehicles": 131,
+    "local_people": 624,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "華城七街",
+      "vehicles": 27,
+      "capacity_vph": 725,
+      "hours": 0.04,
+      "bridges": []
+     },
+     {
+      "label": "台11 花東海岸公路",
+      "vehicles": 22,
+      "capacity_vph": 1450,
+      "hours": 0.02,
+      "bridges": []
+     },
+     {
+      "label": "未命名農路",
+      "vehicles": 16,
+      "capacity_vph": 725,
+      "hours": 0.02,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "壽豐鄉",
@@ -11850,7 +13783,36 @@
     "[HUALIEN] 鹽寮活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.04,
+    "vehicles": 138,
+    "local_people": 758,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "華城七街",
+      "vehicles": 27,
+      "capacity_vph": 725,
+      "hours": 0.04,
+      "bridges": []
+     },
+     {
+      "label": "西林路",
+      "vehicles": 22,
+      "capacity_vph": 725,
+      "hours": 0.03,
+      "bridges": []
+     },
+     {
+      "label": "永福路",
+      "vehicles": 20,
+      "capacity_vph": 725,
+      "hours": 0.03,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "壽豐鄉",
@@ -11937,7 +13899,8 @@
     "[HUALIEN] 米棧活動中心",
     "[HUALIEN] 鹽寮活動中心"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "光復鄉",
@@ -12002,7 +13965,40 @@
    "unused": [
     "[HUALIEN] 鳳林國中進德堂"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.07,
+    "vehicles": 320,
+    "local_people": 717,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "台9 中興橋",
+      "vehicles": 104,
+      "capacity_vph": 1450,
+      "hours": 0.07,
+      "bridges": [
+       "中興橋"
+      ]
+     },
+     {
+      "label": "花54 民權街",
+      "vehicles": 87,
+      "capacity_vph": 1450,
+      "hours": 0.06,
+      "bridges": [
+       "大興橋"
+      ]
+     },
+     {
+      "label": "縣193 建國路二段",
+      "vehicles": 40,
+      "capacity_vph": 1450,
+      "hours": 0.03,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "光復鄉",
@@ -12090,7 +14086,40 @@
     "[HUALIEN] 鳳林鎮藝文中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.15,
+    "vehicles": 796,
+    "local_people": 794,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "花46 中和路",
+      "vehicles": 222,
+      "capacity_vph": 1450,
+      "hours": 0.15,
+      "bridges": []
+     },
+     {
+      "label": "縣193/花46 山興路",
+      "vehicles": 204,
+      "capacity_vph": 1450,
+      "hours": 0.14,
+      "bridges": [
+       "興華橋"
+      ]
+     },
+     {
+      "label": "縣193 山興路",
+      "vehicles": 198,
+      "capacity_vph": 1450,
+      "hours": 0.14,
+      "bridges": [
+       "興益橋"
+      ]
+     }
+    ]
+   }
   },
   {
    "township": "光復鄉",
@@ -12181,7 +14210,8 @@
    "unused": [
     "[HUALIEN] 光復自強外役監獄"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "豐濱鄉",
@@ -12220,7 +14250,43 @@
     "[HUALIEN] 新社國小二樓綜合教室"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.06,
+    "vehicles": 80,
+    "local_people": 0,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "台11 花東海岸公路",
+      "vehicles": 80,
+      "capacity_vph": 1450,
+      "hours": 0.06,
+      "bridges": []
+     },
+     {
+      "label": "花51 民族街",
+      "vehicles": 66,
+      "capacity_vph": 1450,
+      "hours": 0.05,
+      "bridges": []
+     },
+     {
+      "label": "台11甲 光豐公路",
+      "vehicles": 3,
+      "capacity_vph": 1450,
+      "hours": 0.0,
+      "bridges": [
+       "仁愛橋",
+       "信義橋",
+       "和平橋",
+       "增產橋",
+       "忠孝橋",
+       "開發橋"
+      ]
+     }
+    ]
+   }
   },
   {
    "township": "豐濱鄉",
@@ -12259,7 +14325,29 @@
     "[HUALIEN] 新社國小二樓綜合教室"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.06,
+    "vehicles": 80,
+    "local_people": 0,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "台11 花東海岸公路",
+      "vehicles": 80,
+      "capacity_vph": 1450,
+      "hours": 0.06,
+      "bridges": []
+     },
+     {
+      "label": "花51 民族街",
+      "vehicles": 63,
+      "capacity_vph": 1450,
+      "hours": 0.04,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "豐濱鄉",
@@ -12296,7 +14384,8 @@
    ],
    "full": [],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "瑞穗鄉",
@@ -12337,7 +14426,41 @@
     "[HUALIEN] 花蓮縣鶴岡國民小學"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.04,
+    "vehicles": 118,
+    "local_people": 105,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "縣193 建國路一段",
+      "vehicles": 64,
+      "capacity_vph": 1450,
+      "hours": 0.04,
+      "bridges": [
+       "和諧橋",
+       "興鶴橋"
+      ]
+     },
+     {
+      "label": "花56",
+      "vehicles": 52,
+      "capacity_vph": 1450,
+      "hours": 0.04,
+      "bridges": [
+       "一號橋"
+      ]
+     },
+     {
+      "label": "未命名縣鄉道",
+      "vehicles": 51,
+      "capacity_vph": 1450,
+      "hours": 0.04,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "瑞穗鄉",
@@ -12426,7 +14549,38 @@
     "[HUALIEN] 鶴岡社區活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.08,
+    "vehicles": 403,
+    "local_people": 888,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "縣193 建國路一段",
+      "vehicles": 111,
+      "capacity_vph": 1450,
+      "hours": 0.08,
+      "bridges": []
+     },
+     {
+      "label": "花60 民有路",
+      "vehicles": 97,
+      "capacity_vph": 1450,
+      "hours": 0.07,
+      "bridges": [
+       "馬遠大橋"
+      ]
+     },
+     {
+      "label": "花83 中正路",
+      "vehicles": 88,
+      "capacity_vph": 1450,
+      "hours": 0.06,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "瑞穗鄉",
@@ -12520,7 +14674,8 @@
     "[HUALIEN] 鶴岡社區活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "富里鄉",
@@ -12563,7 +14718,38 @@
     "[TAITUNG] 慶豐村辦公處"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.04,
+    "vehicles": 95,
+    "local_people": 13,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "中山路",
+      "vehicles": 31,
+      "capacity_vph": 725,
+      "hours": 0.04,
+      "bridges": []
+     },
+     {
+      "label": "台9 花東縱谷公路",
+      "vehicles": 39,
+      "capacity_vph": 1450,
+      "hours": 0.03,
+      "bridges": [
+       "縣界橋"
+      ]
+     },
+     {
+      "label": "東9",
+      "vehicles": 33,
+      "capacity_vph": 1450,
+      "hours": 0.02,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "富里鄉",
@@ -12640,7 +14826,38 @@
     "[TAITUNG] 臺東縣池上鄉大坡國民小學"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.04,
+    "vehicles": 231,
+    "local_people": 643,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "台9 慶福路",
+      "vehicles": 62,
+      "capacity_vph": 1450,
+      "hours": 0.04,
+      "bridges": [
+       "慶福橋"
+      ]
+     },
+     {
+      "label": "未命名聯絡道",
+      "vehicles": 32,
+      "capacity_vph": 725,
+      "hours": 0.04,
+      "bridges": []
+     },
+     {
+      "label": "東1 中西三路",
+      "vehicles": 38,
+      "capacity_vph": 1450,
+      "hours": 0.03,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "富里鄉",
@@ -12717,7 +14934,8 @@
     "[TAITUNG] 臺東縣池上鄉大坡國民小學"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "秀林鄉",
@@ -12792,7 +15010,36 @@
     "[HUALIEN] 興田社區活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.03,
+    "vehicles": 180,
+    "local_people": 854,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "花5",
+      "vehicles": 40,
+      "capacity_vph": 1450,
+      "hours": 0.03,
+      "bridges": []
+     },
+     {
+      "label": "台9 光復路",
+      "vehicles": 32,
+      "capacity_vph": 1450,
+      "hours": 0.02,
+      "bridges": []
+     },
+     {
+      "label": "台8 新興路",
+      "vehicles": 28,
+      "capacity_vph": 1450,
+      "hours": 0.02,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "秀林鄉",
@@ -12873,7 +15120,36 @@
     "[HUALIEN] 順安農宅示範中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.04,
+    "vehicles": 140,
+    "local_people": 1040,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "台9 光復路",
+      "vehicles": 59,
+      "capacity_vph": 1450,
+      "hours": 0.04,
+      "bridges": []
+     },
+     {
+      "label": "花5",
+      "vehicles": 40,
+      "capacity_vph": 1450,
+      "hours": 0.03,
+      "bridges": []
+     },
+     {
+      "label": "美工路",
+      "vehicles": 10,
+      "capacity_vph": 725,
+      "hours": 0.01,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "秀林鄉",
@@ -12959,7 +15235,8 @@
     "[HUALIEN] 順安農宅示範中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "萬榮鄉",
@@ -13021,7 +15298,40 @@
     "[HUALIEN] 大興國小",
     "[HUALIEN] 鳳林國中進德堂"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.06,
+    "vehicles": 248,
+    "local_people": 592,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "台9 花東縱谷公路",
+      "vehicles": 84,
+      "capacity_vph": 1450,
+      "hours": 0.06,
+      "bridges": [
+       "萬里溪橋"
+      ]
+     },
+     {
+      "label": "台11甲 馬太鞍橋",
+      "vehicles": 66,
+      "capacity_vph": 1450,
+      "hours": 0.05,
+      "bridges": [
+       "馬太鞍橋"
+      ]
+     },
+     {
+      "label": "花50 萬森路",
+      "vehicles": 58,
+      "capacity_vph": 1450,
+      "hours": 0.04,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "萬榮鄉",
@@ -13105,7 +15415,40 @@
    "unused": [
     "[HUALIEN] 鳳林國中進德堂"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.14,
+    "vehicles": 560,
+    "local_people": 821,
+    "uncounted_people": 0,
+    "top": [
+     {
+      "label": "台9 中興橋",
+      "vehicles": 196,
+      "capacity_vph": 1450,
+      "hours": 0.14,
+      "bridges": [
+       "中興橋"
+      ]
+     },
+     {
+      "label": "花54 民權街",
+      "vehicles": 128,
+      "capacity_vph": 1450,
+      "hours": 0.09,
+      "bridges": [
+       "大興橋"
+      ]
+     },
+     {
+      "label": "花45",
+      "vehicles": 74,
+      "capacity_vph": 1450,
+      "hours": 0.05,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "萬榮鄉",
@@ -13189,7 +15532,8 @@
    "unused": [
     "[HUALIEN] 鳳林國中進德堂"
    ],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   },
   {
    "township": "卓溪鄉",
@@ -13224,7 +15568,8 @@
    "used": [],
    "full": [],
    "unused": [],
-   "distance_basis": "none"
+   "distance_basis": "none",
+   "drive": null
   },
   {
    "township": "卓溪鄉",
@@ -13289,7 +15634,36 @@
     "[HUALIEN] 長良社區活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": {
+    "max_hours": 0.04,
+    "vehicles": 102,
+    "local_people": 411,
+    "uncounted_people": 50,
+    "top": [
+     {
+      "label": "未命名巷弄",
+      "vehicles": 26,
+      "capacity_vph": 725,
+      "hours": 0.04,
+      "bridges": []
+     },
+     {
+      "label": "花67 太平村聯絡道路",
+      "vehicles": 26,
+      "capacity_vph": 1450,
+      "hours": 0.02,
+      "bridges": []
+     },
+     {
+      "label": "花68/花69",
+      "vehicles": 26,
+      "capacity_vph": 1450,
+      "hours": 0.02,
+      "bridges": []
+     }
+    ]
+   }
   },
   {
    "township": "卓溪鄉",
@@ -13354,7 +15728,8 @@
     "[HUALIEN] 長良社區活動中心"
    ],
    "unused": [],
-   "distance_basis": "road"
+   "distance_basis": "road",
+   "drive": null
   }
  ],
  "shelter_usage": {
