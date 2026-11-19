@@ -408,6 +408,8 @@ class ShelterRepository:
         """
         使用 PostGIS 找出中心點半徑內的避難所。
         回傳 Shelter 物件（跟 get_all_shelters 一致），轉成 API 的 JSON 由 MapService 負責。
+        依名稱排序：最小成本流在成本相同時照避難所的順序決定，沒有 ORDER BY 時順序跟著資料表的實體順序走，
+        模擬回寫收容人數（UPDATE）之後就會變，同一個情境再跑一次分配就不一樣（容量報告的開車人數會差幾個人）
         """
         impacted: list[Shelter] = []
         try:
@@ -419,7 +421,8 @@ class ShelterRepository:
                         geom,
                         ST_SetSRID(ST_Point(%s, %s), 4326)::geography,
                         %s
-                    );
+                    )
+                    ORDER BY name;
                 """
                 cursor.execute(sql, (lon, lat, radius_km * 1000))
                 impacted = [_row_to_shelter(row) for row in cursor.fetchall()]
