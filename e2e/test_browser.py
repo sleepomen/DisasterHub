@@ -264,7 +264,13 @@ def test_capacity_report_page_sorts_and_filters(page):
     shares = [float(t.split("（")[1].rstrip("%）")) for t in
               page.locator("#towns-table tbody td:nth-child(6) .share-text").all_inner_texts()]
     assert shares == sorted(shares, reverse=True)
+    # 開車的道路瓶頸：預設清空最久的排前面
+    roads = page.locator("#bottleneck-table tbody tr")
+    all_roads = roads.count()
+    assert all_roads > 0
+    assert page.locator("#bottleneck-table th:nth-child(6)").get_attribute("aria-sort") == "descending"
     page.click("#county-filter button:has-text('臺東縣')")
     assert towns.count() == 16 and page.locator("#scenarios-table tbody tr").count() == 16
+    assert 0 < roads.count() < all_roads
     assert set(page.locator("#towns-table tbody td:nth-child(1)").all_inner_texts()) == {"臺東縣"}
     assert page.errors == []
