@@ -4,6 +4,7 @@ from services.simulation.bottlenecks import (
     END_EXCLUDED_M,
     capacity_vph,
     counted_edges,
+    fill_missing_refs,
     find_bottlenecks,
     lanes_per_direction,
     road_label,
@@ -117,6 +118,52 @@ def test_each_road_is_listed_once_at_its_slowest_stretch():
     flows = [{"from": "甲村", "to": "A國小", "people": 500}, {"from": "乙村", "to": "A國小", "people": 400}]
     result = find_bottlenecks(flows, paths, {10: edge(name="中正路一段"), 11: edge(name="中正路二段")})
     assert [(g["label"], g["people"]) for g in result["top"]] == [("台9 中正路一段", 900)]
+
+
+def test_a_stretch_without_a_route_number_joins_the_nearby_road_of_the_same_name():
+    """OSM 上宜6 林尾路有一段只寫「林尾路」：不能跟「宜6 林尾路」各列一次，名稱也要帶編號"""
+    paths = {("甲村", "A國小"): route((10, True, 1000.0), (11, True, 1000.0)),
+             ("乙村", "A國小"): route((11, True, 1000.0))}
+    flows = [{"from": "甲村", "to": "A國小", "people": 500}, {"from": "乙村", "to": "A國小", "people": 400}]
+    # 兩條 1 公里的邊，中點相距約 1 公里：相接
+    info = {10: edge(highway="tertiary", ref="宜6", name="林尾路", lat=24.700),
+            11: edge(highway="tertiary", ref="", name="林尾路", lat=24.709)}
+    assert [(g["label"], g["people"]) for g in find_bottlenecks(flows, paths, info)["top"]] == [("宜6 林尾路", 900)]
+
+
+def test_route_numbers_spread_along_a_chain_of_same_name_edges():
+    # 10 有編號；11 接著 10、12 接著 11，但 12 離 10 已經超過一條邊的長度
+    info = {10: edge(ref="宜6", name="林尾路", lat=24.700), 11: edge(ref="", name="林尾路", lat=24.709),
+            12: edge(ref="", name="林尾路", lat=24.718), 13: edge(ref="", name="林尾路", lat=24.800),
+            14: edge(ref="", name="別的路", lat=24.709)}
+    filled = fill_missing_refs(info)
+    assert [filled[i]["ref"] for i in (10, 11, 12, 13, 14)] == ["宜6", "宜6", "宜6", "", ""]
+    # 不改到傳進來的資料
+    assert info[11]["ref"] == ""
+
+
+def test_roads_of_the_same_name_in_other_towns_stay_apart():
+    paths = {("甲村", "A國小"): route((10, True, 1000.0)), ("乙村", "B國小"): route((11, True, 1000.0))}
+    flows = [{"from": "甲村", "to": "A國小", "people": 500}, {"from": "乙村", "to": "B國小", "people": 400}]
+    # 相距 11 公里
+    info = {10: edge(highway="tertiary", ref="宜14", name="中山路一段", lat=24.6),
+            11: edge(highway="tertiary", ref="", name="中山路一段", lat=24.7)}
+    assert [g["label"] for g in find_bottlenecks(flows, paths, info)["top"]] == ["宜14 中山路一段", "中山路一段"]
+
+
+def test_a_shared_stretch_counts_for_both_routes():
+    """
+    台7 與宜18 共線的那一段（7;宜18）：最慢的是它就不再列台7、宜18。
+    台7 自己比較慢時共線段照樣列，因為它是宜18 最慢的一段，之後就不再列宜18
+    """
+    def run(people):
+        paths = {(f"{i}村", "A國小"): route((i, True, 1000.0)) for i in people}
+        flows = [{"from": f"{i}村", "to": "A國小", "people": p} for i, p in people.items()]
+        info = {10: edge(ref="7;宜18"), 11: edge(ref="7"), 12: edge(highway="tertiary", ref="宜18"), 13: edge(ref="11")}
+        return [g["label"] for g in find_bottlenecks(flows, paths, info)["top"]]
+
+    assert run({10: 900, 11: 500, 12: 400, 13: 100}) == ["台7/宜18", "台11"]
+    assert run({10: 500, 11: 900, 12: 400, 13: 100}) == ["台7", "台7/宜18", "台11"]
 
 
 def test_routes_too_short_to_count_are_reported_as_local():
