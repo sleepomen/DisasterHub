@@ -1,6 +1,6 @@
 """
 容量缺口報告的網頁版。報告由 tools/capacity_report.py 產生成 reports/capacity_gap.json，這裡只讀檔，
-不在請求裡重算：116 個情境要 35 秒，而且紅色警戒情境會暫時改動網站上的路線。不需要登入
+不在請求裡重算：116 個情境要 70 秒，而且紅色警戒情境會暫時改動網站上的路線。不需要登入
 """
 import json
 import threading
