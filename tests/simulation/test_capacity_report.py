@@ -1,9 +1,11 @@
-"""容量缺口報告：鄉鎮自有容量、情境摘要、避難所使用情形、報告文字，以及跟模擬 API 共用的目的地篩選"""
+"""容量缺口報告：鄉鎮自有容量、情境摘要、避難所使用情形、開車的道路瓶頸、報告文字，以及跟模擬 API 共用的目的地篩選"""
 from unittest.mock import MagicMock
 
 from models.shelter import Shelter
 from services.simulation.capacity_report import (
+    bottleneck_rows,
     cut_off_villages,
+    drive_summary,
     nobody_placed,
     render_markdown,
     shelter_usage,
@@ -79,6 +81,52 @@ def test_a_circle_without_any_usable_shelter_leaves_everyone_unplaced():
     assert sc["max_ratio"] == 0 and sc["destinations"] == 0
 
 
+def road(label, hours, vehicles=500, capacity=1450, bridges=()):
+    return {"label": label, "vehicles": vehicles, "capacity_vph": capacity, "hours": hours, "bridges": list(bridges),
+            "lat": 23.9, "lon": 121.6, "length_m": 800, "people": vehicles * 2.5, "ref": "9", "name": "", "highway": "primary"}
+
+
+def bottlenecks(*roads, local=700, uncounted=50):
+    return {"top": list(roads), "max_hours": roads[0]["hours"] if roads else 0.0, "vehicles": 900,
+            "local_people": local, "uncounted_people": uncounted, "people_per_vehicle": 2.5, "end_excluded_m": 500}
+
+
+def test_drive_summary_keeps_the_slowest_three_roads_without_map_fields():
+    info = bottlenecks(road("台9 甲", 0.6, bridges=["甲橋"]), road("台11", 0.4), road("縣193", 0.3), road("花71", 0.1))
+    out = drive_summary(info)
+    assert out["top"] == [
+        {"label": "台9 甲", "vehicles": 500, "capacity_vph": 1450, "hours": 0.6, "bridges": ["甲橋"]},
+        {"label": "台11", "vehicles": 500, "capacity_vph": 1450, "hours": 0.4, "bridges": []},
+        {"label": "縣193", "vehicles": 500, "capacity_vph": 1450, "hours": 0.3, "bridges": []},
+    ]
+    assert (out["max_hours"], out["local_people"], out["uncounted_people"]) == (0.6, 700, 50)
+    # 步行或瓶頸查詢失敗
+    assert drive_summary(None) is None
+
+
+def test_summarize_scenario_keeps_the_drive_bottlenecks():
+    plans = {f: plan(800, 0) for f in (0.8, 1.0, 1.2)} | {"all": plan(800, 0)}
+    drive = drive_summary(bottlenecks(road("台9", 0.2)))
+    assert summarize_scenario(TOWNS[0], "flood", 10, POPULATION, [], plans, drive=drive)["drive"] == drive
+    assert summarize_scenario(TOWNS[0], "flood_red", 10, POPULATION, [], plans)["drive"] is None
+
+
+def test_bottleneck_rows_put_the_slowest_scenario_first_and_count_people_left_out():
+    runs = [
+        {"township": "甲鄉", "county": "花蓮縣", "kind": "flood", "drive": drive_summary(bottlenecks(road("台9", 0.2)))},
+        {"township": "乙鄉", "county": "宜蘭縣", "kind": "earthquake",
+         "drive": drive_summary(bottlenecks(road("台2", 0.7), local=100, uncounted=0))},
+        {"township": "丙鄉", "county": "臺東縣", "kind": "flood", "drive": drive_summary(bottlenecks())},
+        {"township": "甲鄉", "county": "花蓮縣", "kind": "flood_red", "drive": None},
+    ]
+    rows = bottleneck_rows(runs)
+    assert [(r["township"], r["kind"], r["max_hours"]) for r in rows] == [
+        ("乙鄉", "earthquake", 0.7), ("甲鄉", "flood", 0.2), ("丙鄉", "flood", 0.0)]
+    assert rows[0]["slowest"]["label"] == "台2" and rows[0]["left_out"] == 100
+    # 路線都太短：有這個情境，但沒有最慢的路段
+    assert rows[2]["slowest"] is None and rows[2]["left_out"] == 750
+
+
 def scenario(town, kind, full=(), used=(), unused=(), cut_off=()):
     return {"township": town, "kind": kind, "full": list(full), "used": list(used), "unused": list(unused),
             "cut_off": [{"village": v, "population": p} for v, p in cut_off]}
@@ -103,8 +151,9 @@ def test_cut_off_villages_count_each_village_once():
     assert cut_off_villages(runs) == {"甲鄉一村": 500, "乙鄉一村": 20}
 
 
-def full_scenario(town, kind, destinations=3, unplaced=(0, 100, 200), cut_off=()):
+def full_scenario(town, kind, destinations=3, unplaced=(0, 100, 200), cut_off=(), drive=None):
     return {
+        "drive": drive,
         "township": town, "county": "花蓮縣", "kind": kind, "radius_km": 10, "covered_population": 9000,
         "destinations": destinations, "unplaced": dict(zip(("0.8", "1.0", "1.2"), unplaced, strict=True)),
         "max_ratio": 0.05 if destinations else 0, "full": [], "used": [], "unused": [],
@@ -121,7 +170,9 @@ def test_markdown_report_states_the_assumptions_and_flags_data_to_check():
         "townships": towns,
         "scenarios": [
             full_scenario("甲鄉", "earthquake", destinations=0, unplaced=(960, 1200, 1440)),
-            full_scenario("甲鄉", "flood"),
+            full_scenario("甲鄉", "flood", drive=drive_summary(bottlenecks(
+                road("台9 中正路一段", 0.66, vehicles=957, capacity=1450, bridges=["一橋", "二橋", "三橋", "四橋"]),
+                road("縣193", 0.2)))),
             full_scenario("甲鄉", "flood_red", cut_off=[("甲鄉一村", 300)]),
         ],
         "shelter_usage": {},
@@ -133,6 +184,10 @@ def test_markdown_report_states_the_assumptions_and_flags_data_to_check():
     assert "| 甲鄉 | 9,000 | 全部 1,200（960～1,440） | 0%（沒有能去的避難所） | 100（0～200） | 5.0% | 1 村里，300 人 |" in text
     assert "| 乙鄉 | — | — | — | — | — | —（無潛勢溪流） |" in text
     assert "會讓 1 個村里完全沒有安全道路" in text
+    # 開車的道路瓶頸：重點一句、表格一列（橋最多列三座），限制裡說明是下限
+    assert "開車疏散時最塞的是甲鄉淹水的 台9 中正路一段：約 957 輛車，約 40 分鐘才能全部通過；1 個情境裡有 1 個有路段要 30 分鐘以上" in text
+    assert "| 甲鄉 | 淹水 | 台9 中正路一段（經過一橋、二橋、三橋等 4 座橋） | 957 | 1,450 | 約 40 分鐘 | 750 |" in text
+    assert "開車的道路瓶頸是下限" in text
 
 
 def test_destinations_skip_hazard_zones_and_undesignated_shelters():

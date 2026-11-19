@@ -26,6 +26,9 @@ def scenario(name, kind, cut_off=()):
         "destinations": 3, "unplaced": {"0.8": 0, "1.0": 100, "1.2": 200}, "max_ratio": 0.05,
         "cut_off": [{"village": v, "population": p} for v, p in cut_off], "unreachable": ["[HUALIEN] 乙"],
         "used": ["[HUALIEN] 甲"], "full": ["[HUALIEN] 甲"], "unused": ["[HUALIEN] 乙", "[HUALIEN] 丙"],
+        "drive": None if kind == "flood_red" else {
+            "max_hours": 0.3, "vehicles": 400, "local_people": 600, "uncounted_people": 0,
+            "top": [{"label": "台9", "vehicles": 400, "capacity_vph": 1450, "hours": 0.3, "bridges": []}]},
     }
 
 
@@ -43,7 +46,10 @@ REPORT = {
 
 def test_page_view_drops_the_per_scenario_shelter_lists():
     view = page_view(REPORT)
-    assert {"used", "full", "unused", "unreachable"}.isdisjoint(view["scenarios"][0])
+    assert {"used", "full", "unused", "unreachable", "drive"}.isdisjoint(view["scenarios"][0])
+    # 道路瓶頸另外一張表：強震與淹水各一列
+    assert [(r["kind"], r["slowest"]["label"], r["left_out"]) for r in view["bottlenecks"]] == [
+        ("earthquake", "台9", 600), ("flood", "台9", 600)]
     assert (view["scenarios"][0]["full_count"], view["scenarios"][0]["unused_count"]) == (1, 2)
     assert view["cut_off"] == [{"township": "甲鄉", "village": "甲鄉二村", "population": 900},
                                {"township": "甲鄉", "village": "甲鄉一村", "population": 300}]
