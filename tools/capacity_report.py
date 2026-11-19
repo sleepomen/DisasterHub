@@ -6,6 +6,8 @@
 但不寫資料庫：避難所一律當成空的，結果只跟資料有關，同樣的資料一定得到同樣的報告。
 整理與輸出在 services/simulation/capacity_report.py。
 
+強震與淹水另外用開車跑一次基準疏散比例，記下最塞的路段（services/simulation/bottlenecks.py，跟地圖上選開車一樣）。
+
 紅色警戒情境會暫時在 hazard_alerts 寫入來源為 capacity_report 的警戒（10 分鐘後自動失效），
 跑完就刪掉；跑的這段時間網站上的路線也會繞開這些範圍。
 
@@ -28,9 +30,16 @@ sys.path.insert(0, ROOT)
 
 from repositories.shelter_repository import ShelterRepository  # noqa: E402
 from services.chat.replies import SHELTER_DATASET_UPDATED  # noqa: E402
-from services.geo.routing import evacuation_road_distances, solve_assignment  # noqa: E402
+from services.geo.routing import (  # noqa: E402
+    attach_evacuation_paths,
+    evacuation_bottlenecks,
+    evacuation_road_distances,
+    solve_assignment,
+)
+from services.simulation.bottlenecks import END_EXCLUDED_M, PEOPLE_PER_VEHICLE  # noqa: E402
 from services.simulation.capacity_report import (  # noqa: E402
     DEMAND_FACTORS,
+    drive_summary,
     nobody_placed,
     render_markdown,
     shelter_usage,
@@ -61,6 +70,18 @@ def with_people(origins: list[Origin], road_m: dict, people: dict[str, int]) -> 
     return out, {(index[i], j): c for (i, j), c in road_m.items() if i in index}
 
 
+def drive_bottlenecks(repo, population: dict, lat: float, lon: float, dest: list, hazard: str | None) -> dict | None:
+    """
+    開車時的道路瓶頸：基準疏散比例、同一組目的地，分配與路線都改成開車，跟地圖上選開車模擬一樣。
+    開車的分配不一定跟步行相同（時間成本不同），所以要重解一次，不能拿步行的分配來算
+    """
+    origins = origins_from(population, lat, lon)
+    road_m = evacuation_road_distances(repo, origins, dest, hazard, "drive")
+    plan = plan_evacuation(origins, dest, road_m, "drive", functools.partial(solve_assignment, repo))
+    paths = attach_evacuation_paths(repo, origins, dest, plan["flows"], hazard, "drive")
+    return drive_summary(evacuation_bottlenecks(repo, plan["flows"], paths, "drive"))
+
+
 def run_scenario(repo, model, town: dict, kind: str, alerts: int = 0) -> dict | None:
     sim_type = "flood" if kind == "flood_red" else kind
     lat, lon = town["lat"], town["lon"]
@@ -86,8 +107,11 @@ def run_scenario(repo, model, town: dict, kind: str, alerts: int = 0) -> dict | 
         people = {o.name: o.people for o in origins_from(scaled, lat, lon)}
         origins, costs = with_people(everyone, road_m, people)
         plans[factor] = plan_evacuation(origins, dest, costs, MODE, solve)
+    # 紅色警戒情境看的是被切斷的村里，不另外跑開車
+    drive = None if kind == "flood_red" else drive_bottlenecks(repo, population, lat, lon, dest, chosen.hazard)
     return summarize_scenario(town, kind, RADIUS_KM, population, dest, plans,
-                              excluded=len(chosen.excluded), not_designated=len(chosen.undesignated), alerts=alerts)
+                              excluded=len(chosen.excluded), not_designated=len(chosen.undesignated), alerts=alerts,
+                              drive=drive)
 
 
 def debris_refs(repo) -> dict[str, list[str]]:
@@ -125,6 +149,7 @@ def meta(repo, model) -> dict:
         "radius_km": RADIUS_KM, "mode": MODE,
         "evacuation_ratios": {k: EVAC_RATIO[k] for k in ("earthquake", "flood")},
         "demand_factors": list(DEMAND_FACTORS),
+        "drive": {"people_per_vehicle": PEOPLE_PER_VEHICLE, "end_excluded_m": END_EXCLUDED_M},
     }
 
 
