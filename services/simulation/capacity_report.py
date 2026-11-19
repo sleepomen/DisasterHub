@@ -8,9 +8,13 @@
    疏散比例是假設，所以未安置人數一律給 ×0.8～×1.2 的範圍，另外給「所有受影響的人都疏散時最多能安置多少」，
    這個上限不受疏散比例影響
 
-重點、核對清單、被切斷的村里由這裡的函式算一次，Markdown 報告（render_markdown）與網頁（page_view → /report）共用
+3. 開車時的道路瓶頸：強震與淹水另外用開車跑一次基準比例，每個情境記下清空最久的幾條路（下限，見 bottlenecks.py）
+
+重點、核對清單、被切斷的村里、道路瓶頸由這裡的函式算一次，Markdown 報告（render_markdown）與網頁（page_view → /report）共用
 """
+from services.simulation.bottlenecks import END_EXCLUDED_M, PEOPLE_PER_VEHICLE
 from services.simulation.evacuation import DESIGNATED_HAZARD, undesignated
+from services.simulation.text import clearance_text
 
 # 疏散比例的不確定範圍：戶籍人口跟當下實際在那裡的人不同（evals/run_sensitivity_eval.py 同一組）
 DEMAND_FACTORS = (0.8, 1.0, 1.2)
@@ -19,6 +23,10 @@ COUNTY_ORDER = ("宜蘭縣", "花蓮縣", "臺東縣")
 # 鄉鎮自有容量低於這個比例就列為缺口最大的鄉鎮
 LOW_SHARE = 0.05
 TOP = 10
+# 每個情境存幾條最塞的路（報告只列最慢的一條，其他留在 JSON 裡）
+DRIVE_TOP = 3
+# 道路瓶頸要這麼久以上才在重點裡另外點出來
+SLOW_HOURS = 0.5
 
 LIMITATIONS = (
     "人口是戶籍人口，不是當下實際在那裡的人（觀光客、通勤、外地工作都沒算）。",
@@ -26,6 +34,8 @@ LIMITATIONS = (
     "每個村里只有一個起點（最大的聚落），通行時間只能當量級看。",
     "容量照登記的算，沒有扣掉受損或不能用的空間；敏感度分析見 docs/evaluation.md。",
     "紅色警戒情境假設整個鄉鎮的潛勢溪流同時發布紅色警戒，比實際常見的情況嚴重。",
+    f"開車的道路瓶頸是下限：假設所有人同時出發、每車 {PEOPLE_PER_VEHICLE} 人、全部是小客車，沒有算路口號誌與回堵；"
+    f"每條路線頭尾各 {END_EXCLUDED_M} 公尺不算，路線比這短的人（市區很多）沒有算進任何路段。",
 )
 
 
@@ -73,13 +83,26 @@ def nobody_placed(evacuees: int) -> dict:
             "distance_basis": "none"}
 
 
+def drive_summary(info: dict | None) -> dict | None:
+    """evacuation_bottlenecks 的結果只留報告要的：最慢幾條路與沒算進來的人數（地圖座標、路段長度不要）"""
+    if not info:
+        return None
+    return {
+        "max_hours": info["max_hours"], "vehicles": info["vehicles"],
+        "local_people": info["local_people"], "uncounted_people": info["uncounted_people"],
+        "top": [{k: g[k] for k in ("label", "vehicles", "capacity_vph", "hours", "bridges")}
+                for g in info["top"][:DRIVE_TOP]],
+    }
+
+
 def summarize_scenario(
     town: dict, kind: str, radius_km: float, population: dict, destinations: list,
-    plans: dict, excluded: int = 0, not_designated: int = 0, alerts: int = 0,
+    plans: dict, excluded: int = 0, not_designated: int = 0, alerts: int = 0, drive: dict | None = None,
 ) -> dict:
     """
     一個情境的結果。plans 是 {疏散人數倍率: plan_evacuation 的結果}，另外 "all" 是所有受影響的人都疏散時的結果。
-    滿載、沒用到的避難所看基準（倍率 1.0）的分配；被切斷的村里看 "all"（人越多，沒有路可走的村里越不會漏掉）
+    滿載、沒用到的避難所看基準（倍率 1.0）的分配；被切斷的村里看 "all"（人越多，沒有路可走的村里越不會漏掉）。
+    drive 是 drive_summary 的結果（開車的道路瓶頸），沒有跑開車是 None
     """
     base, everyone = plans[1.0], plans["all"]
     weights = {v["name"]: v["weight"] for v in population.get("villages", [])}
@@ -104,6 +127,7 @@ def summarize_scenario(
         "full": sorted(n for n, c in capacity.items() if c > 0 and base["assigned"].get(n, 0) >= c),
         "unused": sorted(n for n, c in capacity.items() if c > 0 and base["assigned"].get(n, 0) == 0),
         "distance_basis": everyone["distance_basis"],
+        "drive": drive,
     }
 
 
@@ -154,6 +178,32 @@ def cut_off_villages(scenarios: list[dict]) -> dict[str, int]:
     return out
 
 
+def bottleneck_rows(scenarios: list[dict]) -> list[dict]:
+    """
+    每個有跑開車的情境一列：最慢的路段（沒有算得出來的路段是 None）與沒算進來的人數，清空最久的排前面。
+    Markdown 與網頁共用
+    """
+    rows = []
+    for sc in scenarios:
+        drive = sc.get("drive")
+        if not drive:
+            continue
+        rows.append({
+            "township": sc["township"], "county": sc["county"], "kind": sc["kind"],
+            "max_hours": drive["max_hours"], "slowest": (drive["top"] or [None])[0],
+            "vehicles": drive["vehicles"], "left_out": drive["local_people"] + drive["uncounted_people"],
+        })
+    return sorted(rows, key=lambda r: (-r["max_hours"], r["township"], r["kind"]))
+
+
+def _bridges(road: dict) -> str:
+    bridges = road.get("bridges") or []
+    if not bridges:
+        return ""
+    shown = "、".join(bridges[:3])
+    return f"（經過{shown}{f'等 {len(bridges)} 座橋' if len(bridges) > 3 else ''}）"
+
+
 def _short(name: str) -> str:
     return name.split("] ", 1)[-1]
 
@@ -187,6 +237,17 @@ def highlights(report: dict) -> list[str]:
         out.append(
             f"未安置人數最多的情境是{worst['township']}{KIND_LABELS[worst['kind']]}：{_range(worst)} 人無法安置。"
             f"不管疏散比例怎麼假設，這一圈的避難所最多只夠 {_pct(worst['max_ratio'])} 的受影響人口。"
+        )
+    roads = [r for r in bottleneck_rows(scenarios) if r["slowest"]]
+    if roads:
+        worst, slow = roads[0], [r for r in roads if r["max_hours"] >= SLOW_HOURS]
+        road = worst["slowest"]
+        rest = (f"{len(roads)} 個情境裡有 {len(slow)} 個有路段要 {SLOW_HOURS * 60:.0f} 分鐘以上" if slow
+                else f"其餘 {len(roads) - 1} 個情境都在 {SLOW_HOURS * 60:.0f} 分鐘內")
+        out.append(
+            f"開車疏散時最塞的是{worst['township']}{KIND_LABELS[worst['kind']]}的 {road['label']}："
+            f"約 {_people(road['vehicles'])} 輛車，{clearance_text(road['hours'])}才能全部通過；{rest}。"
+            "這是所有人同時出發、沒有算路口的下限，但跟收容容量的缺口比，道路不是主要的限制。"
         )
     reds = [sc for sc in scenarios if sc["kind"] == "flood_red" and sc["cut_off"]]
     if reds:
@@ -242,9 +303,9 @@ def never_used(usage: dict) -> list[str]:
 
 
 def page_view(report: dict) -> dict:
-    """網頁要的部分。不帶每個情境的避難所清單（完整的 JSON 有 450 KB，網頁版不到 100 KB）"""
+    """網頁要的部分。不帶每個情境的避難所清單（完整的 JSON 有 500 KB，網頁版不到 100 KB）"""
     slim = [
-        {k: v for k, v in sc.items() if k not in ("used", "full", "unused", "unreachable")}
+        {k: v for k, v in sc.items() if k not in ("used", "full", "unused", "unreachable", "drive")}
         | {"full_count": len(sc["full"]), "unused_count": len(sc["unused"])}
         for sc in report["scenarios"]
     ]
@@ -253,6 +314,7 @@ def page_view(report: dict) -> dict:
         "limitations": list(LIMITATIONS), "townships": report["townships"], "scenarios": slim,
         "cut_off": cut_rows(report["scenarios"]), "busiest": busiest(report["shelter_usage"]),
         "never_used": never_used(report["shelter_usage"]),
+        "bottlenecks": bottleneck_rows(report["scenarios"]),
         "main_scenarios": sum(sc["kind"] != "flood_red" for sc in report["scenarios"]),
     }
 
@@ -343,6 +405,30 @@ def render_markdown(report: dict) -> str:
     if cut:
         out += ["", "### 紅色警戒時被切斷的村里", "", "| 警戒鄉鎮 | 村里 | 受影響人口 |", "|---|---|---:|"]
         out += [f"| {r['township']} | {r['village']} | {_people(r['population'])} |" for r in cut[:TOP * 2]]
+
+    roads = bottleneck_rows(scenarios)
+    if roads:
+        drive = meta.get("drive") or {}
+        out += [
+            "", "### 開車時的道路瓶頸", "",
+            "強震與淹水另外用開車跑一次基準疏散比例（跟地圖上選開車一樣），每個情境列清空最久的一段路："
+            "車輛數除以那段路每小時的容量。這是下限：所有人同時出發、"
+            f"每車 {drive.get('people_per_vehicle', PEOPLE_PER_VEHICLE)} 人、沒有算路口號誌與回堵。"
+            f"每條路線頭尾各 {drive.get('end_excluded_m', END_EXCLUDED_M)} 公尺不算，"
+            "路線比這短的人和沒有道路路線的人列在「沒算進來的人」。"
+            f"下面是最慢的 {min(TOP, len(roads))} 個情境，全部 {len(roads)} 個在 `/report`。",
+            "",
+            "| 中心鄉鎮 | 災害 | 最塞的路段 | 車輛 | 每小時容量 | 清空時間 | 沒算進來的人 |",
+            "|---|---|---|---:|---:|---:|---:|",
+        ]
+        for r in roads[:TOP]:
+            road = r["slowest"]
+            if road:
+                cells = (f"{road['label']}{_bridges(road)}", _people(road["vehicles"]),
+                         _people(road["capacity_vph"]), clearance_text(road["hours"]))
+            else:
+                cells = ("算不出來（路線都太短）", "—", "—", "—")
+            out.append(f"| {r['township']} | {KIND_LABELS[r['kind']]} | {' | '.join(cells)} | {_people(r['left_out'])} |")
 
     usage = report["shelter_usage"]
     full, unused = busiest(usage), never_used(usage)
