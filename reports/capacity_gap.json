@@ -1,6 +1,6 @@
 {
  "meta": {
-  "generated_at": "2026-11-19 00:56",
+  "generated_at": "2026-11-19 02:01",
   "shelter_dataset_updated": "2025-12-16",
   "population_month": "民國 115 年 9 月",
   "villages": 554,
@@ -1195,8 +1195,8 @@
    "distance_basis": "road",
    "drive": {
     "max_hours": 0.69,
-    "vehicles": 4661,
-    "local_people": 9686,
+    "vehicles": 4642,
+    "local_people": 9734,
     "uncounted_people": 78,
     "top": [
      {
@@ -1207,17 +1207,17 @@
       "bridges": []
      },
      {
-      "label": "中山路一段",
+      "label": "宜18 中山路一段",
       "vehicles": 737,
       "capacity_vph": 1450,
       "hours": 0.51,
       "bridges": []
      },
      {
-      "label": "宜18 中山路一段",
-      "vehicles": 737,
+      "label": "宜14 中山路一段",
+      "vehicles": 668,
       "capacity_vph": 1450,
-      "hours": 0.51,
+      "hours": 0.46,
       "bridges": []
      }
     ]
@@ -1527,14 +1527,14 @@
       "bridges": []
      },
      {
-      "label": "未命名產業道路",
+      "label": "宜6 林尾路",
       "vehicles": 255,
       "capacity_vph": 725,
       "hours": 0.35,
       "bridges": []
      },
      {
-      "label": "林尾路",
+      "label": "未命名產業道路",
       "vehicles": 255,
       "capacity_vph": 725,
       "hours": 0.35,
@@ -3207,8 +3207,8 @@
    "distance_basis": "road",
    "drive": {
     "max_hours": 0.19,
-    "vehicles": 2434,
-    "local_people": 6717,
+    "vehicles": 2360,
+    "local_people": 6904,
     "uncounted_people": 0,
     "top": [
      {
@@ -3465,14 +3465,14 @@
       "bridges": []
      },
      {
-      "label": "未命名產業道路",
+      "label": "宜6 林尾路",
       "vehicles": 255,
       "capacity_vph": 725,
       "hours": 0.35,
       "bridges": []
      },
      {
-      "label": "林尾路",
+      "label": "未命名產業道路",
       "vehicles": 255,
       "capacity_vph": 725,
       "hours": 0.35,
@@ -3966,8 +3966,8 @@
    "distance_basis": "road",
    "drive": {
     "max_hours": 0.31,
-    "vehicles": 3206,
-    "local_people": 9032,
+    "vehicles": 3181,
+    "local_people": 9095,
     "uncounted_people": 73,
     "top": [
      {
@@ -3985,10 +3985,10 @@
       "bridges": []
      },
      {
-      "label": "中山路五段",
-      "vehicles": 273,
+      "label": "宜興路三段",
+      "vehicles": 211,
       "capacity_vph": 1450,
-      "hours": 0.19,
+      "hours": 0.15,
       "bridges": []
      }
     ]
@@ -4548,8 +4548,8 @@
    "distance_basis": "road",
    "drive": {
     "max_hours": 0.5,
-    "vehicles": 4114,
-    "local_people": 7057,
+    "vehicles": 4101,
+    "local_people": 7091,
     "uncounted_people": 78,
     "top": [
      {
@@ -4560,17 +4560,17 @@
       "bridges": []
      },
      {
-      "label": "中山路一段",
+      "label": "宜18 中山路一段",
       "vehicles": 536,
       "capacity_vph": 1450,
       "hours": 0.37,
       "bridges": []
      },
      {
-      "label": "宜18 中山路一段",
-      "vehicles": 536,
+      "label": "宜14 中山路一段",
+      "vehicles": 521,
       "capacity_vph": 1450,
-      "hours": 0.37,
+      "hours": 0.36,
       "bridges": []
      }
     ]
@@ -4861,7 +4861,7 @@
       "bridges": []
      },
      {
-      "label": "未命名產業道路",
+      "label": "宜6 林尾路",
       "vehicles": 255,
       "capacity_vph": 725,
       "hours": 0.35,
@@ -6457,8 +6457,8 @@
    "distance_basis": "road",
    "drive": {
     "max_hours": 0.2,
-    "vehicles": 2089,
-    "local_people": 12698,
+    "vehicles": 2093,
+    "local_people": 12688,
     "uncounted_people": 78,
     "top": [
      {
@@ -6661,8 +6661,8 @@
    "distance_basis": "road",
    "drive": {
     "max_hours": 0.3,
-    "vehicles": 1836,
-    "local_people": 4352,
+    "vehicles": 1823,
+    "local_people": 4384,
     "uncounted_people": 78,
     "top": [
      {
@@ -6673,13 +6673,6 @@
       "bridges": []
      },
      {
-      "label": "中山路一段",
-      "vehicles": 168,
-      "capacity_vph": 1450,
-      "hours": 0.12,
-      "bridges": []
-     },
-     {
       "label": "凱旋橋",
       "vehicles": 168,
       "capacity_vph": 1450,
@@ -6687,6 +6680,13 @@
       "bridges": [
        "凱旋橋"
       ]
+     },
+     {
+      "label": "宜14 中山路一段",
+      "vehicles": 168,
+      "capacity_vph": 1450,
+      "hours": 0.12,
+      "bridges": []
      }
     ]
    }
@@ -9155,18 +9155,20 @@
       ]
      },
      {
-      "label": "中山路",
+      "label": "台23 中山路",
       "vehicles": 23,
       "capacity_vph": 725,
       "hours": 0.03,
       "bridges": []
      },
      {
-      "label": "台23 富東公路",
-      "vehicles": 30,
+      "label": "台20 南部橫貫公路",
+      "vehicles": 28,
       "capacity_vph": 1450,
       "hours": 0.02,
-      "bridges": []
+      "bridges": [
+       "愛砂卡橋"
+      ]
      }
     ]
    }
@@ -9228,8 +9230,8 @@
     "[TAITUNG] 臺東縣池上鄉萬安國民小學振興分校",
     "[TAITUNG] 臺東縣立池上國民中學",
     "[TAITUNG] 萬安村辦公處",
+    "[TAITUNG] 豐泉活動中心",
     "[TAITUNG] 錦園村辦公處",
-    "[TAITUNG] 關山鎮德高國民小學",
     "[TAITUNG] 關山鎮關山國民小學",
     "[TAITUNG] 陸安聚會所"
    ],
@@ -9263,8 +9265,8 @@
     "[TAITUNG] 陸安聚會所"
    ],
    "unused": [
-    "[TAITUNG] 豐泉活動中心",
     "[TAITUNG] 里壠活動中心",
+    "[TAITUNG] 關山鎮德高國民小學",
     "[TAITUNG] 關山鎮老人文康活動中心"
    ],
    "distance_basis": "road",
@@ -9355,8 +9357,8 @@
     "[TAITUNG] 臺東縣池上鄉萬安國民小學振興分校",
     "[TAITUNG] 臺東縣立池上國民中學",
     "[TAITUNG] 萬安村辦公處",
+    "[TAITUNG] 豐泉活動中心",
     "[TAITUNG] 錦園村辦公處",
-    "[TAITUNG] 關山鎮德高國民小學",
     "[TAITUNG] 關山鎮關山國民小學",
     "[TAITUNG] 陸安聚會所"
    ],
@@ -9390,8 +9392,8 @@
     "[TAITUNG] 陸安聚會所"
    ],
    "unused": [
-    "[TAITUNG] 豐泉活動中心",
     "[TAITUNG] 里壠活動中心",
+    "[TAITUNG] 關山鎮德高國民小學",
     "[TAITUNG] 關山鎮老人文康活動中心"
    ],
    "distance_basis": "road",
@@ -9894,8 +9896,8 @@
    "distance_basis": "road",
    "drive": {
     "max_hours": 0.06,
-    "vehicles": 259,
-    "local_people": 183,
+    "vehicles": 263,
+    "local_people": 172,
     "uncounted_people": 0,
     "top": [
      {
@@ -10519,8 +10521,8 @@
     "[TAITUNG] 臺東縣池上鄉福原國民小學",
     "[TAITUNG] 臺東縣池上鄉萬安國民小學振興分校",
     "[TAITUNG] 萬安村辦公處",
-    "[TAITUNG] 豐泉活動中心",
     "[TAITUNG] 錦園村辦公處",
+    "[TAITUNG] 關山鎮德高國民小學",
     "[TAITUNG] 關山鎮關山國民小學",
     "[TAITUNG] 陸安聚會所"
    ],
@@ -10537,8 +10539,8 @@
     "[TAITUNG] 德高活動中心",
     "[TAITUNG] 臺東縣池上鄉萬安國民小學",
     "[TAITUNG] 臺東縣立池上國民中學",
+    "[TAITUNG] 豐泉活動中心",
     "[TAITUNG] 里壠活動中心",
-    "[TAITUNG] 關山鎮德高國民小學",
     "[TAITUNG] 關山鎮老人文康活動中心"
    ],
    "distance_basis": "road",
@@ -10623,7 +10625,6 @@
     "[TAITUNG] 臺東縣池上鄉萬安國民小學振興分校",
     "[TAITUNG] 臺東縣立池上國民中學",
     "[TAITUNG] 萬安村辦公處",
-    "[TAITUNG] 豐泉活動中心",
     "[TAITUNG] 里壠活動中心",
     "[TAITUNG] 錦園村辦公處",
     "[TAITUNG] 關山鎮德高國民小學",
@@ -10641,10 +10642,10 @@
     "[TAITUNG] 福文村辦公處",
     "[TAITUNG] 米鄉-池上文化館",
     "[TAITUNG] 臺東縣池上鄉萬安國民小學",
-    "[TAITUNG] 豐泉活動中心",
     "[TAITUNG] 陸安聚會所"
    ],
    "unused": [
+    "[TAITUNG] 豐泉活動中心",
     "[TAITUNG] 關山鎮老人文康活動中心"
    ],
    "distance_basis": "road",
@@ -10729,7 +10730,6 @@
     "[TAITUNG] 臺東縣池上鄉萬安國民小學振興分校",
     "[TAITUNG] 臺東縣立池上國民中學",
     "[TAITUNG] 萬安村辦公處",
-    "[TAITUNG] 豐泉活動中心",
     "[TAITUNG] 里壠活動中心",
     "[TAITUNG] 錦園村辦公處",
     "[TAITUNG] 關山鎮德高國民小學",
@@ -10747,10 +10747,10 @@
     "[TAITUNG] 福文村辦公處",
     "[TAITUNG] 米鄉-池上文化館",
     "[TAITUNG] 臺東縣池上鄉萬安國民小學",
-    "[TAITUNG] 豐泉活動中心",
     "[TAITUNG] 陸安聚會所"
    ],
    "unused": [
+    "[TAITUNG] 豐泉活動中心",
     "[TAITUNG] 關山鎮老人文康活動中心"
    ],
    "distance_basis": "road",
@@ -13206,8 +13206,8 @@
    "distance_basis": "road",
    "drive": {
     "max_hours": 0.08,
-    "vehicles": 698,
-    "local_people": 6107,
+    "vehicles": 716,
+    "local_people": 6060,
     "uncounted_people": 0,
     "top": [
      {
@@ -14110,12 +14110,12 @@
       ]
      },
      {
-      "label": "縣193 山興路",
-      "vehicles": 198,
+      "label": "台9 中興橋",
+      "vehicles": 197,
       "capacity_vph": 1450,
       "hours": 0.14,
       "bridges": [
-       "興益橋"
+       "中興橋"
       ]
      }
     ]
@@ -14726,7 +14726,7 @@
     "uncounted_people": 0,
     "top": [
      {
-      "label": "中山路",
+      "label": "台23 中山路",
       "vehicles": 31,
       "capacity_vph": 725,
       "hours": 0.04,
@@ -17199,9 +17199,9 @@
    "unused": 0
   },
   "[TAITUNG] 豐泉活動中心": {
-   "used": 4,
-   "full": 3,
-   "unused": 2
+   "used": 3,
+   "full": 2,
+   "unused": 3
   },
   "[TAITUNG] 里壠活動中心": {
    "used": 3,
