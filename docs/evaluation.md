@@ -16,6 +16,7 @@ negatives 10/10 rejected by the rules layer
 ```
 
 - **Single-answer questions are saturated.** 「馬蘭榮家」, an abbreviation of 行政院國軍退除役官兵輔導委員會馬蘭榮譽國民之家, used to be the one miss. bge-m3 does connect it: the approximate search was skipping the closest document, fixed on 2026-11-11 (see [Ablation](#ablation)). Rerun after the fix as `--label ablation_rules_dense`.
+- **Rerun after restoring the missing characters in shelter names (2026-11-19, `--label rag_after_names`).** The source data had `?` where a character was outside the encoding (台?活動中心 is 台坂活動中心). Every score is the same as `ablation_rules_dense`. The 19 questions whose lists changed only show the restored names, plus a different pick among equal-ranked shelters in 台東縣的避難所.
 - **List recall is low by design.** Listing questions now average 35.8 correct shelters each. A filtered result returns at most 30 shelters, and above 15 matches the prompt gets the overview with 10. Region questions (≈ 200 each) score R@all 0.047, and that is exactly what the model is shown.
 - **What the listing numbers mean now.** Precision on listing questions stays at 0.951: whatever is returned matches the condition. For listings, the useful number is now whether the answer gives the right total and distribution, not R@all.
 
@@ -132,6 +133,8 @@ DisasterHub/
 > | **+ exact vector search, rerun with the database (2026-11-11)** | **0.697** | **0.860** | **0.602** | 0.000 | 0.000 | 1.000 | 1.000 | 1.000 | **0.3 s** |
 >
 > The 2026-11-11 row is a rerun after the [search fix](#ablation) (`--label official_gen_after_hnsw_fix`). Two answers changed. 「淡江蘭陽校區」: the approximate index had skipped the shelter, so the model never saw it; now it names it. 「知本附近」: the place-name answers added after 2026-10-29 need the database, which this evaluation did not connect (that question returned the generic error message); it now uses the database like the live site, so the question is answered by code and the model writes 5 answers instead of 6. The boundary evaluation is unchanged at 53/53.
+>
+> Rerun on 2026-11-19 after restoring the missing characters in shelter names (`--label gen_after_names`): the same scores except answer precision (0.860 → 0.862, micro 0.910 → 0.911). The only changed score is 「淡江蘭陽校區」, one of the five answers the model writes, which this time left out seven unrelated 蘭嶼 schools; with temperature 0.3 that is the model's own variation, not the data. The boundary evaluation stays at 53/53, and all 12 nonexistent shelters are acknowledged as missing.
 >
 > The 2026-10-29 row is the [direct answers](chat.md#direct-answers) change: 201 of the 207 questions no longer call the model, p95 latency dropped from 61.5 s to 0.5 s, and a paired bootstrap against the previous run puts every gain outside zero (answer recall +0.050 [+0.021, +0.084], precision +0.028 [+0.005, +0.052], complete +0.076 [+0.035, +0.122], micro). `halluc` and `num_ok` are true by construction for answers written by code (they are scored against the answer's own source data), so the meaningful columns are `ansR` / `ansP` / `full`. What the gains measure is the model no longer dropping or misplacing shelters while copying them: named questions went from 0.954 to 1.000, facility lists from 0.412 to 0.535 complete. Listing recall stays low by design (the overview shows ten of a region's 200).
 >
