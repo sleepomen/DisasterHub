@@ -18,7 +18,8 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
-from repositories.shelter_repository import ROAD_SNAP_M, ShelterRepository  # noqa: E402
+from repositories.roads import ROAD_SNAP_M  # noqa: E402
+from repositories.shelter_repository import ShelterRepository  # noqa: E402
 from services.simulation.population import PopulationModel, distance_km  # noqa: E402
 
 RESULTS = os.path.join(ROOT, "evals", "results", "coordinate_check.json")
