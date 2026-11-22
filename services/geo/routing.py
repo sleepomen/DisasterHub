@@ -19,7 +19,7 @@
 import logging
 
 from models.travel import DEFAULT_MODE, minutes
-from repositories.shelter_repository import ORIGIN_SNAP_M
+from repositories.roads import ORIGIN_SNAP_M
 from services.simulation.bottlenecks import find_bottlenecks
 from services.simulation.min_cost_flow import min_cost_flow
 from services.web.metrics import metrics
