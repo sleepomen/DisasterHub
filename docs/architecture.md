@@ -73,7 +73,12 @@ DisasterHub/
 │   └── shelter.py              # Shelter + NearbyShelter (shelter plus a per-query distance)
 │
 ├── repositories/
-│   └── shelter_repository.py   # PostGIS queries (pooling, batch upsert, schema migration)
+│   ├── shelter_repository.py   # ShelterRepository: the one entry point, combines the modules below, creates the schema
+│   ├── db.py                   # Connection pool and transactions
+│   ├── shelters.py             # Shelters: batch upsert, occupancy, radius and nearest queries
+│   ├── hazards.py              # Hazard zones, roads crossing them, live alerts
+│   ├── roads.py                # Road network import, snapping, route costs and paths (pgRouting)
+│   └── assignment.py           # Min-cost flow for evacuation assignment
 │
 ├── services/
 │   ├── chat/                   # Question answering

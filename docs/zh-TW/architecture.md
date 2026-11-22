@@ -73,7 +73,12 @@ DisasterHub/
 │   └── shelter.py              # Shelter 與 NearbyShelter（避難所 + 該次查詢的距離）
 │
 ├── repositories/
-│   └── shelter_repository.py   # PostGIS 查詢（連線池、批次 upsert、schema migration）
+│   ├── shelter_repository.py   # ShelterRepository：資料庫唯一入口，組合下面幾個模組並建立 schema
+│   ├── db.py                   # 連線池與交易
+│   ├── shelters.py             # 避難所：批次 upsert、收容人數、半徑與最近距離查詢
+│   ├── hazards.py              # 災害潛勢區域、穿過範圍的道路、即時警戒
+│   ├── roads.py                # 路網匯入、吸附、路線成本與路徑（pgRouting）
+│   └── assignment.py           # 疏散分配的最小成本流
 │
 ├── services/
 │   ├── chat/                   # 問答流程
