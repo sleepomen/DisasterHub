@@ -4,7 +4,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from models.shelter import Shelter
-from repositories.shelter_repository import CAUTION_FACTOR, ShelterRepository
+from repositories.roads import CAUTION_FACTOR
+from repositories.shelter_repository import ShelterRepository
 from services.geo.hazard_alerts import AlertFormatError, parse_debris_alerts, refresh_alerts
 from services.simulation.evacuation import Origin, plan_evacuation
 from services.simulation.text import route_lines

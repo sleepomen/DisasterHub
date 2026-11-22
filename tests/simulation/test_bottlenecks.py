@@ -1,5 +1,5 @@
 """services/simulation/bottlenecks.py：開車疏散的道路瓶頸與清空時間"""
-from repositories.shelter_repository import RoadPath
+from repositories.roads import RoadPath
 from services.simulation.bottlenecks import (
     END_EXCLUDED_M,
     capacity_vph,

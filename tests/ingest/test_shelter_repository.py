@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from psycopg2.pool import PoolError
 
-from repositories import shelter_repository
+from repositories import db, shelters
 from repositories.shelter_repository import ShelterRepository
 
 
@@ -18,9 +18,9 @@ def fake_pool(getconn_results):
 def test_cursor_waits_for_a_free_connection_when_pool_is_exhausted():
     # 同時進來的請求超過池子大小時，等一下再拿，而不是立刻 500
     pool, conn = fake_pool([PoolError("exhausted"), PoolError("exhausted"), None])
-    with patch.object(shelter_repository, "_get_pool", return_value=pool), \
-         patch.object(shelter_repository, "POOL_WAIT_SECONDS", 1.0), \
-         patch.object(shelter_repository, "POOL_RETRY_INTERVAL", 0.001):
+    with patch.object(db, "_get_pool", return_value=pool), \
+         patch.object(db, "POOL_WAIT_SECONDS", 1.0), \
+         patch.object(db, "POOL_RETRY_INTERVAL", 0.001):
         ShelterRepository().ping()
     assert pool.getconn.call_count == 3
     conn.commit.assert_called_once()
@@ -29,9 +29,9 @@ def test_cursor_waits_for_a_free_connection_when_pool_is_exhausted():
 
 def test_cursor_gives_up_after_wait_deadline():
     pool, _ = fake_pool([PoolError("exhausted")] * 1000)
-    with patch.object(shelter_repository, "_get_pool", return_value=pool), \
-         patch.object(shelter_repository, "POOL_WAIT_SECONDS", 0.02), \
-         patch.object(shelter_repository, "POOL_RETRY_INTERVAL", 0.001):
+    with patch.object(db, "_get_pool", return_value=pool), \
+         patch.object(db, "POOL_WAIT_SECONDS", 0.02), \
+         patch.object(db, "POOL_RETRY_INTERVAL", 0.001):
         with pytest.raises(RuntimeError) as exc:
             ShelterRepository().ping()
     assert "連線池已滿" in str(exc.value)
@@ -70,25 +70,25 @@ def test_pool_creation_retries_without_holding_the_lock_while_sleeping():
     lock_held_during_sleep = []
 
     def fake_sleep(_):
-        lock_held_during_sleep.append(shelter_repository._pool_lock.locked())
+        lock_held_during_sleep.append(db._pool_lock.locked())
 
-    with patch.object(shelter_repository, "_pool", None), \
-         patch.object(shelter_repository, "ThreadedConnectionPool", side_effect=attempts) as pool_cls, \
-         patch.object(shelter_repository.time, "sleep", side_effect=fake_sleep):
-        assert shelter_repository._get_pool({}) is good_pool
+    with patch.object(db, "_pool", None), \
+         patch.object(db, "ThreadedConnectionPool", side_effect=attempts) as pool_cls, \
+         patch.object(db.time, "sleep", side_effect=fake_sleep):
+        assert db._get_pool({}) is good_pool
     assert pool_cls.call_count == 3
     assert lock_held_during_sleep == [False, False]
 
 
 def test_pool_creation_gives_up_after_max_retries():
     from psycopg2 import OperationalError
-    with patch.object(shelter_repository, "_pool", None), \
-         patch.object(shelter_repository, "ThreadedConnectionPool", side_effect=OperationalError("down")), \
-         patch.object(shelter_repository.time, "sleep"):
+    with patch.object(db, "_pool", None), \
+         patch.object(db, "ThreadedConnectionPool", side_effect=OperationalError("down")), \
+         patch.object(db.time, "sleep"):
         with pytest.raises(RuntimeError) as exc:
-            shelter_repository._get_pool({})
+            db._get_pool({})
     assert "重試" in str(exc.value)
-    assert shelter_repository._pool is None
+    assert db._pool is None
 
 
 def test_delete_missing_sql_targets_only_absent_names():
@@ -112,10 +112,10 @@ def test_distance_queries_have_a_matching_geography_index():
     import pathlib
     import re
 
-    assert "USING GIST ((geom::geography))" in shelter_repository.GEOGRAPHY_INDEX_SQL
-    source = pathlib.Path(shelter_repository.__file__).read_text(encoding="utf-8")
+    assert "USING GIST ((geom::geography))" in shelters.GEOGRAPHY_INDEX_SQL
+    source = pathlib.Path(shelters.__file__).read_text(encoding="utf-8")
     assert len(re.findall(r"geom::geography|ST_DWithin\(\s*geom,", source)) >= 3
-    init_sql = (pathlib.Path(shelter_repository.__file__).resolve().parent.parent / "init.sql").read_text(encoding="utf-8")
+    init_sql = (pathlib.Path(shelters.__file__).resolve().parent.parent / "init.sql").read_text(encoding="utf-8")
     assert "USING GIST ((geom::geography))" in init_sql
 
 
@@ -133,7 +133,7 @@ def _repo_returning(rows):
 
 
 def test_full_rows_map_to_shelters_with_official_fields():
-    with patch.object(shelter_repository, "_get_pool", return_value=_repo_returning([FULL_ROW])):
+    with patch.object(db, "_get_pool", return_value=_repo_returning([FULL_ROW])):
         (s,) = ShelterRepository().get_all_shelters()
     assert (s.township, s.village, s.hazards, s.indoor, s.outdoor, s.vulnerable_ok) == (
         "大武鄉", "大武村", ("水災", "震災"), True, False, True)
@@ -142,7 +142,7 @@ def test_full_rows_map_to_shelters_with_official_fields():
 
 def test_nearest_distance_is_read_after_all_shelter_columns():
     """距離以前寫死在 row[6]；SELECT_COLUMNS 加了欄位之後讀到的是鄉鎮名稱，最近避難所整個壞掉"""
-    with patch.object(shelter_repository, "_get_pool", return_value=_repo_returning([FULL_ROW + (2.5,)])):
+    with patch.object(db, "_get_pool", return_value=_repo_returning([FULL_ROW + (2.5,)])):
         (n,) = ShelterRepository().get_nearest_shelters(22.36, 120.90, limit=1)
     assert n.distance_km == 2.5 and n.shelter.township == "大武鄉"
 

@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from models.shelter import NearbyShelter, Shelter
-from repositories.shelter_repository import RoadPath
+from repositories.roads import RoadPath
 from services.chat import intent, llm_client
 from services.chat.llm_client import GenerationTimeout
 from services.chat.replies import AI_UNAVAILABLE, GENERIC_ERROR, STREAM_INTERRUPTED

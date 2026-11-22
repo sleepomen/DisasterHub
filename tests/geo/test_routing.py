@@ -8,7 +8,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from models.shelter import NearbyShelter, Shelter
-from repositories.shelter_repository import FRACTION_EPS, RoadPath, ShelterRepository
+from repositories.roads import FRACTION_EPS, RoadPath
+from repositories.shelter_repository import ShelterRepository
 from services.geo.routing import (
     attach_evacuation_paths,
     evacuation_bottlenecks,

@@ -5,7 +5,7 @@ from unittest.mock import patch
 import pytest
 
 from models.shelter import Shelter
-from repositories.shelter_repository import RoadPath
+from repositories.roads import RoadPath
 
 FAKE_SHELTERS = [
     Shelter(name="[HUALIEN] 甲", capacity=100, lat=23.9, lon=121.6, current_people=10),
