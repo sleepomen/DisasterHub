@@ -1,5 +1,5 @@
 {
-  "_comment": "東台灣海岸線折線（由北往南，lat/lon），供陸地判定。人口與疏散起點改用村里資料：data_reference/east_villages.json（tools/build_villages.py）。",
+  "_comment": "東台灣海岸線折線（由北往南，lat/lon），供陸地判定。人口與疏散起點改用村里資料：data_reference/east_villages.json（tools/data/build_villages.py）。",
   "coastline": [
     [
       25.0,
