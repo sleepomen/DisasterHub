@@ -11,8 +11,8 @@
 紅色警戒情境會暫時在 hazard_alerts 寫入來源為 capacity_report 的警戒（10 分鐘後自動失效），
 跑完就刪掉；跑的這段時間網站上的路線也會繞開這些範圍。
 
-    docker exec disaster_app python tools/capacity_report.py
-    docker exec disaster_app python tools/capacity_report.py --township 宜蘭市 --township 秀林鄉   # 只跑幾個鄉鎮
+    docker exec disaster_app python tools/report/capacity_report.py
+    docker exec disaster_app python tools/report/capacity_report.py --township 宜蘭市 --township 秀林鄉   # 只跑幾個鄉鎮
 
 輸出 reports/capacity_gap.json（完整數字）與 reports/capacity_gap.md（報告）。
 """
@@ -25,7 +25,7 @@ import time
 from dataclasses import replace
 from datetime import datetime
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, ROOT)
 
 from repositories.shelter_repository import ShelterRepository  # noqa: E402

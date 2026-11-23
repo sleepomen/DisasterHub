@@ -4,8 +4,8 @@
 現場最怕這種等待；keep_alive 讓模型在記憶體裡留到展示結束。
 
 只用標準函式庫，在跑著服務的那台電腦上執行：
-    python tools/demo_warmup.py
-    python tools/demo_warmup.py --keep-alive 4h --ollama http://localhost:11434 --site http://localhost:8501
+    python tools/demo/demo_warmup.py
+    python tools/demo/demo_warmup.py --keep-alive 4h --ollama http://localhost:11434 --site http://localhost:8501
 """
 import argparse
 import json

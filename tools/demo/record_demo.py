@@ -8,8 +8,8 @@
 
 需要服務在跑、主機上有 Playwright，並用環境變數提供管理員帳號（模擬要登入）：
     pip install playwright && playwright install chromium ffmpeg   # 或 --channel msedge 用本機的 Edge（ffmpeg 仍要裝）
-    ADMIN_USERNAME=... ADMIN_PASSWORD=... python tools/record_demo.py --out ../DisasterHub-demo
-    python tools/record_demo.py --lang zh --alerts --out ../DisasterHub-demo
+    ADMIN_USERNAME=... ADMIN_PASSWORD=... python tools/demo/record_demo.py --out ../DisasterHub-demo
+    python tools/demo/record_demo.py --lang zh --alerts --out ../DisasterHub-demo
 
 --alerts 會多錄一段紅色警戒：資料庫裡要先有警戒（真的警戒，或展示用插入的測試警戒），否則那一段看不出效果。
 會寫入收容人數，結束時重置。

@@ -18,7 +18,7 @@
   沒對上的「?」原樣保留，建置結束時列出來
 
 用法（下載的檔案放在專案外的獨立資料夾）：
-    python tools/build_shelters.py /path/to/避難收容處所點位檔.csv
+    python tools/data/build_shelters.py /path/to/避難收容處所點位檔.csv
 """
 import argparse
 import csv
@@ -28,7 +28,7 @@ import statistics
 from collections import Counter, defaultdict
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]
 OUT_DIR = ROOT / "data_for_refuge"
 FIXES = ROOT / "data_reference" / "shelter_coordinate_fixes.json"
 

@@ -6,11 +6,11 @@
 避難所資料的村里名稱另外由應用程式補上（services/geo/places.py），這裡只處理 OSM。
 
 資料來源與授權跟路網相同：OpenStreetMap（© OpenStreetMap contributors），Geofabrik 台灣切片，
-ODbL 1.0，散布時要標示出處。縣界判斷沿用 tools/build_road_network.py 的做法。
+ODbL 1.0，散布時要標示出處。縣界判斷沿用 tools/data/build_road_network.py 的做法。
 
     docker run --rm -v <下載資料夾>:/in:ro -v "<專案根目錄>":/work -w /work python:3.12-slim \\
         sh -c "apt-get update -qq && apt-get install -y -qq libexpat1 >/dev/null && pip install -q osmium \\
-               && python tools/build_place_names.py /in/taiwan-latest.osm.pbf"
+               && python tools/data/build_place_names.py /in/taiwan-latest.osm.pbf"
 """
 import argparse
 import datetime
@@ -22,7 +22,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from build_road_network import BBOX, EAST_COUNTIES, SOURCE, RingIndex, stitch_rings  # noqa: E402
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_OUT = ROOT / "data_reference" / "east_places.json"
 
 # 人會拿來當「我在哪裡」的地名。place=city / town 幾乎都是鄉鎮名，規則層已經認得，不收

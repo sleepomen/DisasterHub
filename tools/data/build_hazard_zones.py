@@ -9,7 +9,7 @@
 用橫麥卡托反算公式轉回經緯度。TWD97 用的是 GRS80 橢球，跟 WGS84 的差距在公分等級，不做基準轉換。
 
 用法（下載的檔案放在專案外的獨立資料夾，解壓後指向 .shp 去掉副檔名的路徑）：
-    python tools/build_hazard_zones.py /path/to/debris1753_20260126_twd97
+    python tools/data/build_hazard_zones.py /path/to/debris1753_20260126_twd97
 """
 import argparse
 import datetime
@@ -18,7 +18,7 @@ import math
 import struct
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_OUT = ROOT / "data_reference" / "debris_flow_east.geojson"
 
 EAST_COUNTIES = {"宜蘭縣", "花蓮縣", "臺東縣", "台東縣"}

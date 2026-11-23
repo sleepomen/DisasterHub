@@ -17,7 +17,7 @@
 要先建好路網）；村里裡一棟都沒有才用全部的建物。村里內沒有任何建物時，用村里界頂點的平均。
 
     docker run --rm -v <下載資料夾>:/in:ro -v "<專案根目錄>":/work -w /work python:3.12-slim \\
-        sh -c "pip install -q osmium && python tools/build_villages.py /in/taiwan-latest.osm.pbf --yyymm 11509"
+        sh -c "pip install -q osmium && python tools/data/build_villages.py /in/taiwan-latest.osm.pbf --yyymm 11509"
 """
 import argparse
 import datetime
@@ -32,7 +32,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from build_road_network import BBOX, EAST_COUNTIES, SOURCE, RingIndex, stitch_rings  # noqa: E402
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_OUT = ROOT / "data_reference" / "east_villages.json"
 ROADS = ROOT / "data_reference" / "east_roads.json.gz"
 ROAD_NEAR_M = 1000

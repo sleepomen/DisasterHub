@@ -17,7 +17,7 @@ https://download.geofabrik.de/asia/taiwan-latest.osm.pbf 。授權是 ODbL 1.0�
 
 PBF 是 protobuf 格式，這裡用 pyosmium 讀，不自己解析。本機沒裝的話用一次性的容器跑：
     docker run --rm -v <下載資料夾>:/in:ro -v "<專案根目錄>":/work -w /work python:3.12-slim \\
-        sh -c "pip install -q osmium && python tools/build_road_network.py /in/taiwan-latest.osm.pbf"
+        sh -c "pip install -q osmium && python tools/data/build_road_network.py /in/taiwan-latest.osm.pbf"
 """
 import argparse
 import datetime
@@ -27,7 +27,7 @@ import math
 from collections import defaultdict
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_OUT = ROOT / "data_reference" / "east_roads.json.gz"
 
 EAST_COUNTIES = {"宜蘭縣", "花蓮縣", "臺東縣"}
