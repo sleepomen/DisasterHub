@@ -139,7 +139,7 @@ E2E_BASE_URL=http://localhost:8501 pytest e2e/ -v
 
 設定 `ADMIN_USERNAME`、`ADMIN_PASSWORD` 才會跑模擬的那個測試，它會寫入收容人數、結束時重置；沒設定就跳過。
 
-CI 也會跑，在獨立的 `e2e` job 裡。這個 job 用[輕量模式](#輕量模式不需要-ollama)把服務跑起來，所以不需要 Ollama：資料庫、路網、避難所和索引都是從 repo 裡的資料載入的（啟動後大約 20 秒就緒）。它會寫一份臨時的 `.env`，密碼只存在那台 runner 上，裡面也有管理員帳號，模擬的測試才會真的跑而不是跳過；另外設 `ALERT_POLL_SECONDS=0`，結果才不會跟著當天的即時警戒變。跑瀏覽器測試之前，先用 `tools/capacity_report.py` 重新產生容量報告，順便證明這支腳本在真的資料庫上跑得完。失敗時會印出服務的 log；不論成敗，最後都會把服務和 volume 刪掉。
+CI 也會跑，在獨立的 `e2e` job 裡。這個 job 用[輕量模式](#輕量模式不需要-ollama)把服務跑起來，所以不需要 Ollama：資料庫、路網、避難所和索引都是從 repo 裡的資料載入的（啟動後大約 20 秒就緒）。它會寫一份臨時的 `.env`，密碼只存在那台 runner 上，裡面也有管理員帳號，模擬的測試才會真的跑而不是跳過；另外設 `ALERT_POLL_SECONDS=0`，結果才不會跟著當天的即時警戒變。跑瀏覽器測試之前，先用 `tools/report/capacity_report.py` 重新產生容量報告，順便證明這支腳本在真的資料庫上跑得完。失敗時會印出服務的 log；不論成敗，最後都會把服務和 volume 刪掉。
 
 ## 展示前檢查
 
@@ -149,19 +149,19 @@ CI 也會跑，在獨立的 `e2e` job 裡。這個 job 用[輕量模式](#輕量
 1. **預熱**：在跑服務的電腦上，開場前執行：
 
    ```bash
-   python tools/demo_warmup.py               # 時間比較長用 --keep-alive 4h
+   python tools/demo/demo_warmup.py               # 時間比較長用 --keep-alive 4h
    ```
 
    它會檢查 `/health/ready`、把對話與 embedding 模型載進 Ollama 並留著，再對每一條回答路徑各問一題（清單、防災知識原文、
    小地名、模型）。當天也把 `.env` 的 `OLLAMA_KEEP_ALIVE` 設成 `3h`（或 `-1`）：網站每次請求都會把時間重設成這個值。
 2. **先把要展示的區域瀏覽一遍**：地圖圖磚來自 OpenStreetMap，瀏覽器會留大約一天。沒有網路時底圖變成一片米色，
    但避難所、村里、路線、模擬與問答都照常運作，它們都來自本機的服務。
-3. **留一支錄影**：`tools/record_demo.py` 一鏡到底操作網站並加字幕（選中心、沿道路的模擬、路線提示、追問、清單與小地名的回答，
+3. **留一支錄影**：`tools/demo/record_demo.py` 一鏡到底操作網站並加字幕（選中心、沿道路的模擬、路線提示、追問、清單與小地名的回答，
    加 `--alerts` 再錄紅色警戒切斷村里），最後清除模擬。需要在環境變數提供管理員帳號，以及 Playwright 和它的影片編碼器：
 
    ```bash
    pip install playwright && playwright install chromium ffmpeg
-   ADMIN_USERNAME=... ADMIN_PASSWORD=... python tools/record_demo.py --lang zh --out ../DisasterHub-demo
+   ADMIN_USERNAME=... ADMIN_PASSWORD=... python tools/demo/record_demo.py --lang zh --out ../DisasterHub-demo
    ```
 
    簡報軟體比較吃 MP4。主機沒有 ffmpeg 的話用一次性容器轉：

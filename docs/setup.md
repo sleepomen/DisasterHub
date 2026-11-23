@@ -142,7 +142,7 @@ E2E_BASE_URL=http://localhost:8501 pytest e2e/ -v
 Set `ADMIN_USERNAME` and `ADMIN_PASSWORD` to include the simulation test, which writes occupancy and resets it at the
 end; without them it is skipped.
 
-CI runs it too, in its own `e2e` job. That job starts the stack in [lightweight mode](#lightweight-mode-no-ollama), so it needs no Ollama: the database, road network, shelters and indexes all load from the data in the repo (ready about 20 s after start). It writes a throwaway `.env` whose passwords exist only on that runner, including an admin account so the simulation test runs instead of being skipped, and sets `ALERT_POLL_SECONDS=0` so the result does not depend on the day's live alerts. Before the browser tests it regenerates the capacity report with `tools/capacity_report.py`, which also proves the script runs to the end against a real database. On failure the job prints the service logs; the stack and its volumes are removed either way.
+CI runs it too, in its own `e2e` job. That job starts the stack in [lightweight mode](#lightweight-mode-no-ollama), so it needs no Ollama: the database, road network, shelters and indexes all load from the data in the repo (ready about 20 s after start). It writes a throwaway `.env` whose passwords exist only on that runner, including an admin account so the simulation test runs instead of being skipped, and sets `ALERT_POLL_SECONDS=0` so the result does not depend on the day's live alerts. Before the browser tests it regenerates the capacity report with `tools/report/capacity_report.py`, which also proves the script runs to the end against a real database. On failure the job prints the service logs; the stack and its volumes are removed either way.
 
 ## Before a live demo
 
@@ -154,7 +154,7 @@ that will not play a browser recording. Each has a fallback:
 1. **Warm up.** On the machine that runs the stack, shortly before the talk:
 
    ```bash
-   python tools/demo_warmup.py               # --keep-alive 4h for a longer session
+   python tools/demo/demo_warmup.py               # --keep-alive 4h for a longer session
    ```
 
    It checks `/health/ready`, loads the chat and embedding models into Ollama and keeps them there, then asks one
@@ -163,14 +163,14 @@ that will not play a browser recording. Each has a fallback:
 2. **Browse the demo areas once.** Map tiles come from OpenStreetMap and the browser keeps them about a day. With no
    network the map turns plain beige, but the shelters, villages, routes, simulation and chat all still work: they
    come from the local stack.
-3. **Keep a recording.** `tools/record_demo.py` drives the site in one take with captions (picking a centre, the
+3. **Keep a recording.** `tools/demo/record_demo.py` drives the site in one take with captions (picking a centre, the
    simulation along the roads, a route tooltip, a follow-up question, list and place-name answers, and with
    `--alerts` a red alert cutting off villages), then clears the simulation. It needs the admin login in the
    environment and Playwright with its video encoder:
 
    ```bash
    pip install playwright && playwright install chromium ffmpeg
-   ADMIN_USERNAME=... ADMIN_PASSWORD=... python tools/record_demo.py --lang en --out ../DisasterHub-demo
+   ADMIN_USERNAME=... ADMIN_PASSWORD=... python tools/demo/record_demo.py --lang en --out ../DisasterHub-demo
    ```
 
    Presentation software prefers MP4. Without ffmpeg on the host, convert in a throwaway container:

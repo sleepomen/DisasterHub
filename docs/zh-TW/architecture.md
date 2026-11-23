@@ -134,17 +134,20 @@ DisasterHub/
 │   ├── shelter_coordinate_fixes.json # 用 OpenStreetMap 修正的官方避難所座標
 │   └── knowledge/                   # 防災知識文件，每種災害一個 Markdown 檔（格式見資料夾內 README）
 │
-├── reports/                    # 容量缺口報告（由 tools/capacity_report.py 產生）
+├── reports/                    # 容量缺口報告（由 tools/report/capacity_report.py 產生）
 │
 ├── tools/
-│   ├── build_hazard_zones.py   # 農業部 SHP → debris_flow_east.geojson（TWD97 → WGS84）
-│   ├── build_shelters.py       # 消防署 CSV → data_for_refuge/*.json
-│   ├── build_road_network.py   # OpenStreetMap PBF → east_roads.json.gz（pgRouting 邊表）
-│   ├── build_place_names.py    # OpenStreetMap PBF → east_places.json（村落、地標）
-│   ├── build_villages.py       # 內政部村里人口 + OSM 村里界與建物 → east_villages.json
-│   ├── capacity_report.py      # 容量缺口報告 → reports/capacity_gap.{md,json}
-│   ├── demo_warmup.py          # 展示前：把模型載進記憶體、每條回答路徑各問一題
-│   └── record_demo.py          # 錄一支附字幕的展示影片，現場出狀況時的備援
+│   ├── data/                   # 從官方來源重建 data_for_refuge/ 和 data_reference/
+│   │   ├── build_hazard_zones.py # 農業部 SHP → debris_flow_east.geojson（TWD97 → WGS84）
+│   │   ├── build_shelters.py   # 消防署 CSV → data_for_refuge/*.json
+│   │   ├── build_road_network.py # OpenStreetMap PBF → east_roads.json.gz（pgRouting 邊表）
+│   │   ├── build_place_names.py # OpenStreetMap PBF → east_places.json（村落、地標）
+│   │   └── build_villages.py   # 內政部村里人口 + OSM 村里界與建物 → east_villages.json
+│   ├── report/
+│   │   └── capacity_report.py  # 容量缺口報告 → reports/capacity_gap.{md,json}
+│   └── demo/
+│       ├── demo_warmup.py      # 展示前：把模型載進記憶體、每條回答路徑各問一題
+│       └── record_demo.py      # 錄一支附字幕的展示影片，現場出狀況時的備援
 │
 ├── static/
 │   ├── index.html              # 頁面骨架
@@ -215,7 +218,7 @@ DisasterHub/
 
 避難所來自消防署開放資料「避難收容處所點位檔」（[data.gov.tw/dataset/73242](https://data.gov.tw/dataset/73242)，2025-12-16 更新，政府資料開放授權條款第 1 版）。版本日期也寫在 `services/chat/replies.py`，有人問「有沒有新增避難所」時會引用；重建資料時兩處一起改。2026 年 10 月以前用的是手動整理的 50 間；其中只有 9 間在官方名單上，而且容量對不上（澳花國小原本寫 150 人，官方是 50 人），所以整份換掉，不做合併。
 
-- **重建資料**：把 CSV 下載到專案外的獨立資料夾，執行 `python tools/build_shelters.py <csv>`，會寫出 `data_for_refuge/{yilan,hualien,taitung}_shelter.json`。每行一間，重建後的 diff 直接看得出哪幾間變了。
+- **重建資料**：把 CSV 下載到專案外的獨立資料夾，執行 `python tools/data/build_shelters.py <csv>`，會寫出 `data_for_refuge/{yilan,hualien,taitung}_shelter.json`。每行一間，重建後的 diff 直接看得出哪幾間變了。
 - **欄位**：除了名稱、容量（預計收容人數）、地址與座標，每間還有鄉鎮與村里、適用災害（`hazards`：水災／震災／土石流／海嘯）、室內／室外、是否適合避難弱者、預計收容村里（`serves`）與聯絡電話。管理人姓名不收。
 - **清理**：三縣原始資料 650 筆，保留 644 筆。
   - 座標不在所屬縣內的丟掉：澳花國小被放在新竹山區、礁溪鄉公所在福建、長濱三間活動中心在臺北市。
