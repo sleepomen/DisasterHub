@@ -1,5 +1,5 @@
 """
-容量缺口報告的網頁版。報告由 tools/capacity_report.py 產生成 reports/capacity_gap.json，這裡只讀檔，
+容量缺口報告的網頁版。報告由 tools/report/capacity_report.py 產生成 reports/capacity_gap.json，這裡只讀檔，
 不在請求裡重算：116 個情境要 70 秒，而且紅色警戒情境會暫時改動網站上的路線。不需要登入
 """
 import json
@@ -43,5 +43,5 @@ async def report_page():
 async def capacity_report():
     view = load_view()
     if view is None:
-        raise HTTPException(status_code=404, detail="還沒有報告：先執行 python tools/capacity_report.py")
+        raise HTTPException(status_code=404, detail="還沒有報告：先執行 python tools/report/capacity_report.py")
     return view
