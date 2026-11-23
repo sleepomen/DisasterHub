@@ -89,9 +89,9 @@ jobs:
             sleep 5
           done
           echo "five minutes and still not ready"; exit 1
-      # 重新產生容量報告：順便證明 tools/capacity_report.py 在真的資料庫上跑得完，
+      # 重新產生容量報告：順便證明 tools/report/capacity_report.py 在真的資料庫上跑得完，
       # 報告頁的測試讀的就是這一份（紅色警戒情境寫的暫時警戒，腳本結束前會清掉）
-      - run: docker exec -u app disaster_app python tools/capacity_report.py
+      - run: docker exec -u app disaster_app python tools/report/capacity_report.py
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
