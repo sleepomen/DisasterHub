@@ -114,7 +114,8 @@ DisasterHub/
 │   │   ├── faithfulness.py     # 反事實上下文的改動方式與評分
 │   │   ├── build_eval_set.py   # 產生評測集
 │   │   └── compare_runs.py     # 兩次結果的配對 bootstrap 差值比較
-│   └── results/                # 各次評測輸出
+│   └── results/                # 每項評測最新的一次結果
+│       └── history/            # 表格拿來比較的舊結果
 ```
 
 ## 生成品質評測
@@ -393,7 +394,7 @@ README 原本宣稱的縫隙（無答案 ≥ 0.588、有答案 ≤ 0.483）是�
 造成的變異：
 
 ```bash
-docker exec -it disaster_app python evals/lib/compare_runs.py   evals/results/gen_qwen2.5-7b.json evals/results/gen_llama3.2-3b.json
+docker exec -it disaster_app python evals/lib/compare_runs.py   evals/results/history/gen_qwen2.5-7b.json evals/results/history/gen_llama3.2-3b.json
 ```
 
 | | A = qwen2.5:7b | B = llama3.2:3b | A − B | A − B 的 95% CI | |

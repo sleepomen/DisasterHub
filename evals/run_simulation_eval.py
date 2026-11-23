@@ -14,7 +14,7 @@
 - 預設評使用者實際看到的完整回答。2026-11-02 起模擬追問全部由程式回答（services/simulation/text.py），
   「有沒有被排除」的答案本身就是排除的說明，不能拿掉。
 - --model-text-only 只評模型寫的部分：把程式附在最後的說明（被排除、靠近潛勢範圍、路線）用同一個函式算出來
-  先拿掉。第一次的結果 evals/results/sim_llama3.2-3b.json（還交給模型回答的時候）是這樣評的。
+  先拿掉。第一次的結果 evals/results/history/sim_llama3.2-3b.json（還交給模型回答的時候）是這樣評的。
 
     docker exec disaster_app python evals/run_simulation_eval.py
     docker exec disaster_app python evals/run_simulation_eval.py --label sim_llama3.2-3b

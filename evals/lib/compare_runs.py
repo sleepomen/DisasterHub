@@ -8,7 +8,7 @@
 
 檢索結果與生成結果都適用：兩邊的 rows 都是逐題的 {"query": ..., "scores": {...}}。
 
-    python evals/lib/compare_runs.py evals/results/gen_qwen2.5-7b.json evals/results/gen_llama3.2-3b.json
+    python evals/lib/compare_runs.py evals/results/history/gen_qwen2.5-7b.json evals/results/history/gen_llama3.2-3b.json
 """
 import argparse
 import json

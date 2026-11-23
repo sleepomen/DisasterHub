@@ -118,7 +118,8 @@ DisasterHub/
 │   │   ├── faithfulness.py     # Counterfactual context perturbations and their scoring
 │   │   ├── build_eval_set.py   # Generates the evaluation set
 │   │   └── compare_runs.py     # Paired bootstrap on the difference between two runs
-│   └── results/                # Output of each run
+│   └── results/                # Latest run of each evaluation
+│       └── history/            # Earlier runs the tables compare against
 ```
 
 ## Generation Quality Evaluation
@@ -423,7 +424,7 @@ interval on the *difference*, which also cancels the variance that comes from so
 harder than others:
 
 ```bash
-docker exec -it disaster_app python evals/lib/compare_runs.py   evals/results/gen_qwen2.5-7b.json evals/results/gen_llama3.2-3b.json
+docker exec -it disaster_app python evals/lib/compare_runs.py   evals/results/history/gen_qwen2.5-7b.json evals/results/history/gen_llama3.2-3b.json
 ```
 
 | | A = qwen2.5:7b | B = llama3.2:3b | A − B | 95% CI of A − B | |
