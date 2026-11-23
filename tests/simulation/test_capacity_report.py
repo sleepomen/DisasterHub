@@ -14,7 +14,7 @@ from services.simulation.capacity_report import (
 )
 from services.simulation.evacuation import Origin
 from services.simulation.scenario import destinations_for
-from tools.capacity_report import with_people
+from tools.report.capacity_report import with_people
 
 
 def shelter(name, capacity, township="甲鄉", hazards=("水災", "震災"), vulnerable=True):

@@ -4,7 +4,7 @@ import sys
 from unittest.mock import MagicMock
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "tools"))
+sys.path.insert(0, str(ROOT / "tools" / "data"))
 
 from build_hazard_zones import signed_area, to_multipolygon, twd97_to_wgs84  # noqa: E402
 

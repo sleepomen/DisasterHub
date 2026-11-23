@@ -74,7 +74,7 @@ def test_report_page_is_served(client):  # noqa: F811
 
 def test_report_api_says_how_to_generate_a_missing_report(client, report_file):  # noqa: F811
     res = client.get("/api/capacity_report")
-    assert res.status_code == 404 and "tools/capacity_report.py" in res.json()["detail"]
+    assert res.status_code == 404 and "tools/report/capacity_report.py" in res.json()["detail"]
 
 
 def test_report_api_rereads_the_file_after_a_new_report(client, report_file):  # noqa: F811

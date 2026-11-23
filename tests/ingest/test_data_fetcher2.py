@@ -26,7 +26,7 @@ def test_fetcher_region_tag_and_coords():
         assert 21.5 <= s.lat <= 25.0, s.name
         assert 120.5 <= s.lon <= 122.5, s.name
         assert s.capacity >= 0, s.name
-        # tools/build_shelters.py 會把地址補成「縣 + 鄉鎮…」
+        # tools/data/build_shelters.py 會把地址補成「縣 + 鄉鎮…」
         assert s.address[:3] in ("宜蘭縣", "花蓮縣", "臺東縣"), s.name
         assert s.township, s.name
         assert "ˇ" not in s.address, s.name

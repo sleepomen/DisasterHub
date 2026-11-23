@@ -19,7 +19,7 @@ from services.geo.routing import (
 from services.simulation.evacuation import Origin
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "tools"))
+sys.path.insert(0, str(ROOT / "tools" / "data"))
 
 from build_road_network import (  # noqa: E402
     RingIndex,

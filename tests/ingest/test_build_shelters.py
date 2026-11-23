@@ -1,8 +1,8 @@
-"""tools/build_shelters.py 的缺字補回：來源把罕用字寫成「?」，依鄉鎮換回原字"""
+"""tools/data/build_shelters.py 的缺字補回：來源把罕用字寫成「?」，依鄉鎮換回原字"""
 import json
 import pathlib
 
-from tools.build_shelters import MISSING_CHARS, TEXT_FIELDS, restore_chars
+from tools.data.build_shelters import MISSING_CHARS, TEXT_FIELDS, restore_chars
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 
