@@ -250,7 +250,7 @@ def test_phone_layout_opens_one_panel_at_a_time(browser):
 
 
 def test_capacity_report_page_sorts_and_filters(page):
-    # 從地圖頁的導覽列進報告頁；報告檔要先用 tools/capacity_report.py 產生
+    # 從地圖頁的導覽列進報告頁；報告檔要先用 tools/report/capacity_report.py 產生
     skip_login(page)
     page.click(".report-link")
     page.wait_for_selector("#report-body:not([hidden])")

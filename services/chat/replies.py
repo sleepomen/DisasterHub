@@ -78,7 +78,7 @@ EN_REPLIES = {
 }
 
 
-# 避難所資料的來源與版本。換資料時（tools/build_shelters.py）這裡跟 docs/architecture.md 一起改
+# 避難所資料的來源與版本。換資料時（tools/data/build_shelters.py）這裡跟 docs/architecture.md 一起改
 SHELTER_DATASET_URL = "https://data.gov.tw/dataset/73242"
 SHELTER_DATASET_UPDATED = "2025-12-16"
 

@@ -16,11 +16,11 @@ metrics.register(
     "sync.pruned", "sync.prune_skipped", "sync.hazard_failed", "sync.roads_failed", "sync.road_hazards_failed",
 )
 
-# 災害潛勢區域：hazard_type → data_reference/ 裡的 GeoJSON（由 tools/build_hazard_zones.py 產生）
+# 災害潛勢區域：hazard_type → data_reference/ 裡的 GeoJSON（由 tools/data/build_hazard_zones.py 產生）
 HAZARD_FILES = {
     "debris_flow": Path(__file__).resolve().parents[2] / "data_reference" / "debris_flow_east.geojson",
 }
-# 宜花東路網（由 tools/build_road_network.py 從 OpenStreetMap 產生）
+# 宜花東路網（由 tools/data/build_road_network.py 從 OpenStreetMap 產生）
 ROAD_NETWORK_FILE = Path(__file__).resolve().parents[2] / "data_reference" / "east_roads.json.gz"
 
 class DataSyncService:

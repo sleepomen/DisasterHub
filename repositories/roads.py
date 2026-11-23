@@ -39,7 +39,7 @@ ROAD_SCHEMA_SQL = (
 ROAD_SNAP_M = 1000
 # 疏散起點以前是鄉鎮人口重心，只是一個代表點，可能落在田裡或河床上，所以起點可以吸附得比較遠，
 # 那一段走到路上的距離照樣算進道路距離。現在起點是村里裡離道路 1 公里內、建物最密的那棟
-# （tools/build_villages.py），554 個離路的中位數 19 公尺、最遠 336 公尺（達仁鄉台坂村），這個寬限只是保險
+# （tools/data/build_villages.py），554 個離路的中位數 19 公尺、最遠 336 公尺（達仁鄉台坂村），這個寬限只是保險
 ORIGIN_SNAP_M = 5000
 # 路徑可能繞出起訖點的外接框（沿海岸繞過山）。框往外擴大這麼多度，再至少擴大框本身的一半
 ROUTE_MARGIN_DEG = 0.05
@@ -88,7 +88,7 @@ class RoadQueries(Database):
     def replace_road_network(self, edges: list[list], checksum: str) -> int | None:
         """
         整批換掉路網，回傳寫入的邊數；內容跟上次匯入的一樣（checksum 相同）就跳過、回 None。
-        邊的格式見 tools/build_road_network.py：[source, target, 長度公尺, 道路等級, encoded polyline,
+        邊的格式見 tools/data/build_road_network.py：[source, target, 長度公尺, 道路等級, encoded polyline,
         單行道, 路名, 路線編號, 橋, 車道數]。舊版的路網檔後面幾欄可能沒有，缺的用預設值（雙向、沒有名字、不是橋、車道數不明）。
         在同一個交易裡清空再寫入，寫到一半失敗會整批回滾
         """

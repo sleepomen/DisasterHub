@@ -1,5 +1,5 @@
 """
-容量缺口報告的整理與輸出（tools/capacity_report.py 負責跑情境、讀寫資料庫）。
+容量缺口報告的整理與輸出（tools/report/capacity_report.py 負責跑情境、讀寫資料庫）。
 
 兩部分：
 1. 各鄉鎮自有容量：只用資料，不用任何假設。登記容量能收下鄉鎮人口的幾 %，
@@ -329,7 +329,7 @@ def render_markdown(report: dict) -> str:
     out = [
         "# 宜花東避難收容容量缺口報告",
         "",
-        f"產生時間 {meta['generated_at']}。由 `tools/capacity_report.py` 產生，同樣的資料一定得到同樣的報告。"
+        f"產生時間 {meta['generated_at']}。由 `tools/report/capacity_report.py` 產生，同樣的資料一定得到同樣的報告。"
         "網站上可以排序、篩選的版本在 `/report`。",
         "",
         "> [!IMPORTANT]",

@@ -1,5 +1,5 @@
 """
-一次模擬裡哪些避難所可以當疏散目的地。/api/simulate_disaster 和容量缺口報告（tools/capacity_report.py）共用，
+一次模擬裡哪些避難所可以當疏散目的地。/api/simulate_disaster 和容量缺口報告（tools/report/capacity_report.py）共用，
 報告裡的數字才會跟在地圖上按同一個點、同一種災害時一樣
 """
 import logging

@@ -9,7 +9,7 @@ from services.web.i18n import place_en
 logger = logging.getLogger(__name__)
 
 DATA_FILE = Path(__file__).resolve().parents[2] / "data_reference" / "east_taiwan_population.json"
-# 村里戶籍人口與疏散起點（tools/build_villages.py）：內政部 ODRP014 ＋ OSM 村里界與建物
+# 村里戶籍人口與疏散起點（tools/data/build_villages.py）：內政部 ODRP014 ＋ OSM 村里界與建物
 VILLAGE_FILE = Path(__file__).resolve().parents[2] / "data_reference" / "east_villages.json"
 
 # 各災害類型的疏散比例（受影響人口中需要進避難所的比例），與前端動畫共用同一組數字

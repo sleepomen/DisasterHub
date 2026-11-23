@@ -6,7 +6,7 @@
 「南方澳」因為字像撈到南澳鄉。換成座標之後就跟給座標問最近避難所一樣，依道路距離由程式回答。
 
 地名有兩個來源：
-- data_reference/east_places.json：OpenStreetMap 的村落、部落、社區、海灣、湖、山、景點（tools/build_place_names.py）
+- data_reference/east_places.json：OpenStreetMap 的村落、部落、社區、海灣、湖、山、景點（tools/data/build_place_names.py）
 - 避難所資料的村里（「知本里」→「知本」），補 OSM 沒有的；座標用該村里避難所的平均位置
 - 手動補的幾筆（SPELLING_VARIANTS、MANUAL_PLACES）：評測裡兩個來源都找不到的地名
 
