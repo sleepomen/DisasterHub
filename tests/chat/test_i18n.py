@@ -131,8 +131,9 @@ def test_parse_translations_and_shipped_translations():
     parsed = parse_translations("## a-b｜Title\n- reviewed: yes\n\nBody line.\n- not a field\n")
     assert parsed == {"a-b": ("Title", "Body line.\n- not a field", True)}
     chunks = load_chunks()
-    # 每一段都有英文稿；審稿前全部是 reviewed: no
-    assert all(c.text_en for c in chunks)
+    # 每一段都有英文稿，而且都審過（2026-11-24）：新加或改過的中文段落要附上審過的翻譯，
+    # 英文模式才不會悄悄退回中文原文
+    assert all(c.text_en and c.en_reviewed for c in chunks)
 
 
 def test_translation_for_an_unknown_passage_is_rejected(tmp_path):
