@@ -1,7 +1,7 @@
 {
   "summary": {
-    "count": 106,
-    "correct": 106,
+    "count": 108,
+    "correct": 108,
     "accuracy": 1.0,
     "per_route": {
       "alerts": {
@@ -80,8 +80,8 @@
         "accuracy": 1.0
       },
       "unknown_place": {
-        "count": 6,
-        "correct": 6,
+        "count": 8,
+        "correct": 8,
         "accuracy": 1.0
       }
     },
@@ -132,7 +132,7 @@
         "unknown_name": 3
       },
       "unknown_place": {
-        "unknown_place": 6
+        "unknown_place": 8
       }
     },
     "routes": [
@@ -1002,6 +1002,22 @@
       "actual": "rag",
       "answered_without_llm": false,
       "note": "名稱裡的英文不改寫"
+    },
+    {
+      "query": "Shelters on Linsen Road",
+      "simulation": false,
+      "expected": "unknown_place",
+      "actual": "unknown_place",
+      "answered_without_llm": true,
+      "note": "英文路名資料裡沒有：誠實說找不到，不拿別處充數"
+    },
+    {
+      "query": "Near Jieren Street",
+      "simulation": false,
+      "expected": "unknown_place",
+      "actual": "unknown_place",
+      "answered_without_llm": true,
+      "note": "同上，路名前有 near"
     }
   ]
 }

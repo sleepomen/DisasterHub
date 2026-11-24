@@ -104,3 +104,5 @@
 {"query": "Which roads will be congested?", "expected_route": "simulation", "simulation": true, "note": "英文：模擬追問，瓶頸"}
 {"query": "How was everyone allocated?", "expected_route": "simulation", "simulation": true, "note": "英文：模擬追問，分配"}
 {"query": "Where is F Hotel?", "expected_route": "rag", "simulation": false, "note": "名稱裡的英文不改寫"}
+{"query": "Shelters on Linsen Road", "expected_route": "unknown_place", "simulation": false, "note": "英文路名資料裡沒有：誠實說找不到，不拿別處充數"}
+{"query": "Near Jieren Street", "expected_route": "unknown_place", "simulation": false, "note": "同上，路名前有 near"}
