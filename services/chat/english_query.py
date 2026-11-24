@@ -112,7 +112,8 @@ PHRASES = [
     (r"how many people|capacity|accommodate|hold", "容量"),
     (r"medium(?:-sized)?", "中型"), (r"large", "大型"), (r"small", "小型"),
     (r"indoors?|covered|sheltered from the rain", "室內"),
-    (r"wheelchair(?:[- ]accessible)?|accessible|accessibility|elderly|seniors?|older people|disabled|disabilit(?:y|ies)|"
+    # 「seniors」不能比到「Senior High School」
+    (r"wheelchair(?:[- ]accessible)?|accessible|accessibility|elderly|seniors?(?! high)|older people|disabled|disabilit(?:y|ies)|"
      r"limited mobility|pregnant", "無障礙"),
     # 設施
     (r"(?:elementary|primary) schools?", "國小"), (r"(?:junior high|middle) schools?|junior highs?", "國中"),
@@ -120,10 +121,12 @@ PHRASES = [
     (r"kindergartens?|preschools?|nurser(?:y|ies)", "幼兒園"), (r"schools?", "學校"),
     (r"gym(?:nasium)?s?|stadiums?|sports? (?:centers?|centres?|venues?|fields?|halls?)|arenas?", "體育館"),
     (r"librar(?:y|ies)", "圖書館"),
-    (r"(?:township|town|city|district) (?:offices?|halls?)|county government", "公所"),
+    # 「Taitung City Office」的「Taitung City」先被換成台東市，剩下的「Office」單獨算公所
+    (r"(?:township|town|city|district) (?:offices?|halls?)|county government|offices?", "公所"),
     (r"(?:community|activity|activities) (?:centers?|centres?)", "活動中心"),
     (r"temples?|shrines?", "廟"), (r"church(?:es)?", "教會"), (r"hotels?", "旅館"),
-    (r"military (?:camps?|bases?)|barracks", "營區"), (r"halls?", "會館"),
+    # 「hall」不換成會館：展演廳、禮堂、文化館都可能叫 hall，篩錯類別會把正確答案擋掉，不篩還有語意檢索
+    (r"military (?:camps?|bases?)|barracks", "營區"),
     # 避難所本身與疏散
     (r"evacuation (?:shelters?|cent(?:er|re)s?|sites?)|emergency shelters?|shelters?|refuges?", "避難所"),
     (r"evacuat(?:e|ing)|flee|escape", "撤離"), (r"evacuation", "疏散"),
@@ -146,11 +149,18 @@ STOPWORDS = {
     "thanks", "thank", "people", "person", "persons", "kind", "kinds", "type", "types",
     "during", "before", "after", "while", "within", "inside", "outside", "recently", "tomorrow", "yesterday",
     "tonight", "somewhere", "anywhere", "else", "other", "road", "roads", "street", "streets", "up", "out",
+    "take", "taking", "along",
     "county", "city", "township", "town", "district", "taiwan", "eastern", "east", "also", "just", "still", "only",
     "very", "more", "most", "less", "best", "good", "use", "used", "help", "let", "lets", "s", "t", "re", "ll", "ve",
 }
 
 _TOKEN = re.compile(r"[A-Za-z][A-Za-z'&-]*")
+# 句首大寫的這些字不是路名的一部分：「Near Jieren Street」「Shelters on Linsen Road」
+_BEFORE_ROAD = {"near", "around", "on", "along", "by", "at", "in", "shelter", "shelters", "nearest", "closest"}
+_ROAD_EN = re.compile(
+    r"\b((?:[A-Z][a-z]+|\d+(?:st|nd|rd|th))(?:[ -](?:[A-Z][a-z]+|\d+(?:st|nd|rd|th)))*)\s+"
+    r"(Road|Rd|Street|St|Avenue|Ave|Boulevard|Blvd|Lane|Ln|Alley)\b\.?(?:,?\s*Sec(?:tion|\.)?\s*\d+)?"
+)
 _NEAR_BEFORE = re.compile(
     r"\b(?:near|around|close to|(?:nearest|closest)\s+(?:shelters?\s+)?(?:to|from))\s+([一-鿿]{2,12}|[A-Z][A-Za-z'-]{1,30})"
 )
@@ -168,6 +178,8 @@ def _place_phrases() -> list[tuple[str, str]]:
             out.append((variant, zh))
     out += [(en.lower(), zh) for zh, en in COUNTY_EN.items() if zh != "臺東縣"]
     out += [(en.lower(), zh) for zh, en in REGION_EN.items()]
+    # 宜蘭的舊拼法：國立宜蘭大學的英文校名是 National Ilan University
+    out += [("ilan", "宜蘭"), ("taidong", "台東")]
     # 範圍外縣市：同一個英文名稱有「台」「臺」兩種中文寫法，取「台」那個
     out += [(en.lower(), zh) for zh, en in OUT_OF_SCOPE_EN.items() if not zh.startswith("臺")]
     return sorted(out, key=lambda pair: len(pair[0]), reverse=True)
@@ -180,6 +192,7 @@ def _compile(pairs):
 
 _PLACES = _compile([(re.escape(en).replace(r"\ ", r"\s+").replace("'", "'?"), zh) for en, zh in _place_phrases()])
 _PHRASES = _compile(PHRASES)
+_PLACE_WORDS = {en for en, _ in _place_phrases()}
 
 
 def is_english(message: str) -> bool:
@@ -214,6 +227,23 @@ def rewrite(message: str, protected: list[str] | None = None) -> str:
         near.append(place + "附近")
         return " "
 
+    def _take_road(m: re.Match) -> str:
+        words = m.group(1).split()
+        while words and words[0].lower() in STOPWORDS | _BEFORE_ROAD:
+            words.pop(0)
+        if not words:
+            return m.group(0)
+        name = " ".join(words)
+        # 路名本身是鄉鎮（Dawu Street）：交給鄉鎮篩選，至少找得到那個鄉鎮的避難所
+        if name.lower() in _PLACE_WORDS:
+            return m.group(0)
+        near.append(f"{name} {m.group(2)}附近")
+        return " "
+
+    # 英文路名（Linsen Road、Cihui 3rd Street）：資料裡的路名只有中文，改寫不了。
+    # 評測裡這類題目的向量距離（0.45～0.63）跟答對的題目混在一起，門檻擋不住，交給語意檢索
+    # 只會拿別處的避難所來答，所以換成「X附近」，讓「找不到這個地方」那條路誠實回答
+    text = _ROAD_EN.sub(_take_road, text)
     text = _NEAR_BEFORE.sub(_take_near, text)
     # 問句裡本來就寫的中文（「Where is 頭城國中?」）跟改寫出來的關鍵字之間留一個空白：
     # 黏成「哪裡頭城國中」的話，點名比對會抽到「裡頭城國中」，回答「沒有裡頭城國中這間」

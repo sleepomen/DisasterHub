@@ -4,6 +4,7 @@
 這些句子本身就是答案（要座標、沒有相關資料、還沒模擬、服務掛了），
 build_context 內部一律產生中文，回傳前才用 tr() 翻成英文
 """
+import re
 
 # 知識路由的固定回覆。開頭用「目前沒有相關資料」：evals/lib/gen_metrics.py 的 ABSTAIN_MARKERS 認得
 NO_KNOWLEDGE_REPLY = (
@@ -102,10 +103,16 @@ def data_info_reply(count: int, lang: str = "zh") -> str:
 def unknown_place_reply(place: str, lang: str = "zh") -> str:
     """問句指了一個系統不認得的地方。語意檢索只會找到字面相近的別處避難所，不如直接說找不到"""
     if lang == "en":
+        # 英文寫的小地名與路名（Zhiben、Linsen Road）改寫層還不認得，資料裡只有中文，提示改用中文寫
+        latin = (
+            " Small place names and street names are only recognised in Chinese so far, "
+            "for example 「知本附近」 or 「林森路的避難所」."
+            if re.search(r"[A-Za-z]", place) else ""
+        )
         return (
             f"I could not find the place 「{place}」. The system knows the townships, villages and common landmarks of "
-            "Yilan, Hualien and Taitung. Please ask with a township or village name (for example 「頭城鎮的避難所」), "
-            "or give your coordinates to find the nearest shelter, for example: 緯度 23.99 經度 121.60."
+            f"Yilan, Hualien and Taitung.{latin} Please ask with a township (for example \"Shelters in Toucheng Township\"), "
+            "or give your coordinates to find the nearest shelter, for example: latitude 23.99, longitude 121.60."
         )
     return (
         f"找不到「{place}」這個地名。系統認得宜蘭、花蓮、台東的鄉鎮、村里與常見地標，"
