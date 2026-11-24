@@ -129,3 +129,31 @@ def test_english_replies_name_the_topic_in_english():
     assert "Taipei" in query_rules.out_of_scope_reply("台北", "en")
     # 中文回覆不變
     assert "天氣" in query_rules.off_topic_reply("天氣")
+
+
+def test_school_and_office_names():
+    # 「Senior High School」不是在問長者
+    plan = query_rules.analyze(rewrite("Yilan Senior High School gym"))
+    assert plan.facilities == ["高中"] and not plan.vulnerable
+    # 宜蘭的舊拼法
+    assert query_rules.analyze(rewrite("National Ilan University gymnasium")).region == "宜蘭"
+    # 「Taitung City」先換成台東市，剩下的「Office」單獨算公所
+    plan = query_rules.analyze(rewrite("Taitung City Office"))
+    assert plan.township == "台東市" and plan.facilities == ["公所"]
+    # hall 不篩類別：展演廳、禮堂都可能叫 hall
+    assert query_rules.analyze(rewrite("Luodong Performance Hall")).facilities == []
+
+
+def test_english_street_names_go_to_the_unknown_place_reply():
+    # 資料裡的路名只有中文；交給語意檢索只會拿別處的避難所來答（評測裡距離 0.45～0.63，門檻擋不住）
+    assert intent.place_before_geo_word(rewrite("Shelters on Linsen Road")) == "Linsen Road"
+    assert intent.place_before_geo_word(rewrite("Near Jieren Street")) == "Jieren Street"
+    assert intent.place_before_geo_word(rewrite("Cihui 3rd Street")) == "Cihui 3rd Street"
+    # 路名本身是鄉鎮時照鄉鎮篩選
+    assert query_rules.analyze(rewrite("Dawu Street")).township == "大武鄉"
+
+
+def test_unknown_english_place_reply_asks_for_chinese():
+    from services.chat.replies import unknown_place_reply
+    assert "only recognised in Chinese" in unknown_place_reply("Linsen Road", "en")
+    assert "only recognised in Chinese" not in unknown_place_reply("龜山島", "en")
