@@ -112,7 +112,7 @@ Open <http://localhost:8501>. The first start loads the shelters, hazard zones a
 - **The language model is small and local** (llama3.2:3b). It only answers what code cannot: plain semantic questions with no condition. Those are the weakest answers.
 - **The evacuation is a model, not a plan.** Each village starts from one point (its largest settlement), the population is the registered one rather than who is there at the time, and road speeds are fixed with no live traffic; congestion is only estimated afterwards, for driving, as [road bottlenecks](docs/simulation-and-routing.md#road-bottlenecks-when-driving) that do not change the routes. A [sensitivity analysis](docs/evaluation.md#sensitivity-analysis) shows which shelters are used and the gain from coordination hold up, while travel times shift by a quarter or more when people start elsewhere, so the minutes are orders of magnitude, not forecasts.
 - **Live alerts have not been seen live yet.** The feed reported no alerts while this was built, so the alert format is inferred from the dataset description.
-- **English mode is partial.** Answers, including the 34 knowledge passages, are in English, but questions still work best in Chinese: the rules layer's keyword tables (regions, facilities, capacity conditions) are Chinese.
+- **English questions are rewritten into Chinese keywords.** Townships, conditions and question types are recognised, but small place names only in Chinese ("near 知本" works, "near Zhiben" does not), and phrasings outside the rewrite tables fall back to plain semantic search.
 - **Two retrieval categories are partly circular.** The township and facility answers in the retrieval set come from the same functions that write the index metadata, so they partly test the retriever against itself. The alias, semantic, boundary, routing and knowledge questions are written by hand.
 
 ## Data sources
@@ -250,7 +250,7 @@ docker compose up --build
 - **語言模型小、跑在本機**（llama3.2:3b）。它只回答程式答不了的題目：沒有任何條件的語意題。這些也是答得最弱的。
 - **疏散是模型，不是計畫**。每個村里只用一個點（最大的聚落）當起點，人口是戶籍人口而不是當下實際在那裡的人，道路速度是固定值、沒有即時路況；壅塞只在開車時事後估算成[道路瓶頸](docs/zh-TW/simulation-and-routing.md#開車時的道路瓶頸)，不會改變路線。[敏感度分析](docs/zh-TW/evaluation.md#敏感度分析)顯示用到哪些避難所、統一調度的效益都站得住，但人從別的地方出發時通行時間會差四分之一以上，所以分鐘數是量級，不是預測。
 - **即時警戒還沒遇過真的警戒**。開發期間來源都回報沒有警戒，所以警戒格式是依資料集說明推斷的。
-- **英文模式只做了一部分**。回答（包括 34 段防災知識）是英文，但問題仍是中文最準：規則層的關鍵字表（地區、設施、容量條件）都是中文。
+- **英文問句是改寫成中文關鍵字來處理的**。鄉鎮、條件與問題類型認得出來，但小地名只認中文（「near 知本」可以，「near Zhiben」不行），改寫表沒收的說法會退回一般的語意檢索。
 - **檢索評測有兩類部分是循環的**。檢索題庫裡鄉鎮與設施兩類的正解，是用寫進索引 metadata 的同一組函式算出來的，等於讓檢索器考自己。別名、語意、拒答、路由與防災知識題都是人工出題。
 
 ## 資料來源
