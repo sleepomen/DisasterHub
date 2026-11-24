@@ -37,7 +37,8 @@ def load_rows(path: str) -> dict[str, dict]:
     rows = data.get("rows") or []
     by_query: dict[str, dict] = {}
     for r in rows:
-        query = r["query"]
+        # 英文題庫（rag_eval_en.jsonl）每題記著對應的中文題目，拿它配對，中英文兩次評測才能逐題比較
+        query = r.get("query_zh") or r["query"]
         if query in by_query:
             raise SystemExit(
                 f"{os.path.basename(path)} 裡有重複的題目「{query}」，無法逐題配對；"

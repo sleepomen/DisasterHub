@@ -93,25 +93,28 @@ def rules_only(store, query, plan) -> list:
 
 
 def run(cases, store, ks, top, threshold, use_rules=True, use_dense=True):
-    from services.chat import query_rules
+    from services.chat import english_query, query_rules
     from services.chat.shelter_names import known_names_of
 
     # 跟聊天層一樣：離題詞是避難所名稱的一部分（國軍805醫院）時不算離題
     known_names = known_names_of(store.shelter_metadata())
+    latin_names = [n for n in known_names if english_query.is_english(n)]
     rows = []
     for c in cases:
         t0 = time.perf_counter()
         rejected = None
+        # 跟 ChatService.build_context 一樣：英文問句先換成規則層認得的中文關鍵字，中文問句原樣通過
+        query = english_query.rewrite(c["query"], latin_names) if use_rules else c["query"]
         if use_rules:
-            plan = query_rules.analyze(c["query"], known_names=known_names)
+            plan = query_rules.analyze(query, known_names=known_names)
             # 規則層的兩種拒答都算：範圍外縣市，以及問的不是避難所（天氣、醫院、補助…）
             if plan.out_of_scope or plan.off_topic:
                 hits, rejected = [], plan.out_of_scope or plan.off_topic
             elif not use_dense:
-                hits = rules_only(store, c["query"], plan)
+                hits = rules_only(store, query, plan)
             else:
                 # 有篩選時交給規則決定筆數（回傳全部符合者），沒篩選時維持 top
-                hits = store.retrieve_planned(c["query"], plan, n_results=None if plan.has_filter else top)
+                hits = store.retrieve_planned(query, plan, n_results=None if plan.has_filter else top)
         else:
             hits = store.retrieve(c["query"], n_results=top)
         latency_ms = (time.perf_counter() - t0) * 1000
@@ -119,6 +122,7 @@ def run(cases, store, ks, top, threshold, use_rules=True, use_dense=True):
         relevant = set(c["relevant"])
         row = {
             "query": c["query"],
+            **({"query_zh": c["query_zh"], "rewritten": query} if "query_zh" in c else {}),
             "category": c["category"],
             "relevant": sorted(relevant),
             "ranked": ranked,
