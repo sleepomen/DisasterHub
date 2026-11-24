@@ -20,6 +20,9 @@ negatives 10/10 被規則層擋下
 - **列舉題召回率低是設計使然**：列舉題平均每題 35.8 個正確答案。有篩選時最多回傳 30 間，超過 15 間時 prompt 改給概況與 10 間；地區題每題約 200 間，R@all 0.047，這正是模型實際看到的量。
 - **列舉題的數字現在代表什麼**：列舉題的精確率維持 0.951，回傳的都符合條件。對列舉題來說，有用的指標變成「回答是否講對總數與分布」，而不是 R@all。
 
+- **英文問句（2026-11-24，`--cases evals/datasets/rag_eval_en.jsonl --label rag_en`）**：`evals/lib/build_eval_set_en.py` 把 207 題逐題換成英文，正確答案不變：鄉鎮用官方英文名稱，避難所名稱保留中文（資料沒有英文名稱），別名、語意題與負例照英文使用者會怎麼寫（「Hualien Stadium」「Shelters on Linsen Road」）。有[改寫層](chat.md#英文模式)時，8 類裡有 7 類分數跟中文完全相同，10 題負例全部拒答。差距在語意題（R@all 0.924 → 0.508）：5 題用拼音寫路名或小地名（Linsen Road、Cihui 3rd Street、Jieren Street、Duli Road、Zhiben），改寫換不成中文，bge-m3 也連不起來。全部題目的 recall@all 是 0.792 比 0.818（逐題配對差 +0.025，95% CI [+0.005, +0.046]）。拿掉改寫（`--no-rules --label rag_en_dense_only`，只靠 bge-m3 跨語言），鄉鎮題召回率掉到 0.130、容量題 0.007，負例一題都沒擋下。
+- **英文問句的距離門檻維持 0.70**：沒有篩選條件的路徑上，英文題答對的最接近距離最高 0.471，門檻不會誤擋。答錯的 5 題在 0.445 到 0.625 之間，跟答對的混在一起，任何門檻都分不開。改用規則處理：對話裡英文路名（`X Road`、`X Street`）跟不認得的地名一樣，誠實回答找不到，並提示改用中文寫，不拿別處的避難所充數。
+
 下面幾張表是舊的 50 間資料上的歷史結果；當時一個縣最多 20 間，每次列舉都放得進 prompt。
 
 評測集 `evals/datasets/rag_eval.jsonl`（130 題，9 個類別）由 `evals/lib/build_eval_set.py` 從 `data_for_refuge/` 產生，結構化類別（名稱、地區、鄉鎮、設施、容量）的正解由程式推導，別名／語意／負例為人工標註。
@@ -103,7 +106,8 @@ DisasterHub/
 │   ├── run_heldout_eval.py     # 別人出的題：系統回答、人工判定、計分
 │   ├── datasets/               # 題庫
 │   │   ├── rag_eval.jsonl      # 評測集
-│   │   ├── route_eval.jsonl    # 路由測試集（106 題，其中 33 題英文，涵蓋全部十六條路由）
+│   │   ├── rag_eval_en.jsonl   # 同一份題目的英文版，正確答案相同
+│   │   ├── route_eval.jsonl    # 路由測試集（108 題，其中 35 題英文，涵蓋全部十六條路由）
 │   │   ├── boundary_eval.jsonl # 邊界題／拒答題庫（54 題，涵蓋五層防線）
 │   │   ├── knowledge_eval.jsonl # 知識題（正例 / 語料沒有 / 混合 / 其實在問避難所）
 │   │   ├── place_eval.jsonl    # 小地名與它所在的鄉鎮
@@ -113,6 +117,7 @@ DisasterHub/
 │   │   ├── gen_metrics.py      # 回答召回 / 幻覺 / 數字忠實 / 格式規則
 │   │   ├── faithfulness.py     # 反事實上下文的改動方式與評分
 │   │   ├── build_eval_set.py   # 產生評測集
+│   │   ├── build_eval_set_en.py # 逐題產生英文版
 │   │   └── compare_runs.py     # 兩次結果的配對 bootstrap 差值比較
 │   └── results/                # 每項評測最新的一次結果
 │       └── history/            # 表格拿來比較的舊結果
@@ -429,7 +434,7 @@ docker exec -it disaster_app python evals/lib/compare_runs.py   evals/results/hi
 
 `evals/datasets/route_eval.jsonl` 是另一份 42 題的測試集，每題標上它*應該*走的路由，包含狀態相依的案例
 （「請給我疏散建議」在沒有模擬時該走 `no_simulation_advice`，模擬進行中該走 `simulation`）。
-後來又加了兩條路由：`off_topic` 與 `unknown_name`（見[不存在的場所](#不存在的場所)）；加入防災知識文件時再加 `knowledge` 與 `knowledge_mixed`（多 10 題，共 56 題；後來小地名再加 `place` 與 3 題，共 59 題，不認得的地名再加 `unknown_place` 與 4 題，共 63 題，問資料本身再加 `data_info` 與 2 題，共 65 題，即時消息再加 `live_info` 與 3 題，共 68 題，目前的警戒再加 `alerts` 與 3 題，共 71 題，模擬中問道路瓶頸再加 2 題，共 73 題，英文問句涵蓋全部十六條路由再加 33 題，共 106 題；執行器也把知識庫換成替身，回傳該災害的第一段，混合題才會有知識結果）。
+後來又加了兩條路由：`off_topic` 與 `unknown_name`（見[不存在的場所](#不存在的場所)）；加入防災知識文件時再加 `knowledge` 與 `knowledge_mixed`（多 10 題，共 56 題；後來小地名再加 `place` 與 3 題，共 59 題，不認得的地名再加 `unknown_place` 與 4 題，共 63 題，問資料本身再加 `data_info` 與 2 題，共 65 題，即時消息再加 `live_info` 與 3 題，共 68 題，目前的警戒再加 `alerts` 與 3 題，共 71 題，模擬中問道路瓶頸再加 2 題，共 73 題，英文問句涵蓋全部十六條路由再加 35 題，共 108 題；執行器也把知識庫換成替身，回傳該災害的第一段，混合題才會有知識結果）。
 執行器把向量庫與 repository 換成替身，因為 `metrics.route()` 是在 `build_context` 裡
 「碰到檢索或資料庫之前」就記下的。替身回傳的是從 `data_for_refuge/` JSON 讀出來的真實避難所名單，
 因為 `unknown_name` 必須拿真實名稱來判斷。所以它不需要 Ollama、ChromaDB 或 PostgreSQL，

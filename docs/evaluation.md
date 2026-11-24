@@ -20,6 +20,9 @@ negatives 10/10 rejected by the rules layer
 - **List recall is low by design.** Listing questions now average 35.8 correct shelters each. A filtered result returns at most 30 shelters, and above 15 matches the prompt gets the overview with 10. Region questions (≈ 200 each) score R@all 0.047, and that is exactly what the model is shown.
 - **What the listing numbers mean now.** Precision on listing questions stays at 0.951: whatever is returned matches the condition. For listings, the useful number is now whether the answer gives the right total and distribution, not R@all.
 
+- **English questions (2026-11-24, `--cases evals/datasets/rag_eval_en.jsonl --label rag_en`).** `evals/lib/build_eval_set_en.py` turns each of the 207 questions into English with the same answers: townships by their official English names, shelter names kept in Chinese (the data has no English names), and the aliases, semantic questions and negatives written the way an English speaker would ("Hualien Stadium", "Shelters on Linsen Road"). With the [rewrite layer](chat.md#english-mode), seven of the eight categories score exactly as in Chinese and all ten negatives are refused. The gap is the semantic category (R@all 0.924 → 0.508): five questions name a street or a small place in pinyin (Linsen Road, Cihui 3rd Street, Jieren Street, Duli Road, Zhiben), which the rewrite cannot turn into Chinese and bge-m3 does not connect either. Over all questions recall@all is 0.792 against 0.818 (paired difference +0.025, 95% CI [+0.005, +0.046]). Without the rewrite (`--no-rules --label rag_en_dense_only`, bge-m3 alone across languages) township recall falls to 0.130, capacity to 0.007, and no negative is refused.
+- **The distance cutoff stays at 0.70 for English.** On the path without filters, the English questions that were answered had a nearest distance of at most 0.471, so the cutoff refuses none of them. The five misses sat at 0.445 to 0.625, among the answered ones, so no cutoff separates them. A rule does: in a chat, an English street name (`X Road`, `X Street`) is treated like an unknown place and gets the honest "could not find" reply with a hint to write it in Chinese, instead of shelters from somewhere else.
+
 The tables below are the history on the previous 50-shelter data, where a county had at most 20 shelters and every listing fit in the prompt.
 
 The evaluation set `evals/datasets/rag_eval.jsonl` (130 questions across 9 categories) is generated from `data_for_refuge/` by `evals/lib/build_eval_set.py`. Ground truth for the structured categories (name, region, township, facilities, capacity) is derived programmatically; alias, semantic and negative cases are labeled by hand.
@@ -107,7 +110,8 @@ DisasterHub/
 │   ├── run_heldout_eval.py     # Questions written by other people: answer, grade by hand, score
 │   ├── datasets/               # Question sets
 │   │   ├── rag_eval.jsonl      # The evaluation set
-│   │   ├── route_eval.jsonl    # Routing test set (106 questions, 33 of them in English, all sixteen routes)
+│   │   ├── rag_eval_en.jsonl   # The same questions in English, same answers
+│   │   ├── route_eval.jsonl    # Routing test set (108 questions, 35 of them in English, all sixteen routes)
 │   │   ├── boundary_eval.jsonl # Boundary / abstention set (54 questions, five defences)
 │   │   ├── knowledge_eval.jsonl # Knowledge questions (positive / not covered / mixed / shelter look-alikes)
 │   │   ├── place_eval.jsonl    # Small place names with the township each lies in
@@ -117,6 +121,7 @@ DisasterHub/
 │   │   ├── gen_metrics.py      # Answer recall / hallucination / number faithfulness / format rules
 │   │   ├── faithfulness.py     # Counterfactual context perturbations and their scoring
 │   │   ├── build_eval_set.py   # Generates the evaluation set
+│   │   ├── build_eval_set_en.py # Its English version, question by question
 │   │   └── compare_runs.py     # Paired bootstrap on the difference between two runs
 │   └── results/                # Latest run of each evaluation
 │       └── history/            # Earlier runs the tables compare against
@@ -463,7 +468,7 @@ coverage at all**, including both of the non-RAG paths that make the routing "hy
 `evals/datasets/route_eval.jsonl` is a separate 42-question set labelled with the route each question *should*
 take, including the state-dependent case ("請給我疏散建議" must go to `no_simulation_advice` with no
 simulation and to `simulation` while one is running). Two routes were added later: `off_topic` and
-`unknown_name` (see [Nonexistent shelters](#nonexistent-shelters)), and with the disaster-preparedness passages `knowledge` and `knowledge_mixed` (10 more questions, 56 in total; small place names later added `place` and three more, 59 in total, unknown places `unknown_place` and four more, 63, questions about the data `data_info` and two more, 65, live news `live_info` and three more, 68, and current alerts `alerts` and three more, 71, road-bottleneck follow-ups during a simulation two more, 73, and English questions for all sixteen routes 33 more, 106 in total; the runner stubs the knowledge store as well, returning the first passage of the hazard so a mixed question has knowledge hits). The runner stubs the vector store and
+`unknown_name` (see [Nonexistent shelters](#nonexistent-shelters)), and with the disaster-preparedness passages `knowledge` and `knowledge_mixed` (10 more questions, 56 in total; small place names later added `place` and three more, 59 in total, unknown places `unknown_place` and four more, 63, questions about the data `data_info` and two more, 65, live news `live_info` and three more, 68, and current alerts `alerts` and three more, 71, road-bottleneck follow-ups during a simulation two more, 73, and English questions for all sixteen routes 35 more, 108 in total; the runner stubs the knowledge store as well, returning the first passage of the hazard so a mixed question has knowledge hits). The runner stubs the vector store and
 the repository, because `metrics.route()` is recorded in `build_context` *before* retrieval or the
 database is touched. The stub returns the real shelter list read from the JSON files in
 `data_for_refuge/`, since `unknown_name` must be decided against real names. So it needs no Ollama, no
