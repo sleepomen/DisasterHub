@@ -15,7 +15,7 @@ import threading
 import time
 
 import config
-from services.chat import intent, llm_client, query_rules
+from services.chat import english_query, intent, llm_client, query_rules
 from services.chat.alert_answer import alert_answer, asks_current_alerts
 from services.chat.answer_guard import LineGuard, filter_lines, supported_names
 from services.chat.direct_answer import nearest_answer, related_answer
@@ -230,6 +230,11 @@ class ChatService:
         回傳 (context, early_reply)。lang="en" 時 early_reply 是英文（固定句在這裡統一翻譯，
         清單、知識原文、查無這些帶資料的回覆在產生時就用英文）；context 永遠是中文，那是給模型的資料
         """
+        # 英文問句先換成規則層認得的中文關鍵字（services/chat/english_query.py）；
+        # 中文問句原樣通過。送給模型的仍是 chat_stream 手上的原句
+        if english_query.is_english(user_message):
+            protected = [n for n in known_names_of(self._shelter_metadata() or []) if english_query.is_english(n)]
+            user_message = english_query.rewrite(user_message, protected)
         context, early_reply = self._build_context(user_message, lang)
         return context, tr(early_reply, lang)
 
@@ -536,7 +541,7 @@ Instructions:
         """
         串流回答：逐段 yield 事件 dict，type 有 delta（文字片段）與 error（固定錯誤句）。
         跟 chat() 一樣不對外拋例外，所有錯誤都轉成使用者看得懂的訊息，
-        呼叫端只負責把 text 接起來或往下送。lang="en" 時回答用英文（問題仍是中文最準）
+        呼叫端只負責把 text 接起來或往下送。lang="en" 時回答用英文；英文問句在 build_context 改寫成中文關鍵字
         """
         started = time.monotonic()
         # 錯字在這裡就改掉：prompt 裡的問題也要是真實名稱，模型才不會照抄錯字回答

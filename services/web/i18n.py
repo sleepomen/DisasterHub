@@ -1,5 +1,5 @@
 """
-英文模式（第一階段：回答用英文，問題仍以中文最準）。
+英文模式：介面與回答用英文。英文問句由 services/chat/english_query.py 改寫成規則層的中文關鍵字。
 
 避難所名稱一律保留中文：消防署資料沒有英文名稱，自己翻或轉拼音都不可靠，
 使用者到現場看到的招牌也是中文。鄉鎮、縣市、設施類型、災害類別翻成英文，
@@ -46,6 +46,23 @@ FACILITY_EN = {
 }
 HAZARD_EN = {"水災": "floods", "震災": "earthquakes", "土石流": "debris flows", "海嘯": "tsunamis"}
 SIZE_EN = {"大型": "large", "中型": "medium-sized", "小型": "small"}
+
+# 範圍外縣市與離題主題（query_rules 的 OUT_OF_SCOPE_PLACES、OFF_TOPIC_WORDS）：英文回覆用英文說，
+# 不然英文問「What's the weather」會收到「has no information about 「天氣」」
+OUT_OF_SCOPE_EN = {
+    "基隆": "Keelung", "台北": "Taipei", "臺北": "Taipei", "新北": "New Taipei", "桃園": "Taoyuan", "新竹": "Hsinchu",
+    "苗栗": "Miaoli", "台中": "Taichung", "臺中": "Taichung", "彰化": "Changhua", "南投": "Nantou", "雲林": "Yunlin",
+    "嘉義": "Chiayi", "台南": "Tainan", "臺南": "Tainan", "高雄": "Kaohsiung", "屏東": "Pingtung", "澎湖": "Penghu",
+    "金門": "Kinmen", "馬祖": "Matsu", "連江": "Lienchiang",
+}
+OFF_TOPIC_EN = {
+    "天氣": "the weather", "下雨": "rain", "氣溫": "temperatures", "溫度": "temperatures", "降雨": "rainfall",
+    "補助": "subsidies", "紓困": "relief payments", "津貼": "allowances", "理賠": "insurance claims",
+    "保險": "insurance", "醫院": "hospitals", "診所": "clinics", "藥局": "pharmacies", "加油站": "gas stations",
+    "超商": "convenience stores", "便利商店": "convenience stores", "停車場": "parking", "郵局": "post offices",
+    "銀行": "banks", "餐廳": "restaurants", "飯店": "hotels", "民宿": "guesthouses", "公車": "buses",
+    "火車": "trains", "機場": "airports", "停班": "work and school closures", "停課": "work and school closures",
+}
 
 
 @cache

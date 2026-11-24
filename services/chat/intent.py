@@ -102,7 +102,8 @@ def needs_coordinates(message: str) -> bool:
 
 # 「X附近」「X一帶」「X最近的避難所」裡的 X。只看緊接在這些字前面的那一段，
 # 所以「最近有沒有新增避難所」（時間的「最近」）抓不到東西
-PLACE_BEFORE_GEO = re.compile(r"([\u4e00-\u9fff]{2,12})(?:附近|周邊|周圍|一帶|最近的)")
+# 英文問句改寫後也是這個語序（「near Zhiben」→「Zhiben附近」，見 services/chat/english_query.py）
+PLACE_BEFORE_GEO = re.compile(r"([\u4e00-\u9fff]{2,12}|[A-Z][A-Za-z'-]{1,30})(?:附近|周邊|周圍|一帶|最近的)")
 # X 開頭的這些字不是地名的一部分（「我在龜山島附近」→「龜山島」）
 PLACE_PREFIXES = ("請問", "我們在", "我人在", "我現在在", "我在", "人在", "現在在", "在", "我們", "我")
 # 相對位置不是地名：「我家附近」該要座標，不是回「找不到這個地名」

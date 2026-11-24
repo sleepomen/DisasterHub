@@ -9,7 +9,7 @@ import re
 from dataclasses import dataclass, field
 
 from services.retrieval.shelter_profile import FACILITY_LABELS, HAZARD_KEYS, TOWNSHIPS
-from services.web.i18n import FACILITY_EN, HAZARD_EN, SIZE_EN, place_en
+from services.web.i18n import FACILITY_EN, HAZARD_EN, OFF_TOPIC_EN, OUT_OF_SCOPE_EN, SIZE_EN, place_en
 
 # 系統涵蓋的三個縣，對應 metadata 的 region 欄位
 REGION_ALIASES = {
@@ -434,7 +434,8 @@ def off_topic_reply(topic: str, lang: str = "zh") -> str:
     # 換掉的話生成評測的 abstain_correct 會無聲下降（tests 有釘住）
     if lang == "en":
         return (
-            f"This system only covers emergency shelters in Yilan, Hualien and Taitung, and has no information about 「{topic}」. "
+            f"This system only covers emergency shelters in Yilan, Hualien and Taitung, "
+            f"and has no information about {OFF_TOPIC_EN.get(topic) or f'「{topic}」'}. "
             "You can ask about a shelter's location, capacity or free spaces, or where the nearest shelter is."
         )
     return (
@@ -446,7 +447,8 @@ def off_topic_reply(topic: str, lang: str = "zh") -> str:
 def out_of_scope_reply(place: str, lang: str = "zh") -> str:
     if lang == "en":
         return (
-            f"This system only covers shelters in Yilan, Hualien and Taitung, so it has no shelter information for 「{place}」. "
+            f"This system only covers shelters in Yilan, Hualien and Taitung, "
+            f"so it has no shelter information for {OUT_OF_SCOPE_EN.get(place) or f'「{place}」'}. "
             "Please ask about shelters in eastern Taiwan, or contact the local government's emergency operations center."
         )
     return (
