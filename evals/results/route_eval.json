@@ -1,138 +1,138 @@
 {
   "summary": {
-    "count": 73,
-    "correct": 73,
+    "count": 106,
+    "correct": 106,
     "accuracy": 1.0,
     "per_route": {
       "alerts": {
-        "count": 2,
-        "correct": 2,
-        "accuracy": 1.0
-      },
-      "data_info": {
         "count": 3,
         "correct": 3,
         "accuracy": 1.0
       },
+      "data_info": {
+        "count": 5,
+        "correct": 5,
+        "accuracy": 1.0
+      },
       "knowledge": {
+        "count": 9,
+        "correct": 9,
+        "accuracy": 1.0
+      },
+      "knowledge_mixed": {
+        "count": 3,
+        "correct": 3,
+        "accuracy": 1.0
+      },
+      "live_info": {
+        "count": 5,
+        "correct": 5,
+        "accuracy": 1.0
+      },
+      "nearest": {
         "count": 6,
         "correct": 6,
         "accuracy": 1.0
       },
-      "knowledge_mixed": {
+      "needs_coords": {
+        "count": 7,
+        "correct": 7,
+        "accuracy": 1.0
+      },
+      "no_clue": {
         "count": 2,
         "correct": 2,
         "accuracy": 1.0
       },
-      "live_info": {
+      "no_simulation_advice": {
+        "count": 5,
+        "correct": 5,
+        "accuracy": 1.0
+      },
+      "off_topic": {
+        "count": 7,
+        "correct": 7,
+        "accuracy": 1.0
+      },
+      "out_of_scope": {
+        "count": 6,
+        "correct": 6,
+        "accuracy": 1.0
+      },
+      "place": {
         "count": 3,
         "correct": 3,
         "accuracy": 1.0
       },
-      "nearest": {
-        "count": 4,
-        "correct": 4,
-        "accuracy": 1.0
-      },
-      "needs_coords": {
-        "count": 5,
-        "correct": 5,
-        "accuracy": 1.0
-      },
-      "no_clue": {
-        "count": 1,
-        "correct": 1,
-        "accuracy": 1.0
-      },
-      "no_simulation_advice": {
-        "count": 4,
-        "correct": 4,
-        "accuracy": 1.0
-      },
-      "off_topic": {
-        "count": 5,
-        "correct": 5,
-        "accuracy": 1.0
-      },
-      "out_of_scope": {
-        "count": 4,
-        "correct": 4,
-        "accuracy": 1.0
-      },
-      "place": {
-        "count": 2,
-        "correct": 2,
-        "accuracy": 1.0
-      },
       "rag": {
-        "count": 14,
-        "correct": 14,
+        "count": 20,
+        "correct": 20,
         "accuracy": 1.0
       },
       "simulation": {
-        "count": 12,
-        "correct": 12,
+        "count": 16,
+        "correct": 16,
         "accuracy": 1.0
       },
       "unknown_name": {
-        "count": 2,
-        "correct": 2,
+        "count": 3,
+        "correct": 3,
         "accuracy": 1.0
       },
       "unknown_place": {
-        "count": 4,
-        "correct": 4,
+        "count": 6,
+        "correct": 6,
         "accuracy": 1.0
       }
     },
     "confusion": {
       "alerts": {
-        "alerts": 2
+        "alerts": 3
       },
       "data_info": {
-        "data_info": 3
+        "data_info": 5
       },
       "knowledge": {
-        "knowledge": 6
+        "knowledge": 9
       },
       "knowledge_mixed": {
-        "knowledge_mixed": 2
+        "knowledge_mixed": 3
       },
       "live_info": {
-        "live_info": 3
+        "live_info": 5
       },
       "nearest": {
-        "nearest": 4
+        "nearest": 6
       },
       "needs_coords": {
-        "needs_coords": 5
+        "needs_coords": 7
       },
       "no_clue": {
-        "no_clue": 1
+        "no_clue": 2
       },
       "no_simulation_advice": {
-        "no_simulation_advice": 4
+        "no_simulation_advice": 5
       },
       "off_topic": {
-        "off_topic": 5
+        "off_topic": 7
       },
       "out_of_scope": {
-        "out_of_scope": 4
+        "out_of_scope": 6
       },
       "place": {
-        "place": 2
+        "place": 3
       },
       "rag": {
-        "rag": 14
+        "rag": 20
       },
       "simulation": {
-        "simulation": 12
+        "simulation": 16
       },
       "unknown_name": {
-        "unknown_name": 2
+        "unknown_name": 3
       },
       "unknown_place": {
-        "unknown_place": 4
+        "unknown_place": 6
       }
     },
     "routes": [
@@ -738,6 +738,270 @@
       "actual": "simulation",
       "answered_without_llm": true,
       "note": "模擬進行中問清空時間，沒有提到模擬也要走模擬"
+    },
+    {
+      "query": "Which shelters are in Yilan?",
+      "simulation": false,
+      "expected": "rag",
+      "actual": "rag",
+      "answered_without_llm": false,
+      "note": "英文：列舉題"
+    },
+    {
+      "query": "Shelters in Luodong that can hold more than 500 people",
+      "simulation": false,
+      "expected": "rag",
+      "actual": "rag",
+      "answered_without_llm": false,
+      "note": "英文：鄉鎮加容量條件"
+    },
+    {
+      "query": "Which shelter in Taitung has the largest capacity?",
+      "simulation": false,
+      "expected": "rag",
+      "actual": "rag",
+      "answered_without_llm": false,
+      "note": "英文：容量排名"
+    },
+    {
+      "query": "Are there wheelchair accessible indoor shelters in Su'ao?",
+      "simulation": false,
+      "expected": "rag",
+      "actual": "rag",
+      "answered_without_llm": false,
+      "note": "英文：無障礙、室內"
+    },
+    {
+      "query": "What is the capacity of 花蓮縣立體育場?",
+      "simulation": false,
+      "expected": "rag",
+      "actual": "rag",
+      "answered_without_llm": false,
+      "note": "英文問句點名中文名稱"
+    },
+    {
+      "query": "Where is the nearest shelter?",
+      "simulation": false,
+      "expected": "needs_coords",
+      "actual": "needs_coords",
+      "answered_without_llm": true,
+      "note": "英文：要座標"
+    },
+    {
+      "query": "Find the closest shelter to me",
+      "simulation": false,
+      "expected": "needs_coords",
+      "actual": "needs_coords",
+      "answered_without_llm": true,
+      "note": "英文：to me 是相對位置"
+    },
+    {
+      "query": "Nearest shelter to 24.68, 121.77",
+      "simulation": false,
+      "expected": "nearest",
+      "actual": "nearest",
+      "answered_without_llm": true,
+      "note": "英文：給座標"
+    },
+    {
+      "query": "Shelters near latitude 23.98 longitude 121.60",
+      "simulation": false,
+      "expected": "nearest",
+      "actual": "nearest",
+      "answered_without_llm": true,
+      "note": "英文：緯度經度寫法"
+    },
+    {
+      "query": "Shelters near 知本",
+      "simulation": false,
+      "expected": "place",
+      "actual": "place",
+      "answered_without_llm": true,
+      "note": "英文問句帶中文小地名"
+    },
+    {
+      "query": "Shelters near Zhiben",
+      "simulation": false,
+      "expected": "unknown_place",
+      "actual": "unknown_place",
+      "answered_without_llm": true,
+      "note": "英文小地名還認不得：誠實說找不到，不拿別處充數"
+    },
+    {
+      "query": "Where's the closest shelter to Qixingtan?",
+      "simulation": false,
+      "expected": "unknown_place",
+      "actual": "unknown_place",
+      "answered_without_llm": true,
+      "note": "同上，closest ... to X 的寫法"
+    },
+    {
+      "query": "Shelters in Taipei",
+      "simulation": false,
+      "expected": "out_of_scope",
+      "actual": "out_of_scope",
+      "answered_without_llm": true,
+      "note": "英文：範圍外縣市"
+    },
+    {
+      "query": "Are there shelters in Kaohsiung?",
+      "simulation": false,
+      "expected": "out_of_scope",
+      "actual": "out_of_scope",
+      "answered_without_llm": true,
+      "note": "英文：範圍外縣市"
+    },
+    {
+      "query": "What's the weather in Hualien tomorrow?",
+      "simulation": false,
+      "expected": "off_topic",
+      "actual": "off_topic",
+      "answered_without_llm": true,
+      "note": "英文：天氣"
+    },
+    {
+      "query": "Where is the nearest hospital in Yilan?",
+      "simulation": false,
+      "expected": "off_topic",
+      "actual": "off_topic",
+      "answered_without_llm": true,
+      "note": "英文：醫院"
+    },
+    {
+      "query": "Can I borrow money somewhere?",
+      "simulation": false,
+      "expected": "no_clue",
+      "actual": "no_clue",
+      "answered_without_llm": true,
+      "note": "英文：沒有任何避難線索"
+    },
+    {
+      "query": "What should I do during an earthquake?",
+      "simulation": false,
+      "expected": "knowledge",
+      "actual": "knowledge",
+      "answered_without_llm": true,
+      "note": "英文：問做法"
+    },
+    {
+      "query": "What does a yellow debris flow alert mean?",
+      "simulation": false,
+      "expected": "knowledge",
+      "actual": "knowledge",
+      "answered_without_llm": true,
+      "note": "英文：警戒等級的意思"
+    },
+    {
+      "query": "What should I prepare before a typhoon?",
+      "simulation": false,
+      "expected": "knowledge",
+      "actual": "knowledge",
+      "answered_without_llm": true,
+      "note": "英文：準備"
+    },
+    {
+      "query": "What should I do in an earthquake, and which shelters in Hualien City have free spaces?",
+      "simulation": false,
+      "expected": "knowledge_mixed",
+      "actual": "knowledge_mixed",
+      "answered_without_llm": false,
+      "note": "英文：知識加避難所"
+    },
+    {
+      "query": "Are there any debris flow alerts right now?",
+      "simulation": false,
+      "expected": "alerts",
+      "actual": "alerts",
+      "answered_without_llm": true,
+      "note": "英文：即時警戒"
+    },
+    {
+      "query": "Latest typhoon news",
+      "simulation": false,
+      "expected": "live_info",
+      "actual": "live_info",
+      "answered_without_llm": true,
+      "note": "英文：即時消息"
+    },
+    {
+      "query": "Road conditions on the Suhua Highway",
+      "simulation": false,
+      "expected": "live_info",
+      "actual": "live_info",
+      "answered_without_llm": true,
+      "note": "英文：路況"
+    },
+    {
+      "query": "Were any new shelters added recently?",
+      "simulation": false,
+      "expected": "data_info",
+      "actual": "data_info",
+      "answered_without_llm": true,
+      "note": "英文：資料版本"
+    },
+    {
+      "query": "Where does the shelter data come from?",
+      "simulation": false,
+      "expected": "data_info",
+      "actual": "data_info",
+      "answered_without_llm": true,
+      "note": "英文：資料來源"
+    },
+    {
+      "query": "Give me evacuation advice",
+      "simulation": false,
+      "expected": "no_simulation_advice",
+      "actual": "no_simulation_advice",
+      "answered_without_llm": true,
+      "note": "英文：沒有模擬卻要疏散建議"
+    },
+    {
+      "query": "Where is 頭城國中?",
+      "simulation": false,
+      "expected": "unknown_name",
+      "actual": "unknown_name",
+      "answered_without_llm": true,
+      "note": "英文問句點名不存在的場所"
+    },
+    {
+      "query": "Which shelters are affected in the simulation?",
+      "simulation": true,
+      "expected": "simulation",
+      "actual": "simulation",
+      "answered_without_llm": true,
+      "note": "英文：模擬結果"
+    },
+    {
+      "query": "How many people could not be placed?",
+      "simulation": true,
+      "expected": "simulation",
+      "actual": "simulation",
+      "answered_without_llm": true,
+      "note": "英文：模擬追問，沒被安置"
+    },
+    {
+      "query": "Which roads will be congested?",
+      "simulation": true,
+      "expected": "simulation",
+      "actual": "simulation",
+      "answered_without_llm": true,
+      "note": "英文：模擬追問，瓶頸"
+    },
+    {
+      "query": "How was everyone allocated?",
+      "simulation": true,
+      "expected": "simulation",
+      "actual": "simulation",
+      "answered_without_llm": true,
+      "note": "英文：模擬追問，分配"
+    },
+    {
+      "query": "Where is F Hotel?",
+      "simulation": false,
+      "expected": "rag",
+      "actual": "rag",
+      "answered_without_llm": false,
+      "note": "名稱裡的英文不改寫"
     }
   ]
 }

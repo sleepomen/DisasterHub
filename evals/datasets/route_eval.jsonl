@@ -71,3 +71,36 @@
 {"query": "紅色警戒有沒有要撤離", "expected_route": "knowledge", "simulation": false, "note": "「有沒有」在警戒後面，問的是該怎麼做，不是現況"}
 {"query": "開車疏散哪幾段路會塞？", "expected_route": "simulation", "simulation": true, "note": "模擬進行中問道路瓶頸：由程式依同一份分配回答"}
 {"query": "要多久才能清空", "expected_route": "simulation", "simulation": true, "note": "模擬進行中問清空時間，沒有提到模擬也要走模擬"}
+{"query": "Which shelters are in Yilan?", "expected_route": "rag", "simulation": false, "note": "英文：列舉題"}
+{"query": "Shelters in Luodong that can hold more than 500 people", "expected_route": "rag", "simulation": false, "note": "英文：鄉鎮加容量條件"}
+{"query": "Which shelter in Taitung has the largest capacity?", "expected_route": "rag", "simulation": false, "note": "英文：容量排名"}
+{"query": "Are there wheelchair accessible indoor shelters in Su'ao?", "expected_route": "rag", "simulation": false, "note": "英文：無障礙、室內"}
+{"query": "What is the capacity of 花蓮縣立體育場?", "expected_route": "rag", "simulation": false, "note": "英文問句點名中文名稱"}
+{"query": "Where is the nearest shelter?", "expected_route": "needs_coords", "simulation": false, "note": "英文：要座標"}
+{"query": "Find the closest shelter to me", "expected_route": "needs_coords", "simulation": false, "note": "英文：to me 是相對位置"}
+{"query": "Nearest shelter to 24.68, 121.77", "expected_route": "nearest", "simulation": false, "note": "英文：給座標"}
+{"query": "Shelters near latitude 23.98 longitude 121.60", "expected_route": "nearest", "simulation": false, "note": "英文：緯度經度寫法"}
+{"query": "Shelters near 知本", "expected_route": "place", "simulation": false, "note": "英文問句帶中文小地名"}
+{"query": "Shelters near Zhiben", "expected_route": "unknown_place", "simulation": false, "note": "英文小地名還認不得：誠實說找不到，不拿別處充數"}
+{"query": "Where's the closest shelter to Qixingtan?", "expected_route": "unknown_place", "simulation": false, "note": "同上，closest ... to X 的寫法"}
+{"query": "Shelters in Taipei", "expected_route": "out_of_scope", "simulation": false, "note": "英文：範圍外縣市"}
+{"query": "Are there shelters in Kaohsiung?", "expected_route": "out_of_scope", "simulation": false, "note": "英文：範圍外縣市"}
+{"query": "What's the weather in Hualien tomorrow?", "expected_route": "off_topic", "simulation": false, "note": "英文：天氣"}
+{"query": "Where is the nearest hospital in Yilan?", "expected_route": "off_topic", "simulation": false, "note": "英文：醫院"}
+{"query": "Can I borrow money somewhere?", "expected_route": "no_clue", "simulation": false, "note": "英文：沒有任何避難線索"}
+{"query": "What should I do during an earthquake?", "expected_route": "knowledge", "simulation": false, "note": "英文：問做法"}
+{"query": "What does a yellow debris flow alert mean?", "expected_route": "knowledge", "simulation": false, "note": "英文：警戒等級的意思"}
+{"query": "What should I prepare before a typhoon?", "expected_route": "knowledge", "simulation": false, "note": "英文：準備"}
+{"query": "What should I do in an earthquake, and which shelters in Hualien City have free spaces?", "expected_route": "knowledge_mixed", "simulation": false, "note": "英文：知識加避難所"}
+{"query": "Are there any debris flow alerts right now?", "expected_route": "alerts", "simulation": false, "note": "英文：即時警戒"}
+{"query": "Latest typhoon news", "expected_route": "live_info", "simulation": false, "note": "英文：即時消息"}
+{"query": "Road conditions on the Suhua Highway", "expected_route": "live_info", "simulation": false, "note": "英文：路況"}
+{"query": "Were any new shelters added recently?", "expected_route": "data_info", "simulation": false, "note": "英文：資料版本"}
+{"query": "Where does the shelter data come from?", "expected_route": "data_info", "simulation": false, "note": "英文：資料來源"}
+{"query": "Give me evacuation advice", "expected_route": "no_simulation_advice", "simulation": false, "note": "英文：沒有模擬卻要疏散建議"}
+{"query": "Where is 頭城國中?", "expected_route": "unknown_name", "simulation": false, "note": "英文問句點名不存在的場所"}
+{"query": "Which shelters are affected in the simulation?", "expected_route": "simulation", "simulation": true, "note": "英文：模擬結果"}
+{"query": "How many people could not be placed?", "expected_route": "simulation", "simulation": true, "note": "英文：模擬追問，沒被安置"}
+{"query": "Which roads will be congested?", "expected_route": "simulation", "simulation": true, "note": "英文：模擬追問，瓶頸"}
+{"query": "How was everyone allocated?", "expected_route": "simulation", "simulation": true, "note": "英文：模擬追問，分配"}
+{"query": "Where is F Hotel?", "expected_route": "rag", "simulation": false, "note": "名稱裡的英文不改寫"}
