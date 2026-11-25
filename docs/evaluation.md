@@ -107,6 +107,7 @@ DisasterHub/
 │   ├── run_assignment_eval.py  # Evacuation assignment: coordinated (min-cost flow) against everyone heading for the nearest shelter
 │   ├── run_coordinate_check.py # Shelter coordinates: distance to the road network and to their own village
 │   ├── run_sensitivity_eval.py # Evacuation assignment when demand, capacity or origins change
+│   ├── run_event_comparison.py # The model's assumptions next to a real disaster
 │   ├── run_heldout_eval.py     # Questions written by other people: answer, grade by hand, score
 │   ├── datasets/               # Question sets
 │   │   ├── rag_eval.jsonl      # The evaluation set
@@ -115,6 +116,7 @@ DisasterHub/
 │   │   ├── boundary_eval.jsonl # Boundary / abstention set (54 questions, five defences)
 │   │   ├── knowledge_eval.jsonl # Knowledge questions (positive / not covered / mixed / shelter look-alikes)
 │   │   ├── place_eval.jsonl    # Small place names with the township each lies in
+│   │   ├── events/             # Real disasters, every number with its source
 │   │   └── heldout/            # Instructions and template for questions written by other people
 │   ├── lib/                    # Scoring, statistics and tools shared by the runners
 │   │   ├── metrics.py          # Recall / Precision / MRR / R-Precision / ceilings / bootstrap CIs
@@ -695,6 +697,36 @@ Evacuees × 0.8 and × 1.2 stand for people present who are not registered there
 - **How many are placed is set by capacity and demand, almost one to one.** Extra evacuees or lost capacity turn into unplaced people; the routing does not absorb them.
 - **Travel times depend most on where people start.** Moving every origin 0.5–1 km in a random direction adds 26–35% to the mean time per person, part of it the walk to the nearest road. The minutes in the other sections are best read as orders of magnitude, which matches the township-centroid result above.
 - **Tighter capacity shortens the mean trip, but only because the people nearest the shelters take the places.** It is not a faster evacuation: more than half are left unplaced.
+
+## Real-event comparison
+
+The other evaluations test the system against questions and assumptions written while building it. `evals/run_event_comparison.py` sets its assumptions next to a disaster that happened: the overflow of the Mataian Creek barrier lake during Typhoon Ragasa (2025-09-23), which flooded Guangfu. The event file (`evals/datasets/events/mataian_2025.json`) holds every number with its source, publication date and the quoted sentence; numbers from different times are not mixed. The script reads only data files (shelters, village population, the [capacity gap report](simulation-and-routing.md#capacity-gap-report)), so it needs no database:
+
+```bash
+python evals/run_event_comparison.py
+```
+
+The warning zone is 12 villages in Guangfu, Fenglin and Wanrong, 11,659 registered residents.
+
+| | People | Share of the zone |
+|---|---:|---:|
+| System's assumption for floods | 2,565 | 22.0% |
+| Evacuated (night of 9/22) | 6,843 | 58.7% |
+| of them, left home (not vertical evacuation) | 1,495 | 12.8% |
+| In shelters (9/24) | 508 to 600+ | 4.4% to 5.1% |
+
+| Shelter in use (9/24) | People | In the dataset |
+|---|---:|---|
+| 大進國小 | 306 | no |
+| 光復高職體育館 | 169 | no |
+| 鳳林樂活會館 | 29 | yes (樂活會館) |
+| 萬榮國小 | 4 | no |
+
+- **94% of the people in shelters were in places the dataset does not have.** 479 of 508. The dataset is the version updated on 2025-12-16, almost three months after the event, and still lacks them. In this event the system could not have pointed anyone to the shelters that took in the most people. Matching is written by hand in the event file and checked against the data: 萬榮國小 and the dataset's 萬榮社區活動中心 are different places, which a fuzzy match would have joined.
+- **The system's demand is four to five times what reached shelters.** Most people evacuated vertically (5,348 of 6,843) or went to relatives. The [sensitivity analysis](#sensitivity-analysis) varies demand by ×0.8 to ×1.2; this event sits near ×0.2, outside that range. So the unplaced counts in the capacity gap report are an upper bound for floods like this one, not a forecast. The ratio is not changed to fit: one event cannot calibrate it, and fitting to the only test would leave nothing to check it against.
+- **The flood simulation sends people into the warning zone.** It avoids only debris-flow zones, and the barrier-lake warning zone is not in the data. 11 flood-designated shelters (capacity 880) lie in the 12 villages, and the capacity report's flood scenarios centred on Guangfu, Fenglin and Wanrong use 9, 11 and 9 of them.
+
+Limits: one event; the village list comes from the warning being lifted under the same mechanism in July 2026 (the 2025 reports give only the count, 12); the population is from 2026-09, after the event; the shelter counts are the two published on 9/24, the morning press release and "more than 600" that night.
 
 ## Ablation
 
