@@ -1,0 +1,298 @@
+{
+ "event": {
+  "id": "mataian_2025",
+  "name": "2025 年樺加沙颱風，馬太鞍溪堰塞湖溢流",
+  "date": "2025-09-23",
+  "hazard": "flood"
+ },
+ "zone": {
+  "villages": 12,
+  "population": 11659
+ },
+ "demand": {
+  "system_ratio": 0.22,
+  "system_evacuees": 2565,
+  "evacuated": 6843,
+  "vertical": 5348,
+  "left_home": 1495,
+  "sheltered_low": 508,
+  "sheltered_high": 600,
+  "sheltered_high_at_least": true,
+  "share": {
+   "evacuated": 0.5869,
+   "left_home": 0.1282,
+   "sheltered_low": 0.0436,
+   "sheltered_high": 0.0515
+  },
+  "overestimate": [
+   4.3,
+   5.0
+  ]
+ },
+ "coverage": {
+  "as_of": "2025-09-24",
+  "shelters": [
+   {
+    "name": "光復高職體育館",
+    "township": "光復鄉",
+    "people": 169,
+    "dataset_name": null,
+    "in_dataset": false
+   },
+   {
+    "name": "大進國小",
+    "township": "光復鄉",
+    "people": 306,
+    "dataset_name": null,
+    "in_dataset": false
+   },
+   {
+    "name": "萬榮國小",
+    "township": "萬榮鄉",
+    "people": 4,
+    "dataset_name": null,
+    "in_dataset": false
+   },
+   {
+    "name": "鳳林樂活會館",
+    "township": "鳳林鎮",
+    "people": 29,
+    "dataset_name": "樂活會館",
+    "in_dataset": true
+   }
+  ],
+  "people": 508,
+  "people_not_in_dataset": 479,
+  "share_not_in_dataset": 0.9429
+ },
+ "zone_shelters": {
+  "shelters": [
+   {
+    "name": "太巴塱國小",
+    "township": "光復鄉",
+    "village": "北富村",
+    "capacity": 100,
+    "designated": true
+   },
+   {
+    "name": "大同活動中心",
+    "township": "光復鄉",
+    "village": "大同村",
+    "capacity": 100,
+    "designated": true
+   },
+   {
+    "name": "光復鄉公所",
+    "township": "光復鄉",
+    "village": "大華村",
+    "capacity": 100,
+    "designated": true
+   },
+   {
+    "name": "光復國中",
+    "township": "光復鄉",
+    "village": "大馬村",
+    "capacity": 100,
+    "designated": true
+   },
+   {
+    "name": "東富國小",
+    "township": "光復鄉",
+    "village": "東富村",
+    "capacity": 100,
+    "designated": true
+   },
+   {
+    "name": "明利社區活動中心",
+    "township": "萬榮鄉",
+    "village": "明利村",
+    "capacity": 100,
+    "designated": true
+   },
+   {
+    "name": "萬榮鄉立幼兒園",
+    "township": "萬榮鄉",
+    "village": "明利村",
+    "capacity": 50,
+    "designated": true
+   },
+   {
+    "name": "馬太鞍社區活動中心",
+    "township": "萬榮鄉",
+    "village": "明利村",
+    "capacity": 80,
+    "designated": true
+   },
+   {
+    "name": "北林3村社區活動中心",
+    "township": "鳳林鎮",
+    "village": "北林里",
+    "capacity": 50,
+    "designated": false
+   },
+   {
+    "name": "大榮1村社區活動中心",
+    "township": "鳳林鎮",
+    "village": "大榮里",
+    "capacity": 50,
+    "designated": true
+   },
+   {
+    "name": "大榮2村社區活動中心",
+    "township": "鳳林鎮",
+    "village": "大榮里",
+    "capacity": 50,
+    "designated": true
+   },
+   {
+    "name": "長橋社區活動中心",
+    "township": "鳳林鎮",
+    "village": "長橋里",
+    "capacity": 50,
+    "designated": true
+   }
+  ],
+  "designated": 11,
+  "designated_capacity": 880,
+  "scenarios": [
+   {
+    "township": "鳳林鎮",
+    "radius_km": 10,
+    "covered_population": 13272,
+    "evacuees": 2920,
+    "used": [
+     "光復國中",
+     "光復鄉公所",
+     "南平社區活動中心",
+     "大同活動中心",
+     "大榮1村社區活動中心",
+     "大榮2村社區活動中心",
+     "太巴塱國小",
+     "明利社區活動中心",
+     "東富國小",
+     "林榮社區活動中心",
+     "森榮里辦公處",
+     "樂活會館",
+     "溪口活動中心",
+     "米棧活動中心",
+     "萬榮社區活動中心",
+     "萬榮鄉立幼兒園",
+     "西南活動中心",
+     "西林社區活動中心",
+     "見晴國民小學",
+     "長橋社區活動中心",
+     "馬太鞍社區活動中心",
+     "鳳仁國小羽球館",
+     "鳳仁社區活動中心",
+     "鳳信社區活動中心",
+     "鳳林國中進德堂",
+     "鳳林鎮公所",
+     "鳳林鎮藝文中心",
+     "鳳禮,鳳智里活動中心"
+    ],
+    "used_in_zone": [
+     "光復國中",
+     "光復鄉公所",
+     "大同活動中心",
+     "大榮1村社區活動中心",
+     "大榮2村社區活動中心",
+     "太巴塱國小",
+     "明利社區活動中心",
+     "東富國小",
+     "萬榮鄉立幼兒園",
+     "長橋社區活動中心",
+     "馬太鞍社區活動中心"
+    ]
+   },
+   {
+    "township": "光復鄉",
+    "radius_km": 10,
+    "covered_population": 12651,
+    "evacuees": 2783,
+    "used": [
+     "光復國中",
+     "光復自強外役監獄",
+     "光復鄉公所",
+     "光復鄉立托兒所",
+     "大同活動中心",
+     "大富國小",
+     "大興國小",
+     "大興活動中心",
+     "太巴塱國小",
+     "富興社區活動中心",
+     "明利社區活動中心",
+     "東富國小",
+     "森榮里辦公處",
+     "樂活會館",
+     "砂荖活動中心",
+     "花東山琉璃禪寺",
+     "萬榮社區活動中心",
+     "萬榮鄉立幼兒園",
+     "西南活動中心",
+     "長橋社區活動中心",
+     "馬佛活動中心",
+     "馬太鞍社區活動中心",
+     "鳳信社區活動中心",
+     "鳳林國中進德堂",
+     "鳳林鎮公所",
+     "鳳林鎮藝文中心"
+    ],
+    "used_in_zone": [
+     "光復國中",
+     "光復鄉公所",
+     "大同活動中心",
+     "太巴塱國小",
+     "明利社區活動中心",
+     "東富國小",
+     "萬榮鄉立幼兒園",
+     "長橋社區活動中心",
+     "馬太鞍社區活動中心"
+    ]
+   },
+   {
+    "township": "萬榮鄉",
+    "radius_km": 10,
+    "covered_population": 10100,
+    "evacuees": 2222,
+    "used": [
+     "光復國中",
+     "光復自強外役監獄",
+     "光復鄉公所",
+     "光復鄉立托兒所",
+     "大同活動中心",
+     "大富國小",
+     "大興國小",
+     "大興活動中心",
+     "太巴塱國小",
+     "明利社區活動中心",
+     "東富國小",
+     "森榮里辦公處",
+     "樂活會館",
+     "砂荖活動中心",
+     "花東山琉璃禪寺",
+     "萬榮社區活動中心",
+     "萬榮鄉立幼兒園",
+     "西南活動中心",
+     "長橋社區活動中心",
+     "馬佛活動中心",
+     "馬太鞍社區活動中心",
+     "鳳信社區活動中心",
+     "鳳林鎮公所",
+     "鳳林鎮藝文中心",
+     "鳳禮,鳳智里活動中心"
+    ],
+    "used_in_zone": [
+     "光復國中",
+     "光復鄉公所",
+     "大同活動中心",
+     "太巴塱國小",
+     "明利社區活動中心",
+     "東富國小",
+     "萬榮鄉立幼兒園",
+     "長橋社區活動中心",
+     "馬太鞍社區活動中心"
+    ]
+   }
+  ]
+ }
+}
