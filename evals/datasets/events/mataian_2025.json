@@ -1,0 +1,65 @@
+{
+  "id": "mataian_2025",
+  "name": "2025 年樺加沙颱風，馬太鞍溪堰塞湖溢流",
+  "date": "2025-09-23",
+  "hazard": "flood",
+  "note": "每個數字都附出處與時間點。不同時間點的數字不混在一起算：收容人數只取同一天（9/24）的兩筆，當作範圍的兩端",
+  "warning_zone": {
+    "villages": {
+      "光復鄉": ["大平村", "大同村", "大安村", "大馬村", "大華村", "北富村", "東富村"],
+      "鳳林鎮": ["長橋里", "山興里", "大榮里", "北林里"],
+      "萬榮鄉": ["明利村"]
+    },
+    "sources": [
+      {
+        "url": "https://udn.com/news/story/7266/9622376",
+        "published": "2026-07-12",
+        "quote": "光復鄉大平、大同、大安、大馬、大華、北富、東富等村，鳳林鎮長橋、山興、大榮、北林等里，以及萬榮鄉明利村及明利村馬太鞍部落"
+      },
+      {
+        "url": "https://news.pts.org.tw/article/772244",
+        "published": "2025-09-25",
+        "quote": "警戒範圍涵蓋萬榮鄉、光復鄉及鳳林鎮共12村里、1800戶居民"
+      }
+    ],
+    "caveat": "2025 年的報導只說 12 村里、沒有列名單；這份名單是 2026 年 7 月同一套警戒機制解除時列的，數目同樣是 12，當作同一個範圍"
+  },
+  "evacuation": {
+    "as_of": "2025-09-22 晚間",
+    "evacuated": 6843,
+    "vertical": 5348,
+    "source": {
+      "url": "https://news.pts.org.tw/article/772244",
+      "published": "2025-09-25",
+      "quote": "22日晚間緊急疏散6843人，其中5348人選擇在家中進行「垂直避難」，也就是移往2樓或更高樓層"
+    }
+  },
+  "sheltered": [
+    {
+      "as_of": "2025-09-24",
+      "total": 508,
+      "shelters": [
+        {"name": "光復高職體育館", "township": "光復鄉", "people": 169, "dataset_name": null},
+        {"name": "大進國小", "township": "光復鄉", "people": 306, "dataset_name": null},
+        {"name": "萬榮國小", "township": "萬榮鄉", "people": 4, "dataset_name": null},
+        {"name": "鳳林樂活會館", "township": "鳳林鎮", "people": 29, "dataset_name": "樂活會館"}
+      ],
+      "source": {
+        "url": "https://www.mohw.gov.tw/cp-16-84048-1.html",
+        "published": "2025-09-24",
+        "quote": "目前光復高職體育館安置169人、大進國小306人、萬榮國小4人、鳳林樂活會館29人，合計508人"
+      }
+    },
+    {
+      "as_of": "2025-09-24 22:07",
+      "total": 600,
+      "at_least": true,
+      "shelters": [],
+      "source": {
+        "url": "https://www.cna.com.tw/news/asoc/202509240389.aspx",
+        "published": "2025-09-24",
+        "quote": "目前收容超過600人"
+      }
+    }
+  ]
+}
